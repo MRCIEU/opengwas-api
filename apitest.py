@@ -1,4 +1,3 @@
-
 import os
 import json
 import urllib
@@ -12,73 +11,89 @@ import string
 from optparse import *
 from flask import *
 from werkzeug import secure_filename
-import mysql.connector
-from mysql.connector.constants import ClientFlag
-
-
 import logging
-logging.basicConfig(filename='/var/flask/logs/mrbaseapi.log',level=logging.DEBUG)
 
+# User defined
+from general_functions import *
+
+
+"""
+
+Setup logging
+
+"""
+
+LOG_FILE = "logs/mrbaseapi.log"
+
+if not os.path.exists(LOG_FILE):
+    open('file', 'w').close() 
+
+logging.basicConfig(filename=LOG_FILE,level=logging.DEBUG)
+
+
+"""
+
+Constants
+
+"""
 
 OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
 USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
 UPLOAD_FOLDER = '/tmp/'
 ALLOWED_EXTENSIONS = set(['txt'])
 MAX_FILE_SIZE = 16 * 1024 * 1024
-INTERNAL_USERS_FILE = '/var/flask/conf_files/internal_users.txt'
-MYSQLCONF_FILE = '/var/flask/conf_files/mysqlconf_central.txt'
-dbuser,dbpass = [i.strip() for i in open(MYSQLCONF_FILE,'r').readlines()]
+
+
+"""
+
+Initialise app
+
+"""
+
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 #app.debug = True
 
-# Database connection (using SSH tunnel for dbConnection)
-dbConnection = PySQLPool.getNewConnection(host         = "my-dbs-prod100.isys.bris.ac.uk",
-                                              port     = 4407,
-                                              user     = dbuser,
-                                              passwd   = dbpass,
-                                              db       = "mrbase",
-                                              clientflags = [ClientFlag.SSL],
-                                              ssl_ca   = "/var/flask/conf_files/uobca.pem")
 
-ucscConnection = PySQLPool.getNewConnection(host     = "genome-mysql.cse.ucsc.edu",
-                                              user     = "genome",
-                                              db       = "hg19")
+"""
 
-# General functions
+CONNECT TO DATABASES
 
-def check_filename(strg, search=re.compile(r'[^a-z0-9.]').search):
-    return not bool(search(strg))
+Two MR-Base databases - original server much be connected through tunnel
+                      - central server goes through SSL
 
-def clean_snp_string(snpstring):
-    # Function to clean snp string of bad characters
-    snpstring = snpstring.encode("ascii")
-    transtable = string.maketrans('','')
-    rsidallowed = "rs,0123456789" # Remove all characters except these (including white space)
-    cleansnp = transtable.translate(transtable,rsidallowed)
-    return snpstring.translate(transtable,cleansnp)
+UCSC - This may not be required anymore
 
-def clean_outcome_string(outcomestring):
-    # Function to clean outcome string of bad characters
-    outcomestring = outcomestring.encode("ascii")
-    transtable = string.maketrans('','')
-    rsidallowed = ",0123456789" # Allow numeric IDs and commas only
-    cleansnp = transtable.translate(transtable,rsidallowed)
-    return outcomestring.translate(transtable,cleansnp)
+----
 
-def joinarg(field):
-    field_text = ""
-    if field == "outcomes":
-        field_text = clean_outcome_string(request.args.get(field))
-    elif field == "snps":
-        field_text = clean_snp_string(request.args.get(field))
-    #else: field_text = request.args.get(field) # Unsafe
-    return ",".join([ "'" + x + "'" for x in field_text.split(",") ])
+The following code tests the MR-Base database connection
 
-def joinarray(array):
-    return ",".join([ "'" + str(x) + "'" for x in array])
+dbConnection = PySQLPool.getNewConnection(**mrbase_config)
+SQL   = "describe study;"
+query = PySQLPool.getNewQuery(dbConnection)
+query.Query(SQL)
+json.dumps(query.record)
+
+
+"""
+
+
+# with open("conf_files/central.json") as f:
+#     mrbase_config = json.load(f)
+
+with open("conf_files/original.json") as f:
+    mrbase_config = json.load(f)
+
+with open("conf_files/original.json") as f:
+    ucsc_config = json.load(f)
+
+
+dbConnection = PySQLPool.getNewConnection(**mrbase_config)
+ucscConnection = PySQLPool.getNewConnection(**ucsc_config)
+
+
 
 def get_user_email(token):
     url = OAUTH2_URL + token
@@ -104,30 +119,18 @@ def check_access_token(token):
 
 def token_query(token):
     user_email = get_user_email(token)
-    query = """(c.id IN (select d.id from study d, memberships m, permissions p
-                       WHERE m.uid = "{0}"
-        				AND p.gid = m.gid
-        				AND d.id = p.study_id
-        				)
-        			  OR c.id IN (select d.id from study d, permissions p
-                       WHERE p.gid = 1
-        				AND d.id = p.study_id
-        				)
-        			)""".format(user_email)
+    query =  """(c.id IN (select d.id from study d, memberships m, permissions p
+                    WHERE m.uid = "{0}"
+                    AND p.gid = m.gid
+                    AND d.id = p.study_id
+        		)
+        	    OR c.id IN (select d.id from study d, permissions p
+                    WHERE p.gid = 1
+                    AND d.id = p.study_id
+        		))""".format(user_email)
     return query
 
 
-def check_email(email):
-    with open(INTERNAL_USERS_FILE, 'r') as file:
-        if re.search('^{0}$'.format(re.escape(email)), file.read(), flags=re.M):
-            return True
-        else:
-            return False
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
 def query_summary_stats(token, snps, outcomes):
@@ -444,6 +447,11 @@ def proxy_alleles(pq, pd, maf_threshold):
 
 
 # Methods
+@app.route("/")
+def hello():
+    logging.info("INCOMING")
+    return "Welcome to the MR-Base API"
+
 
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
@@ -597,9 +605,11 @@ def get_effects_from_file():
     if not check_filename(request.args.get('outcomefile')) or not check_filename(request.args.get('snpfile')):
         return json.dumps([])
     if not request.args.get('proxies'):
+        logging.info("not getting proxies by default")
         proxies = '0'
     else:
-        proxies = '1'
+        proxies = request.args.get('proxies')
+
     if not request.args.get('rsq'):
         rsq = 0.8
     else:
@@ -698,27 +708,3 @@ def clump():
 @app.route("/test_api_server", methods=[ 'GET' ])
 def test_api_server():
     return "API server alive!!!!??"
-
-if __name__ == "__main__":
-    #
-    parser   = OptionParser()
-
-    parser.add_option("-u", dest="user", metavar="USER", default=None)
-    parser.add_option("-p", dest="passwd", metavar="PASSWD", default=None)
-
-    Opt, Arg = parser.parse_args()
-
-    assert Opt.user
-    assert Opt.passwd
-
-    dbConnection = PySQLPool.getNewConnection(host     = "127.0.0.1",
-                                              port     = 3309,
-                                              user     = Opt.user,
-                                              passwd   = Opt.passwd,
-                                              db       = "mrbase")
-
-    ucscConnection = PySQLPool.getNewConnection(host     = "genome-mysql.cse.ucsc.edu",
-                                              user     = "genome",
-                                              db       = "hg19")
-
-    #app.run(host='0.0.0.0', debug=True) # Not using this on WSGI server
