@@ -13,9 +13,6 @@ from flask import *
 from werkzeug import secure_filename
 import logging
 
-# User defined
-from general_functions import *
-
 
 """
 
@@ -80,11 +77,11 @@ json.dumps(query.record)
 """
 
 
-# with open("conf_files/central.json") as f:
-#     mrbase_config = json.load(f)
-
-with open("conf_files/original.json") as f:
+with open("conf_files/central.json") as f:
     mrbase_config = json.load(f)
+
+# with open("conf_files/original.json") as f:
+    # mrbase_config = json.load(f)
 
 with open("conf_files/original.json") as f:
     ucsc_config = json.load(f)

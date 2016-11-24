@@ -440,6 +440,12 @@ def proxy_alleles(pq, pd, maf_threshold):
 
 # Methods
 
+
+@app.route("/")
+def hello():
+    return "MR-Base API"
+
+
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
