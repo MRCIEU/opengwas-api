@@ -16,20 +16,6 @@ import logging
 
 """
 
-Setup logging
-
-"""
-
-LOG_FILE = "logs/mrbaseapi.log"
-
-if not os.path.exists(LOG_FILE):
-    open('file', 'w').close() 
-
-logging.basicConfig(filename=LOG_FILE,level=logging.DEBUG)
-
-
-"""
-
 Constants
 
 """
@@ -39,6 +25,24 @@ USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_to
 UPLOAD_FOLDER = '/tmp/'
 ALLOWED_EXTENSIONS = set(['txt'])
 MAX_FILE_SIZE = 16 * 1024 * 1024
+
+LOG_FILE = "../logs/mrbaseapi.log"
+CENTRAL_DB = "../conf_files/central.json"
+UCSC_DB = "../conf_files/ucsc.json"
+ORIGINAL_DB = "../conf_files/original.json"
+
+"""
+
+Setup logging
+
+"""
+
+
+if not os.path.exists(LOG_FILE):
+    open('file', 'w').close() 
+
+logging.basicConfig(filename=LOG_FILE,level=logging.DEBUG)
+
 
 
 """
@@ -77,13 +81,13 @@ json.dumps(query.record)
 """
 
 
-with open("conf_files/central.json") as f:
+with open(CENTRAL_DB) as f:
     mrbase_config = json.load(f)
 
-# with open("conf_files/original.json") as f:
+# with open(ORIGINAL_DB) as f:
     # mrbase_config = json.load(f)
 
-with open("conf_files/original.json") as f:
+with open(UCSC_DB) as f:
     ucsc_config = json.load(f)
 
 
@@ -225,8 +229,8 @@ def plink_clumping_rs(fn, upload_folder, ress, snp_col, pval_col, p1, p2, r2, kb
             tfile.write(str(ress[i].get(snp_col)) + " " + str(ress[i].get(pval_col)) + "\n")
 
         tfile.close()
-        command =   "ld_files/plink1.90 " \
-                    "--bfile ld_files/data_maf0.01_rs " \
+        command =   "../ld_files/plink1.90 " \
+                    "--bfile ../ld_files/data_maf0.01_rs " \
                     " --clump {0} " \
                     " --clump-p1 {1} " \
                     " --clump-p2 {2} " \
@@ -270,8 +274,8 @@ def plink_clumping(fn, upload_folder, cp, ress, snp_col, pval_col, p1, p2, r2, k
                 tfile.write(y + " " + str(ress[i].get(pval_col)) + "\n")
         tfile.close()
 
-        command =   "ld_files/plink1.90 " \
-                    "--bfile ld_files/data_maf0.01 " \
+        command =   "../ld_files/plink1.90 " \
+                    "--bfile ../ld_files/data_maf0.01 " \
                     " --clump {0} " \
                     " --clump-p1 {1} " \
                     " --clump-p2 {2} " \
