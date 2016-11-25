@@ -170,12 +170,12 @@ def check_access_token(token):
 def token_query(token):
     user_email = get_user_email(token)
     logging.info("getting credentials for "+user_email)
-    query =  """(c.id IN (select d.id from study_copy d, memberships m, permissions p
+    query =  """(c.id IN (select d.id from study d, memberships m, permissions p
                     WHERE m.uid = "{0}"
                     AND p.gid = m.gid
                     AND d.id = p.study_id
         		)
-        	    OR c.id IN (select d.id from study_copy d, permissions p
+        	    OR c.id IN (select d.id from study d, permissions p
                     WHERE p.gid = 1
                     AND d.id = p.study_id
         		))""".format(user_email)
@@ -194,7 +194,7 @@ def query_summary_stats(token, snps, outcomes):
     access_query = token_query(token)
     query = PySQLPool.getNewQuery(dbConnection)
     SQL   = """SELECT a.effect_allele, a.other_allele, a.effect_allelel_freq, a.beta, a.se, a.p, a.n, b.name, c.*
-            FROM assoc a, snp b, study_copy c
+            FROM assoc a, snp b, study c
             WHERE a.snp=b.id AND a.study=c.id
             AND {0}
             AND a.study IN ({1})
@@ -553,7 +553,7 @@ def get_studies():
     logging.info("\n\n\nRequesting study table")
     access_query = token_query(request.args.get('access_token'))
     query = PySQLPool.getNewQuery(dbConnection)
-    SQL   = "SELECT * FROM study_copy c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
+    SQL   = "SELECT * FROM study c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
     query.Query(SQL)
     return json.dumps(query.record, ensure_ascii=False)
 
@@ -570,7 +570,7 @@ def get_effects():
 
 @app.route("/get_status", methods=[ 'GET' ])
 def get_status():
-    SQL   = "SELECT COUNT(*) FROM study_copy;"
+    SQL   = "SELECT COUNT(*) FROM study;"
     query = PySQLPool.getNewQuery(dbConnection)
     query.Query(SQL)
     return json.dumps(query.record)
@@ -622,7 +622,7 @@ def extract_instruments():
     query = PySQLPool.getNewQuery(dbConnection)
 
     SQL = "SELECT a.effect_allele, a.other_allele, a.effect_allelel_freq, a.beta, a.se, a.p, a.n, b.name, c.* " \
-        "FROM assoc a, snp b, study_copy c " \
+        "FROM assoc a, snp b, study c " \
         "WHERE a.snp=b.id AND a.study=c.id " \
         "AND a.study IN ({0}) " \
         "AND a.p <= {1} " \
