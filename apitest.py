@@ -91,6 +91,55 @@ dbConnection = PySQLPool.getNewConnection(**mrbase_config)
 ucscConnection = PySQLPool.getNewConnection(**ucsc_config)
 
 
+"""
+
+General functions
+
+"""
+
+
+def check_filename(strg, search=re.compile(r'[^a-z0-9.]').search):
+    return not bool(search(strg))
+
+def clean_snp_string(snpstring):
+    # Function to clean snp string of bad characters
+    snpstring = snpstring.encode("ascii")
+    transtable = string.maketrans('','')
+    rsidallowed = "rs,0123456789" # Remove all characters except these (including white space)
+    cleansnp = transtable.translate(transtable,rsidallowed)
+    return snpstring.translate(transtable,cleansnp)
+
+def clean_outcome_string(outcomestring):
+    # Function to clean outcome string of bad characters
+    outcomestring = outcomestring.encode("ascii")
+    transtable = string.maketrans('','')
+    rsidallowed = ",0123456789" # Allow numeric IDs and commas only
+    cleansnp = transtable.translate(transtable,rsidallowed)
+    return outcomestring.translate(transtable,cleansnp)
+
+def joinarg(field):
+    field_text = ""
+    if field == "outcomes":
+        field_text = clean_outcome_string(request.args.get(field))
+    elif field == "snps":
+        field_text = clean_snp_string(request.args.get(field))
+    #else: field_text = request.args.get(field) # Unsafe
+    return ",".join([ "'" + x + "'" for x in field_text.split(",") ])
+
+def joinarray(array):
+    return ",".join([ "'" + str(x) + "'" for x in array])
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
+"""
+
+Authentication functions
+
+"""
+
 
 def get_user_email(token):
     url = OAUTH2_URL + token
@@ -116,12 +165,13 @@ def check_access_token(token):
 
 def token_query(token):
     user_email = get_user_email(token)
-    query =  """(c.id IN (select d.id from study d, memberships m, permissions p
+    logging.info("getting credentials for "+user_email)
+    query =  """(c.id IN (select d.id from study_copy d, memberships m, permissions p
                     WHERE m.uid = "{0}"
                     AND p.gid = m.gid
                     AND d.id = p.study_id
         		)
-        	    OR c.id IN (select d.id from study d, permissions p
+        	    OR c.id IN (select d.id from study_copy d, permissions p
                     WHERE p.gid = 1
                     AND d.id = p.study_id
         		))""".format(user_email)
@@ -129,12 +179,18 @@ def token_query(token):
 
 
 
+"""
+
+Query functions
+
+"""
+
 
 def query_summary_stats(token, snps, outcomes):
     access_query = token_query(token)
     query = PySQLPool.getNewQuery(dbConnection)
     SQL   = """SELECT a.effect_allele, a.other_allele, a.effect_allelel_freq, a.beta, a.se, a.p, a.n, b.name, c.*
-            FROM assoc a, snp b, study c
+            FROM assoc a, snp b, study_copy c
             WHERE a.snp=b.id AND a.study=c.id
             AND {0}
             AND a.study IN ({1})
@@ -169,8 +225,8 @@ def plink_clumping_rs(fn, upload_folder, ress, snp_col, pval_col, p1, p2, r2, kb
             tfile.write(str(ress[i].get(snp_col)) + " " + str(ress[i].get(pval_col)) + "\n")
 
         tfile.close()
-        command =   "/var/flask/ld_files/plink1.90 " \
-                    "--bfile /var/flask/ld_files/data_maf0.01_rs " \
+        command =   "ld_files/plink1.90 " \
+                    "--bfile ld_files/data_maf0.01_rs " \
                     " --clump {0} " \
                     " --clump-p1 {1} " \
                     " --clump-p2 {2} " \
@@ -214,8 +270,8 @@ def plink_clumping(fn, upload_folder, cp, ress, snp_col, pval_col, p1, p2, r2, k
                 tfile.write(y + " " + str(ress[i].get(pval_col)) + "\n")
         tfile.close()
 
-        command =   "/var/flask/bin/plink1.90 " \
-                    "--bfile /var/flask/ld_files/data_maf0.01 " \
+        command =   "ld_files/plink1.90 " \
+                    "--bfile ld_files/data_maf0.01 " \
                     " --clump {0} " \
                     " --clump-p1 {1} " \
                     " --clump-p2 {2} " \
@@ -274,6 +330,7 @@ def get_proxies(snps, chr):
 
 
 def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
+    logging.info("obtaining LD proxies")
     pquery = PySQLPool.getNewQuery(dbConnection)
     if palindromes == "0":
         pal = 'AND palindromic = 0'
@@ -309,6 +366,7 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 
 
 def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles):
+    logging.info("entering extract_proxies_from_query")
     matched_proxies = []
     proxy_query_copy = [a.get('name') for a in proxy_query]
     for i in range(len(outcomes)):
@@ -442,8 +500,12 @@ def proxy_alleles(pq, pd, maf_threshold):
 
 
 
+"""
 
-# Methods
+Methods
+
+"""
+
 @app.route("/")
 def hello():
     logging.info("INCOMING")
@@ -484,11 +546,11 @@ def check_token():
 
 @app.route("/get_studies", methods=[ 'GET' ])
 def get_studies():
+    logging.info("\n\n\nRequesting study table")
     access_query = token_query(request.args.get('access_token'))
     query = PySQLPool.getNewQuery(dbConnection)
-    SQL   = "SELECT * FROM study c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
+    SQL   = "SELECT * FROM study_copy c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
     query.Query(SQL)
-    print SQL
     return json.dumps(query.record, ensure_ascii=False)
 
 
@@ -504,7 +566,7 @@ def get_effects():
 
 @app.route("/get_status", methods=[ 'GET' ])
 def get_status():
-    SQL   = "SELECT COUNT(*) FROM study;"
+    SQL   = "SELECT COUNT(*) FROM study_copy;"
     query = PySQLPool.getNewQuery(dbConnection)
     query.Query(SQL)
     return json.dumps(query.record)
@@ -549,35 +611,32 @@ def extract_instruments():
 
     outcomes = joinarg('outcomes')
 
-    logging.info(outcomes)
-    logging.info(clump)
-    logging.info(clump == "yes")
+    logging.info("\n\n\nobtaining instruments for "+outcomes)
+    logging.info("clumping = "+clump)
 
     access_query = token_query(request.args.get('access_token'))
     query = PySQLPool.getNewQuery(dbConnection)
 
     SQL = "SELECT a.effect_allele, a.other_allele, a.effect_allelel_freq, a.beta, a.se, a.p, a.n, b.name, c.* " \
-        "FROM assoc a, snp b, study c " \
+        "FROM assoc a, snp b, study_copy c " \
         "WHERE a.snp=b.id AND a.study=c.id " \
         "AND a.study IN ({0}) " \
         "AND a.p <= {1} " \
         "AND {2}" \
         "ORDER BY a.study;".format(outcomes, pval, access_query)
+    logging.info("querying database...")
     query.Query(SQL)
-    print "query complete"
     res = query.record
-    print len(res)
+    logging.info("done. found "+str(len(res))+" hits")
 
     if query.affectedRows == 0L:
         return json.dumps([])
 
     if clump =="yes" and query.affectedRows != 0L:
-
         found_outcomes = set([x.get('id') for x in res])
-        print "made set"
         all_out = []
         for outcome in found_outcomes:
-            print outcome
+            logging.info("clumping results for "+str(outcome))
             ress = [x for x in res if x.get('id') == outcome]
             snps = set([x.get('name') for x in res if x.get('id') == outcome])
 
@@ -597,6 +656,7 @@ def extract_instruments():
 
 @app.route("/get_effects_from_file", methods=[ 'GET' ])
 def get_effects_from_file():
+    logging.info("\n\n\nExtracting effects based on file uploads")
     if not request.args.get('outcomefile') or not request.args.get('snpfile'):
         return json.dumps([])
     if not check_filename(request.args.get('outcomefile')) or not check_filename(request.args.get('snpfile')):
@@ -637,15 +697,15 @@ def get_effects_from_file():
         outcomes = [x.strip("\n") for x in outcomes]
     os.remove(outcomefile)
 
-
+    logging.info("extracting data for "+str(len(snps))+" SNP(s) in "+str(len(outcomes))+" outcome(s)")
 
     if proxies == '0':
-        logging.info("no proxy")
+        logging.info("not using LD proxies")
         snps = ",".join([ "'" + x.strip("\n") + "'" for x in snps])
         outcomes = ",".join([ "'" + x.strip("\n") + "'" for x in outcomes])
         return json.dumps(query_summary_stats(request.args.get('access_token'), snps, outcomes), ensure_ascii=False)
     else:
-        logging.info("finding proxies")
+        logging.info("using LD proxies")
         # cp = get_snp_positions(snps)
         # snps = [x.get('name') for x in cp]
         # chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
