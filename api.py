@@ -513,7 +513,7 @@ Methods
 @app.route("/")
 def hello():
     logging.info("INCOMING")
-    return "Welcome to the MR-Base API"
+    return "Welcome to the MR-Base API. This was automatically deployed."
 
 
 @app.route("/upload", methods=['GET', 'POST'])
