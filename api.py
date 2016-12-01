@@ -12,6 +12,8 @@ from optparse import *
 from flask import *
 from werkzeug import secure_filename
 import logging
+import sqlite3 as sqli
+import datetime
 
 
 """
@@ -30,6 +32,7 @@ LOG_FILE = "../logs/mrbaseapi.log"
 CENTRAL_DB = "../conf_files/central.json"
 UCSC_DB = "../conf_files/ucsc.json"
 ORIGINAL_DB = "../conf_files/original.json"
+APICALL_LOG_FILE = "../logs/mrbaselog.sqlite"
 
 """
 
@@ -39,7 +42,7 @@ Setup logging
 
 
 if not os.path.exists(LOG_FILE):
-    open('file', 'w').close() 
+    open('file', 'w').close()
 
 logging.basicConfig(filename=LOG_FILE,level=logging.DEBUG)
 
@@ -81,11 +84,11 @@ json.dumps(query.record)
 """
 
 
-with open(CENTRAL_DB) as f:
-    mrbase_config = json.load(f)
+# with open(CENTRAL_DB) as f:
+#     mrbase_config = json.load(f)
 
-# with open(ORIGINAL_DB) as f:
-    # mrbase_config = json.load(f)
+with open(ORIGINAL_DB) as f:
+    mrbase_config = json.load(f)
 
 with open(UCSC_DB) as f:
     ucsc_config = json.load(f)
@@ -140,7 +143,7 @@ def allowed_file(filename):
 
 """
 
-Authentication functions
+Authentication and logging functions
 
 """
 
@@ -181,6 +184,13 @@ def token_query(token):
         		))""".format(user_email)
     return query
 
+def logapicall(useremail,study,nsnp):
+    con = sqli.connect(APICALL_LOG_FILE, detect_types=sqli.PARSE_DECLTYPES)
+    cur = con.cursor()
+    cur.execute('INSERT into apicalls VALUES(?,?,?,?)',(useremail,study,nsnp,datetime.datetime.now()))
+    data = cur.fetchone()
+    con.commit()
+    con.close()
 
 
 """
@@ -191,6 +201,7 @@ Query functions
 
 
 def query_summary_stats(token, snps, outcomes):
+    user_email = get_user_email(token)
     access_query = token_query(token)
     query = PySQLPool.getNewQuery(dbConnection)
     SQL   = """SELECT a.effect_allele, a.other_allele, a.effect_allelel_freq, a.beta, a.se, a.p, a.n, b.name, c.*
@@ -201,6 +212,10 @@ def query_summary_stats(token, snps, outcomes):
             AND b.name IN ({2})
             ORDER BY a.study;""".format(access_query, outcomes, snps)
     logging.info("performing summary stats query")
+    nsnps = len(snps.strip().split(","))
+    studies = outcomes.strip().split(",")
+    for study in studies:
+        logapicall(user_email,study,nsnps)
     query.Query(SQL)
     logging.info("done summary stats query")
     return query.record
@@ -632,6 +647,13 @@ def extract_instruments():
     query.Query(SQL)
     res = query.record
     logging.info("done. found "+str(len(res))+" hits")
+    token = request.args.get('access_token')
+    user_email = get_user_email(token)
+    studies = outcomes.strip().split(",")
+    nsnps = len(res)
+    for study in studies:
+        nsnps = sum(1 for result in res if str(result["id"]) == study.strip("'"))
+        logapicall(user_email,study,nsnps)
 
     if query.affectedRows == 0L:
         return json.dumps([])
