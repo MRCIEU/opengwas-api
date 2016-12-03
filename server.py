@@ -13,7 +13,7 @@ import cherrypy
 if __name__ == '__main__':
 
     # Mount the application
-    cherrypy.tree.graft(app, "/mr-base-api/")
+    cherrypy.tree.graft(app, "/")
 
     # Unsubscribe the default server
     cherrypy.server.unsubscribe()
