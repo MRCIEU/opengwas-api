@@ -84,11 +84,11 @@ json.dumps(query.record)
 """
 
 
-# with open(CENTRAL_DB) as f:
-#     mrbase_config = json.load(f)
-
-with open(ORIGINAL_DB) as f:
+with open(CENTRAL_DB) as f:
     mrbase_config = json.load(f)
+
+#with open(ORIGINAL_DB) as f:
+#    mrbase_config = json.load(f)
 
 with open(UCSC_DB) as f:
     ucsc_config = json.load(f)
@@ -182,6 +182,7 @@ def token_query(token):
                     WHERE p.gid = 1
                     AND d.id = p.study_id
         		))""".format(user_email)
+    # query = "(1=1)"
     return query
 
 def logapicall(useremail,study,nsnp):
@@ -257,6 +258,11 @@ def plink_clumping_rs(fn, upload_folder, ress, snp_col, pval_col, p1, p2, r2, kb
         os.system(command)
 
         filename_c = filename + ".clumped"
+        if not os.path.isfile(filename_c):
+             logging.info("no file found")
+             [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
+             return {'SNP': ''}
+
         f = open(filename_c, "r")
         f.readline()
         words = f.read().split("\n")
@@ -700,11 +706,11 @@ def get_effects_from_file():
     if not request.args.get('align_alleles'):
         align_alleles = '1'
     else:
-        align_alleles = '0'
+        align_alleles = request.args.get('align_alleles')
     if not request.args.get('palindromes'):
         palindromes = '1'
     else:
-        palindromes = '0'
+        palindromes = request.args.get('palindromes')
     if not request.args.get('maf_threshold'):
         maf_threshold = 0.3
     else:
