@@ -324,6 +324,51 @@ def plink_clumping(fn, upload_folder, cp, ress, snp_col, pval_col, p1, p2, r2, k
     return out
 
 
+def plink_ldsquare_rs(fn, upload_folder, snps):
+
+    try:
+        filename = upload_folder + fn + "_recode"
+        filenamek = upload_folder + fn + "_recode.keep"
+        tfile = open(filename, "w")
+        # tfile.write("SNP P\n")
+        for i in xrange(len(snps)):
+            tfile.write(str(snps[i]) + "\n")
+
+        tfile.close()
+
+        # Find which SNPs are present
+        cmd = "fgrep -wf " + filename + " ../ld_files/data_maf0.01_rs.snplist > " + filenamek
+        os.system(cmd)
+        command =   "../ld_files/plink1.90 " \
+                    "--bfile ../ld_files/data_maf0.01_rs " \
+                    " --extract {0} " \
+                    " --r square " \
+                    " --out {1}".format(filenamek, filename)
+
+        logging.info(command)
+        os.system(command)
+        filename_c = filename + ".ld"
+        if not os.path.isfile(filename_c):
+             logging.info("no file found")
+             [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
+             return ['NA']
+
+        mat = []
+        f = open(filenamek, "r")
+        mat.append(filter(None, f.read().split("\n")))
+        f.close()
+
+        f = open(filename_c, "r")
+        for line in open(filename_c, "r").readlines():
+            mat.append(line.strip("\n").split("\t"))
+        f.close()
+
+    finally:
+        [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
+
+    return mat
+
+
 
 def get_proxies(snps, chr):
     proxy_dat = []
@@ -793,6 +838,26 @@ def clump():
     # out = plink_clumping(fn, UPLOAD_FOLDER, cp, ress, "SNP", "P", p1, p2, r2, kb)
     out = plink_clumping_rs(fn, UPLOAD_FOLDER, ress, "SNP", "P", p1, p2, r2, kb)
     return json.dumps(out, ensure_ascii=False)
+
+@app.route("/ld", methods=[ 'GET' ])
+def ld():
+    if not request.args.get('snpfile'):
+        return json.dumps([])
+    if not check_filename(request.args.get('snpfile')):
+        return json.dumps([])
+
+    fn = os.path.basename(request.args.get('snpfile'))
+    snpfile = UPLOAD_FOLDER + fn
+
+    with open(snpfile) as f:
+        snps = f.readlines()
+        snps = [x.strip("\n") for x in snps]
+    os.remove(snpfile)
+
+    out = plink_ldsquare_rs(fn, UPLOAD_FOLDER, snps)
+    return json.dumps(out, ensure_ascii=False)
+
+
 
 @app.route("/test_api_server", methods=[ 'GET' ])
 def test_api_server():
