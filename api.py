@@ -185,14 +185,16 @@ def token_query(token):
     # query = "(1=1)"
     return query
 
-def logapicall(useremail,study,nsnp):
-    con = sqli.connect(APICALL_LOG_FILE, detect_types=sqli.PARSE_DECLTYPES)
-    cur = con.cursor()
-    cur.execute('INSERT into apicalls VALUES(?,?,?,?)',(useremail,study,nsnp,datetime.datetime.now()))
-    data = cur.fetchone()
-    con.commit()
-    con.close()
+#def logapicall(useremail,study,nsnp):
+#    con = sqli.connect(APICALL_LOG_FILE, detect_types=sqli.PARSE_DECLTYPES)
+#    cur = con.cursor()
+#    cur.execute('INSERT into apicalls VALUES(?,?,?,?)',(useremail,study,nsnp,datetime.datetime.now()))
+#    data = cur.fetchone()
+#    con.commit()
+#    con.close()
 
+def logapicall(useremail,study,nsnp):
+    return "NULL"
 
 """
 
@@ -218,6 +220,7 @@ def query_summary_stats(token, snps, outcomes):
     for study in studies:
         logapicall(user_email,study,nsnps)
     query.Query(SQL)
+    logging.info(SQL)
     logging.info("done summary stats query")
     return query.record
 
@@ -337,8 +340,11 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
         tfile.close()
 
         # Find which SNPs are present
+        logging.info("Finding which snps are available")
         cmd = "fgrep -wf " + filename + " ../ld_files/data_maf0.01_rs.snplist > " + filenamek
+        logging.info(cmd)
         os.system(cmd)
+        logging.info("found")
         command =   "../ld_files/plink1.90 " \
                     "--bfile ../ld_files/data_maf0.01_rs " \
                     " --extract {0} " \
