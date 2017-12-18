@@ -3,4 +3,3 @@ uuid
 flask
 werkzeug
 logging
-elasticsearch
