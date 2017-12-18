@@ -1,0 +1,8 @@
+{
+        "user": "mrbaseapp",
+        "passwd": "M1st3rbase!",
+        "host": "crashdown.epi.bris.ac.uk",
+        "ssl_ca": "uobca.pem",
+        "port":13306,
+        "db": "mrbase"
+}

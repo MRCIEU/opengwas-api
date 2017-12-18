@@ -312,8 +312,8 @@ def query_summary_stats(token, snps, outcomes):
 			if hit['_source']['p'] < 999:
 				#p = "%03.02e" % float(hit['_source']['p'])
 				p = hit['_source']['p']
-			if 'n' in hit['_source']['n']:
-				n = int(hit['_source']['n'])
+			if 'n' in hit['_source']:
+				n = hit['_source']['n']
 			if 'effect_allele' in hit['_source']:
 				effect_allele = hit['_source']['effect_allele']
 			if 'other_allele' in hit['_source']:
@@ -594,70 +594,72 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 	logging.info("entering extract_proxies_from_query")
 	start = time.time()
 	matched_proxies = []
-	proxy_query_copy = [a.get('name') for a in proxy_query]
-	for i in range(len(outcomes)):
-		logging.info("matching proxies to query snps for " + str(i))
-		for j in range(len(snps)):
-			flag=0
-			for k in range(len(proxy_dat[j])):
-				if flag == 1:
-					break
-				for l in range(len(proxy_query)):
-					if (proxy_query[l].get('name') == proxy_dat[j][k].get('proxies')) and (str(proxy_query[l].get('id')) == outcomes[i]):
-						y = dict(proxy_query[l])
-						y['target_snp'] = snps[j]
-						y['proxy_snp'] = proxy_query[l].get('name')
-						if(snps[j] == proxy_query[l].get('name')):
-							y['proxy'] = False
-							y['target_a1'] = None
-							y['target_a2'] = None
-							y['proxy_a1'] = None
-							y['proxy_a2'] = None
-							matched_proxies.append(y.copy())
-							flag = 1
-						else:
-							if align_alleles == "1":
-								al = proxy_alleles(proxy_query[l], proxy_dat[j][k], maf_threshold)
-								logging.info(al)
-								if al == "straight":
-									y['proxy'] = True
-									y['effect_allele'] = proxy_dat[j][k].get('tallele1')
-									y['other_allele'] = proxy_dat[j][k].get('tallele2')
-									y['target_a1'] = proxy_dat[j][k].get('tallele1')
-									y['target_a2'] = proxy_dat[j][k].get('tallele2')
-									y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
-									y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-									y['name'] = snps[j]
-									matched_proxies.append(y.copy())
-									flag = 1
-									# print "straight", i, j, k, l
-									break
-								if al == "switch":
-									y['proxy'] = True
-									y['effect_allele'] = proxy_dat[j][k].get('tallele2')
-									y['other_allele'] = proxy_dat[j][k].get('tallele1')
-									y['target_a1'] = proxy_dat[j][k].get('tallele1')
-									y['target_a2'] = proxy_dat[j][k].get('tallele2')
-									y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
-									y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-									y['name'] = snps[j]
-									matched_proxies.append(y.copy())
-									flag = 1
-									# print "switch", i, j, k, l
-									break
-								if al == "skip":
-									logging.info("skip")
-							else:
-								y['proxy'] = True
-								y['target_a1'] = proxy_dat[j][k].get('tallele1')
-								y['target_a2'] = proxy_dat[j][k].get('tallele2')
-								y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
-								y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-								y['name'] = snps[j]
-								matched_proxies.append(dict(y))
+	#catch cases where a study has been listed without access
+	if proxy_query != '[]':
+		proxy_query_copy = [a.get('name') for a in proxy_query]
+		for i in range(len(outcomes)):
+			logging.info("matching proxies to query snps for " + str(i))
+			for j in range(len(snps)):
+				flag=0
+				for k in range(len(proxy_dat[j])):
+					if flag == 1:
+						break
+					for l in range(len(proxy_query)):
+						if (proxy_query[l].get('name') == proxy_dat[j][k].get('proxies')) and (str(proxy_query[l].get('id')) == outcomes[i]):
+							y = dict(proxy_query[l])
+							y['target_snp'] = snps[j]
+							y['proxy_snp'] = proxy_query[l].get('name')
+							if(snps[j] == proxy_query[l].get('name')):
+								y['proxy'] = False
+								y['target_a1'] = None
+								y['target_a2'] = None
+								y['proxy_a1'] = None
+								y['proxy_a2'] = None
+								matched_proxies.append(y.copy())
 								flag = 1
-								# print "unaligned", i, j, k, l
-								break
+							else:
+								if align_alleles == "1":
+									al = proxy_alleles(proxy_query[l], proxy_dat[j][k], maf_threshold)
+									logging.info(al)
+									if al == "straight":
+										y['proxy'] = True
+										y['effect_allele'] = proxy_dat[j][k].get('tallele1')
+										y['other_allele'] = proxy_dat[j][k].get('tallele2')
+										y['target_a1'] = proxy_dat[j][k].get('tallele1')
+										y['target_a2'] = proxy_dat[j][k].get('tallele2')
+										y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
+										y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
+										y['name'] = snps[j]
+										matched_proxies.append(y.copy())
+										flag = 1
+										# print "straight", i, j, k, l
+										break
+									if al == "switch":
+										y['proxy'] = True
+										y['effect_allele'] = proxy_dat[j][k].get('tallele2')
+										y['other_allele'] = proxy_dat[j][k].get('tallele1')
+										y['target_a1'] = proxy_dat[j][k].get('tallele1')
+										y['target_a2'] = proxy_dat[j][k].get('tallele2')
+										y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
+										y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
+										y['name'] = snps[j]
+										matched_proxies.append(y.copy())
+										flag = 1
+										# print "switch", i, j, k, l
+										break
+									if al == "skip":
+										logging.info("skip")
+								else:
+									y['proxy'] = True
+									y['target_a1'] = proxy_dat[j][k].get('tallele1')
+									y['target_a2'] = proxy_dat[j][k].get('tallele2')
+									y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
+									y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
+									y['name'] = snps[j]
+									matched_proxies.append(dict(y))
+									flag = 1
+									# print "unaligned", i, j, k, l
+									break
 	end = time.time()
 	t=round((end - start), 4)
 	logging.info('extract_proxies_from_query took :'+str(t)+' seconds')
@@ -1019,8 +1021,8 @@ def extract_instruments():
 				if hit['_source']['p'] < 999:
 					#p = "%03.02e" % float(hit['_source']['p'])
 					p = hit['_source']['p']
-				if 'n' in hit['_source']['n']:
-					n = int(hit['_source']['n'])
+				if 'n' in hit['_source']:
+					n = hit['_source']['n']
 				if 'effect_allele' in hit['_source']:
 					effect_allele = hit['_source']['effect_allele']
 				if 'other_allele' in hit['_source']:

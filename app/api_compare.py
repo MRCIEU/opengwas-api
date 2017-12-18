@@ -12,12 +12,13 @@ crashdown_url = 'http://crashdown.epi.bris.ac.uk:8080/'
 crashdown2_url = 'http://crashdown.epi.bris.ac.uk:8090/'
 local_url = 'http://localhost:8019/'
 #urls = [mrbase_url,crashdown_url]
-#urls = [crashdown_url]
-urls = [mrbase_url,local_url,crashdown_url]
+urls = [crashdown_url]
+#urls = [mrbase_url,local_url,crashdown_url]
 
 
 #mysql
-CENTRAL_DB = "./conf_files/central.json"
+#CENTRAL_DB = "./conf_files/central.json"
+CENTRAL_DB = "./conf_files/mysql.json"
 with open(CENTRAL_DB) as f:
 	mrbase_config = json.load(f)
 dbConnection = PySQLPool.getNewConnection(**mrbase_config)
@@ -87,10 +88,10 @@ def run_query(url):
 def get_effects_query():
 	base='get_effects?access_token=null&outcomes='
 	end='&snps='
-	outcomes=create_random_studies(5)
+	outcomes=create_random_studies(10)
 	outcomes_string=','.join(str(x) for x in outcomes)
 	#print outcomes
-	snps=create_random_rsids(5)
+	snps=create_random_rsids(10)
 	snps_string=','.join(str(x) for x in snps)
 	url = base+str(outcomes_string)+end+snps_string
 	print str(len(outcomes))+" outcomes "+str(len(snps))+" snps"
@@ -99,7 +100,7 @@ def get_effects_query():
 def extract_instruments_query():
 	base='extract_instruments?access_token=null&outcomes='
 	end='&clump=yes&pval=1e-8'
-	outcomes=create_random_studies(1)
+	outcomes=create_random_studies(10)
 	#print outcomes
 	outcomes_string=','.join(str(x) for x in outcomes)
 	url = base+str(outcomes_string)+end
