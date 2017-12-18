@@ -1,0 +1,6 @@
+PySQLPool
+uuid
+flask
+werkzeug
+logging
+elasticsearch

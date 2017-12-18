@@ -12,6 +12,8 @@ from optparse import *
 from flask import *
 from werkzeug import secure_filename
 import logging
+import sqlite3 as sqli
+import datetime
 
 
 """
@@ -22,14 +24,16 @@ Constants
 
 OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
 USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
-UPLOAD_FOLDER = '/tmp/'
+UPLOAD_FOLDER = './tmp/'
 ALLOWED_EXTENSIONS = set(['txt'])
 MAX_FILE_SIZE = 16 * 1024 * 1024
 
-LOG_FILE = "../logs/mrbaseapi.log"
-CENTRAL_DB = "../conf_files/central.json"
-UCSC_DB = "../conf_files/ucsc.json"
-ORIGINAL_DB = "../conf_files/original.json"
+LOG_FILE = "./logs/mrbaseapi.log"
+CENTRAL_DB = "./conf_files/central.json"
+DOCKER_DB = "./conf_files/dockerswarm.json"
+UCSC_DB = "./conf_files/ucsc.json"
+ORIGINAL_DB = "./conf_files/original.json"
+APICALL_LOG_FILE = "./logs/mrbaselog.sqlite"
 
 """
 
@@ -39,7 +43,7 @@ Setup logging
 
 
 if not os.path.exists(LOG_FILE):
-    open('file', 'w').close() 
+    open('file', 'w').close()
 
 logging.basicConfig(filename=LOG_FILE,level=logging.DEBUG)
 
@@ -81,11 +85,14 @@ json.dumps(query.record)
 """
 
 
-with open(CENTRAL_DB) as f:
+with open(DOCKER_DB) as f:
     mrbase_config = json.load(f)
 
+#with open(CENTRAL_DB) as f:
+#    mrbase_config = json.load(f)
+
 # with open(ORIGINAL_DB) as f:
-    # mrbase_config = json.load(f)
+#    mrbase_config = json.load(f)
 
 with open(UCSC_DB) as f:
     ucsc_config = json.load(f)
@@ -140,7 +147,7 @@ def allowed_file(filename):
 
 """
 
-Authentication functions
+Authentication and logging functions
 
 """
 
@@ -170,17 +177,24 @@ def check_access_token(token):
 def token_query(token):
     user_email = get_user_email(token)
     logging.info("getting credentials for "+user_email)
-    query =  """(c.id IN (select d.id from study_copy d, memberships m, permissions p
+    query =  """(c.id IN (select d.id from study d, memberships m, permissions p
                     WHERE m.uid = "{0}"
                     AND p.gid = m.gid
                     AND d.id = p.study_id
         		)
-        	    OR c.id IN (select d.id from study_copy d, permissions p
+        	    OR c.id IN (select d.id from study d, permissions p
                     WHERE p.gid = 1
                     AND d.id = p.study_id
         		))""".format(user_email)
     return query
 
+#def logapicall(useremail,study,nsnp):
+#    con = sqli.connect(APICALL_LOG_FILE, detect_types=sqli.PARSE_DECLTYPES)
+#    cur = con.cursor()
+#    cur.execute('INSERT into apicalls VALUES(?,?,?,?)',(useremail,study,nsnp,datetime.datetime.now()))
+#    data = cur.fetchone()
+#    con.commit()
+#    con.close()
 
 
 """
@@ -191,16 +205,21 @@ Query functions
 
 
 def query_summary_stats(token, snps, outcomes):
+    user_email = get_user_email(token)
     access_query = token_query(token)
     query = PySQLPool.getNewQuery(dbConnection)
     SQL   = """SELECT a.effect_allele, a.other_allele, a.effect_allelel_freq, a.beta, a.se, a.p, a.n, b.name, c.*
-            FROM assoc a, snp b, study_copy c
+            FROM assoc a, snp b, study c
             WHERE a.snp=b.id AND a.study=c.id
             AND {0}
             AND a.study IN ({1})
             AND b.name IN ({2})
             ORDER BY a.study;""".format(access_query, outcomes, snps)
     logging.info("performing summary stats query")
+    nsnps = len(snps.strip().split(","))
+    studies = outcomes.strip().split(",")
+    #for study in studies:
+    #    logapicall(user_email,study,nsnps)
     query.Query(SQL)
     logging.info("done summary stats query")
     return query.record
@@ -229,8 +248,8 @@ def plink_clumping_rs(fn, upload_folder, ress, snp_col, pval_col, p1, p2, r2, kb
             tfile.write(str(ress[i].get(snp_col)) + " " + str(ress[i].get(pval_col)) + "\n")
 
         tfile.close()
-        command =   "../ld_files/plink1.90 " \
-                    "--bfile ../ld_files/data_maf0.01_rs " \
+        command =   "./ld_files/plink1.90 " \
+                    "--bfile ./ld_files/data_maf0.01_rs " \
                     " --clump {0} " \
                     " --clump-p1 {1} " \
                     " --clump-p2 {2} " \
@@ -274,8 +293,8 @@ def plink_clumping(fn, upload_folder, cp, ress, snp_col, pval_col, p1, p2, r2, k
                 tfile.write(y + " " + str(ress[i].get(pval_col)) + "\n")
         tfile.close()
 
-        command =   "../ld_files/plink1.90 " \
-                    "--bfile ../ld_files/data_maf0.01 " \
+        command =   "./ld_files/plink1.90 " \
+                    "--bfile ./ld_files/data_maf0.01 " \
                     " --clump {0} " \
                     " --clump-p1 {1} " \
                     " --clump-p2 {2} " \
@@ -513,7 +532,7 @@ Methods
 @app.route("/")
 def hello():
     logging.info("INCOMING")
-    return "Welcome to the MR-Base API"
+    return "Welcome to the MR-Base API. This was automatically deployed."
 
 
 @app.route("/upload", methods=['GET', 'POST'])
@@ -553,7 +572,7 @@ def get_studies():
     logging.info("\n\n\nRequesting study table")
     access_query = token_query(request.args.get('access_token'))
     query = PySQLPool.getNewQuery(dbConnection)
-    SQL   = "SELECT * FROM study_copy c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
+    SQL   = "SELECT * FROM study c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
     query.Query(SQL)
     return json.dumps(query.record, ensure_ascii=False)
 
@@ -570,7 +589,7 @@ def get_effects():
 
 @app.route("/get_status", methods=[ 'GET' ])
 def get_status():
-    SQL   = "SELECT COUNT(*) FROM study_copy;"
+    SQL   = "SELECT COUNT(*) FROM study;"
     query = PySQLPool.getNewQuery(dbConnection)
     query.Query(SQL)
     return json.dumps(query.record)
@@ -622,7 +641,7 @@ def extract_instruments():
     query = PySQLPool.getNewQuery(dbConnection)
 
     SQL = "SELECT a.effect_allele, a.other_allele, a.effect_allelel_freq, a.beta, a.se, a.p, a.n, b.name, c.* " \
-        "FROM assoc a, snp b, study_copy c " \
+        "FROM assoc a, snp b, study c " \
         "WHERE a.snp=b.id AND a.study=c.id " \
         "AND a.study IN ({0}) " \
         "AND a.p <= {1} " \
@@ -632,6 +651,13 @@ def extract_instruments():
     query.Query(SQL)
     res = query.record
     logging.info("done. found "+str(len(res))+" hits")
+    token = request.args.get('access_token')
+    user_email = get_user_email(token)
+    studies = outcomes.strip().split(",")
+    nsnps = len(res)
+    #for study in studies:
+    #    nsnps = sum(1 for result in res if str(result["id"]) == study.strip("'"))
+    #    logapicall(user_email,study,nsnps)
 
     if query.affectedRows == 0L:
         return json.dumps([])
@@ -769,3 +795,6 @@ def clump():
 @app.route("/test_api_server", methods=[ 'GET' ])
 def test_api_server():
     return "API server alive!!!!??"
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', debug=True, port=80)

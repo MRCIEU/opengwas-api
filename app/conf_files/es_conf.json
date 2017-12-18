@@ -1,0 +1,6 @@
+{
+        "user": "elastic",
+        "password": "AGUbMfHmEaPv",
+        "host": "crashdown.epi.bris.ac.uk",
+        "port":19200
+}
