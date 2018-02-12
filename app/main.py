@@ -102,8 +102,8 @@ with open(ES_CONF) as f:
 #with open(DOCKER_DB) as f:
 #    mrbase_config = json.load(f)
 
-with open(MYSQL_DB) as f:
 #with open(CENTRAL_DB) as f:
+with open(MYSQL_DB) as f:
 	mrbase_config = json.load(f)
 
 # with open(ORIGINAL_DB) as f:
@@ -218,6 +218,7 @@ def token_query(token):
 					WHERE p.gid = 1
 					AND d.id = p.study_id
 				))""".format(user_email)
+	#logging.info(query)
 	return query
 
 #create list of studies available to user
@@ -283,7 +284,7 @@ def query_summary_stats(token, snps, outcomes):
 				outcomes_access.append(o)
 			else:
 				logging.info(o+" not in access_list")
-		logging.info(outcomes_access)
+		#logging.info(outcomes_access)
 	end = time.time()
 	t=round((end - start), 4)
 	logging.info('took: '+str(t)+' seconds')
@@ -300,6 +301,7 @@ def query_summary_stats(token, snps, outcomes):
 		#create final file
 
 		for hit in hits:
+			#logging.info(hit)
 			other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
 			if hit['_source']['effect_allele_freq'] < 999:
 				effect_allele_freq = hit['_source']['effect_allele_freq']
@@ -561,9 +563,9 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	"FROM proxies " \
 	"WHERE target in ({0}) " \
 	"AND rsq >= {1} {2};".format(",".join([ "'" + x + "'" for x in snps ]), rsq, pal)
-	logging.info(SQL)
 	logging.info("performing proxy query")
 	pquery.Query(SQL)
+	#logging.info(SQL)
 	logging.info("done proxy query")
 	res = pquery.record
 	proxy_dat = []
@@ -586,7 +588,7 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	logging.info("done proxy matching")
 	end = time.time()
 	t=round((end - start), 4)
-	logging.info('proxy matching took :'+str(t)+' seconds')
+	logging.info('proxy matching took :'+str(t)+' seconds')	
 	return proxy_dat
 
 
@@ -594,75 +596,73 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 	logging.info("entering extract_proxies_from_query")
 	start = time.time()
 	matched_proxies = []
-	#catch cases where a study has been listed without access
-	if proxy_query != '[]':
-		proxy_query_copy = [a.get('name') for a in proxy_query]
-		for i in range(len(outcomes)):
-			logging.info("matching proxies to query snps for " + str(i))
-			for j in range(len(snps)):
-				flag=0
-				for k in range(len(proxy_dat[j])):
-					if flag == 1:
-						break
-					for l in range(len(proxy_query)):
-						if (proxy_query[l].get('name') == proxy_dat[j][k].get('proxies')) and (str(proxy_query[l].get('id')) == outcomes[i]):
-							y = dict(proxy_query[l])
-							y['target_snp'] = snps[j]
-							y['proxy_snp'] = proxy_query[l].get('name')
-							if(snps[j] == proxy_query[l].get('name')):
-								y['proxy'] = False
-								y['target_a1'] = None
-								y['target_a2'] = None
-								y['proxy_a1'] = None
-								y['proxy_a2'] = None
-								matched_proxies.append(y.copy())
-								flag = 1
-							else:
-								if align_alleles == "1":
-									al = proxy_alleles(proxy_query[l], proxy_dat[j][k], maf_threshold)
-									logging.info(al)
-									if al == "straight":
-										y['proxy'] = True
-										y['effect_allele'] = proxy_dat[j][k].get('tallele1')
-										y['other_allele'] = proxy_dat[j][k].get('tallele2')
-										y['target_a1'] = proxy_dat[j][k].get('tallele1')
-										y['target_a2'] = proxy_dat[j][k].get('tallele2')
-										y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
-										y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-										y['name'] = snps[j]
-										matched_proxies.append(y.copy())
-										flag = 1
-										# print "straight", i, j, k, l
-										break
-									if al == "switch":
-										y['proxy'] = True
-										y['effect_allele'] = proxy_dat[j][k].get('tallele2')
-										y['other_allele'] = proxy_dat[j][k].get('tallele1')
-										y['target_a1'] = proxy_dat[j][k].get('tallele1')
-										y['target_a2'] = proxy_dat[j][k].get('tallele2')
-										y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
-										y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-										y['name'] = snps[j]
-										matched_proxies.append(y.copy())
-										flag = 1
-										# print "switch", i, j, k, l
-										break
-									if al == "skip":
-										logging.info("skip")
-								else:
+	proxy_query_copy = [a.get('name') for a in proxy_query]
+	for i in range(len(outcomes)):
+		logging.info("matching proxies to query snps for " + str(i))
+		for j in range(len(snps)):
+			flag=0
+			for k in range(len(proxy_dat[j])):
+				if flag == 1:
+					break
+				for l in range(len(proxy_query)):
+					if (proxy_query[l].get('name') == proxy_dat[j][k].get('proxies')) and (str(proxy_query[l].get('id')) == outcomes[i]):
+						y = dict(proxy_query[l])
+						y['target_snp'] = snps[j]
+						y['proxy_snp'] = proxy_query[l].get('name')
+						if(snps[j] == proxy_query[l].get('name')):
+							y['proxy'] = False
+							y['target_a1'] = None
+							y['target_a2'] = None
+							y['proxy_a1'] = None
+							y['proxy_a2'] = None
+							matched_proxies.append(y.copy())
+							flag = 1
+						else:
+							if align_alleles == "1":
+								al = proxy_alleles(proxy_query[l], proxy_dat[j][k], maf_threshold)
+								logging.info(al)
+								if al == "straight":
 									y['proxy'] = True
+									y['effect_allele'] = proxy_dat[j][k].get('tallele1')
+									y['other_allele'] = proxy_dat[j][k].get('tallele2')
 									y['target_a1'] = proxy_dat[j][k].get('tallele1')
 									y['target_a2'] = proxy_dat[j][k].get('tallele2')
 									y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
 									y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
 									y['name'] = snps[j]
-									matched_proxies.append(dict(y))
+									matched_proxies.append(y.copy())
 									flag = 1
-									# print "unaligned", i, j, k, l
+									# print "straight", i, j, k, l
 									break
+								if al == "switch":
+									y['proxy'] = True
+									y['effect_allele'] = proxy_dat[j][k].get('tallele2')
+									y['other_allele'] = proxy_dat[j][k].get('tallele1')
+									y['target_a1'] = proxy_dat[j][k].get('tallele1')
+									y['target_a2'] = proxy_dat[j][k].get('tallele2')
+									y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
+									y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
+									y['name'] = snps[j]
+									matched_proxies.append(y.copy())
+									flag = 1
+									# print "switch", i, j, k, l
+									break
+								if al == "skip":
+									logging.info("skip")
+							else:
+								y['proxy'] = True
+								y['target_a1'] = proxy_dat[j][k].get('tallele1')
+								y['target_a2'] = proxy_dat[j][k].get('tallele2')
+								y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
+								y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
+								y['name'] = snps[j]
+								matched_proxies.append(dict(y))
+								flag = 1
+								# print "unaligned", i, j, k, l
+								break
 	end = time.time()
-	t=round((end - start), 4)
-	logging.info('extract_proxies_from_query took :'+str(t)+' seconds')
+        t=round((end - start), 4)
+        logging.info('extract_proxies_from_query took :'+str(t)+' seconds')
 	return matched_proxies
 
 
@@ -779,7 +779,7 @@ def elastic_search(filterData,index_name):
 #studies and snps are lists
 def elastic_query(studies,snps,pval):
 	#separate studies by index
-	logging.info(studies)
+	#logging.info(studies)
 	study_indexes={mrb_batch:[]}
 	mrbase_original=True
 	#deal with snp_lookup
@@ -831,7 +831,7 @@ def elastic_query(studies,snps,pval):
 			run = True
 		if run==True:
 			logging.info('running ES: index: '+s+' studies: '+str(len(studies))+' snps: '+str(len(snps))+' pval: '+str(pval))
-			logging.info(filterData)
+			#logging.info(filterData)
 			start=time.time()
 			e =  elastic_search(filterData,s)
 			res.update({s:e})
@@ -1127,7 +1127,7 @@ def get_effects_from_file():
 	if not request.args.get('palindromes'):
 		palindromes = '1'
 	else:
-		palindromes = request.args.get('palindromes')
+		palindromes = '0'
 	if not request.args.get('maf_threshold'):
 		maf_threshold = 0.3
 	else:
@@ -1237,5 +1237,5 @@ def test_api_server():
 
 
 if __name__ == "__main__":
-	#app.run(host='0.0.0.0', debug=True, port=80)
-	app.run(host='0.0.0.0', debug=True, port=8019)
+	app.run(host='0.0.0.0', debug=True, port=80)
+	#app.run(host='0.0.0.0', debug=True, port=8019)

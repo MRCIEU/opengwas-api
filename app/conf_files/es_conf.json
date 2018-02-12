@@ -1,6 +1,4 @@
 {
-        "user": "elastic",
-        "password": "AGUbMfHmEaPv",
-        "host": "crashdown.epi.bris.ac.uk",
-        "port":19200
+        "host": "mr-base-elastic-docker-bridge",
+        "port":9200
 }
