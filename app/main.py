@@ -119,7 +119,7 @@ ucscConnection = PySQLPool.getNewConnection(**ucsc_config)
 #connect to elasticsearch
 es = Elasticsearch(
 		[{'host': es_conf['host'],'port': es_conf['port']}],
-		http_auth=(es_conf['user'], es_conf['password']),
+		#http_auth=(es_conf['user'], es_conf['password']),
 )
 
 """
