@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('seaborn-deep')
 
-def read_logs(fileName):
+def read_logs(fileName,plotName):
 	print 'Reading '+fileName
 	esList = []
 	clumpList = []
@@ -26,9 +26,9 @@ def read_logs(fileName):
 				proxyList.append(float(m.group(1)))
 	#print proxyList
 	print 'Making plot...'
-	bins = np.linspace(0, 30, 20)
-	x = np.random.normal(1, 2, 5000)
-	y = np.random.normal(-1, 3, 2000)
+	bins = np.linspace(0, 50, 50)
+	#x = np.random.normal(1, 2, 5000)
+	#y = np.random.normal(-1, 3, 2000)
 	#print x
 	es = np.asarray(esList)
 	cl = np.asarray(clumpList)
@@ -38,8 +38,9 @@ def read_logs(fileName):
 	plt.hist([es,cl,pr], bins, label=['ES', 'Clumping', 'Proxies'])
 	plt.legend(loc='upper right')
 	plt.yscale('log', nonposy='clip')
-	plt.show()
+	#plt.show()
+	plt.savefig(plotName)
 
 testFile='../times/test.log.gz'
-fullFile='../times/mrbaseapi.log.1.gz'
-read_logs(fullFile)
+fullFile='../times/mrbaseapi.log.gz'
+read_logs(fullFile,'../times/march_27_2018.pdf')
