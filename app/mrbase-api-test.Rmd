@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup}
-knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_chunk$set(echo = TRUE)
 library(devtools)
 ```
 
@@ -24,9 +24,9 @@ get_ao <- function(){
 ei <- function(){
   print ('Running extract_instruments')
   start.time <- Sys.time()
-  exposure_dat <- extract_instruments(outcomes=1,clump=FALSE)
+  #exposure_dat <- extract_instruments(outcomes=1,clump=FALSE)
   #exposure_dat <- extract_instruments(outcomes=89,clump=TRUE)
-  #exposure_dat <- extract_instruments(outcomes=c(1,'UKB-a:95'),clump=TRUE)
+  exposure_dat <- extract_instruments(outcomes=c('1','2','1129','1130'),clump=TRUE)
   #exposure_dat <- extract_instruments(outcomes=c('1','2','UKB-a:21','UKB-a:22'),clump=TRUE)
   end.time <- Sys.time()
   time.taken <- end.time - start.time
@@ -42,8 +42,9 @@ eo <- function(exposure_dat){
   print ('Running extract_outcome_data')
   start.time <- Sys.time()
   #outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('1','2','5','6','17','18','965','966','996','997','1090','UKB-a:96','UKB-a:1','UKB-a:2'))
-  outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('17','18','UKB-a:96','UKB-a:1','UKB-a:2'))
-  #outcome_dat <- extract_outcome_data(exposure_dat$SNP, '7')
+  #outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('17','18','UKB-a:96','UKB-a:1','UKB-a:2'))
+  outcome_dat <- extract_outcome_data(exposure_dat$SNP,c('1063'))
+  #outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('1129','1130'))
   #outcome_dat <- extract_outcome_data(outcomes=c('1','2','5','6'),snps=c('rs2825569','rs9821657','rs1919329'),splitsize=50000)
   print(dim(outcome_dat))
   end.time <- Sys.time()
@@ -89,11 +90,11 @@ do_test <- function(){
 }
 ```
 
-```{r locall-api, include=FALSE}
-load_all('~/projects/TwoSampleMR_edit/')
+```{r test-api, include=FALSE}
+load_all('~/projects/TwoSampleMR/')
 #install_github("MRCIEU/TwoSampleMR")
-#library(TwoSampleMR)
-toggle_dev('localtest')
+library(TwoSampleMR)
+toggle_dev('test')
 mr_res=do_test()
 ```
 
@@ -107,7 +108,7 @@ mr_res=do_test()
 #load_all('~/projects/TwoSampleMR_edit/')
 install_github("MRCIEU/TwoSampleMR")
 library(TwoSampleMR)
-toggle_dev('elastic')
+#toggle_dev('elastic')
 mr_res=do_test()
 ```
 

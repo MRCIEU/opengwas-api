@@ -99,7 +99,7 @@ def get_effects_query():
 
 def extract_instruments_query():
 	base='extract_instruments?access_token=null&outcomes='
-	end='&clump=yes&pval=1e-8'
+	end='&clump=no&pval=1e-8'
 	outcomes=create_random_studies(10)
 	#print outcomes
 	outcomes_string=','.join(str(x) for x in outcomes)
@@ -125,6 +125,27 @@ def test_apis():
 		print url
 		run_query(url)
 
+def db_test():
+	snp_list = []
+	with open('/Users/be15516/projects/mr-base-elastic/monocyte.clumped.instruments.finalrevised.csv') as f:
+		next(f)
+		for line in f:
+			rs = line.split(',')[0]
+			snp_list.append(rs)
+	print len(snp_list)
+	base='get_effects?access_token=null&outcomes='
+	end='&snps='
+	outcomes_string='1'
+	#print outcomes
+	snp_list = snp_list[0:10]
+	print len(snp_list)
+	print snp_list
+	snps=','.join(str(x) for x in snp_list)
+	url = base+str(outcomes_string)+end+snps
+	print len(crashdown_url+url)
+	print crashdown_url+url
+	run_query(crashdown_url+url)
+
 def test_permissions():
 	eList=[33,830,997,998,1013,1082,994,995,277,278,279,280,281,282,283,284,285,286,287,288,289,290,291,1098,978,979,984,985,986,987,988,989,1113,1114,1115,1116,1117,1118,1119,3,3]
 	for e in eList:
@@ -139,5 +160,6 @@ def test_permissions():
 		run_query(url)
 
 if __name__ == "__main__":
-	test_apis()
+	#test_apis()
+	db_test()
 	#test_permissions()

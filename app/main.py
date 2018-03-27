@@ -269,7 +269,7 @@ def query_summary_stats(token, snps, outcomes):
 	#logging.info(snp_data)
 
 	#logging.info(sorted(study_access))
-	logging.info('searching '+str(outcomes))
+	logging.info('searching '+str(len(outcomes))+' outcomes')
 	logging.info('creating outcomes list and study_data dictionary')
 	start = time.time()
 	outcomes_access=[]
@@ -588,7 +588,7 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	logging.info("done proxy matching")
 	end = time.time()
 	t=round((end - start), 4)
-	logging.info('proxy matching took :'+str(t)+' seconds')	
+	logging.info('proxy matching took :'+str(t)+' seconds')
 	return proxy_dat
 
 
