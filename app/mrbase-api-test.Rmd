@@ -141,3 +141,13 @@ id_outcome <- 7
 exposure_dat <- mv_extract_exposures(id_exposure)
 outcome_dat <- extract_outcome_data(exposure_dat$SNP, id_outcome)
 ```
+
+```{r phil}
+#library(TwoSampleMR) 
+load_all('~/projects/TwoSampleMR/')
+toggle_dev('test')
+Dat7 <- extract_outcome_data(
+    snps = c("rs11065987","rs1250229","rs4530754"), 
+    outcomes = 991
+)
+```

@@ -1162,7 +1162,9 @@ def get_effects_from_file():
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
-		res = extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles)
+		res=[]
+		if proxy_query!='[]':
+			res = extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles)
 		return json.dumps(res, ensure_ascii=False)
 
 
