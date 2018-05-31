@@ -1,0 +1,24 @@
+version: '2'
+services:
+ #neo4j
+   db:
+    image: elasticsearch:6.2.4
+    restart: always
+    #comment out ports to lock down neo4j
+    ports:
+     - "19200:9200"
+     - "19300:9300"
+    environment:
+     - node.data=false
+    volumes:
+     - ./neo4j-data/neo4j:/data/databases
+     - ./neo4j-import:/var/lib/neo4j/import
+ #web app
+   web:
+     build: .
+     restart: always
+     ports:
+       - "8000:80"
+     depends_on:
+       - db
+     tty: true
