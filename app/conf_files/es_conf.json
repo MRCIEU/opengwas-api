@@ -1,4 +1,4 @@
 {
-        "host": "mr-base-elastic-docker-bridge",
+        "host": "ieu-db-interface.epi.bris.ac.uk",
         "port":9200
 }
