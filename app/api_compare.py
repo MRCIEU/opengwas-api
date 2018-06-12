@@ -11,8 +11,9 @@ mrbase_url = 'http://api.mrbase.org/'
 crashdown_url = 'http://crashdown.epi.bris.ac.uk:8080/'
 crashdown2_url = 'http://crashdown.epi.bris.ac.uk:8090/'
 local_url = 'http://localhost:8019/'
+cluster_url = 'http://ieu-db-interface.epi.bris.ac.uk:8080/'
 #urls = [mrbase_url,crashdown_url]
-urls = [crashdown_url]
+urls = [crashdown_url,cluster_url]
 #urls = [mrbase_url,local_url,crashdown_url]
 
 
@@ -30,8 +31,8 @@ def create_random_list(min,max,num):
 
 def create_random_studies(num):
 	study_list = []
-	#SQL   = "SELECT id FROM study_e ORDER BY RAND() LIMIT "+str(num)+";"
-	SQL   = "SELECT id FROM study_e where id NOT LIKE '%UKB%' ORDER BY RAND() LIMIT "+str(num)+";"
+	SQL   = "SELECT id FROM study_e ORDER BY RAND() LIMIT "+str(num)+";"
+	#SQL   = "SELECT id FROM study_e where id NOT LIKE '%UKB%' ORDER BY RAND() LIMIT "+str(num)+";"
 	#SQL   = "SELECT id FROM study_e where id LIKE '%UKB%' ORDER BY RAND() LIMIT "+str(num)+";"
 	#logging.info(SQL)
 	start=time.time()
@@ -100,7 +101,7 @@ def get_effects_query():
 def extract_instruments_query():
 	base='extract_instruments?access_token=null&outcomes='
 	end='&clump=no&pval=1e-8'
-	outcomes=create_random_studies(10)
+	outcomes=create_random_studies(1)
 	#print outcomes
 	outcomes_string=','.join(str(x) for x in outcomes)
 	url = base+str(outcomes_string)+end
@@ -160,6 +161,6 @@ def test_permissions():
 		run_query(url)
 
 if __name__ == "__main__":
-	#test_apis()
-	db_test()
+	test_apis()
+	#db_test()
 	#test_permissions()

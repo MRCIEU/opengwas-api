@@ -1,6 +1,6 @@
 version: '2'
 services:
- #neo4j
+ #elasticsearch interface
    db:
     image: elasticsearch:6.2.4
     restart: always
@@ -10,11 +10,16 @@ services:
      - "19300:9300"
     environment:
      - node.data=false
-    volumes:
-     - ./neo4j-data/neo4j:/data/databases
-     - ./neo4j-import:/var/lib/neo4j/import
- #web app
-   web:
+     - cluster.name=mr-base
+     #- xpack.security.enabled=false
+     - ELASTIC_PASSWORD=mrbase
+     - node.master=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+ #api
+   api:
      build: .
      restart: always
      ports:
