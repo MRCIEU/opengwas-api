@@ -591,6 +591,69 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	logging.info('proxy matching took :'+str(t)+' seconds')
 	return proxy_dat
 
+def get_proxies_es(snps, rsq, palindromes, maf_threshold):
+	logging.info("obtaining LD proxies from ES")
+	start = time.time()
+	start = time.time()
+	#pquery = PySQLPool.getNewQuery(dbConnection)
+	filterData=[]
+	filterData.append({"terms" : {'target':snps}})
+
+	if palindromes == "0":
+		filterData.append({"terms" : {'palindromes':'0'}})
+		#pal = 'AND palindromic = 0'
+	else:
+		pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
+		filterData.append({"terms" : {'palindromes':'1'}})
+
+	#SQL = "SELECT * " \
+	#"FROM proxies " \
+	#"WHERE target in ({0}) " \
+	#"AND rsq >= {1} {2};".format(",".join([ "'" + x + "'" for x in snps ]), rsq, pal)
+
+	res=es.search(
+		request_timeout=60,
+		index='mrb-proxies',
+		doc_type="proxies",
+		body={
+			#"from":from_val,
+			"size":100000,
+			"query": {
+				"bool" : {
+					"filter" : filterData
+				}
+			}
+		})
+	#return res
+
+	logging.info("performing proxy query")
+	#pquery.Query(SQL)
+	#logging.info(SQL)
+	logging.info("done proxy query")
+	#res = pquery.record
+	proxy_dat = []
+	logging.info("matching proxy SNPs")
+	for i in range(len(snps)):
+		snp = snps[i]
+		dat = [{'targets':snp, 'proxies': snp, 'tallele1': '', 'tallele2': '', 'pallele1': '', 'pallele2': '', 'pal': ''}]
+		for l in res:
+			if l.get('target') == snp:
+				dat.append({
+					'targets':snp,
+					'proxies':l.get('proxy'),
+					'tallele1':l.get('tallele1'),
+					'tallele2':l.get('tallele2'),
+					'pallele1':l.get('pallele1'),
+					'pallele2':l.get('pallele2'),
+					'pal':l.get('palindromic')}
+				)
+		proxy_dat.append(dat)
+	logging.info("done proxy matching")
+	end = time.time()
+	t=round((end - start), 4)
+	logging.info('proxy matching took :'+str(t)+' seconds')
+	return proxy_dat
+
 
 def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles):
 	logging.info("entering extract_proxies_from_query")
@@ -1158,7 +1221,7 @@ def get_effects_from_file():
 		# cp = get_snp_positions(snps)
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
-		proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
+		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
@@ -1166,9 +1229,6 @@ def get_effects_from_file():
 		if proxy_query!='[]':
 			res = extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles)
 		return json.dumps(res, ensure_ascii=False)
-
-
-
 
 
 @app.route("/clump", methods=[ 'GET' ])

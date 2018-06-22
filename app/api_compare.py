@@ -10,12 +10,11 @@ example_get_effects='get_effects?access_token=null&outcomes=1,2,5,6,7,8,9,10,11,
 mrbase_url = 'http://api.mrbase.org/'
 crashdown_url = 'http://crashdown.epi.bris.ac.uk:8080/'
 crashdown2_url = 'http://crashdown.epi.bris.ac.uk:8090/'
-local_url = 'http://localhost:8019/'
+local_url = 'http://localhost:8080/'
 cluster_url = 'http://ieu-db-interface.epi.bris.ac.uk:8080/'
 #urls = [mrbase_url,crashdown_url]
-urls = [crashdown_url,cluster_url]
+urls = [local_url,crashdown_url,cluster_url]
 #urls = [mrbase_url,local_url,crashdown_url]
-
 
 #mysql
 #CENTRAL_DB = "./conf_files/central.json"
@@ -31,9 +30,10 @@ def create_random_list(min,max,num):
 
 def create_random_studies(num):
 	study_list = []
-	SQL   = "SELECT id FROM study_e ORDER BY RAND() LIMIT "+str(num)+";"
+	#SQL   = "SELECT id FROM study_e ORDER BY RAND() LIMIT "+str(num)+";"
 	#SQL   = "SELECT id FROM study_e where id NOT LIKE '%UKB%' ORDER BY RAND() LIMIT "+str(num)+";"
-	#SQL   = "SELECT id FROM study_e where id LIKE '%UKB%' ORDER BY RAND() LIMIT "+str(num)+";"
+	SQL   = "SELECT id FROM study_e where id LIKE '%ukb-a%' ORDER BY RAND() LIMIT "+str(num)+";"
+	print SQL
 	#logging.info(SQL)
 	start=time.time()
 	query = PySQLPool.getNewQuery(dbConnection)
@@ -64,7 +64,7 @@ def create_random_rsids_mysql(num):
 def create_random_rsids(num):
 	start=time.time()
 	snp_ids = random.sample(range(1,10000000),num)
-	rsid_list = ['rsid'+str(s) for s in snp_ids]
+	rsid_list = ['rs'+str(s) for s in snp_ids]
 	end = time.time()
 	t=round((end - start), 4)
 	print 'Getting snp_info:'+str(len(rsid_list))+' in '+str(t)+' seconds'
