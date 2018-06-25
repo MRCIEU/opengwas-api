@@ -552,7 +552,7 @@ def get_proxies(snps, chr):
 
 
 def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
-	logging.info("obtaining LD proxies")
+	logging.info("obtaining LD proxies from mysql")
 	start = time.time()
 	pquery = PySQLPool.getNewQuery(dbConnection)
 	if palindromes == "0":
@@ -588,7 +588,7 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	logging.info("done proxy matching")
 	end = time.time()
 	t=round((end - start), 4)
-	logging.info('proxy matching took :'+str(t)+' seconds')
+	logging.info('proxy matching took: '+str(t)+' seconds')
 	return proxy_dat
 
 def get_proxies_es(snps, rsq, palindromes, maf_threshold):
@@ -605,6 +605,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	else:
 		pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
 		filterData.append({"term" : {'palindromic':'1'}})
+		filterData.append({"range" : {"pmaf": {"lt": str(maf_threshold) }}})
 	logging.info(filterData)
 	#SQL = "SELECT * " \
 	#"FROM proxies " \
@@ -638,7 +639,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 		dat = [{'targets':snp, 'proxies': snp, 'tallele1': '', 'tallele2': '', 'pallele1': '', 'pallele2': '', 'pal': ''}]
 		hits = ESRes['hits']['hits']
 		for hit in hits:
-			logging.info(hit['_source'])
+			#logging.info(hit['_source'])
 			if hit['_source']['target'] == snp:
 				dat.append({
 						'targets':snp,
@@ -653,7 +654,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	logging.info("done proxy matching")
 	end = time.time()
 	t=round((end - start), 4)
-	logging.info('proxy matching took :'+str(t)+' seconds')
+	logging.info('proxy matching took: '+str(t)+' seconds')
 	return proxy_dat
 
 
@@ -1224,6 +1225,7 @@ def get_effects_from_file():
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
 		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
+		proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
