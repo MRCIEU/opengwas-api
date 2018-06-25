@@ -600,18 +600,18 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	filterData.append({"terms" : {'target':snps}})
 
 	if palindromes == "0":
-		filterData.append({"terms" : {'palindromes':'0'}})
+		filterData.append({"term" : {'palindromic':'0'}})
 		#pal = 'AND palindromic = 0'
 	else:
 		pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
-		filterData.append({"terms" : {'palindromes':'1'}})
-
+		filterData.append({"term" : {'palindromic':'1'}})
+	logging.info(filterData)
 	#SQL = "SELECT * " \
 	#"FROM proxies " \
 	#"WHERE target in ({0}) " \
 	#"AND rsq >= {1} {2};".format(",".join([ "'" + x + "'" for x in snps ]), rsq, pal)
 
-	res=es.search(
+	ESRes=es.search(
 		request_timeout=60,
 		index='mrb-proxies',
 		doc_type="proxies",
@@ -625,7 +625,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 			}
 		})
 	#return res
-
+	#logging.info(res)
 	logging.info("performing proxy query")
 	#pquery.Query(SQL)
 	#logging.info(SQL)
@@ -636,16 +636,18 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	for i in range(len(snps)):
 		snp = snps[i]
 		dat = [{'targets':snp, 'proxies': snp, 'tallele1': '', 'tallele2': '', 'pallele1': '', 'pallele2': '', 'pal': ''}]
-		for l in res:
-			if l.get('target') == snp:
+		hits = ESRes['hits']['hits']
+		for hit in hits:
+			logging.info(hit['_source'])
+			if hit['_source']['target'] == snp:
 				dat.append({
-					'targets':snp,
-					'proxies':l.get('proxy'),
-					'tallele1':l.get('tallele1'),
-					'tallele2':l.get('tallele2'),
-					'pallele1':l.get('pallele1'),
-					'pallele2':l.get('pallele2'),
-					'pal':l.get('palindromic')}
+						'targets':snp,
+						'proxies':hit['_source']['proxy'],
+						'tallele1':hit['_source']['tallele1'],
+						'tallele2':hit['_source']['tallele2'],
+						'pallele1':hit['_source']['pallele1'],
+						'pallele2':hit['_source']['pallele2'],
+						'pal':hit['_source']['palindromic']}
 				)
 		proxy_dat.append(dat)
 	logging.info("done proxy matching")
@@ -1168,7 +1170,7 @@ def extract_instruments():
 
 @app.route("/get_effects_from_file", methods=[ 'GET' ])
 def get_effects_from_file():
-	logging.info("\n\n\nExtracting effects based on file uploads")
+	logging.info("Extracting effects based on file uploads")
 	if not request.args.get('outcomefile') or not request.args.get('snpfile'):
 		return json.dumps([])
 	if not check_filename(request.args.get('outcomefile')) or not check_filename(request.args.get('snpfile')):
@@ -1178,7 +1180,7 @@ def get_effects_from_file():
 		proxies = '0'
 	else:
 		proxies = request.args.get('proxies')
-
+	logging.info('proxies: '+str(proxies))
 	if not request.args.get('rsq'):
 		rsq = 0.8
 	else:
