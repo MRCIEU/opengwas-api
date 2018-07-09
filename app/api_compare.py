@@ -13,7 +13,7 @@ crashdown2_url = 'http://crashdown.epi.bris.ac.uk:8090/'
 local_url = 'http://localhost:8080/'
 cluster_url = 'http://ieu-db-interface.epi.bris.ac.uk:8080/'
 #urls = [mrbase_url,crashdown_url]
-urls = [local_url,crashdown_url,cluster_url]
+urls = [crashdown_url,cluster_url]
 #urls = [mrbase_url,local_url,crashdown_url]
 
 #mysql
@@ -85,6 +85,7 @@ def run_query(url):
 		j=''
 	#print j
 	print '# results = '+str(len(j))
+	return t
 
 def get_effects_query():
 	base='get_effects?access_token=null&outcomes='
@@ -116,6 +117,9 @@ def test_apis():
 		url = u+q1
 		print url
 		run_query(url)
+		run_query(url)
+		run_query(url)
+		run_query(url)
 
 	#extract_instruments
 	print "\n### extract_instruments ###"
@@ -124,7 +128,27 @@ def test_apis():
 		print "\nRunning "+u+" ..."
 		url = u+q2
 		print url
-		run_query(url)
+		#run_query(url)
+		#run_query(url)
+
+def compare_dbs():
+	compareList=[]
+	for i in range(100):
+		print '\n#### '+str(i)+' ####'
+		q1=get_effects_query()
+		crashdown=crashdown_url+q1
+		t1=run_query(crashdown)
+		cluster=cluster_url+q1
+		t2=run_query(cluster)
+		compare=t1/t2
+		compareList.append(compare)
+		print 'compare = '+str(compare)
+	print '\n',reduce(lambda x, y: x + y, compareList) / len(compareList)
+	o=open('compare_data.tsv','w')
+	count=1
+	for c in compareList:
+		o.write(str(count)+'\t'+str(c)+'\n')
+		count+=1
 
 def db_test():
 	snp_list = []
@@ -161,6 +185,7 @@ def test_permissions():
 		run_query(url)
 
 if __name__ == "__main__":
-	test_apis()
+	#test_apis()
+	compare_dbs()
 	#db_test()
 	#test_permissions()

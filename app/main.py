@@ -129,7 +129,7 @@ Get study batches
 """
 
 mrb_batch='MRB'
-study_batches=[mrb_batch,'UKB-a']
+study_batches=[mrb_batch,'UKB-a','UKB-b']
 
 
 """
@@ -589,10 +589,12 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	end = time.time()
 	t=round((end - start), 4)
 	logging.info('proxy matching took: '+str(t)+' seconds')
+	logging.info('returned '+str(len(proxy_dat))+' results')
 	return proxy_dat
 
 def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	logging.info("obtaining LD proxies from ES")
+	logging.info("palindromes "+str(palindromes))
 	start = time.time()
 	start = time.time()
 	#pquery = PySQLPool.getNewQuery(dbConnection)
@@ -601,30 +603,56 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 
 	if palindromes == "0":
 		filterData.append({"term" : {'palindromic':'0'}})
+		ESRes=es.search(
+			request_timeout=60,
+			index='mrb-proxies',
+			doc_type="proxies",
+			body={
+				"size":100000,
+				"query": {
+					"bool" : {
+						"filter" : filterData
+					}
+				}
+			})
+		logging.info(filterData)
 		#pal = 'AND palindromic = 0'
 	else:
 		pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
-		filterData.append({"term" : {'palindromic':'1'}})
-		filterData.append({"range" : {"pmaf": {"lt": str(maf_threshold) }}})
-	logging.info(filterData)
+		filterData1=[]
+		filterData2=[]
+		filterData1.append({"term" : {'palindromic':'1'}})
+		filterData1.append({"range" : {"pmaf": {"lt": str(maf_threshold) }}})
+		filterData2.append({"term" : {'palindromic':'0'}})
+		ESRes=es.search(
+			request_timeout=60,
+			index='mrb-proxies',
+			doc_type="proxies",
+			body={
+				"size":100000,
+				"query": {
+					"bool" : {
+						"filter": filterData,
+						"should": [
+							filterData2,
+			                { "bool" : {
+			                  "must" : [
+			                    filterData1
+			                  ]
+			                }}
+						]
+					}
+				}
+			})
+		logging.info(filterData)
+		logging.info(filterData1)
+		logging.info(filterData2)
 	#SQL = "SELECT * " \
 	#"FROM proxies " \
 	#"WHERE target in ({0}) " \
 	#"AND rsq >= {1} {2};".format(",".join([ "'" + x + "'" for x in snps ]), rsq, pal)
 
-	ESRes=es.search(
-		request_timeout=60,
-		index='mrb-proxies',
-		doc_type="proxies",
-		body={
-			#"from":from_val,
-			"size":100000,
-			"query": {
-				"bool" : {
-					"filter" : filterData
-				}
-			}
-		})
+
 	#return res
 	#logging.info(res)
 	logging.info("performing proxy query")
@@ -655,6 +683,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	end = time.time()
 	t=round((end - start), 4)
 	logging.info('proxy matching took: '+str(t)+' seconds')
+	logging.info('returned '+str(len(proxy_dat))+' results')
 	return proxy_dat
 
 
@@ -1225,7 +1254,7 @@ def get_effects_from_file():
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
 		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
-		proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
+		#proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
