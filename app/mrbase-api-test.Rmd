@@ -119,7 +119,7 @@ load_all('~/projects/TwoSampleMR/')
 t1 <- Sys.time()
 toggle_api("localtest")
 e1 <- extract_instruments(c('1','2','3','4','5','6'))
-o1 <- extract_outcome_data(e1$SNP, 'UKB-b:99')
+o1 <- extract_outcome_data(e1$SNP, '297')
 
 #force proxies lookup 
 #o1 <- extract_outcome_data(c('rs3115858','rs114111569','rs2073814','rs71507461','rs71507462'), '11')

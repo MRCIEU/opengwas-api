@@ -600,6 +600,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	#pquery = PySQLPool.getNewQuery(dbConnection)
 	filterData=[]
 	filterData.append({"terms" : {'target':snps}})
+	filterData.append({"range" : {"rsq": {"gte": str(rsq) }}})
 
 	if palindromes == "0":
 		filterData.append({"term" : {'palindromic':'0'}})
@@ -618,7 +619,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 		logging.info(filterData)
 		#pal = 'AND palindromic = 0'
 	else:
-		pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
+		#pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
 		filterData1=[]
 		filterData2=[]
 		filterData1.append({"term" : {'palindromic':'1'}})
@@ -1253,8 +1254,8 @@ def get_effects_from_file():
 		# cp = get_snp_positions(snps)
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
-		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
-		#proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
+		#proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
+		proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
