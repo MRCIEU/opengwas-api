@@ -1254,8 +1254,8 @@ def get_effects_from_file():
 		# cp = get_snp_positions(snps)
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
-		#proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
-		proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
+		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
+		#proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
