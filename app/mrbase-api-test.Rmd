@@ -117,16 +117,17 @@ mr_res=do_test()
 load_all('~/projects/TwoSampleMR/')
 #library(TwoSampleMR)
 t1 <- Sys.time()
-toggle_api("test")
-e1 <- extract_instruments(c('1','2','3','4','5','6'))
-#e1 <- extract_instruments(c('1'))
-o1 <- extract_outcome_data(e1$SNP, c('297', '298', '299'))
+toggle_api("localtest")
+#e1 <- extract_instruments(c('1','2','3','4','5','6'))
+e1 <- extract_instruments(c('1'))
+#o1 <- extract_outcome_data(e1$SNP, c('297', '298', '299'))
+o1 <- extract_outcome_data(e1$SNP, '297')
 
 #force proxies lookup 
 #o1 <- extract_outcome_data(c('rs3115858','rs114111569','rs2073814','rs71507461','rs71507462'), '11')
 
-d1 <- harmonise_data(e1, o1)
-m1_rel <- mr(d1)
+#d1 <- harmonise_data(e1, o1)
+#m1_rel <- mr(d1)
 #t2 <- Sys.time()
 
 #toggle_dev("elastic")
