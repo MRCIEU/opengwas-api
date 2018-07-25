@@ -67,13 +67,13 @@ class ContextFilter(logging.Filter):
 if not os.path.exists(LOG_FILE):
 	open('file', 'w').close()
 
-# Add the log message rotatin file handler to the logger
+# Create the log message rotatin file handler to the logger
 # 10000000 = 10 MB
 handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=10000000, backupCount=100)
 
 #changed to INFO because of elasticsearch DEBUG output
 #logging.basicConfig(filename=LOG_FILE,level=logging.INFO)
-logging.basicConfig(filename=LOG_FILE, format='%(asctime)s %(msecs)d %(user)-8s %(threadName)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S',level=logging.INFO, handlers=handler)
+logging.basicConfig(filename=LOG_FILE, format='%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S',level=logging.INFO, handlers=handler)
 
 logger = logging.getLogger('api-log')
 

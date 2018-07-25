@@ -13,7 +13,7 @@ crashdown2_url = 'http://crashdown.epi.bris.ac.uk:8090/'
 local_url = 'http://localhost:8080/'
 cluster_url = 'http://ieu-db-interface.epi.bris.ac.uk:8080/'
 #urls = [mrbase_url,crashdown_url]
-urls = [crashdown_url,cluster_url]
+urls = [cluster_url]
 #urls = [mrbase_url,local_url,crashdown_url]
 
 #mysql
