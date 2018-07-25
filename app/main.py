@@ -1021,6 +1021,7 @@ def check_token():
 
 @app.route("/get_studies", methods=[ 'GET' ])
 def get_studies():
+	logger.info('get_studies')
 	logger.debug("\n\n\nRequesting study table")
 	access_query = token_query(request.args.get('access_token'))
 	query = PySQLPool.getNewQuery(dbConnection)
@@ -1031,6 +1032,7 @@ def get_studies():
 
 @app.route("/get_effects", methods=[ 'GET' ])
 def get_effects():
+	logger.info('get_effects')
 	if not request.args.get('outcomes') or not request.args.get('snps'):
 		return json.dumps([])
 
@@ -1040,6 +1042,7 @@ def get_effects():
 
 @app.route("/snp_lookup", methods=[ 'GET' ])
 def snp_lookup():
+	logger.info('snp_lookup')
 	if not request.args.get('snps'):
 		return json.dumps([])
 	snps = joinarg('snps')
@@ -1058,6 +1061,7 @@ def get_status():
 
 @app.route("/extract_instruments", methods=[ 'GET' ])
 def extract_instruments():
+	logger.info('extract_instruments')
 	if not request.args.get('outcomes'):
 		return json.dumps([])
 
@@ -1231,6 +1235,7 @@ def extract_instruments():
 
 @app.route("/get_effects_from_file", methods=[ 'GET' ])
 def get_effects_from_file():
+	logger.info('get_effects_from_file')
 	logger.debug("Extracting effects based on file uploads")
 	if not request.args.get('outcomefile') or not request.args.get('snpfile'):
 		return json.dumps([])
