@@ -245,7 +245,7 @@ def token_query(token):
 def token_query_list(token):
 	qList = []
 	user_email = get_user_email(token)
-	logger.info("getting credentials for "+user_email)
+	logger.debug("getting credentials for "+user_email)
 	SQL =  """select id from study_e c where (c.id IN (select d.id from study_e d, memberships m, permissions_e p
 		WHERE m.uid = "{0}"
 		AND p.gid = m.gid
