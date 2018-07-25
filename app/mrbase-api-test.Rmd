@@ -117,11 +117,11 @@ mr_res=do_test()
 load_all('~/projects/TwoSampleMR/')
 #library(TwoSampleMR)
 t1 <- Sys.time()
-toggle_api("test")
+toggle_api("release")
 #e1 <- extract_instruments(c('1','2','3','4','5','6'))
 e1 <- extract_instruments(c('1'))
 #o1 <- extract_outcome_data(e1$SNP, c('297', '298', '299'))
-o1 <- extract_outcome_data(e1$SNP, '297')
+o2 <- extract_outcome_data(e1$SNP, c(1:100))
 
 #force proxies lookup 
 #o1 <- extract_outcome_data(c('rs3115858','rs114111569','rs2073814','rs71507461','rs71507462'), '11')
