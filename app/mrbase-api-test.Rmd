@@ -117,7 +117,7 @@ mr_res=do_test()
 load_all('~/projects/TwoSampleMR/')
 #library(TwoSampleMR)
 t1 <- Sys.time()
-toggle_api("release")
+toggle_api("test")
 #e1 <- extract_instruments(c('1','2','3','4','5','6'))
 e1 <- extract_instruments(c('1'))
 #o1 <- extract_outcome_data(e1$SNP, c('297', '298', '299'))
@@ -140,6 +140,18 @@ o2 <- extract_outcome_data(e1$SNP, c(1:100))
 #time.taken2 <- t3 - t2
 #print (time.taken1)
 #print (time.taken2)
+```
+
+```{r val-test}
+toggle_api("localtest")
+f=read.delim('~/Downloads/OA_instruments.txt')
+head(f$SNP)
+outcomes = c('1058','294')
+o_test_es <- extract_outcome_data(f$SNP, outcomes)
+
+#toggle_api("release")
+#head(f$SNP)
+#o_rel <- extract_outcome_data(f$SNP, outcomes)
 ```
 
 ```{r multivariable_MR, eval=FALSE}
