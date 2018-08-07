@@ -740,7 +740,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 						y = dict(proxy_query[l])
 						y['target_snp'] = snps[j]
 						y['proxy_snp'] = proxy_query[l].get('name')
-						#logger.info(y['target_snp']+' : '+y['proxy_snp'])
+						logger.info(y['target_snp']+' : '+y['proxy_snp'])
 						if(snps[j] == proxy_query[l].get('name')):
 							y['proxy'] = False
 							y['target_a1'] = None
@@ -1296,30 +1296,33 @@ def get_effects_from_file():
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
 		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
-		#proxy_dat_mysql = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
+		proxy_dat_mysql = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
 
-		#for i in range(0,len(proxy_dat)):
-		#	logger.info(i)
-		#	if proxy_dat[i]!=proxy_dat_mysql[i]:
-		#		logger.info(i,proxy_dat[i],proxy_dat_mysql[i])
+		for i in range(0,len(proxy_dat)):
+			logger.info(i)
+			#if proxy_dat[i]!=proxy_dat_mysql[i]:
+			if i == 3:
+				logger.info(proxy_dat[i])
+				logger.info('')
+				logger.info(proxy_dat_mysql[i])
 
 		#logger.debug('\n\n ##### p1 test starts')
 		#proxy_test_es = get_proxies_es(snps, rsq, '1', maf_threshold)
 		#proxy_test_mysql = get_proxies_mysql(snps, rsq, '1', maf_threshold)
 		#logging.info('##### p1 test over\n\n\n')
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
-		#proxies_mysql = [x.get('proxies') for x in [item for sublist in proxy_dat_mysql for item in sublist]]
+		proxies_mysql = [x.get('proxies') for x in [item for sublist in proxy_dat_mysql for item in sublist]]
 		#logger.info(proxies)
 		#logger.info('')
 		#logger.info(proxies_mysql)
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
-		#proxy_query_mysql = query_summary_stats(request.args.get('access_token'), joinarray(proxies_mysql), joinarray(outcomes))
+		proxy_query_mysql = query_summary_stats(request.args.get('access_token'), joinarray(proxies_mysql), joinarray(outcomes))
 		res=[]
 		if proxy_query!='[]':
 			res = extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles)
-			#logger.info('\nmysql')
-			#res_mysql = extract_proxies_from_query(outcomes, snps, proxy_dat_mysql, proxy_query_mysql, maf_threshold, align_alleles)
+			logger.info('\nmysql')
+			res_mysql = extract_proxies_from_query(outcomes, snps, proxy_dat_mysql, proxy_query_mysql, maf_threshold, align_alleles)
 		return json.dumps(res, ensure_ascii=False)
 
 
