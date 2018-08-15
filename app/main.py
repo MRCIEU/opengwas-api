@@ -633,8 +633,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 			body={
 				"size":100000,
 				"sort":[
-					{"target":"asc"},
-					#{"rsq":"desc"}
+					{"distance":"asc"}
 				],
 				"query": {
 					"bool" : {
@@ -1296,7 +1295,7 @@ def get_effects_from_file():
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
 		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
-		#proxy_dat_mysql = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
+		#proxy_dat = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
 
 		#for i in range(0,len(proxy_dat)):
 		#	logger.info(i)
