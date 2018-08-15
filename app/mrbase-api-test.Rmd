@@ -145,13 +145,13 @@ o2 <- extract_outcome_data(e1$SNP, c(1:100))
 ```{r val-test}
 toggle_api("localtest")
 f=read.delim('~/Downloads/OA_instruments.txt')
-head(f$SNP)
+#head(f$SNP)
 outcomes = c('1058','294')
 o_test_es <- extract_outcome_data(f$SNP, outcomes)
 
 #toggle_api("release")
 #head(f$SNP)
-#o_rel <- extract_outcome_data(f$SNP, outcomes)
+#o_test_mysql <- extract_outcome_data(f$SNP, outcomes)
 ```
 
 ```{r multivariable_MR, eval=FALSE}
