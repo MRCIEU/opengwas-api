@@ -576,13 +576,13 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	start = time.time()
 	pquery = PySQLPool.getNewQuery(dbConnection)
 	if palindromes == "0":
-		pal = 'AND palindromic = 0'
+		pal = 'AND palindromic = 0;'
 	else:
-		pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
+		pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0);"
 	SQL = "SELECT * " \
 	"FROM proxies " \
 	"WHERE target in ({0}) " \
-	"AND rsq >= {1} {2};".format(",".join([ "'" + x + "'" for x in snps ]), rsq, pal)
+	"AND rsq >= {1} {2} ;".format(",".join([ "'" + x + "'" for x in snps ]), rsq, pal)
 	logger.debug("performing proxy query")
 	pquery.Query(SQL)
 	#logger.debug(SQL)
@@ -623,7 +623,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	filterData=[]
 	filterData.append({"terms" : {'target':snps}})
 	filterData.append({"range" : {"rsq": {"gte": str(rsq) }}})
-
+	#logger.info(filterData)
 	if palindromes == "0":
 		filterData.append({"term" : {'palindromic':'0'}})
 		ESRes=es.search(
@@ -633,8 +633,9 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 			body={
 				"size":100000,
 				"sort":[
-					{"target":"asc"},
-					#{"rsq":"desc"}
+				#	{"target":"asc"},
+				#	{"rsq":"desc"}
+					"distance":"asc",
 				],
 				"query": {
 					"bool" : {
@@ -642,7 +643,6 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 					}
 				}
 			})
-		logger.debug(filterData)
 		#pal = 'AND palindromic = 0'
 	else:
 		#pal = "AND ( ( pmaf < " + str(maf_threshold) + " AND palindromic = 1 ) OR palindromic = 0)"
@@ -688,7 +688,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 
 
 	#return res
-	#logger.debug(res)
+	#logger.info(res)
 	logger.debug("performing proxy query")
 	#pquery.Query(SQL)
 	#logger.debug(SQL)
@@ -700,7 +700,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 		snp = snps[i]
 		dat = [{'targets':snp, 'proxies': snp, 'tallele1': '', 'tallele2': '', 'pallele1': '', 'pallele2': '', 'pal': ''}]
 		hits = ESRes['hits']['hits']
-		#logger.debug('total proxies = '+str(ESRes['hits']['total']))
+		#logger.info('total proxies = '+str(ESRes['hits']['total']))
 		for hit in hits:
 			#logger.debug(hit['_source'])
 			if hit['_source']['target'] == snp:
@@ -731,16 +731,20 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 	for i in range(len(outcomes)):
 		logger.debug("matching proxies to query snps for " + str(i))
 		for j in range(len(snps)):
+			#logger.info(str(j)+' '+snps[j])
 			flag=0
 			for k in range(len(proxy_dat[j])):
+				#logger.info(str(k)+' '+str(proxy_dat[j][k]))
 				if flag == 1:
+					#logger.info(flag)
 					break
 				for l in range(len(proxy_query)):
 					if (proxy_query[l].get('name') == proxy_dat[j][k].get('proxies')) and (str(proxy_query[l].get('id')) == outcomes[i]):
+						#logger.info(proxy_query[l].get('name'))
 						y = dict(proxy_query[l])
 						y['target_snp'] = snps[j]
 						y['proxy_snp'] = proxy_query[l].get('name')
-						logger.info(y['target_snp']+' : '+y['proxy_snp'])
+						#logger.info(y['target_snp']+' : '+y['proxy_snp'])
 						if(snps[j] == proxy_query[l].get('name')):
 							y['proxy'] = False
 							y['target_a1'] = None
@@ -1296,33 +1300,20 @@ def get_effects_from_file():
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
 		proxy_dat = get_proxies_es(snps, rsq, palindromes, maf_threshold)
+		#logger.info(proxy_dat)
 		proxy_dat_mysql = get_proxies_mysql(snps, rsq, palindromes, maf_threshold)
 
-		for i in range(0,len(proxy_dat)):
-			logger.info(i)
-			#if proxy_dat[i]!=proxy_dat_mysql[i]:
-			if i == 3:
-				logger.info(proxy_dat[i])
-				logger.info('')
-				logger.info(proxy_dat_mysql[i])
-
-		#logger.debug('\n\n ##### p1 test starts')
-		#proxy_test_es = get_proxies_es(snps, rsq, '1', maf_threshold)
-		#proxy_test_mysql = get_proxies_mysql(snps, rsq, '1', maf_threshold)
-		#logging.info('##### p1 test over\n\n\n')
 		proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
-		proxies_mysql = [x.get('proxies') for x in [item for sublist in proxy_dat_mysql for item in sublist]]
-		#logger.info(proxies)
-		#logger.info('')
-		#logger.info(proxies_mysql)
+		#proxies_mysql = [x.get('proxies') for x in [item for sublist in proxy_dat_mysql for item in sublist]]
 		# proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
 		proxy_query = query_summary_stats(request.args.get('access_token'), joinarray(proxies), joinarray(outcomes))
-		proxy_query_mysql = query_summary_stats(request.args.get('access_token'), joinarray(proxies_mysql), joinarray(outcomes))
+		#logger.info(proxy_query)
+		#proxy_query_mysql = query_summary_stats(request.args.get('access_token'), joinarray(proxies_mysql), joinarray(outcomes))
 		res=[]
 		if proxy_query!='[]':
 			res = extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles)
-			logger.info('\nmysql')
-			res_mysql = extract_proxies_from_query(outcomes, snps, proxy_dat_mysql, proxy_query_mysql, maf_threshold, align_alleles)
+			#logger.info('\nmysql')
+			#res_mysql = extract_proxies_from_query(outcomes, snps, proxy_dat_mysql, proxy_query_mysql, maf_threshold, align_alleles)
 		return json.dumps(res, ensure_ascii=False)
 
 
