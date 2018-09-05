@@ -211,7 +211,8 @@ def get_user_email(token):
 	if "email" in data:
 		return data['email']
 	else:
-		return "NULL"
+		return token
+                #return "NULL"
 
 def check_access_token(token):
 	url = OAUTH2_URL + token
