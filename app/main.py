@@ -503,13 +503,13 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
         tfile = open(filename, "w")
         # tfile.write("SNP P\n")
         for i in xrange(len(snps)):
-            tfile.write(str(snps[i]) + "\n")
+            tfile.write(str(snps[i]) + "_\n")
 
         tfile.close()
 
         # Find which SNPs are present
         logger.debug("Finding which snps are available")
-        cmd = "fgrep -wf " + filename + " ./ld_files/data_maf0.01_rs.snplist > " + filenamek
+        cmd = "fgrep -f " + filename + " ./ld_files/data_maf0.01_rs.snplist > " + filenamek
         logger.debug(cmd)
         os.system(cmd)
         logger.debug("found")
