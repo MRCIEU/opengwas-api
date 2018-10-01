@@ -509,7 +509,7 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
 
         # Find which SNPs are present
         logger.debug("Finding which snps are available")
-        cmd = "fgrep -f " + filename + " ./ld_files/data_maf0.01_rs.snplist > " + filenamek
+        cmd = "fgrep -f " + filename + " ./ld_files/data_maf0.01_rs_a.snplist > " + filenamek
         logger.debug(cmd)
         os.system(cmd)
         logger.debug("found")
