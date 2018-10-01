@@ -72,7 +72,7 @@ if not os.path.exists(LOG_FILE):
 handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=10000000, backupCount=100)
 
 #changed to INFO because of elasticsearch DEBUG output
-#logging.basicConfig(filename=LOG_FILE,level=logging.INFO)
+# logging.basicConfig(filename=LOG_FILE,level=logging.INFO)
 logging.basicConfig(filename=LOG_FILE, format='%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S',level=logging.INFO, handlers=handler)
 
 logger = logging.getLogger('api-log')
@@ -499,17 +499,30 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
 
     try:
         filename = upload_folder + fn + "_recode"
+        filenameb = upload_folder + fn + "_recode.bim"
         filenamek = upload_folder + fn + "_recode.keep"
+        filenameka = upload_folder + fn + "_recode.keep.a"
         tfile = open(filename, "w")
         # tfile.write("SNP P\n")
         for i in xrange(len(snps)):
-            tfile.write(str(snps[i]) + "_\n")
+            tfile.write(str(snps[i]) + "\n")
 
         tfile.close()
 
         # Find which SNPs are present
         logger.debug("Finding which snps are available")
-        cmd = "fgrep -f " + filename + " ./ld_files/data_maf0.01_rs_a.snplist > " + filenamek
+        # cmd = "fgrep -wf " + filename + " ./ld_files/data_maf0.01_rs.bim > " + filenameb
+        cmd =   "./ld_files/plink1.90 " \
+                    "--bfile ./ld_files/data_maf0.01_rs " \
+                    " --extract {0} " \
+                    " --make-just-bim " \
+                    " --out {1}".format(filename, filename)
+        logger.debug(cmd)
+        os.system(cmd)
+        cmd = "cut -d ' ' -f 1 " + filenameb + " > " + filenamek
+        logger.debug(cmd)
+        os.system(cmd)
+        cmd = "awk '{OFS=\"\"; print $2, \"_\", $5, \"_\", $6 }' " + filenameb + " > " + filenameka
         logger.debug(cmd)
         os.system(cmd)
         logger.debug("found")
@@ -528,7 +541,7 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
              return ['NA']
 
         mat = []
-        f = open(filenamek, "r")
+        f = open(filenameka, "r")
         mat.append(filter(None, f.read().split("\n")))
         f.close()
 
@@ -538,6 +551,7 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
         f.close()
 
     finally:
+    	# logger.debug("finished")
         [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
 
     return mat
@@ -1386,5 +1400,5 @@ def test_api_server():
 
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', debug=True, port=80)
-	#app.run(host='0.0.0.0', debug=True, port=8019)
+	# app.run(host='0.0.0.0', debug=True, port=80)
+	app.run(host='0.0.0.0', debug=True, port=8019)
