@@ -313,9 +313,12 @@ def query_summary_stats(token, snps, outcomes):
 	logger.debug('len outcomes_access = '+str(len(outcomes_access)))
 	if len(outcomes_access)==0 and outcomes != 'snp_lookup':
 		return json.dumps([])
-	#ESRes = elastic_query(snps=snp_data.keys(),studies=outcomes_access,pval='')
+	#if outcomes == 'snp_lookup':
+        #    ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='1e-5')
+        #else:
+        #    ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='')
 	ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='')
-	es_res=[]
+        es_res=[]
 	for s in ESRes:
 		hits = ESRes[s]['hits']['hits']
 
