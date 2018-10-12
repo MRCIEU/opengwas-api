@@ -32,7 +32,7 @@ def create_random_studies(num):
 	study_list = []
 	#SQL   = "SELECT id FROM study_e ORDER BY RAND() LIMIT "+str(num)+";"
 	#SQL   = "SELECT id FROM study_e where id NOT LIKE '%UKB%' ORDER BY RAND() LIMIT "+str(num)+";"
-	SQL   = "SELECT id FROM study_e where id LIKE '%ukb-a%' ORDER BY RAND() LIMIT "+str(num)+";"
+	SQL   = "SELECT id FROM study_e where id LIKE '%ukb-b%' ORDER BY RAND() LIMIT "+str(num)+";"
 	print SQL
 	#logging.info(SQL)
 	start=time.time()
@@ -88,9 +88,9 @@ def run_query(url):
 	return t
 
 def get_effects_query():
-	base='get_effects?access_token=null&outcomes='
+	base='get_effects?access_token=api_test&outcomes='
 	end='&snps='
-	outcomes=create_random_studies(10)
+	outcomes=create_random_studies(1)
 	outcomes_string=','.join(str(x) for x in outcomes)
 	#print outcomes
 	snps=create_random_rsids(10)
@@ -100,7 +100,7 @@ def get_effects_query():
 	return url
 
 def extract_instruments_query():
-	base='extract_instruments?access_token=null&outcomes='
+	base='extract_instruments?access_token=api_test&outcomes='
 	end='&clump=no&pval=1e-8'
 	outcomes=create_random_studies(1)
 	#print outcomes
@@ -158,7 +158,7 @@ def db_test():
 			rs = line.split(',')[0]
 			snp_list.append(rs)
 	print len(snp_list)
-	base='get_effects?access_token=null&outcomes='
+	base='get_effects?access_token=api_test&outcomes='
 	end='&snps='
 	outcomes_string='1'
 	#print outcomes
@@ -175,7 +175,7 @@ def test_permissions():
 	eList=[33,830,997,998,1013,1082,994,995,277,278,279,280,281,282,283,284,285,286,287,288,289,290,291,1098,978,979,984,985,986,987,988,989,1113,1114,1115,1116,1117,1118,1119,3,3]
 	for e in eList:
 		print e
-		base='extract_instruments?access_token=null&outcomes='
+		base='extract_instruments?access_token=api_test&outcomes='
 		end='&clump=yes&pval=1e-8'
 		#outcomes=create_random_studies(e)
 		#print outcomes
@@ -185,7 +185,7 @@ def test_permissions():
 		run_query(url)
 
 if __name__ == "__main__":
-	#test_apis()
-	compare_dbs()
+	test_apis()
+	#compare_dbs()
 	#db_test()
 	#test_permissions()

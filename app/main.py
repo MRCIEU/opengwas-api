@@ -40,7 +40,7 @@ ALLOWED_EXTENSIONS = set(['txt'])
 MAX_FILE_SIZE = 16 * 1024 * 1024
 
 LOG_FILE = "./logs/mrbaseapi.log"
-LOG_FILE2 = "./logs/mrbaseapi2.log"
+LOG_FILE_DEBUG = "./logs/mrbaseapi-debug.log"
 CENTRAL_DB = "./conf_files/central.json"
 MYSQL_DB = "./conf_files/mysql.json"
 DOCKER_DB = "./conf_files/dockerswarm.json"
@@ -62,27 +62,35 @@ class ContextFilter(logging.Filter):
     def filter(self, record):
         token = request.args.get('access_token')
         record.user = get_user_email(token)
+        #print record.user
         return True
 
 
 if not os.path.exists(LOG_FILE):
 	open('file', 'w').close()
 
-# Create the log message rotatin file handler to the logger
-# 10000000 = 10 MB
-handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=10000000, backupCount=100)
+formatter=logging.Formatter('%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S')
 
-#changed to INFO because of elasticsearch DEBUG output
-# logging.basicConfig(filename=LOG_FILE,level=logging.INFO)
-logging.basicConfig(filename=LOG_FILE, format='%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S',level=logging.INFO, handlers=handler)
-logger = logging.getLogger(__name__)
+def setup_logger(name, log_file, level=logging.INFO):
+	# Create the log message rotatin file handler to the logger
+	# 10000000 = 10 MB
+	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=10000000, backupCount=100)
+	handler.setFormatter(formatter)
 
-#add user email to all log messages
-user_email=ContextFilter()
-logger.addFilter(user_email)
+	logger = logging.getLogger(name)
+	logger.setLevel(level)
+	logger.addHandler(handler)
 
-#logging.basicConfig(filename=LOG_FILE2, format='%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S',level=logging.INFO, handlers=handler)
-#logger2 = logging.getLogger(__name__)
+	#add user email to all log messages
+	user_email=ContextFilter()
+	logger.addFilter(user_email)
+
+	return logger
+
+#create info log
+logger = setup_logger('info-log', LOG_FILE)
+#create debug log
+logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
 
 
 """
@@ -153,7 +161,7 @@ Get study batches
 """
 
 mrb_batch='MRB'
-study_batches=[mrb_batch,'UKB-a','UKB-b','UKB-c','gtex-a']
+study_batches=[mrb_batch,'UKB-a','UKB-b','UKB-c']
 
 
 """
@@ -233,7 +241,7 @@ def check_access_token(token):
 
 def token_query(token):
 	user_email = get_user_email(token)
-	logger.debug("getting credentials for "+user_email)
+	logger2.debug("getting credentials for "+user_email)
 	query =  """(c.id IN (select d.id from study_e d, memberships m, permissions_e p
 					WHERE m.uid = "{0}"
 					AND p.gid = m.gid
@@ -243,14 +251,14 @@ def token_query(token):
 					WHERE p.gid = 1
 					AND d.id = p.study_id
 				))""".format(user_email)
-	#logger.debug(query)
+	#logger2.debug(query)
 	return query
 
 #create list of studies available to user
 def token_query_list(token):
 	qList = []
 	user_email = get_user_email(token)
-	logger.debug("getting credentials for "+user_email)
+	logger2.debug("getting credentials for "+user_email)
 	SQL =  """select id from study_e c where (c.id IN (select d.id from study_e d, memberships m, permissions_e p
 		WHERE m.uid = "{0}"
 		AND p.gid = m.gid
@@ -261,12 +269,12 @@ def token_query_list(token):
 		AND d.id = p.study_id
 		))""".format(user_email)
 	SQL2="""select id from study_e""".format(user_email)
-	logger.debug(SQL)
+	#logger2.debug(SQL)
 	query = PySQLPool.getNewQuery(dbConnection)
 	query.Query(SQL)
 	for q  in query.record:
 		qList.append(q['id'])
-	logger.debug('access to '+str(len(qList))+' studies')
+	logger2.debug('access to '+str(len(qList))+' studies')
 	return qList
 
 
@@ -279,23 +287,23 @@ Query functions
 
 def query_summary_stats(token, snps, outcomes):
 	#### es
-	logger.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
+	#logger2.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
 	#get available studies
 	study_access=token_query_list(token)
-	logger.debug(study_access)
+	#logger2.debug(study_access)
 	snpList=snps.split(',')
-	logger.debug('len snplist = '+str(len(snpList)))
+	logger2.debug('len snplist = '+str(len(snpList)))
 
 	#get study and snp data
 	#snp_data = {}
 	snp_data = snps.replace("'","").split(',')
 	#if snps!='':
 		#snp_data = snp_info(snpList,'rsid_to_id')
-	logger.debug(snp_data)
+	#logger2.debug(snp_data)
 
-	logger.debug(sorted(study_access))
-	logger.debug('searching '+str(len(outcomes))+' outcomes')
-	logger.debug('creating outcomes list and study_data dictionary')
+	#logger2.debug(sorted(study_access))
+	logger2.debug('searching '+str(len(outcomes))+' outcomes')
+	logger2.debug('creating outcomes list and study_data dictionary')
 	start = time.time()
 	outcomes_access=[]
 	outcomes_clean = outcomes.replace("'","")
@@ -308,13 +316,13 @@ def query_summary_stats(token, snps, outcomes):
 			if o in study_access:
 				outcomes_access.append(o)
 			else:
-				logger.debug(o+" not in access_list")
-		#logger.debug(outcomes_access)
+				logger2.debug(o+" not in access_list")
+		#logger2.debug(outcomes_access)
 	end = time.time()
 	t=round((end - start), 4)
-	logger.debug('took: '+str(t)+' seconds')
-	logger.debug('len study_data = '+str(len(study_data)))
-	logger.debug('len outcomes_access = '+str(len(outcomes_access)))
+	logger2.debug('took: '+str(t)+' seconds')
+	logger2.debug('len study_data = '+str(len(study_data)))
+	logger2.debug('len outcomes_access = '+str(len(outcomes_access)))
 	if len(outcomes_access)==0 and outcomes != 'snp_lookup':
 		return json.dumps([])
 	#if outcomes == 'snp_lookup':
@@ -329,7 +337,7 @@ def query_summary_stats(token, snps, outcomes):
 		#create final file
 
 		for hit in hits:
-			#logger.debug(hit)
+			#logger2.debug(hit)
 			other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
 			if hit['_source']['effect_allele_freq'] < 999:
 				effect_allele_freq = hit['_source']['effect_allele_freq']
@@ -350,7 +358,7 @@ def query_summary_stats(token, snps, outcomes):
 				other_allele = hit['_source']['other_allele']
 			#name = snp_data[int(hit['_source']['snp_id'])]
 			name = hit['_source']['snp_id']
-			#logger.debug(hit)
+			#logger2.debug(hit)
 			#don't want data with no pval
 			if p != '':
 				assocDic = {'effect_allele':effect_allele,
@@ -369,10 +377,10 @@ def query_summary_stats(token, snps, outcomes):
 				if study_id in study_data:
 					assocDic.update(study_data[study_id])
 					es_res.append(assocDic)
-	#logger.debug(json.dumps(es_res,indent=4))
-	logger.debug('Total hits returned = '+str(len(es_res)))
+	#logger2.debug(json.dumps(es_res,indent=4))
+	logger2.debug('Total hits returned = '+str(len(es_res)))
 	return es_res
-	#logger.debug(json.dumps(es_res[0],indent=4))
+	#logger2.debug(json.dumps(es_res[0],indent=4))
 
 	#### mysql
 	# start=time.time()
@@ -386,18 +394,18 @@ def query_summary_stats(token, snps, outcomes):
 	# 	AND a.study IN ({1})
 	# 	AND b.name IN ({2})
 	# 	ORDER BY a.study;""".format(access_query, outcomes, snps)
-	# logger.debug("performing summary stats query")
-	# #logger.debug(SQL)
+	# logger2.debug("performing summary stats query")
+	# #logger2.debug(SQL)
 	# nsnps = len(snps.strip().split(","))
 	# studies = outcomes.strip().split(",")
 	# #for study in studies:
 	# #    logapicall(user_email,study,nsnps)
 	# query.Query(SQL)
-	# logger.debug("done summary stats query")
-	# #logger.debug(query.record)
+	# logger2.debug("done summary stats query")
+	# #logger2.debug(query.record)
 	# end = time.time()
 	# t=round((end - start), 4)
-	# logger.debug('mysql: '+str(t)+' seconds')
+	# logger2.debug('mysql: '+str(t)+' seconds')
 	# return query.record
 
 
@@ -434,7 +442,7 @@ def plink_clumping_rs(fn, upload_folder, ress, snp_col, pval_col, p1, p2, r2, kb
 					" --clump-kb {4} " \
 					" --out {5}".format(filename, p1, p2, r2, kb, filename)
 
-		logger.debug(command)
+		logger2.debug(command)
 		os.system(command)
 
 		filename_c = filename + ".clumped"
@@ -443,15 +451,15 @@ def plink_clumping_rs(fn, upload_folder, ress, snp_col, pval_col, p1, p2, r2, kb
 		words = f.read().split("\n")
 		f.close()
 
-		logger.debug("matching clumps to original query")
+		logger2.debug("matching clumps to original query")
 		out = []
 		for x in words:
 			if x is not '':
 				out.append([y for y in ress if y.get(snp_col) == x.split()[2]][0])
-		logger.debug("done match")
+		logger2.debug("done match")
 		end = time.time()
 		t=round((end - start), 4)
-		logger.debug('clumping: took '+str(t)+' seconds')
+		logger2.debug('clumping: took '+str(t)+' seconds')
 	finally:
 		[os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
 
@@ -482,7 +490,7 @@ def plink_clumping(fn, upload_folder, cp, ress, snp_col, pval_col, p1, p2, r2, k
 					" --clump-kb {4} " \
 					" --out {5}".format(filename, p1, p2, r2, kb, filename)
 
-		logger.debug(command)
+		logger2.debug(command)
 		os.system(command)
 
 		filename_c = filename + ".clumped"
@@ -517,33 +525,33 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
         tfile.close()
 
         # Find which SNPs are present
-        logger.debug("Finding which snps are available")
+        logger2.debug("Finding which snps are available")
         # cmd = "fgrep -wf " + filename + " ./ld_files/data_maf0.01_rs.bim > " + filenameb
         cmd =   "./ld_files/plink1.90 " \
                     "--bfile ./ld_files/data_maf0.01_rs " \
                     " --extract {0} " \
                     " --make-just-bim " \
                     " --out {1}".format(filename, filename)
-        logger.debug(cmd)
+        logger2.debug(cmd)
         os.system(cmd)
         cmd = "cut -d ' ' -f 1 " + filenameb + " > " + filenamek
-        logger.debug(cmd)
+        logger2.debug(cmd)
         os.system(cmd)
         cmd = "awk '{OFS=\"\"; print $2, \"_\", $5, \"_\", $6 }' " + filenameb + " > " + filenameka
-        logger.debug(cmd)
+        logger2.debug(cmd)
         os.system(cmd)
-        logger.debug("found")
+        logger2.debug("found")
         command =   "./ld_files/plink1.90 " \
                     "--bfile ./ld_files/data_maf0.01_rs " \
                     " --extract {0} " \
                     " --r square " \
                     " --out {1}".format(filenamek, filename)
 
-        logger.debug(command)
+        logger2.debug(command)
         os.system(command)
         filename_c = filename + ".ld"
         if not os.path.isfile(filename_c):
-             logger.debug("no file found")
+             logger2.debug("no file found")
              [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
              return ['NA']
 
@@ -558,7 +566,7 @@ def plink_ldsquare_rs(fn, upload_folder, snps):
         f.close()
 
     finally:
-    	# logger.debug("finished")
+    	# logger2.debug("finished")
         [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
 
     return mat
@@ -570,7 +578,7 @@ def get_proxies(snps, chr):
 		fn = LD_FILES + chr[i]
 		snp = snps[i]
 		dat = [{'targets':snp, 'proxies': snp, 'tallele1': '', 'tallele2': '', 'pallele1': '', 'pallele2': ''}]
-		logger.debug(snp)
+		logger2.debug(snp)
 		flag=0
 		with open(fn, "r") as f:
 			alllines = f.readlines()
@@ -594,7 +602,7 @@ def get_proxies(snps, chr):
 
 
 def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
-	logger.debug("obtaining LD proxies from mysql")
+	logger2.debug("obtaining LD proxies from mysql")
 	start = time.time()
 	pquery = PySQLPool.getNewQuery(dbConnection)
 	if palindromes == "0":
@@ -605,17 +613,17 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 	"FROM proxies " \
 	"WHERE target in ({0}) " \
 	"AND rsq >= {1} {2} ;".format(",".join([ "'" + x + "'" for x in snps ]), rsq, pal)
-	logger.debug("performing proxy query")
+	logger2.debug("performing proxy query")
 	pquery.Query(SQL)
-	#logger.debug(SQL)
-	logger.debug("done proxy query")
+	#logger2.debug(SQL)
+	logger2.debug("done proxy query")
 	res = pquery.record
 	proxy_dat = []
-	logger.debug("matching proxy SNPs")
+	logger2.debug("matching proxy SNPs")
 	for i in range(len(snps)):
 		snp = snps[i]
 		dat = [{'targets':snp, 'proxies': snp, 'tallele1': '', 'tallele2': '', 'pallele1': '', 'pallele2': '', 'pal': ''}]
-		#logger.debug('total proxies = '+str(len(res)))
+		#logger2.debug('total proxies = '+str(len(res)))
 		for l in res:
 			if l.get('target') == snp:
 				#logger.info(snp+' '+l.get('proxy'))
@@ -629,16 +637,16 @@ def get_proxies_mysql(snps, rsq, palindromes, maf_threshold):
 					'pal':l.get('palindromic')}
 				)
 		proxy_dat.append(dat)
-	logger.debug("done proxy matching")
+	logger2.debug("done proxy matching")
 	end = time.time()
 	t=round((end - start), 4)
-	logger.debug('proxy matching took: '+str(t)+' seconds')
-	logger.debug('returned '+str(len(proxy_dat))+' results')
+	logger2.debug('proxy matching took: '+str(t)+' seconds')
+	logger2.debug('returned '+str(len(proxy_dat))+' results')
 	return proxy_dat
 
 def get_proxies_es(snps, rsq, palindromes, maf_threshold):
-	logger.debug("obtaining LD proxies from ES")
-	logger.debug("palindromes "+str(palindromes))
+	logger2.debug("obtaining LD proxies from ES")
+	logger2.debug("palindromes "+str(palindromes))
 	start = time.time()
 	start = time.time()
 	#pquery = PySQLPool.getNewQuery(dbConnection)
@@ -698,9 +706,9 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 					}
 				}
 			})
-		logger.debug(filterData)
-		logger.debug(filterData1)
-		logger.debug(filterData2)
+		logger2.debug(filterData)
+		logger2.debug(filterData1)
+		logger2.debug(filterData2)
 	#SQL = "SELECT * " \
 	#"FROM proxies " \
 	#"WHERE target in ({0}) " \
@@ -709,20 +717,20 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 
 	#return res
 	#logger.info(res)
-	logger.debug("performing proxy query")
+	logger2.debug("performing proxy query")
 	#pquery.Query(SQL)
-	#logger.debug(SQL)
-	logger.debug("done proxy query")
+	#logger2.debug(SQL)
+	logger2.debug("done proxy query")
 	#res = pquery.record
 	proxy_dat = []
-	logger.debug("matching proxy SNPs")
+	logger2.debug("matching proxy SNPs")
 	for i in range(len(snps)):
 		snp = snps[i]
 		dat = [{'targets':snp, 'proxies': snp, 'tallele1': '', 'tallele2': '', 'pallele1': '', 'pallele2': '', 'pal': ''}]
 		hits = ESRes['hits']['hits']
 		#logger.info('total proxies = '+str(ESRes['hits']['total']))
 		for hit in hits:
-			#logger.debug(hit['_source'])
+			#logger2.debug(hit['_source'])
 			if hit['_source']['target'] == snp:
 				#logger.info(snp+' '+hit['_source']['proxy'])
 				dat.append({
@@ -735,21 +743,21 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 						'pal':hit['_source']['palindromic']}
 				)
 		proxy_dat.append(dat)
-	logger.debug("done proxy matching")
+	logger2.debug("done proxy matching")
 	end = time.time()
 	t=round((end - start), 4)
-	logger.debug('proxy matching took: '+str(t)+' seconds')
-	logger.debug('returned '+str(len(proxy_dat))+' results')
+	logger2.debug('proxy matching took: '+str(t)+' seconds')
+	logger2.debug('returned '+str(len(proxy_dat))+' results')
 	return proxy_dat
 
 
 def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles):
-	logger.debug("entering extract_proxies_from_query")
+	logger2.debug("entering extract_proxies_from_query")
 	start = time.time()
 	matched_proxies = []
 	proxy_query_copy = [a.get('name') for a in proxy_query]
 	for i in range(len(outcomes)):
-		logger.debug("matching proxies to query snps for " + str(i))
+		logger2.debug("matching proxies to query snps for " + str(i))
 		for j in range(len(snps)):
 			#logger.info(str(j)+' '+snps[j])
 			flag=0
@@ -776,7 +784,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 						else:
 							if align_alleles == "1":
 								al = proxy_alleles(proxy_query[l], proxy_dat[j][k], maf_threshold)
-								logger.debug(al)
+								logger2.debug(al)
 								if al == "straight":
 									y['proxy'] = True
 									y['effect_allele'] = proxy_dat[j][k].get('tallele1')
@@ -804,7 +812,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 									# print "switch", i, j, k, l
 									break
 								if al == "skip":
-									logger.debug("skip")
+									logger2.debug("skip")
 							else:
 								y['proxy'] = True
 								y['target_a1'] = proxy_dat[j][k].get('tallele1')
@@ -818,7 +826,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 								break
 	end = time.time()
         t=round((end - start), 4)
-        logger.debug('extract_proxies_from_query took :'+str(t)+' seconds')
+        logger2.debug('extract_proxies_from_query took :'+str(t)+' seconds')
 	return matched_proxies
 
 
@@ -887,18 +895,19 @@ def proxy_alleles(pq, pd, maf_threshold):
 
 def study_info(study_list):
 	study_data = {}
-        if study_list == 'snp_lookup':
-	    SQL = "SELECT * FROM study_e, permissions_e where study_e.id = permissions_e.study_id and permissions_e.gid = 1;"
-        else:
-	    SQL   = "SELECT * FROM study_e where id in ("+study_list+");"
+	#SQL   = "SELECT * FROM study_e where id in ('"+str(",".join(study_list))+"');"
+	if study_list == 'snp_lookup':
+		SQL = "SELECT * FROM study_e, permissions_e where study_e.id = permissions_e.study_id and permissions_e.gid = 1;"
+	else:
+		SQL   = "SELECT * FROM study_e where id in ("+study_list+");"
 
-	#logger.debug(SQL)
+	logger2.debug(SQL)
 	query = PySQLPool.getNewQuery(dbConnection)
 	query.Query(SQL)
 	for q in query.record:
 		study_data[q['id']]=q
-	#logger.debug(study_data)
-	logger.debug('study_info:'+str(len(study_data)))
+	#logger2.debug(study_data)
+	logger2.debug('study_info:'+str(len(study_data)))
 	return study_data
 
 def snp_info(snp_list,type):
@@ -907,7 +916,7 @@ def snp_info(snp_list,type):
 		SQL   = "SELECT * FROM snp where id in ("+str(",".join(snp_list))+");"
 	else:
 		SQL   = "SELECT * FROM snp where name in ("+str(",".join(snp_list))+");"
-	#logger.debug(SQL)
+	#logger2.debug(SQL)
 	start=time.time()
 	query = PySQLPool.getNewQuery(dbConnection)
 	query.Query(SQL)
@@ -915,7 +924,7 @@ def snp_info(snp_list,type):
 		snp_data[q['id']]=q['name']
 	end = time.time()
 	t=round((end - start), 4)
-	logger.debug('snp_info:'+str(len(snp_data))+' in '+str(t)+' seconds')
+	logger2.debug('snp_info:'+str(len(snp_data))+' in '+str(t)+' seconds')
 	return snp_data
 
 def elastic_search(filterData,index_name):
@@ -937,19 +946,19 @@ def elastic_search(filterData,index_name):
 #studies and snps are lists
 def elastic_query(studies,snps,pval):
 	#separate studies by index
-	#logger.debug(studies)
+	#logger2.debug(studies)
 	study_indexes={mrb_batch:[]}
 	mrbase_original=True
 	#deal with snp_lookup
 	if studies == 'snp_lookup':
-		logger.debug("Running snp_lookup elastic_query")
+		logger2.debug("Running snp_lookup elastic_query")
 		#need to add each index for snp_lookups
 		for i in study_batches:
 			if i != mrb_batch:
 				study_indexes.update({i:[]})
 	else:
 		for o in studies:
-			#logger.debug('o = '+o)
+			#logger2.debug('o = '+o)
 			if re.search(':',o):
 				study_prefix,study_id = o.split(':')
 				if study_prefix in study_indexes:
@@ -961,7 +970,7 @@ def elastic_query(studies,snps,pval):
 
 	res={}
 	for s in study_indexes:
-		logger.debug('checking '+s+' ...')
+		logger2.debug('checking '+s+' ...')
 		filterSelect = {}
 		if type(studies) is list:
 			filterSelect['study_id'] = study_indexes[s]
@@ -988,8 +997,8 @@ def elastic_query(studies,snps,pval):
 		else:
 			run = True
 		if run==True:
-			logger.debug('running ES: index: '+s+' studies: '+str(len(studies))+' snps: '+str(len(snps))+' pval: '+str(pval))
-			#logger.debug(filterData)
+			logger2.debug('running ES: index: '+s+' studies: '+str(len(studies))+' snps: '+str(len(snps))+' pval: '+str(pval))
+			#logger2.debug(filterData)
 			start=time.time()
 			e =  elastic_search(filterData,s)
 			res.update({s:e})
@@ -997,14 +1006,14 @@ def elastic_query(studies,snps,pval):
 			end = time.time()
 			t=round((end - start), 4)
 			numRecords=res[s]['hits']['total']
-			logger.debug("Time taken: "+str(t)+" seconds")
-			logger.debug('ES returned '+str(numRecords)+' records')
+			logger2.debug("Time taken: "+str(t)+" seconds")
+			logger2.debug('ES returned '+str(numRecords)+' records')
 	#if numRecords>10000:
 	#	for i in range(10000,numRecords,10000):
-	#		logger.debug(i)
+	#		logger2.debug(i)
 	#		res1 = elastic_search(i,10,filterData)
 	#		res = merge_two_dicts(res,res1)
-	#	logger.debug(str(numRecords)+' !!!! large number of records !!!!')
+	#	logger2.debug(str(numRecords)+' !!!! large number of records !!!!')
 	return res
 
 """
@@ -1015,7 +1024,7 @@ Methods
 
 @app.route("/")
 def hello():
-	logger.debug("INCOMING")
+	logger2.debug("INCOMING")
 	return "Welcome to the MR-Base API. This was automatically deployed."
 
 
@@ -1042,7 +1051,7 @@ def upload():
 @app.route("/check_token", methods=[ 'GET' ])
 def check_token():
 	a = request.args.get('access_token')
-	logger.debug(a)
+	logger2.debug(a)
 	if not request.args.get('access_token'):
 		return json.dumps(-1)
 	if request.args.get('access_token'):
@@ -1054,7 +1063,7 @@ def check_token():
 @app.route("/get_studies", methods=[ 'GET' ])
 def get_studies():
 	logger.info('get_studies')
-	logger.debug("\n\n\nRequesting study table")
+	logger2.debug("\n\n\nRequesting study table")
 	access_query = token_query(request.args.get('access_token'))
 	query = PySQLPool.getNewQuery(dbConnection)
 	SQL   = "SELECT * FROM study_e c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
@@ -1102,7 +1111,7 @@ def extract_instruments():
 	else:
 		pval = float(request.args.get('pval'))
 	if not request.args.get('clump'):
-		logger.debug("no clump argument")
+		logger2.debug("no clump argument")
 		clump = "yes"
 	elif request.args.get('clump') == "no" or request.args.get('clump') == "No":
 		clump = request.args.get('clump')
@@ -1129,28 +1138,28 @@ def extract_instruments():
 
 	outcomes = joinarg('outcomes')
 
-	logger.debug("obtaining instruments for "+outcomes)
-	logger.debug("clumping = "+clump)
+	logger2.debug("obtaining instruments for "+outcomes)
+	logger2.debug("clumping = "+clump)
 
 	### elastic query
 	#fix outcomes
 	outcomes_clean = outcomes.replace("'","")
 	#get available studies
 	study_access = token_query_list(request.args.get('access_token'))
-	#logger.debug(sorted(study_access))
-	logger.debug('searching '+outcomes_clean)
+	#logger2.debug(sorted(study_access))
+	logger2.debug('searching '+outcomes_clean)
 	outcomes_access = []
 	for o in outcomes_clean.split(','):
 		if o in study_access:
 			outcomes_access.append(o)
 		else:
-			logger.debug(o+" not in access_list")
+			logger2.debug(o+" not in access_list")
 	if len(outcomes_access)==0:
-		logger.debug('No outcomes left after permissions check')
+		logger2.debug('No outcomes left after permissions check')
 		return json.dumps([], ensure_ascii=False)
 	else:
 		ESRes = elastic_query(snps='',studies=outcomes_access,pval=pval)
-		#logger.debug(ESRes)
+		#logger2.debug(ESRes)
 		snpDic={}
 		#create lookup for snp names
 		for s in ESRes:
@@ -1190,7 +1199,7 @@ def extract_instruments():
 				if 'other_allele' in hit['_source']:
 					other_allele = hit['_source']['other_allele']
 				name = hit['_source']['snp_id']
-				#logger.debug(hit)
+				#logger2.debug(hit)
 				#don't want data with no pval
 				if p != '':
 					assocDic = {'effect_allele':effect_allele,
@@ -1208,11 +1217,11 @@ def extract_instruments():
 					#make sure only to return available studies
 					if study_id in study_data:
 						assocDic.update(study_data[study_id])
-						#logger.debug(assocDic)
+						#logger2.debug(assocDic)
 						#res.append(study_data)
 						res.append(assocDic)
 		#es_res.append(study_data)
-		#logger.debug(json.dumps(res[0],indent=4))
+		#logger2.debug(json.dumps(res[0],indent=4))
 
 		#### mysql
 
@@ -1227,14 +1236,14 @@ def extract_instruments():
 		# 		"AND a.p <= {1} " \
 		# 		"AND {2}" \
 		# 		"ORDER BY a.study;".format(outcomes, pval, access_query)
-		# logger.debug("querying database...")
+		# logger2.debug("querying database...")
 		# start = time.time()
 		# query.Query(SQL)
 		# res_mysql = query.record
 		# end = time.time()
 		# t=round((end - start), 4)
-		# logger.debug(json.dumps(res_mysql[0],indent=4))
-		# logger.debug("mysql done. found "+str(len(res_mysql))+" hits in "+str(t)+" seconds")
+		# logger2.debug(json.dumps(res_mysql[0],indent=4))
+		# logger2.debug("mysql done. found "+str(len(res_mysql))+" hits in "+str(t)+" seconds")
 
 		#token = request.args.get('access_token')
 		#user_email = get_user_email(token)
@@ -1247,7 +1256,7 @@ def extract_instruments():
 			found_outcomes = set([x.get('id') for x in res])
 			all_out = []
 			for outcome in found_outcomes:
-				logger.debug("clumping results for "+str(outcome))
+				logger2.debug("clumping results for "+str(outcome))
 				ress = [x for x in res if x.get('id') == outcome]
 				snps = set([x.get('name') for x in res if x.get('id') == outcome])
 
@@ -1268,17 +1277,17 @@ def extract_instruments():
 @app.route("/get_effects_from_file", methods=[ 'GET' ])
 def get_effects_from_file():
 	logger.info('get_effects_from_file')
-	logger.debug("Extracting effects based on file uploads")
+	logger2.debug("Extracting effects based on file uploads")
 	if not request.args.get('outcomefile') or not request.args.get('snpfile'):
 		return json.dumps([])
 	if not check_filename(request.args.get('outcomefile')) or not check_filename(request.args.get('snpfile')):
 		return json.dumps([])
 	if not request.args.get('proxies'):
-		logger.debug("not getting proxies by default")
+		logger2.debug("not getting proxies by default")
 		proxies = '0'
 	else:
 		proxies = request.args.get('proxies')
-	logger.debug('proxies: '+str(proxies))
+	logger2.debug('proxies: '+str(proxies))
 	if not request.args.get('rsq'):
 		rsq = 0.8
 	else:
@@ -1309,15 +1318,15 @@ def get_effects_from_file():
 		outcomes = [x.strip("\n") for x in outcomes]
 	os.remove(outcomefile)
 
-	logger.debug("extracting data for "+str(len(snps))+" SNP(s) in "+str(len(outcomes))+" outcome(s)")
+	logger2.debug("extracting data for "+str(len(snps))+" SNP(s) in "+str(len(outcomes))+" outcome(s)")
 
 	if proxies == '0':
-		logger.debug("not using LD proxies")
+		logger2.debug("not using LD proxies")
 		snps = ",".join([ "'" + x.strip("\n") + "'" for x in snps])
 		outcomes = ",".join([ "'" + x.strip("\n") + "'" for x in outcomes])
 		return json.dumps(query_summary_stats(request.args.get('access_token'), snps, outcomes), ensure_ascii=False)
 	else:
-		logger.debug("using LD proxies")
+		logger2.debug("using LD proxies")
 		# cp = get_snp_positions(snps)
 		# snps = [x.get('name') for x in cp]
 		# chr = [x.get('chrom').replace("chr", "eur") + ".ld" for x in cp]
@@ -1409,5 +1418,5 @@ def test_api_server():
 
 
 if __name__ == "__main__":
-	# app.run(host='0.0.0.0', debug=True, port=80)
-	app.run(host='0.0.0.0', debug=True, port=8019)
+	app.run(host='0.0.0.0', debug=True, port=80)
+	#app.run(host='0.0.0.0', debug=True, port=8019)

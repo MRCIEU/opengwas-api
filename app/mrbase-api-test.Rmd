@@ -146,15 +146,15 @@ o2 <- extract_outcome_data(e1$SNP, c(1:100))
 toggle_api("test")
 f=read.delim('~/Downloads/OA_instruments.txt')
 #head(f$SNP)
-#outcomes = c('1058','294')
-outcomes = c('294')
-snp='rs149445151'
+outcomes = c('1058','294')
+#outcomes = c('294')
+#snp='rs149445151'
 #o_test_es <- extract_outcome_data(f$SNP, outcomes)
-o_test_es <- extract_outcome_data(snp, outcomes)
+#o_test_es <- extract_outcome_data(snp, outcomes)
 
 #toggle_api("release")
 #head(f$SNP)
-#o_test_mysql <- extract_outcome_data(f$SNP, outcomes)
+o_test_mysql <- extract_outcome_data(f$SNP, outcomes)
 #o_test_mysql <- extract_outcome_data(snp, outcomes)
 
 #so in the mysql case rs4688690 is selected but there is a suitable SNP (more than one with equal rsq) with higher rsq, e.g. rs13060128
