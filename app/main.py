@@ -217,7 +217,7 @@ Authentication and logging functions
 
 
 def get_user_email(token):
-	url = OAUTH2_URL + token
+	url = OAUTH2_URL + str(token)
 	response = urllib.urlopen(url)
 	data = json.loads(response.read())
 	if "email" in data:
