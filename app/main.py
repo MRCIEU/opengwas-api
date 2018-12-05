@@ -74,7 +74,7 @@ formatter=logging.Formatter('%(asctime)s %(msecs)d %(user)s %(threadName)s %(lev
 def setup_logger(name, log_file, level=logging.INFO):
 	# Create the log message rotatin file handler to the logger
 	# 10000000 = 10 MB
-	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=10000000, backupCount=100)
+	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=100000000, backupCount=100)
 	handler.setFormatter(formatter)
 
 	logger = logging.getLogger(name)
@@ -161,7 +161,7 @@ Get study batches
 """
 
 mrb_batch='MRB'
-study_batches=[mrb_batch,'UKB-a','UKB-b','UKB-c']
+study_batches=[mrb_batch,'UKB-a','UKB-b','UKB-c','pQTL-a','eqtl-a']
 
 
 """
@@ -931,7 +931,7 @@ def elastic_search(filterData,index_name):
 	res=es.search(
 		request_timeout=60,
 		index=index_name,
-		doc_type="assoc",
+		#doc_type="assoc",
 		body={
 			#"from":from_val,
 			"size":100000,
@@ -1030,7 +1030,8 @@ def hello():
 
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
-	if request.method == 'POST':
+	logger.info('upload')
+        if request.method == 'POST':
 		file = request.files['file']
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
@@ -1352,6 +1353,7 @@ def get_effects_from_file():
 
 @app.route("/clump", methods=[ 'GET' ])
 def clump():
+        logger.info('clump')
 	if not request.args.get('snpfile'):
 		return json.dumps([])
 	if not check_filename(request.args.get('snpfile')):
@@ -1394,6 +1396,7 @@ def clump():
 
 @app.route("/ld", methods=[ 'GET' ])
 def ld():
+    logger.info('ld')
     if not request.args.get('snpfile'):
         return json.dumps([])
     if not check_filename(request.args.get('snpfile')):
