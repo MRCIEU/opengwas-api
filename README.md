@@ -1,23 +1,22 @@
-Create docker network bridge
+### Clone repo
 
 ```
-docker network create -d bridge mrbase_bridge
+git clone git@github.com:MRCIEU/mr-base-api.git
 ```
 
-Start up Elasticsearch container
-
+### Copy of ld data
 ```
-docker run -d --net mrbase_bridge -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms30g -Xmx30g" --volume=$HOME/mrbase/data:/data --volume=$HOME/elastic-data:/usr/share/elasticsearch/data --name mr-base-elastic-docker-bridge docker.elastic.co/elasticsearch/elasticsearch:5.6.2
-```
-
-Create API container
-
-```
-docker build .
+cp -r /path/to/ld_files app/
 ```
 
-Start up API container using network
+### Create image
 
 ```
-docker run -d --net mrbase_bridge -e DB=mr-base-elastic-docker-bridge --name mrbase-api-es-bridge -p 8080:80 f2ddb5c4dde8
+docker build -t mrbase-api-image .
+```
+
+### Create container mapping this repo to volume
+
+```
+docker run -d -it --name mrbase-api -p 8080:80 --volume=/var/www/api/mr-base-api/app:/app mrbase-api-image
 ```
