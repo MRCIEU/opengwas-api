@@ -9,7 +9,9 @@ git clone git@github.com:MRCIEU/mr-base-api.git
 
 ### Copy of ld data
 ```
-cp -r /path/to/ld_files app/
+wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
+tar xzvf app/ld_files.tgz -C app/
+rm app/ld_files.tgz
 ```
 
 ### Edit conf for elasticsearch (app/conf_files/es_conf.json)
