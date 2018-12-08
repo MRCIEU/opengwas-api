@@ -1,4 +1,5 @@
 {
         "host": "ieu-db-interface.epi.bris.ac.uk",
-        "port":9200
+        "port":9200,
+        "flask_port":80
 }

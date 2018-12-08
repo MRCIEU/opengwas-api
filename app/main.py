@@ -47,7 +47,16 @@ DOCKER_DB = "./conf_files/dockerswarm.json"
 UCSC_DB = "./conf_files/ucsc.json"
 ORIGINAL_DB = "./conf_files/original.json"
 APICALL_LOG_FILE = "./logs/mrbaselog.sqlite"
-ES_CONF = "./conf_files/es_conf.json"
+ES_CONF = "./conf_files/es_conf_local.json"
+
+
+def return_error(code):
+	error_codes = {
+		461: "MySQL query failed",
+		462: "elasticsearch query failed",
+		463: "Malformed request"
+	}
+	abort(code, error_codes[code])
 
 """
 
@@ -1061,16 +1070,41 @@ def check_token():
 		return json.dumps(-1)
 
 
-@app.route("/get_studies", methods=[ 'GET' ])
+@app.route("/get_studies", methods=[ 'GET', 'POST' ])
 def get_studies():
-	logger.info('get_studies')
-	logger2.debug("\n\n\nRequesting study table")
-	access_query = token_query(request.args.get('access_token'))
-	query = PySQLPool.getNewQuery(dbConnection)
-	SQL   = "SELECT * FROM study_e c WHERE c.id NOT IN (1000000) AND" + access_query + ";"
-	query.Query(SQL)
-	return json.dumps(query.record, ensure_ascii=False)
+	if request.method == 'POST':
+		try:
+			req_data = request.get_json()
+		except:
+			return(json.dumps({"SERVER": "Can't read json upload"}))
 
+		if 'access_token' in req_data:
+			at = req_data['access_token']
+		else:
+			at = 'NULL'
+		if 'id' in req_data:
+			id_query = "IN ('" + "','".join(req_data['id']) + "')"
+		else:
+			id_query = "NOT IN (1000000)"
+	if request.method == 'GET':
+		logger.info('get_studies')
+		logger2.debug("\n\n\nRequesting study table")
+		if not request.args.get('access_token'):
+			at = 'NULL'
+		else:
+			at = request.args.get('access_token')
+		if not request.args.get('id'):
+			id_query = "NOT IN (1000000)"
+		else:
+			id_query = "IN ('" + "','".join(request.args.get('id').split(',')) + "')"
+	access_query = token_query(at)
+	SQL   = "SELECT * FROM study_e c WHERE c.id " + id_query + " AND" + access_query + ";"
+	try:
+		query = PySQLPool.getNewQuery(dbConnection)
+		query.Query(SQL)
+		return json.dumps(query.record, ensure_ascii=False)
+	except:
+		abort(461, "MySQL database not available")
 
 @app.route("/get_effects", methods=[ 'GET' ])
 def get_effects():
@@ -1093,10 +1127,13 @@ def snp_lookup():
 
 @app.route("/get_status", methods=[ 'GET' ])
 def get_status():
-	SQL   = "SELECT COUNT(*) FROM study;"
-	query = PySQLPool.getNewQuery(dbConnection)
-	query.Query(SQL)
-	return json.dumps(query.record)
+	try:
+		SQL   = "SELECT COUNT(*) FROM study;"
+		query = PySQLPool.getNewQuery(dbConnection)
+		query.Query(SQL)
+		return json.dumps(query.record)
+	except:
+		abort(461, "MySQL database not available")
 
 
 
@@ -1421,5 +1458,7 @@ def test_api_server():
 
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', debug=True, port=80)
+	with open(ES_CONF) as f:
+		es_conf = json.load(f)
+	app.run(host='0.0.0.0', debug=True, port=es_conf['flask_port'])
 	#app.run(host='0.0.0.0', debug=True, port=8019)
