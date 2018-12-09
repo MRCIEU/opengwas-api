@@ -318,6 +318,7 @@ $(document).ready(function () {
 <li><a href="#available-gwas-studies">Available GWAS studies</a><ul>
 <li><a href="#get-list-of-gwas-studies">Get list of GWAS studies</a></li>
 <li><a href="#get-info-on-particular-gwas-studies">Get info on particular GWAS studies</a></li>
+<li><a href="#authentication">Authentication</a></li>
 </ul></li>
 <li><a href="#query-gwas-associations">Query GWAS associations</a><ul>
 <li><a href="#extracting-specific-snps-from-specific-datasets">Extracting specific SNPs from specific datasets</a></li>
@@ -346,11 +347,9 @@ $(document).ready(function () {
 <h2>Available GWAS studies</h2>
 <section id="get-list-of-gwas-studies" class="level3">
 <h3>Get list of GWAS studies</h3>
-<pre><code>GET /gwaslist
-GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
+<pre><code>GET /gwaslist</code></pre>
 <p>e.g. <a href="http://api.mrbase.org/gwaslist" class="uri">http://api.mrbase.org/gwaslist</a></p>
-<p>e.g. <a href="http://api.mrbase.org/gwaslist/xxxxlongrandomhashxxxx" class="uri">http://api.mrbase.org/gwaslist/xxxxlongrandomhashxxxx</a></p>
-<p>Returns a large JSON object, with information pertaining to each study available in the database. Note, this only returns publicly available results. You can provide an access token to verify your identity through a gmail account, which will give you access to your private datasets also.</p>
+<p>Returns a large JSON object, with information pertaining to each study available in the database. Note, this only returns publicly available results. For access to private datasets you must use the POST methods described below in which you can provide an access token to verify your identity through a gmail account.</p>
 <hr />
 </section>
 <section id="get-info-on-particular-gwas-studies" class="level3">
@@ -360,16 +359,28 @@ GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
 <p>e.g. <a href="http://api.mrbase.org/gwasinfo/2" class="uri">http://api.mrbase.org/gwasinfo/2</a> shows info on the GIANT BMI study 2015</p>
 <p>e.g. <a href="http://api.mrbase.org/gwasinfo/2,1001" class="uri">http://api.mrbase.org/gwasinfo/2,1001</a> shows info on the above study and the SSGAC 2016 study on educational attainment.</p>
 <hr />
-<p><code>POST</code> methods are also available. A complete list of studies can be obtained using</p>
+</section>
+<section id="authentication" class="level3">
+<h3>Authentication</h3>
+<p>An access token is required to prove your identity. The easiest way to obtain an access token is through the TwoSampleMR R package using the <code>get_mrbase_access_token()</code> function. In R:</p>
+<pre class="r"><code>devtools::install_github(&quot;MRCIEU/TwoSampleMR&quot;)
+library(TwoSampleMR)
+get_mrbase_access_token()</code></pre>
+<p>This will send you to a browser window in which you can enter your gmail credentials, and then upon authorisation it will generate a token.</p>
+<hr />
+<p>The access token can be supplied using the <code>POST</code> method. A complete list of studies can be obtained using</p>
 <pre><code>POST /gwaslist</code></pre>
 <p>This can be accessed through <code>curl</code> e.g. using:</p>
-<pre class="bash"><code>curl -i -H &quot;Content-Type: application/json&quot; -X POST -d @test.json http://api.mrbase.org/gwaslist</code></pre>
-<p>Here we are posting the <code>test.json</code> file that contains the details of the query. Example:</p>
-<pre class="json"><code>{
-    'access_token': 'xxxxlongrandomhashxxxx',
+<pre class="bash"><code>curl -i \
+-H &quot;Content-Type: application/json&quot; \
+-H &quot;X-Api-Token: xxxxlongrandomhashxxxx&quot; \
+-X POST -d '
+{
     'id': ['2','1001']
-}</code></pre>
-<p>If <code>access_token</code> is empty then only public datasets are returned. If <code>id</code> is empty then the list of all datasets is returned.</p>
+}
+' http://api.mrbase.org/gwaslist</code></pre>
+<p>Here we are providing the access token through the header, and posting a <code>json</code> document that contains the details of the query. Example:</p>
+<p>If the header variable <code>X-Api-Token</code> is null then only public datasets are returned. If <code>id</code> is empty then the list of all datasets is returned.</p>
 <hr />
 </section>
 </section>
@@ -383,7 +394,6 @@ GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
 <p>e.g. <a href="http://127.0.0.1:8019/assoc/2,1001/rs234" class="uri">http://127.0.0.1:8019/assoc/2,1001/rs234</a> obtained the <code>rs234</code> SNP from two studies.</p>
 <pre><code>POST /assoc</code></pre>
 <pre class="json"><code>{
-    'access_token': 'xxxxlongrandomhashxxxx',
     'id': ['2','1001'],
     'rsid': ['rs234'],
     'proxies': 0,
@@ -398,13 +408,13 @@ GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
 <section id="extracting-tophits-from-datasets" class="level3">
 <h3>Extracting tophits from datasets</h3>
 <pre><code>POST /tophits</code></pre>
-<pre class="json"><code>        'access_token': 'xxxxlongrandomhashxxxx',
-        'id': [&lt;list of mrbase-ids&gt;],
+<pre class="json"><code>        'id': [&lt;list of mrbase-ids&gt;],
         'clump': 1,
         'pval': 5e-8,
         'r2': 0.001,
         'kb': 5000</code></pre>
 <p>Clumping is performed by default using arguments described below.</p>
+<hr />
 </section>
 </section>
 <section id="ld-operations" class="level2">
@@ -420,6 +430,7 @@ GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
     'kb': 5000
 }</code></pre>
 <p>Performs clumping on a set of SNPs</p>
+<hr />
 </section>
 <section id="ld-matrix" class="level3">
 <h3>LD matrix</h3>
