@@ -24,7 +24,7 @@ rm app/ld_files.tgz
 
 ### Create tunnel (need to be on VPN)
 ```
-ssh -NL 9200:localhost:9200 ieu-db-interface.epi.bris.ac.uk
+ssh -L 9200:localhost:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ```
 
 ### Edit the API port
