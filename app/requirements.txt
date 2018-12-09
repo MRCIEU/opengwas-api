@@ -1,6 +1,7 @@
 PySQLPool
 uuid
 flask
+flask_restful
 werkzeug
 logging
 elasticsearch
