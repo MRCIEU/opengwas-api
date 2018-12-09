@@ -11,7 +11,7 @@ class Clump(Resource):
 		parser.add_argument('access_token', required=False, type=str, default='NULL')
 		parser.add_argument('rsid', type=str, required=False, action='append', default=[])
 		parser.add_argument('pval', type=float, required=False, action='append', default=[])
-		parser.add_argument('p1', type=float, required=False, default=5e-8, location='json')
+		parser.add_argument('pval', type=float, required=False, default=5e-8, location='json')
 		parser.add_argument('r2', type=float, required=False, default=0.001, location='json')
 		parser.add_argument('kb', type=int, required=False, default=5000, location='json')
 		args = parser.parse_args()
@@ -24,7 +24,7 @@ class Clump(Resource):
 			abort(405)
 
 		try:
-			out = plink_clumping_rs(TMP_FOLDER, args['rsid'], args['pval'], args['p1'], args['p1'], args['r2'], args['kb'])
+			out = plink_clumping_rs(TMP_FOLDER, args['rsid'], args['pval'], args['pval'], args['pval'], args['r2'], args['kb'])
 		except:
 			abort(503)
 		return out, 200
