@@ -18,7 +18,7 @@ class AssocGet(Resource):
 			abort(503)
 		return out
 
-		
+
 
 class AssocPost(Resource):
 	def get(self):
@@ -35,6 +35,13 @@ class AssocPost(Resource):
 		parser.add_argument('palindromes', type=int, required=False, default=1, location='json')
 		parser.add_argument('maf_threshold', type=float, required=False, default=0.3, location='json')
 		args = parser.parse_args()
+
+		if(len(args['id']) == 0):
+			abort(405)
+
+		if(len(args['rsid']) == 0):
+			abort(405)
+
 		out = get_assoc(args['access_token'], args['rsid'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
 		return out, 200
 

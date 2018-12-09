@@ -1,9 +1,8 @@
 from flask_restful import Api, Resource, abort
+from flask import send_from_directory
 
 class Index(Resource):
-	def get(self):
-		abort(503)
+    def get(self):
+        return send_from_directory(".", "index.html")
 
-	def post(self):
-		abort(503)
 
