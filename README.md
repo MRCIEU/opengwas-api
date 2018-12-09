@@ -59,6 +59,18 @@ http://localhost:8019/assoc/2/rs234
 http://localhost:8019/gwasinfo/2
 ```
 
+### Unit tests
+First need to obtain an `app/mrbase.oauth` file using the TwoSampleMR R package
+
+```r
+TwoSampleMR::get_mrbase_access_token()
+```
+
+This is an interactive process that requires logging in with a browser. To run the tests, from `/app` directory
+
+```
+pytest -v
+```
 
 # Production
 
