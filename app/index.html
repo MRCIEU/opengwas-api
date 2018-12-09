@@ -391,8 +391,8 @@ get_mrbase_access_token()</code></pre>
 <h3>Extracting specific SNPs from specific datasets</h3>
 <p>Similar to the above, we have the following possible methods</p>
 <pre><code>GET /assoc/&lt;mrbase-id&gt;/&lt;rsid&gt;</code></pre>
-<p>e.g. <a href="http://127.0.0.1:8019/assoc/2/rs234">http://127.0.0.1:8019/assoc/2,1001/rs234</a> obtained the <code>rs234</code> SNP from the BMI study.</p>
-<p>e.g. <a href="http://127.0.0.1:8019/assoc/2,1001/rs234" class="uri">http://127.0.0.1:8019/assoc/2,1001/rs234</a> obtained the <code>rs234</code> SNP from two studies.</p>
+<p>e.g. <a href="http://api.mrbase.org/assoc/2/rs234">http://api.mrbase.org/assoc/2,1001/rs234</a> obtained the <code>rs234</code> SNP from the BMI study.</p>
+<p>e.g. <a href="http://api.mrbase.org/assoc/2,1001/rs234" class="uri">http://api.mrbase.org/assoc/2,1001/rs234</a> obtained the <code>rs234</code> SNP from two studies.</p>
 <pre><code>POST /assoc</code></pre>
 <pre class="json"><code>{
     'id': ['2','1001'],
