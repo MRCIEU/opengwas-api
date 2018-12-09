@@ -9,9 +9,22 @@ from _auth import *
 # Abstract the query
 # Return a list of the call and also the 
 
-class GwasInfoList(Resource):
-	def get(self):
-		access_query = token_query('NULL')
+class GwasListAuth(Resource):
+	def get(self, token):
+		access_query = token_query(token)
+		print(token)
+		SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
+		try:
+			query = PySQLPool.getNewQuery(dbConnection)
+			query.Query(SQL)
+		except:
+			abort(503)
+		return query.record, 200
+
+class GwasList(Resource):
+	def get(self, token='NULL'):
+		access_query = token_query(token)
+		print(token)
 		SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
 		try:
 			query = PySQLPool.getNewQuery(dbConnection)
@@ -26,8 +39,11 @@ class GwasInfoList(Resource):
 		parser.add_argument('access_token', required=False, default='NULL', location='json')
 		args = parser.parse_args()
 		access_query = token_query(args['access_token'])
-		id_query = "','".join(args['id']).replace(';','')
-		SQL = """SELECT * FROM study_e c WHERE c.id IN ('{0}') AND {1}""".format(id_query, access_query)
+		if(len(args['id']) == 0):
+			SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
+		else:
+			id_query = "','".join(args['id']).replace(';','')
+			SQL = """SELECT * FROM study_e c WHERE c.id IN ('{0}') AND {1}""".format(id_query, access_query)
 		try:
 			query = PySQLPool.getNewQuery(dbConnection)
 			query.Query(SQL)

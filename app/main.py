@@ -4,7 +4,7 @@ from flask_restful import Api
 from resources._globals import es_conf
 from resources.index import Index
 from resources.status import Status
-from resources.gwasinfo import GwasInfoList, GwasInfo
+from resources.gwasinfo import GwasList, GwasInfo, GwasListAuth
 from resources.ld import Clump, LdMatrix
 from resources.assoc import AssocGet, AssocPost
 
@@ -20,7 +20,8 @@ api = Api(app)
 
 api.add_resource(Index, '/')
 api.add_resource(Status, '/status')
-api.add_resource(GwasInfoList, '/gwasinfo')
+api.add_resource(GwasList, '/gwaslist')
+api.add_resource(GwasListAuth, '/gwaslist/<string:token>')
 api.add_resource(GwasInfo, '/gwasinfo/<string:id>')
 api.add_resource(Clump, '/clump')
 api.add_resource(LdMatrix, '/ldmatrix')
