@@ -24,7 +24,6 @@ class GwasListAuth(Resource):
 class GwasList(Resource):
 	def get(self, token='NULL'):
 		access_query = email_query(get_user_email(token))
-		print(token)
 		SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
 		try:
 			query = PySQLPool.getNewQuery(dbConnection)
