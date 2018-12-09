@@ -52,11 +52,14 @@ ES_CONF = "./conf_files/es_conf_local.json"
 
 def return_error(code):
 	error_codes = {
+		400: "Malformed query",
 		461: "MySQL query failed",
 		462: "elasticsearch query failed",
-		463: "Malformed request"
+		463: "Malformed request",
+		464: "Can't parse json request"
 	}
 	abort(code, error_codes[code])
+
 
 """
 
@@ -339,7 +342,7 @@ def query_summary_stats(token, snps, outcomes):
         #else:
         #    ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='')
 	ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='')
-        es_res=[]
+	es_res=[]
 	for s in ESRes:
 		hits = ESRes[s]['hits']['hits']
 
@@ -834,8 +837,8 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
 								# print "unaligned", i, j, k, l
 								break
 	end = time.time()
-        t=round((end - start), 4)
-        logger2.debug('extract_proxies_from_query took :'+str(t)+' seconds')
+	t=round((end - start), 4)
+	logger2.debug('extract_proxies_from_query took :'+str(t)+' seconds')
 	return matched_proxies
 
 
@@ -1040,7 +1043,7 @@ def hello():
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
 	logger.info('upload')
-        if request.method == 'POST':
+	if request.method == 'POST':
 		file = request.files['file']
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
@@ -1058,14 +1061,23 @@ def upload():
 	""" % "<br>".join(os.listdir(app.config['UPLOAD_FOLDER'],))
 
 
-@app.route("/check_token", methods=[ 'GET' ])
+@app.route("/check_token", methods=[ 'GET', 'POST' ])
 def check_token():
-	a = request.args.get('access_token')
+	if request.method == 'POST':
+		try:
+			req_data = request.get_json()
+		except:
+			return_error(464)
+		a = req_data['access_token']
+
+	if request.method == 'GET':
+		a = request.args.get('access_token')
+	
 	logger2.debug(a)
 	if not request.args.get('access_token'):
-		return json.dumps(-1)
+		return json.dumps('public')
 	if request.args.get('access_token'):
-		return json.dumps(check_access_token(request.args.get('access_token')))
+		return json.dumps(check_access_token(a))
 	else:
 		return json.dumps(-1)
 
@@ -1076,8 +1088,7 @@ def get_studies():
 		try:
 			req_data = request.get_json()
 		except:
-			return(json.dumps({"SERVER": "Can't read json upload"}))
-
+			return_error(464)
 		if 'access_token' in req_data:
 			at = req_data['access_token']
 		else:
@@ -1390,7 +1401,7 @@ def get_effects_from_file():
 
 @app.route("/clump", methods=[ 'GET' ])
 def clump():
-        logger.info('clump')
+	logger.info('clump')
 	if not request.args.get('snpfile'):
 		return json.dumps([])
 	if not check_filename(request.args.get('snpfile')):
