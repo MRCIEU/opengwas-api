@@ -78,21 +78,35 @@ pytest -v
 
 ```
 git clone git@github.com:MRCIEU/mr-base-api.git
+cd mr-base-api
+git fetch
+git checkout refactor
 ```
 
-### Copy of ld data
+### Generate dirs
 ```
-cp -r /path/to/ld_files app/
+wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
+tar xzvf app/ld_files.tgz -C app/
+rm app/ld_files.tgz
+mkdir -p app/tmp
+mkdir -p app/logs
 ```
 
 ### Create image
 
 ```
-docker build -t mrbase-api-image .
+docker build -t mr-base-api2-image .
 ```
 
 ### Create container mapping this repo to volume
 
 ```
-docker run -d -it --name mrbase-api -p 8080:80 --volume=/var/www/api/mr-base-api/app:/app mrbase-api-image
+docker run -d -it --name mr-base-api2 -p 8082:80 --volume=`pwd`/app:/app mr-base-api2-image
 ```
+
+Check it:
+
+```
+docker logs -f mr-base-api2
+```
+
