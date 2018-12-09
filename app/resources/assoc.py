@@ -29,13 +29,14 @@ class AssocPost(Resource):
 		parser = reqparse.RequestParser()
 		parser.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of SNP rs IDs")
 		parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
-		parser.add_argument('proxies', type=int, required=False, default=0, location='json')
-		parser.add_argument('r2', type=float, required=False, default=0.8, location='json')
-		parser.add_argument('align_alleles', type=int, required=False, default=1, location='json')
-		parser.add_argument('palindromes', type=int, required=False, default=1, location='json')
-		parser.add_argument('maf_threshold', type=float, required=False, default=0.3, location='json')
+		parser.add_argument('proxies', type=int, required=False, default=0)
+		parser.add_argument('r2', type=float, required=False, default=0.8)
+		parser.add_argument('align_alleles', type=int, required=False, default=1)
+		parser.add_argument('palindromes', type=int, required=False, default=1)
+		parser.add_argument('maf_threshold', type=float, required=False, default=0.3)
 		args = parser.parse_args()
 
+		print(args)
 		logger_info()
 
 		if(len(args['id']) == 0):
@@ -50,6 +51,7 @@ class AssocPost(Resource):
 		return out, 200
 
 def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
+	print("PROXIES: " + str(proxies))
 	if proxies == 0:
 		logger2.debug("not using LD proxies")
 		try:
@@ -96,7 +98,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	filterData.append({"terms" : {'target':snps}})
 	filterData.append({"range" : {"rsq": {"gte": str(rsq) }}})
 	#logger.info(filterData)
-	if palindromes == "0":
+	if palindromes == 0:
 		filterData.append({"term" : {'palindromic':'0'}})
 		ESRes=es.search(
 			request_timeout=60,
