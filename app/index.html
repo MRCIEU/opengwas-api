@@ -315,10 +315,10 @@ $(document).ready(function () {
 <div id="TOC">
 <ul>
 <li><a href="#check-the-status-of-the-api">Check the status of the API</a></li>
+<li><a href="#authentication">Authentication</a></li>
 <li><a href="#available-gwas-studies">Available GWAS studies</a><ul>
 <li><a href="#get-list-of-gwas-studies">Get list of GWAS studies</a></li>
 <li><a href="#get-info-on-particular-gwas-studies">Get info on particular GWAS studies</a></li>
-<li><a href="#authentication">Authentication</a></li>
 </ul></li>
 <li><a href="#query-gwas-associations">Query GWAS associations</a><ul>
 <li><a href="#extracting-specific-snps-from-specific-datasets">Extracting specific SNPs from specific datasets</a></li>
@@ -343,6 +343,16 @@ $(document).ready(function () {
 <p>e.g. <a href="http://api.mrbase.org/" class="uri">http://api.mrbase.org/</a></p>
 <hr />
 </section>
+<section id="authentication" class="level2">
+<h2>Authentication</h2>
+<p>Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. These are passed through the header in <code>POST</code> requests.</p>
+<p>The easiest way to obtain an access token is through the <a href="https://mrcieu.github.io/TwoSampleMR/#authentication">TwoSampleMR R</a> package using the <code>get_mrbase_access_token()</code> function. In R:</p>
+<pre class="r"><code>devtools::install_github(&quot;MRCIEU/TwoSampleMR&quot;)
+library(TwoSampleMR)
+get_mrbase_access_token()</code></pre>
+<p>This will send you to a browser window in which you can enter your gmail credentials, and then upon authorisation it will generate a token.</p>
+<hr />
+</section>
 <section id="available-gwas-studies" class="level2">
 <h2>Available GWAS studies</h2>
 <section id="get-list-of-gwas-studies" class="level3">
@@ -358,15 +368,6 @@ $(document).ready(function () {
 <pre><code>GET /gwasinfo/&lt;mrbase-id,mrbase-id,mrbase-id&gt;</code></pre>
 <p>e.g. <a href="http://api.mrbase.org/gwasinfo/2" class="uri">http://api.mrbase.org/gwasinfo/2</a> shows info on the GIANT BMI study 2015</p>
 <p>e.g. <a href="http://api.mrbase.org/gwasinfo/2,1001" class="uri">http://api.mrbase.org/gwasinfo/2,1001</a> shows info on the above study and the SSGAC 2016 study on educational attainment.</p>
-<hr />
-</section>
-<section id="authentication" class="level3">
-<h3>Authentication</h3>
-<p>An access token is required to prove your identity. The easiest way to obtain an access token is through the TwoSampleMR R package using the <code>get_mrbase_access_token()</code> function. In R:</p>
-<pre class="r"><code>devtools::install_github(&quot;MRCIEU/TwoSampleMR&quot;)
-library(TwoSampleMR)
-get_mrbase_access_token()</code></pre>
-<p>This will send you to a browser window in which you can enter your gmail credentials, and then upon authorisation it will generate a token.</p>
 <hr />
 <p>The access token can be supplied using the <code>POST</code> method. A complete list of studies can be obtained using</p>
 <pre><code>POST /gwaslist</code></pre>
