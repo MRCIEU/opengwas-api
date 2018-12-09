@@ -1,4 +1,5 @@
 from flask_restful import Api, Resource, reqparse, abort
+from flask import request
 from _globals import *
 from _logger import *
 from _auth import *
@@ -26,7 +27,6 @@ class AssocPost(Resource):
 
 	def post(self):
 		parser = reqparse.RequestParser()
-		parser.add_argument('access_token', required=False, type=str, default='NULL')
 		parser.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of SNP rs IDs")
 		parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
 		parser.add_argument('proxies', type=int, required=False, default=0, location='json')
@@ -36,21 +36,25 @@ class AssocPost(Resource):
 		parser.add_argument('maf_threshold', type=float, required=False, default=0.3, location='json')
 		args = parser.parse_args()
 
+		logger_info()
+
 		if(len(args['id']) == 0):
 			abort(405)
 
 		if(len(args['rsid']) == 0):
 			abort(405)
 
-		out = get_assoc(args['access_token'], args['rsid'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+		user_email = get_user_email(request.headers.get('X-Api-Token'))
+
+		out = get_assoc(user_email, args['rsid'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
 		return out, 200
 
-def get_assoc(access_token, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
+def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
 	if proxies == 0:
 		logger2.debug("not using LD proxies")
 		try:
 			out = query_summary_stats(
-				access_token, 
+				user_email, 
 				",".join([ "'" + x + "'" for x in rsid]), 
 				",".join([ "'" + x + "'" for x in id])
 			)
@@ -67,7 +71,7 @@ def get_assoc(access_token, rsid, id, proxies, r2, align_alleles, palindromes, m
 			abort(503)
 		try:
 			proxy_query = query_summary_stats(
-				access_token, 
+				user_email, 
 				",".join([ "'" + x + "'" for x in proxies]),
 				",".join([ "'" + x + "'" for x in id])
 			)
@@ -315,9 +319,8 @@ def elastic_query(studies,snps,pval):
 
 
 #create list of studies available to user
-def token_query_list(token):
+def email_query_list(user_email):
 	qList = []
-	user_email = get_user_email(token)
 	logger2.debug("getting credentials for "+user_email)
 	SQL =  """select id from study_e c where (c.id IN (select d.id from study_e d, memberships m, permissions_e p
 		WHERE m.uid = "{0}"
@@ -339,11 +342,11 @@ def token_query_list(token):
 
 
 
-def query_summary_stats(token, snps, outcomes):
+def query_summary_stats(user_email, snps, outcomes):
 	#### es
 	#logger2.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
 	#get available studies
-	study_access=token_query_list(token)
+	study_access=email_query_list(user_email)
 	#logger2.debug(study_access)
 	snpList=snps.split(',')
 	logger2.debug('len snplist = '+str(len(snpList)))

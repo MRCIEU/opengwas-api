@@ -1,10 +1,13 @@
 import os
 from flask_restful import Api, Resource
+from flask import request
 from _globals import *
 from _logger import *
 
 class Status(Resource):
 	def get(self):
+		headers = request.headers
+		print(headers.get('Host'))
 		SQL   = "SELECT COUNT(*) FROM study_e;"
 		query = PySQLPool.getNewQuery(dbConnection)
 		query.Query(SQL)

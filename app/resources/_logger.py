@@ -1,7 +1,9 @@
+from flask import request
 import os
 import logging
 import logging.handlers
 from _globals import LOG_FILE, LOG_FILE_DEBUG
+from _auth import *
 
 
 """
@@ -10,16 +12,15 @@ Setup logging
 
 """
 
+
+USER_EMAIL = None
+
 class ContextFilter(logging.Filter):
     """
     This is a filter which injects contextual information into the log.
     """
     def filter(self, record):
-        # token = request.args.get('access_token')
-        # record.user = get_user_email(token)
-        token = "no_token_yet"
-        record.user = "fake_user"
-        #print record.user
+        record.user = get_user_email(request.headers.get('X-Api-Token'))
         return True
 
 
@@ -48,4 +49,10 @@ def setup_logger(name, log_file, level=logging.INFO):
 logger = setup_logger('info-log', LOG_FILE)
 #create debug log
 logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
+
+
+def logger_info():
+	i = "path: {0}; method: {1}; remote_addr1: {2}; remote_addr2: {3}; ".format(request.full_path, request.method, request.remote_addr, request.environ['REMOTE_ADDR'])
+	print(i)
+	logger.info(i)
 
