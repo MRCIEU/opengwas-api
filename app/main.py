@@ -7,6 +7,7 @@ from resources.status import Status
 from resources.gwasinfo import GwasList, GwasInfo, GwasListAuth
 from resources.ld import Clump, LdMatrix
 from resources.assoc import AssocGet, AssocPost
+from resources.tophits import Tophits
 
 
 #unicode issues
@@ -27,6 +28,7 @@ api.add_resource(Clump, '/clump')
 api.add_resource(LdMatrix, '/ldmatrix')
 api.add_resource(AssocGet, '/assoc/<string:id>/<string:rsid>')
 api.add_resource(AssocPost, '/assoc')
+api.add_resource(Tophits, '/tophits')
 
 
 if __name__ == '__main__':

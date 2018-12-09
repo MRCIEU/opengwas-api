@@ -85,7 +85,9 @@ If `access_token` is empty then only public datasets are returned. If `id` is em
 
 ---
 
-## SNP effects
+## Query GWAS associations
+
+### Extracting specific SNPs from specific datasets
 
 Similar to the above, we have the following possible methods
 
@@ -117,6 +119,26 @@ POST /assoc
 
 `id` and `rsid` must be arrays of 1 or more. Default values for `proxies`, `palindromes`, `align_alleles`, `r2` and `maf_threshold` are shown. That is - by default LD proxies are not searched for if a variant is absent from a dataset, but if `proxies=1` then palindromic variants will be allowed if the MAF is <= 0.3. Minimum `r2` can be provided
 
+---
+
+### Extracting tophits from datasets
+
+```
+POST /tophits
+```
+
+```json
+        'access_token': 'xxxxlongrandomhashxxxx',
+        'id': [<list of mrbase-ids>],
+        'clump': 1,
+        'pval': 5e-8,
+        'r2': 0.001,
+        'kb': 5000
+```
+
+Clumping is performed by default using arguments described below.
+
+---
 
 ## LD operations
 
@@ -130,13 +152,15 @@ POST /clump
 {
     'rsid': [list of rsids],
     'pval': [list of p-values],
-    'p1': 5e-8,
+    'pval': 5e-8,
     'r2': 0.001,
     'kb': 5000
 }
 ```
 
 Performs clumping on a set of SNPs
+
+---
 
 ### LD matrix
 

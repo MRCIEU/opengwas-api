@@ -319,7 +319,10 @@ $(document).ready(function () {
 <li><a href="#get-list-of-gwas-studies">Get list of GWAS studies</a></li>
 <li><a href="#get-info-on-particular-gwas-studies">Get info on particular GWAS studies</a></li>
 </ul></li>
-<li><a href="#snp-effects">SNP effects</a></li>
+<li><a href="#query-gwas-associations">Query GWAS associations</a><ul>
+<li><a href="#extracting-specific-snps-from-specific-datasets">Extracting specific SNPs from specific datasets</a></li>
+<li><a href="#extracting-tophits-from-datasets">Extracting tophits from datasets</a></li>
+</ul></li>
 <li><a href="#ld-operations">LD operations</a><ul>
 <li><a href="#clumping">Clumping</a></li>
 <li><a href="#ld-matrix">LD matrix</a></li>
@@ -370,8 +373,10 @@ GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
 <hr />
 </section>
 </section>
-<section id="snp-effects" class="level2">
-<h2>SNP effects</h2>
+<section id="query-gwas-associations" class="level2">
+<h2>Query GWAS associations</h2>
+<section id="extracting-specific-snps-from-specific-datasets" class="level3">
+<h3>Extracting specific SNPs from specific datasets</h3>
 <p>Similar to the above, we have the following possible methods</p>
 <pre><code>GET /assoc/&lt;mrbase-id&gt;/&lt;rsid&gt;</code></pre>
 <p>e.g. <a href="http://127.0.0.1:8019/assoc/2/rs234">http://127.0.0.1:8019/assoc/2,1001/rs234</a> obtained the <code>rs234</code> SNP from the BMI study.</p>
@@ -388,6 +393,19 @@ GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
     'maf_threshold': 0.3
 }</code></pre>
 <p><code>id</code> and <code>rsid</code> must be arrays of 1 or more. Default values for <code>proxies</code>, <code>palindromes</code>, <code>align_alleles</code>, <code>r2</code> and <code>maf_threshold</code> are shown. That is - by default LD proxies are not searched for if a variant is absent from a dataset, but if <code>proxies=1</code> then palindromic variants will be allowed if the MAF is &lt;= 0.3. Minimum <code>r2</code> can be provided</p>
+<hr />
+</section>
+<section id="extracting-tophits-from-datasets" class="level3">
+<h3>Extracting tophits from datasets</h3>
+<pre><code>POST /tophits</code></pre>
+<pre class="json"><code>        'access_token': 'xxxxlongrandomhashxxxx',
+        'id': [&lt;list of mrbase-ids&gt;],
+        'clump': 1,
+        'pval': 5e-8,
+        'r2': 0.001,
+        'kb': 5000</code></pre>
+<p>Clumping is performed by default using arguments described below.</p>
+</section>
 </section>
 <section id="ld-operations" class="level2">
 <h2>LD operations</h2>
@@ -397,7 +415,7 @@ GET /gwaslist/&lt;google oauth2.0 access token&gt;</code></pre>
 <pre class="json"><code>{
     'rsid': [list of rsids],
     'pval': [list of p-values],
-    'p1': 5e-8,
+    'pval': 5e-8,
     'r2': 0.001,
     'kb': 5000
 }</code></pre>
