@@ -5,3 +5,5 @@ flask_restful
 werkzeug
 logging
 elasticsearch
+pytest
+requests

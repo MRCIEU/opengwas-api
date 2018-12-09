@@ -11,7 +11,6 @@ class Tophits(Resource):
 	def post(self):
 		logger.info('extract_instruments')
 		parser = reqparse.RequestParser()
-		parser.add_argument('access_token', required=False, type=str, default='NULL')
 		parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
 		parser.add_argument('clump', type=int, required=False, default=1, location='json')
 		parser.add_argument('pval', type=float, required=False, default=5e-8, location='json')
@@ -19,21 +18,23 @@ class Tophits(Resource):
 		parser.add_argument('kb', type=int, required=False, default=5000, location='json')
 		args = parser.parse_args()
 
+		user_email = get_user_email(request.headers.get('X-Api-Token'))
+
 		try:
-			out = extract_instruments(args['access_token'], args['id'], args['clump'], args['pval'], args['r2'], args['kb'])
+			out = extract_instruments(user_email, args['id'], args['clump'], args['pval'], args['r2'], args['kb'])
 		except:
 			abort(503)
 		return out
 
 
-def extract_instruments(access_token, id, clump, pval, r2, kb):
+def extract_instruments(user_email, id, clump, pval, r2, kb):
 
 	### elastic query
 	#fix outcomes
 	outcomes = ",".join([ "'" + x + "'" for x in id])
 	outcomes_clean = outcomes.replace("'","")
 	#get available studies
-	study_access = token_query_list(access_token)
+	study_access = email_query_list(user_email)
 	#logger2.debug(sorted(study_access))
 	logger2.debug('searching '+outcomes_clean)
 	outcomes_access = []

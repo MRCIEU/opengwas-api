@@ -19,16 +19,16 @@ app = Flask(__name__)
 api = Api(app)
 
 
-api.add_resource(Index, '/')
-api.add_resource(Status, '/status')
-api.add_resource(GwasList, '/gwaslist')
-api.add_resource(GwasListAuth, '/gwaslist/<string:token>')
-api.add_resource(GwasInfo, '/gwasinfo/<string:id>')
-api.add_resource(Clump, '/clump')
-api.add_resource(LdMatrix, '/ldmatrix')
-api.add_resource(AssocGet, '/assoc/<string:id>/<string:rsid>')
-api.add_resource(AssocPost, '/assoc')
-api.add_resource(Tophits, '/tophits')
+api.add_resource(Index, '/') # GET
+api.add_resource(Status, '/status') # GET
+api.add_resource(GwasList, '/gwaslist') # GET POST
+api.add_resource(GwasListAuth, '/gwaslist/<string:token>') # GET
+api.add_resource(GwasInfo, '/gwasinfo/<string:id>') # GET
+api.add_resource(Clump, '/clump') # POST
+api.add_resource(LdMatrix, '/ldmatrix') # POST
+api.add_resource(AssocGet, '/assoc/<string:id>/<string:rsid>') # GET
+api.add_resource(AssocPost, '/assoc') # POST
+api.add_resource(Tophits, '/tophits') # POST
 
 
 if __name__ == '__main__':
