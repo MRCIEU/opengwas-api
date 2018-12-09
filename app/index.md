@@ -108,9 +108,9 @@ Similar to the above, we have the following possible methods
 GET /assoc/<mrbase-id>/<rsid>
 ```
 
-e.g. [http://127.0.0.1:8019/assoc/2,1001/rs234](http://127.0.0.1:8019/assoc/2/rs234) obtained the `rs234` SNP from the BMI study.
+e.g. [http://api.mrbase.org/assoc/2,1001/rs234](http://api.mrbase.org/assoc/2/rs234) obtained the `rs234` SNP from the BMI study.
 
-e.g. [http://127.0.0.1:8019/assoc/2,1001/rs234](http://127.0.0.1:8019/assoc/2,1001/rs234) obtained the `rs234` SNP from two studies.
+e.g. [http://api.mrbase.org/assoc/2,1001/rs234](http://api.mrbase.org/assoc/2,1001/rs234) obtained the `rs234` SNP from two studies.
 
 
 ```
