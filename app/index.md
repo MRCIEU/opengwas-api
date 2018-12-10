@@ -172,7 +172,7 @@ POST /clump
 {
     'rsid': [list of rsids],
     'pval': [list of p-values],
-    'pval': 5e-8,
+    'pthresh': 5e-8,
     'r2': 0.001,
     'kb': 5000
 }
