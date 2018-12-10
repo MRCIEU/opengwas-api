@@ -323,6 +323,7 @@ $(document).ready(function () {
 <li><a href="#query-gwas-associations">Query GWAS associations</a><ul>
 <li><a href="#extracting-specific-snps-from-specific-datasets">Extracting specific SNPs from specific datasets</a></li>
 <li><a href="#extracting-tophits-from-datasets">Extracting tophits from datasets</a></li>
+<li><a href="#phewas">PheWAS</a></li>
 </ul></li>
 <li><a href="#ld-operations">LD operations</a><ul>
 <li><a href="#clumping">Clumping</a></li>
@@ -421,6 +422,17 @@ get_mrbase_access_token()</code></pre>
         'kb': 5000</code></pre>
 <p>Clumping is performed by default using arguments described below.</p>
 <hr />
+</section>
+<section id="phewas" class="level3">
+<h3>PheWAS</h3>
+<p>Obtain the effects of a single variant on all available studies. Respects token in headers. Extracting on all studies is often faster than extracting on a large number of studies, so it may sometimes be preferable to do this first and filter on the results.</p>
+<pre><code>GET /phewas/&lt;rsid&gt;</code></pre>
+<p>Also available as <code>POST</code></p>
+<pre><code>POST /phewas</code></pre>
+<p>with json:</p>
+<pre class="json"><code>{
+    'rsid': [list of rsids],
+}</code></pre>
 </section>
 </section>
 <section id="ld-operations" class="level2">

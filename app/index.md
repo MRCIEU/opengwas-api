@@ -160,6 +160,28 @@ Clumping is performed by default using arguments described below.
 
 ---
 
+### PheWAS
+
+Obtain the effects of a single variant on all available studies. Respects token in headers. Extracting on all studies is often faster than extracting on a large number of studies, so it may sometimes be preferable to do this first and filter on the results.
+
+```
+GET /phewas/<rsid>
+```
+
+Also available as `POST`
+
+```
+POST /phewas
+```
+
+with json:
+
+```json
+{
+    'rsid': [list of rsids],
+}
+```
+
 ## LD operations
 
 ### Clumping
