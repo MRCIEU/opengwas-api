@@ -2,4 +2,7 @@ venv
 .Rproj.user
 app/tmp
 logs/
-mrbase.oauth
+*mrbase.oauth
+*pyc
+*DS_Store
+app/ld_files
