@@ -31,14 +31,15 @@ def check_plink():
 		return "Available"
 
 def check_elastic():
+	url = 'http://'+app_config['es']['host'] + ':' + str(app_config['es']['port']) + '/_cluster/health?pretty'
 	try:
-		out = requests.get(app_config['es']['host'] + ':' + app_config['es']['port'] + '/_cluster/health?pretty').json()
+		out = requests.get(url).json()
 		if out['status'] == 'red':
-			return "Available"
-		else:
 			return "Unavailable"
+		else:
+			return "Available"
 	except:
-		return "Unavailable"
+		return "Error"
 
 def check_mysql():
 	SQL   = "show databases;"
@@ -51,4 +52,4 @@ def check_mysql():
 		else:
 			return "Unavailable"
 	except:
-		return "Unavailable"
+		return "Error"
