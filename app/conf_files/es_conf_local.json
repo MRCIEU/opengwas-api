@@ -1,6 +1,0 @@
-{
-        "host": "localhost",
-        "port":9200,
-        "flask_port":8019
-
-}

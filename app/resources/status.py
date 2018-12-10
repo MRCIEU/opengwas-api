@@ -32,7 +32,7 @@ def check_plink():
 
 def check_elastic():
 	try:
-		out = requests.get(es_conf['host'] + ':' + es_conf['port'] + '/_cluster/health?pretty').json()
+		out = requests.get(app_config['es']['host'] + ':' + app_config['es']['port'] + '/_cluster/health?pretty').json()
 		if out['status'] == 'red':
 			return "Available"
 		else:

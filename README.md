@@ -21,15 +21,6 @@ mkdir -p app/tmp
 mkdir -p app/logs
 ```
 
-### Edit app/resources/_globals.py
-
-Toggle between the two versions of the config file
-
-```
-ES_CONF = "./conf_files/es_conf_local.json"
-# ES_CONF = "./conf_files/es_conf_deploy.json"
-
-```
 
 ### Create tunnel (need to be on VPN)
 ```
