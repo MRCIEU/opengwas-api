@@ -1,5 +1,5 @@
 ---
-title: "MR-Base API for GWAS summary data"
+title: "IEU GWAS database API"
 output:
   html_document:
     toc: true
@@ -8,7 +8,7 @@ output:
 
 ---
 
-This is an API which is used to pull down results from the [MR-Base](http://www.mrbase.org/) dataabase of GWAS summary data. It also has some helper functions pertaining to operations relating to LD calculations.
+This is an API which is used by [MR-Base](http://www.mrbase.org/) to pull down results from a dataabase of GWAS summary data. It also has some helper functions pertaining to operations relating to LD calculations.
 
 It is written using [FlaskRESTful](https://flask-restful.readthedocs.io/en/latest/). A mixture of `post` and `get` methods are implemented, and there are convenient functions for accessing the API in the [R/TwoSampleMR](https://github.com/MRCIEU/TwoSampleMR) R package. 
 
