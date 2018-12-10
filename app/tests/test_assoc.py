@@ -22,6 +22,11 @@ def test_assoc_get4():
 	r = requests.get("http://localhost:8019/assoc/2,987,7/rs234,rs123")
 	assert r.status_code == 200 and len(r.json()) == 4
 
+def test_assoc_get5():
+	headers = {'X-API-TOKEN': token}
+	r = requests.get("http://localhost:8019/assoc/2,987,7/rs234,rs123", headers=headers)
+	assert r.status_code == 200 and len(r.json()) == 6
+
 
 ## POST
 

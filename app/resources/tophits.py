@@ -2,8 +2,8 @@ from flask_restful import Api, Resource, reqparse, abort
 from _globals import *
 from _logger import *
 from _auth import *
-from assoc import *
-from ld import *
+from _es import *
+from _ld import *
 import time
 
 
