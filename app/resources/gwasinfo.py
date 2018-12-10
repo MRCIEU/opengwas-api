@@ -12,11 +12,16 @@ from _logger import *
 # Return a list of the call and also the 
 
 
-class GwasList(Resource):
-	def get(self):
+class GwasInfo(Resource):
+	def get(self, id=None):
 		logger_info()
 		access_query = email_query(get_user_email(request.headers.get('X-Api-Token')))
-		SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
+		if id is None:
+			SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
+		else:
+			id_query = "','".join(id.split(',')).replace(';','')
+			SQL =  """SELECT * FROM study_e c WHERE c.id IN
+				('{0}') AND {1}""".format(id_query, access_query)
 		try:
 			query = PySQLPool.getNewQuery(dbConnection)
 			query.Query(SQL)
@@ -35,22 +40,6 @@ class GwasList(Resource):
 		else:
 			id_query = "','".join(args['id']).replace(';','')
 			SQL = """SELECT * FROM study_e c WHERE c.id IN ('{0}') AND {1}""".format(id_query, access_query)
-		try:
-			query = PySQLPool.getNewQuery(dbConnection)
-			query.Query(SQL)
-		except:
-			abort(503)
-		return query.record, 200
-
-
-
-class GwasInfo(Resource):
-	def get(self, id):
-		logger_info()
-		access_query = email_query(get_user_email(request.headers.get('X-Api-Token')))
-		id_query = "','".join(id.split(',')).replace(';','')
-		SQL =  """SELECT * FROM study_e c WHERE c.id IN
-			('{0}') AND {1}""".format(id_query, access_query)
 		try:
 			query = PySQLPool.getNewQuery(dbConnection)
 			query.Query(SQL)
