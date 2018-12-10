@@ -1,8 +1,0 @@
-{
-        "user": "mrbaseapp",
-        "passwd": "M1st3rbase!",
-        "host": "my-dbs-prod100.isys.bris.ac.uk",
-        "ssl_ca": "uobca.pem",
-        "port":4407,
-        "db": "mrbase"
-}

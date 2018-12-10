@@ -1,7 +1,16 @@
 {
+	"flask": {
+		"port":8019
+	},
+	"es": {
+        "host": "localhost",
+        "port":9200
+	},
+	"mysql": {
         "user": "mrbaseapp",
         "passwd": "M1st3rbase!",
         "host": "ieu-db-interface.epi.bris.ac.uk",
         "port":13306,
         "db": "mrbase"
+	}
 }
