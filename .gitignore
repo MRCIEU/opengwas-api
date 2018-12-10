@@ -2,3 +2,4 @@ venv
 .Rproj.user
 app/tmp
 logs/
+mrbase.oauth
