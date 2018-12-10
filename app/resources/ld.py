@@ -7,6 +7,7 @@ import time
 
 class Clump(Resource):
 	def post(self):
+		logger_info()
 		parser = reqparse.RequestParser()
 		parser.add_argument('rsid', type=str, required=False, action='append', default=[])
 		parser.add_argument('pval', type=float, required=False, action='append', default=[])
@@ -91,6 +92,7 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
 
 class LdMatrix(Resource):
 	def post(self):
+		logger_info()
 		parser = reqparse.RequestParser()
 		parser.add_argument('rsid', required=False, type=str, action='append', default=[])
 		parser.add_argument('p1', type=float, required=False, default=5e-8)

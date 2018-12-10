@@ -21,16 +21,16 @@ All results are json format.
 Gives some information on the version, and status of the services behind the API.
 
 ```
-GET /
+GET /status
 ```
 
-e.g. [http://api.mrbase.org/](http://api.mrbase.org/)
+e.g. [http://api.mrbase.org/status](http://api.mrbase.org/status)
 
 ---
 
 ## Authentication
 
-Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. These are passed through the header in `POST` requests. 
+Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The token can be passed as header variable `X-Api-Token` in `POST` and `GET` requests. 
 
 The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function. In R:
 
@@ -50,12 +50,21 @@ This will send you to a browser window in which you can enter your gmail credent
 ### Get list of GWAS studies
 
 ```
-GET /gwaslist
+GET /gwasinfo
 ```
 
-e.g. [http://api.mrbase.org/gwaslist](http://api.mrbase.org/gwaslist)
+e.g. [http://api.mrbase.org/gwasinfo](http://api.mrbase.org/gwasinfo)
 
-Returns a large JSON object, with information pertaining to each study available in the database. Note, this only returns publicly available results. For access to private datasets you must use the POST methods described below in which you can provide an access token to verify your identity through a gmail account.
+Returns a large JSON object, with information pertaining to each study available in the database. Note, this only returns publicly available results unless a valid Google OAuth2.0 token is passed in the header.
+
+e.g.
+
+```bash
+curl -i \
+-H "Content-Type: application/json" \
+-H "X-Api-Token: xxxxlongrandomhashxxxx" \
+-X GET http://api.mrbase.org/gwasinfo
+```
 
 ---
 
@@ -73,10 +82,10 @@ e.g. [http://api.mrbase.org/gwasinfo/2,1001](http://api.mrbase.org/gwasinfo/2,10
 
 ---
 
-The access token can be supplied using the `POST` method. A complete list of studies can be obtained using
+The `POST` method can also be invoked. A complete list of studies can be obtained using
 
 ```
-POST /gwaslist
+POST /gwasinfo
 ```
 
 This can be accessed through `curl` e.g. using:
@@ -89,7 +98,7 @@ curl -i \
 {
     'id': ['2','1001']
 }
-' http://api.mrbase.org/gwaslist
+' http://api.mrbase.org/gwasinfo
 ```
 
 Here we are providing the access token through the header, and posting a `json` document that contains the details of the query. Example:
