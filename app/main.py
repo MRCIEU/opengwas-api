@@ -21,7 +21,7 @@ api = Api(app)
 
 api.add_resource(Index, '/') # GET
 api.add_resource(Status, '/status') # GET
-api.add_resource(GwasList, '/gwaslist') # GET POST
+api.add_resource(GwasList, '/gwasinfo') # GET POST
 api.add_resource(GwasInfo, '/gwasinfo/<string:id>') # GET
 api.add_resource(Clump, '/clump') # POST
 api.add_resource(LdMatrix, '/ldmatrix') # POST

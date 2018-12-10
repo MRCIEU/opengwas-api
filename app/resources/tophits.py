@@ -9,7 +9,7 @@ import time
 
 class Tophits(Resource):
 	def post(self):
-		logger.info('extract_instruments')
+		logger_info()
 		parser = reqparse.RequestParser()
 		parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
 		parser.add_argument('clump', type=int, required=False, default=1)

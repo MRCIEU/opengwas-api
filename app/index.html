@@ -339,13 +339,13 @@ $(document).ready(function () {
 <section id="check-the-status-of-the-api" class="level2">
 <h2>Check the status of the API</h2>
 <p>Gives some information on the version, and status of the services behind the API.</p>
-<pre><code>GET /</code></pre>
-<p>e.g. <a href="http://api.mrbase.org/" class="uri">http://api.mrbase.org/</a></p>
+<pre><code>GET /status</code></pre>
+<p>e.g. <a href="http://api.mrbase.org/status" class="uri">http://api.mrbase.org/status</a></p>
 <hr />
 </section>
 <section id="authentication" class="level2">
 <h2>Authentication</h2>
-<p>Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. These are passed through the header in <code>POST</code> requests.</p>
+<p>Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The token can be passed as header variable <code>X-Api-Token</code> in <code>POST</code> and <code>GET</code> requests.</p>
 <p>The easiest way to obtain an access token is through the <a href="https://mrcieu.github.io/TwoSampleMR/#authentication">TwoSampleMR R</a> package using the <code>get_mrbase_access_token()</code> function. In R:</p>
 <pre class="r"><code>devtools::install_github(&quot;MRCIEU/TwoSampleMR&quot;)
 library(TwoSampleMR)
@@ -357,9 +357,14 @@ get_mrbase_access_token()</code></pre>
 <h2>Available GWAS studies</h2>
 <section id="get-list-of-gwas-studies" class="level3">
 <h3>Get list of GWAS studies</h3>
-<pre><code>GET /gwaslist</code></pre>
-<p>e.g. <a href="http://api.mrbase.org/gwaslist" class="uri">http://api.mrbase.org/gwaslist</a></p>
-<p>Returns a large JSON object, with information pertaining to each study available in the database. Note, this only returns publicly available results. For access to private datasets you must use the POST methods described below in which you can provide an access token to verify your identity through a gmail account.</p>
+<pre><code>GET /gwasinfo</code></pre>
+<p>e.g. <a href="http://api.mrbase.org/gwasinfo" class="uri">http://api.mrbase.org/gwasinfo</a></p>
+<p>Returns a large JSON object, with information pertaining to each study available in the database. Note, this only returns publicly available results unless a valid Google OAuth2.0 token is passed in the header.</p>
+<p>e.g.</p>
+<pre class="bash"><code>curl -i \
+-H &quot;Content-Type: application/json&quot; \
+-H &quot;X-Api-Token: xxxxlongrandomhashxxxx&quot; \
+-X GET http://api.mrbase.org/gwasinfo</code></pre>
 <hr />
 </section>
 <section id="get-info-on-particular-gwas-studies" class="level3">
@@ -369,8 +374,8 @@ get_mrbase_access_token()</code></pre>
 <p>e.g. <a href="http://api.mrbase.org/gwasinfo/2" class="uri">http://api.mrbase.org/gwasinfo/2</a> shows info on the GIANT BMI study 2015</p>
 <p>e.g. <a href="http://api.mrbase.org/gwasinfo/2,1001" class="uri">http://api.mrbase.org/gwasinfo/2,1001</a> shows info on the above study and the SSGAC 2016 study on educational attainment.</p>
 <hr />
-<p>The access token can be supplied using the <code>POST</code> method. A complete list of studies can be obtained using</p>
-<pre><code>POST /gwaslist</code></pre>
+<p>The <code>POST</code> method can also be invoked. A complete list of studies can be obtained using</p>
+<pre><code>POST /gwasinfo</code></pre>
 <p>This can be accessed through <code>curl</code> e.g. using:</p>
 <pre class="bash"><code>curl -i \
 -H &quot;Content-Type: application/json&quot; \
@@ -379,7 +384,7 @@ get_mrbase_access_token()</code></pre>
 {
     'id': ['2','1001']
 }
-' http://api.mrbase.org/gwaslist</code></pre>
+' http://api.mrbase.org/gwasinfo</code></pre>
 <p>Here we are providing the access token through the header, and posting a <code>json</code> document that contains the details of the query. Example:</p>
 <p>If the header variable <code>X-Api-Token</code> is null then only public datasets are returned. If <code>id</code> is empty then the list of all datasets is returned.</p>
 <hr />

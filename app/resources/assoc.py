@@ -8,7 +8,7 @@ import time
 
 class AssocGet(Resource):
 	def get(self, id, rsid):
-		logger2.debug("not using LD proxies")
+		logger_info()
 		try:
 			out = query_summary_stats(
 				"NULL", 
@@ -26,6 +26,7 @@ class AssocPost(Resource):
 		pass
 
 	def post(self):
+		logger_info()
 		parser = reqparse.RequestParser()
 		parser.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of SNP rs IDs")
 		parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
@@ -35,9 +36,6 @@ class AssocPost(Resource):
 		parser.add_argument('palindromes', type=int, required=False, default=1)
 		parser.add_argument('maf_threshold', type=float, required=False, default=0.3)
 		args = parser.parse_args()
-
-		print(args)
-		logger_info()
 
 		if(len(args['id']) == 0):
 			abort(405)

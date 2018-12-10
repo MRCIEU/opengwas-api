@@ -6,8 +6,7 @@ from _logger import *
 
 class Status(Resource):
 	def get(self):
-		headers = request.headers
-		print(headers.get('Host'))
+		logger_info()
 		SQL   = "SELECT COUNT(*) FROM study_e;"
 		query = PySQLPool.getNewQuery(dbConnection)
 		query.Query(SQL)
