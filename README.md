@@ -92,7 +92,7 @@ docker build -t mr-base-api2-image .
 ### Create container mapping this repo to volume
 
 ```
-docker run -d -it --name mr-base-api2 -p 8082:80 --volume=`pwd`/app:/app mr-base-api2-image
+docker run -d -it --name mr-base-api2 -p 8082:8019 --volume=`pwd`/app:/app mr-base-api2-image
 ```
 
 Check it:
