@@ -10,7 +10,7 @@ class Status(Resource):
 		logger_info()
 		out = {
 			'API version': VERSION, 
-			'Number of GWAS in MySQL': check_mysql(),
+			'MySQL status': check_mysql(),
 			'ElasticSearch status': check_elastic(),
 			'LD reference panel': check_ld_ref(),
 			'PLINK executable': check_plink()
