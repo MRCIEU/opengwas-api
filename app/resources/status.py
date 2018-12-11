@@ -3,6 +3,7 @@ from flask_restful import Api, Resource
 from flask import request
 from _globals import *
 from _logger import *
+import requests
 
 class Status(Resource):
 	def get(self):
@@ -36,7 +37,8 @@ def check_elastic():
 			return "Unavailable"
 		else:
 			return "Available"
-	except:
+	except Exception as e:
+		print e
 		return "Error"
 
 def check_mysql():
@@ -49,5 +51,6 @@ def check_mysql():
 			return "Available"
 		else:
 			return "Unavailable"
-	except:
+	except Exception as e:
+		print e
 		return "Error"
