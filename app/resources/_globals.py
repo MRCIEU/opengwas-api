@@ -2,6 +2,7 @@ import PySQLPool
 from elasticsearch import Elasticsearch
 import json
 import re
+import os.path
 
 VERSION = '0.2.0'
 
@@ -18,12 +19,13 @@ LOG_FILE_DEBUG = "./logs/mrbaseapi-debug.log"
 
 
 with open(APP_CONF) as f:
-	app_config = json.load(f)['local']
-# if cmdargs['local'] is True:
-# 	print("local")
-# 	app_config = app_config['local']
-# else:
-# 	app_config = app_config['production']
+	app_config = json.load(f)
+if os.path.isfile('local') is True:
+	print("local")
+	app_config = app_config['local']
+else:
+	print("production")
+	app_config = app_config['production']
 
 dbConnection = PySQLPool.getNewConnection(**app_config['mysql'])
 

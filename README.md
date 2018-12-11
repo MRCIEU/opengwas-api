@@ -30,15 +30,23 @@ ssh -L 9200:localhost:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 
 ### Create environment
 ```
+cd app
 virtualenv venv
 . venv/bin/activate
 
 pip install -r requirements.txt
 ```
 
+### Tell the app you are running locally
+
+The presence of a file called `app/local` will signify that we are running locally:
+
+```
+touch local
+```
+
 ### Start the API
 ```
-cd app
 python main.py
 ```
 
@@ -92,12 +100,14 @@ docker build -t mr-base-api2-image .
 ### Create container mapping this repo to volume
 
 ```
-docker run -d -it --name mr-base-api2 -p 8082:8019 --volume=`pwd`/app:/app mr-base-api2-image
+docker run -d -it --name mr-base-api2 -p 8082:80 --volume=`pwd`/app:/app mr-base-api2-image
 ```
 
 Check it:
 
 ```
 docker logs -f mr-base-api2
+docker rm -f mr-base-api2
 ```
+
 
