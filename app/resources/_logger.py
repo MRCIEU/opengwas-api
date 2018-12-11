@@ -52,6 +52,6 @@ logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
 
 
 def logger_info():
-	i = "path: {0}; method: {1}; remote_addr1: {2}; remote_addr2: {3}; ".format(request.full_path, request.method, request.remote_addr, request.environ['REMOTE_ADDR'])
+	i = "path: {0}; method: {1}; remote_addr: {2}; ".format(request.full_path, request.method, request.remote_addr)
 	logger.info(i)
 

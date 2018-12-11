@@ -1,7 +1,7 @@
 {
 	"local": {
 		"flask": {
-			"port":80
+			"port":8019
 		},
 		"es": {
 	        "host": "localhost",
