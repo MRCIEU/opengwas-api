@@ -18,7 +18,12 @@ LOG_FILE_DEBUG = "./logs/mrbaseapi-debug.log"
 
 
 with open(APP_CONF) as f:
-	app_config = json.load(f)
+	app_config = json.load(f)['local']
+# if cmdargs['local'] is True:
+# 	print("local")
+# 	app_config = app_config['local']
+# else:
+# 	app_config = app_config['production']
 
 dbConnection = PySQLPool.getNewConnection(**app_config['mysql'])
 

@@ -10,7 +10,6 @@ from resources.assoc import Assoc
 from resources.phewas import Phewas
 from resources.tophits import Tophits
 
-
 #unicode issues
 reload(sys)
 sys.setdefaultencoding('utf8')

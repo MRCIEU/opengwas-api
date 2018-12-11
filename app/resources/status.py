@@ -8,7 +8,7 @@ import requests
 class Status(Resource):
 	def get(self):
 		logger_info()
-		
+		print(request.url_root)
 		out = {
 			'API version': VERSION, 
 			'Number of GWAS in MySQL': check_mysql(),

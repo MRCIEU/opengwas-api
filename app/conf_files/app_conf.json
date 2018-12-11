@@ -1,16 +1,34 @@
 {
-	"flask": {
-		"port":80
+	"local": {
+		"flask": {
+			"port":80
+		},
+		"es": {
+	        "host": "localhost",
+	        "port":9200
+		},
+		"mysql": {
+	        "user": "mrbaseapp",
+	        "passwd": "M1st3rbase!",
+	        "host": "ieu-db-interface.epi.bris.ac.uk",
+	        "port":13306,
+	        "db": "mrbase"
+		}
 	},
-	"es": {
-        "host": "ieu-db-interface.epi.bris.ac.uk",
-        "port":9200
-	},
-	"mysql": {
-        "user": "mrbaseapp",
-        "passwd": "M1st3rbase!",
-        "host": "ieu-db-interface.epi.bris.ac.uk",
-        "port":13306,
-        "db": "mrbase"
+	"production":{
+		"flask": {
+			"port":80
+		},
+		"es": {
+	        "host": "ieu-db-interface.epi.bris.ac.uk",
+	        "port":9200
+		},
+		"mysql": {
+	        "user": "mrbaseapp",
+	        "passwd": "M1st3rbase!",
+	        "host": "ieu-db-interface.epi.bris.ac.uk",
+	        "port":13306,
+	        "db": "mrbase"
+		}
 	}
 }
