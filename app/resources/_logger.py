@@ -52,6 +52,9 @@ logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
 
 
 def logger_info():
-	i = "path: {0}; method: {1}; remote_addr: {2}; ".format(request.full_path, request.method, request.remote_addr)
+	source = request.headers.get('X-Api-Source')
+	if source is None:
+		source = 'url'
+	i = "path: {0}; method: {1}; remote_addr: {2}; source: {3}".format(request.full_path, request.method, request.remote_addr, source)
 	logger.info(i)
 
