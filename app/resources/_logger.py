@@ -55,6 +55,6 @@ def logger_info():
 	source = request.headers.get('X-Api-Source')
 	if source is None:
 		source = 'url'
-	i = "path: {0}; method: {1}; remote_addr: {2}; source: {3}".format(request.full_path, request.method, request.remote_addr, source)
+	i = "path: {0}; method: {1}; remote_addr1: {2}; remote_addr2: {3}; source: {4}".format(request.full_path, request.method, request.remote_addr, request.headers.get('X-Forwarded-For'), source)
 	logger.info(i)
 
