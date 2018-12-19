@@ -11,7 +11,12 @@ api = Namespace('gwasinfo', description="Get information about available GWAS su
 
 
 
+parser1 = api.parser()
+parser1.add_argument(
+'X-Api-Token', location='headers', required=False, default='null', help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+
 @api.route('/list')
+@api.expect(parser1)
 @api.doc(description="Return all available GWAS summary datasets")
 class GwasList(Resource):
 	def get(self):
@@ -27,6 +32,7 @@ class GwasList(Resource):
 
 
 @api.route('/<id>')
+@api.expect(parser1)
 @api.doc(
 	description="Get information about specified GWAS summary datasets",
 	params={'id': 'An ID or comma-separated list of IDs'}
@@ -46,18 +52,16 @@ class GwasInfoGet(Resource):
 		return query.record, 200
 
 
-parser = reqparse.RequestParser()
-parser.add_argument('id', required=True, type=str, action='append', default=[], help="List of IDs")
-
-# idfield = api.model('IdList', {
-# 	'id': fields.List(fields.String)
-# })
+parser2 = reqparse.RequestParser()
+parser2.add_argument('id', required=True, type=str, action='append', default=[], help="List of IDs")
+parser2.add_argument(
+'X-Api-Token', location='headers', required=False, default='null', help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
 @api.route('/', methods=["post"])
 @api.doc(
 	description="Get information about specified GWAS summary datasets")
 class GwasInfoPost(Resource):
-	@api.expect(parser)
+	@api.expect(parser2)
 	def post(self):
 		logger_info()
 		args = parser.parse_args()
