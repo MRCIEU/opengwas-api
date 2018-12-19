@@ -1,4 +1,4 @@
-from flask_restful import Api, Resource, reqparse, abort
+from flask_restplus import Resource, reqparse, abort, Namespace, fields
 from flask import request
 from _globals import *
 from _logger import *
@@ -6,7 +6,22 @@ from _auth import *
 from _es import *
 
 
-class Assoc(Resource):
+api = Namespace('associations', description="Retrieve GWAS associations")
+
+parser1 = api.parser()
+parser1.add_argument(
+'X-Api-Token', location='headers', required=False, default='null', help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+
+@api.route('/<id>/<rsid>')
+@api.expect(parser1)
+@api.doc(
+	description="Get specific SNP associations for specifc GWAS datasets",
+	params={
+	'id': 'An ID or comma-separated list of GWAS dataset IDs',
+	'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs'
+	}
+)
+class AssocGet(Resource):
 	def get(self, id=None, rsid=None):
 		logger_info()
 		if rsid is None:
@@ -24,17 +39,39 @@ class Assoc(Resource):
 			abort(503)
 		return out
 
+
+
+parser2 = reqparse.RequestParser()
+parser2.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of SNP rs IDs")
+parser2.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
+parser2.add_argument('proxies', type=int, required=False, default=0, help="Whether to look for proxies (1) or not (0)")
+parser2.add_argument('r2', type=float, required=False, default=0.8, help="Minimum LD r2 for a proxy")
+parser2.add_argument('align_alleles', type=int, required=False, default=1, help="Whether to align alleles")
+parser2.add_argument('palindromes', type=int, required=False, default=1, help="Whether to allow palindromic proxies")
+parser2.add_argument('maf_threshold', type=float, required=False, default=0.3, help="Maximum MAF allowed for a palindromic variant")
+parser2.add_argument(
+'X-Api-Token', location='headers', required=False, default='null', help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+
+@api.route('/')
+@api.doc(
+	description="""
+Get specific SNP associations for specifc GWAS datasets. Note the payload can be passed to curl via json using:
+
+```
+-X POST -d '
+{
+    'id': ['2','1001']
+}
+'
+```
+
+"""
+)
+class AssocPost(Resource):
+	@api.expect(parser2)
 	def post(self):
 		logger_info()
-		parser = reqparse.RequestParser()
-		parser.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of SNP rs IDs")
-		parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
-		parser.add_argument('proxies', type=int, required=False, default=0)
-		parser.add_argument('r2', type=float, required=False, default=0.8)
-		parser.add_argument('align_alleles', type=int, required=False, default=1)
-		parser.add_argument('palindromes', type=int, required=False, default=1)
-		parser.add_argument('maf_threshold', type=float, required=False, default=0.3)
-		args = parser.parse_args()
+		args = parser2.parse_args()
 
 		if(len(args['id']) == 0):
 			abort(405)

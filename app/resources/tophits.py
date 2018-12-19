@@ -1,4 +1,4 @@
-from flask_restful import Api, Resource, reqparse, abort
+from flask_restplus import Resource, reqparse, abort, Namespace, fields
 from _globals import *
 from _logger import *
 from _auth import *
@@ -7,15 +7,34 @@ from _ld import *
 import time
 
 
+api = Namespace('tophits', description="Extract tophits from a GWAS dataset")
+
+parser1 = api.parser()
+parser1 = reqparse.RequestParser()
+parser1.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
+parser1.add_argument('pval', type=float, required=False, default=5e-8, help='P-value threshold')
+parser1.add_argument('clump', type=int, required=False, default=1, help='Whether to clump (1) or not (0)')
+parser1.add_argument('r2', type=float, required=False, default=0.001, help='Clumping parameter')
+parser1.add_argument('kb', type=int, required=False, default=5000, help='Clumping parameter')
+parser1.add_argument(
+'X-Api-Token', location='headers', required=False, default='null', help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+@api.route('/')
+@api.doc(
+	description="""
+Extract tophits from a GWAS dataset. Note the payload can be passed to curl via json using:
+
+```
+-X POST -d '
+{
+    'parameters':'etc'
+}
+'
+```
+""")
 class Tophits(Resource):
+	@api.expect(parser1)
 	def post(self):
 		logger_info()
-		parser = reqparse.RequestParser()
-		parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
-		parser.add_argument('clump', type=int, required=False, default=1)
-		parser.add_argument('pval', type=float, required=False, default=5e-8)
-		parser.add_argument('r2', type=float, required=False, default=0.001)
-		parser.add_argument('kb', type=int, required=False, default=5000)
 		args = parser.parse_args()
 
 		user_email = get_user_email(request.headers.get('X-Api-Token'))

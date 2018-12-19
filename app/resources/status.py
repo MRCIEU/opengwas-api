@@ -8,33 +8,17 @@ import requests
 
 api = Namespace('status', description="Status of API and linked resources")
 
-model = api.model('Status', {
-	'API version': fields.String,
-	'MySQL status': fields.String,
-	'ElasticSearch status': fields.String,
-	'LD reference panel': fields.String,
-	'PLINK executable': fields.String,
-	'uri': fields.Url('status_status', absolute=True)
-	})
-# model = api.model('Model', {
-# 	'data': fields.List,
-# 	'uri': fields.Url('gwas_info', absolute=True)
-# 	})
-
-
-
 @api.route('/')
 @api.doc(description="Something something something")
 class Status(Resource):
-	@api.marshal_with(model)
 	def get(self):
 		logger_info()
 		out = {
-					'API version': VERSION,
-					'MySQL status': check_mysql(),
-					'ElasticSearch status': check_elastic(),
-					'LD reference panel': check_ld_ref(),
-					'PLINK executable': check_plink()
+			'API version': VERSION,
+			'MySQL status': check_mysql(),
+			'ElasticSearch status': check_elastic(),
+			'LD reference panel': check_ld_ref(),
+			'PLINK executable': check_plink()
 		}
 		return out
 
