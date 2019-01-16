@@ -1,9 +1,9 @@
 from flask_restplus import Resource, reqparse, abort, Namespace, fields
 from flask import request
-from _globals import *
-from _logger import *
-from _auth import *
-from _es import *
+from resources._globals import *
+from resources._logger import *
+from resources._auth import *
+from resources._es import *
 
 
 api = Namespace('phewas', description="Perform PheWAS of specified SNPs across all available GWAS datasets")
@@ -33,7 +33,7 @@ class PhewasGet(Resource):
 				"snp_lookup"
 			)
 		except Exception as e:
-			print e
+			print(e)
 			abort(503)
 		return {'data':out}
 
@@ -70,7 +70,7 @@ class PhewasPost(Resource):
 				"snp_lookup"
 			)
 		except Exception as e:
-			print e
+			print(e)
 			abort(503)
 		return {'data':out}
 

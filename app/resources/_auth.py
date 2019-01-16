@@ -1,23 +1,29 @@
-import urllib
-import json
-from flask import request
-# from logger import *
+import requests
 
 OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
+
+
 # USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
 
 
 def get_user_email(token):
-	url = OAUTH2_URL + str(token)
-	response = urllib.urlopen(url)
-	data = json.loads(response.read())
-	if "email" in data:
-		return data['email']
-	else:
-		return "NULL"
+    url = OAUTH2_URL + str(token)
+    res = requests.get(url)
+
+    if res.status_code != 200:
+        raise requests.exceptions.HTTPError
+
+    data = res.json()
+
+    if "email" in data:
+        return data['email']
+    else:
+        return "NULL"
+
 
 def email_query(user_email):
-	query =  """(c.id IN (select d.id from study_e d, memberships m, permissions_e p
+    cypher = "MATCH ()"
+    query = """(c.id IN (select d.id from study_e d, memberships m, permissions_e p
 					WHERE m.uid = "{0}"
 					AND p.gid = m.gid
 					AND d.id = p.study_id
@@ -26,6 +32,5 @@ def email_query(user_email):
 					WHERE p.gid = 1
 					AND d.id = p.study_id
 				))""".format(user_email)
-	#logger2.debug(query)
-	return query
-
+    # logger2.debug(query)
+    return query

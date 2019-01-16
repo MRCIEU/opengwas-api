@@ -1,9 +1,9 @@
 from flask_restplus import Resource, reqparse, abort, Namespace, fields
-from _globals import *
-from _logger import *
-from _auth import *
-from _es import *
-from _ld import *
+from resources._globals import *
+from resources._logger import *
+from resources._auth import *
+from resources._es import *
+from resources._ld import *
 import time
 
 
