@@ -1,9 +1,11 @@
-PySQLPool
 uuid
 flask
 flask_restplus
 werkzeug
-logging
 elasticsearch
 pytest
 requests
+neo4j
+pandas
+numpy
+matplotlib

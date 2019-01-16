@@ -1,5 +1,5 @@
 import requests
-from token import get_mrbase_access_token
+from tests.token import get_mrbase_access_token
 
 token = get_mrbase_access_token()
 

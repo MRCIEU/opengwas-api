@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 plt.style.use('seaborn-deep')
 
 def read_logs(fileName,plotName):
-	print 'Reading '+fileName
+	print('Reading '+fileName)
 	esList = []
 	clumpList = []
 	proxyList = []
@@ -25,7 +25,7 @@ def read_logs(fileName,plotName):
 				#print line
 				proxyList.append(float(m.group(1)))
 	#print proxyList
-	print 'Making plot...'
+	print('Making plot...')
 	bins = np.linspace(0, 50, 50)
 	#x = np.random.normal(1, 2, 5000)
 	#y = np.random.normal(-1, 3, 2000)
