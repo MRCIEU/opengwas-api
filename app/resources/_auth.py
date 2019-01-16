@@ -22,7 +22,6 @@ def get_user_email(token):
 
 
 def email_query(user_email):
-    cypher = "MATCH ()"
     query = """(c.id IN (select d.id from study_e d, memberships m, permissions_e p
 					WHERE m.uid = "{0}"
 					AND p.gid = m.gid

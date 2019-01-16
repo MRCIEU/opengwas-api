@@ -1,22 +1,23 @@
 from resources._neo4j import get_db
+from queries.trait_description_node import TraitDescriptionNode
 
 
 # TODO parameter validation
-class Study:
+class StudyNode:
 
-    def __init__(self, sid, pmid, year, trait, trait_description, category,
+    def __init__(self, study_id, pmid, year, trait, trait_description, category, population,
                  access=None, author=None,
                  consortium=None, filename=None,
                  mr=None,
-                 ncase=None, ncontrol=None, note=None, nsnp=None, path=None, population=None, priority=None,
-                 sample_size=None, sd=None, sex=None, status=None, subcategory=None, unit=None):
+                 ncase=None, ncontrol=None, note=None, nsnp=None, path=None, priority=None,
+                 sample_size=None, sd=None, sex=None, status=None, unit=None):
 
-        self.sid = int(sid)
+        self.study_id = int(study_id)
         self.pmid = int(pmid)
         self.year = int(year)
         self.trait = str(trait)
         self.trait_description = str(trait_description).lower()
-        self.category = category  # TODO check
+        self.category = str(category).lower()
 
         self.access = access
         self.author = author
@@ -34,21 +35,23 @@ class Study:
         self.sd = sd
         self.sex = sex
         self.status = status
-        self.subcategory = subcategory
         self.unit = unit
 
+        # check year is somewhat valid
         if self.year < 1950 or self.year > 2050:
             raise ValueError("The study year was invalid {}".format(year))
 
-        if self.trait_description != 'continuous' and \
-                self.trait_description != 'binary' and \
-                self.trait_description != 'ordinal':
-            raise ValueError(
-                "Description must be: continuous, binary or ordinal. You provided: {}".format(trait_description))
+        # check description is valid
+        trait_description_node = TraitDescriptionNode(self.trait_description)
+        if len(trait_description_node.get()) == 0:
+            raise ValueError("Invalid trait description provided: {}".format(trait_description))
+
+        if self.category != 'disease' and self.category != 'non-disease':
+            raise ValueError("Category must be: disease or non-disease. You provided: {}".format(category))
 
     def create(self):
         tx = get_db()
-        tx.run("MERGE (n:Study {sid:{sid}}) "
+        tx.run("MERGE (n:Study {study_id:{study_id}}) "
                "SET n.access={access} "
                "SET n.author={author} "
                "SET n.category={category} "
@@ -72,7 +75,7 @@ class Study:
                "SET n.unit={unit} "
                "SET n.year={year} ",
                {
-                   "sid": self.sid,
+                   "study_id": self.study_id,
                    "access": self.access,
                    "author": self.author,
                    "category": self.category,
@@ -100,9 +103,9 @@ class Study:
     def get(self):
         tx = get_db()
         results = tx.run(
-            "MATCH (n:Study {sid:{sid}}) "
+            "MATCH (n:Study {study_id:{study_id}}) "
             "RETURN n as study;", {
-                "sid": self.sid
+                "study_id": self.study_id
             }
         )
         result = results.single()
@@ -110,7 +113,7 @@ class Study:
 
     @staticmethod
     def __deserialize(node):
-        n = Study(node['sid'])
-        for key in node['sid']:
-            setattr(n, key, node['sid'][key])
+        n = StudyNode(node['study_id'])
+        for key in node['study_id']:
+            setattr(n, key, node['study_id'][key])
         return n

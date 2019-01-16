@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 from resources._globals import LOG_FILE, LOG_FILE_DEBUG
 from resources._auth import *
+from flask import request
 
 """
 

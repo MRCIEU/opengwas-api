@@ -2,7 +2,7 @@ from resources._neo4j import get_db
 
 
 # TODO parameter validation
-class User:
+class UserNode:
 
     def __init__(self, uid):
         self.uid = str(uid)
@@ -24,7 +24,7 @@ class User:
 
     @staticmethod
     def __deserialize(node):
-        n = User(node['uid'])
+        n = UserNode(node['uid'])
         for key in node['uid']:
             setattr(n, key, node['uid'][key])
         return n

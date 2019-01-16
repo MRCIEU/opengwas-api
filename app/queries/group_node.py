@@ -2,7 +2,7 @@ from resources._neo4j import get_db
 
 
 # TODO parameter validation
-class Group:
+class GroupNode:
 
     def __init__(self, gid, name=None):
         self.gid = int(gid)
@@ -35,7 +35,7 @@ class Group:
 
     @staticmethod
     def __deserialize(node):
-        n = Group(node['gid'])
+        n = GroupNode(node['gid'])
         for key in node['gid']:
             setattr(n, key, node['gid'][key])
         return n
