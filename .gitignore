@@ -6,3 +6,7 @@ logs/
 *pyc
 *DS_Store
 app/ld_files
+app/venv/
+app/.idea/
+app/__pycache__/
+app/logs/
