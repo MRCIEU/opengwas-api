@@ -8,12 +8,13 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
     try:
         start = time.time()
         filename = os.path.join(upload_folder, str(uuid.uuid4()))
-        tfile = open(filename, "w")
-        tfile.write("SNP P\n")
-        for i in xrange(len(rsid)):
-            tfile.write(str(rsid[i]) + " " + str(pval[i]) + "\n")
 
-        tfile.close()
+        with open(filename, "w") as tfile:
+            tfile.write("SNP P\n")
+
+            for i in range(len(rsid)):
+                tfile.write(str(rsid[i]) + " " + str(pval[i]) + "\n")
+
         command = "{0} " \
                   " --bfile {1} " \
                   " --clump {2} " \
@@ -56,7 +57,7 @@ def plink_ldsquare_rs(upload_folder, snps):
         filenameka = os.path.join(upload_folder, fn + "_recode.keep.a")
         tfile = open(filename, "w")
         # tfile.write("SNP P\n")
-        for i in xrange(len(snps)):
+        for i in range(len(snps)):
             tfile.write(str(snps[i]) + "\n")
 
         tfile.close()

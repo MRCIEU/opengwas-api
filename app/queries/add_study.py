@@ -1,20 +1,19 @@
 from resources._neo4j import get_db
 
 
-# TODO parameter validation
-class Access:
+class AddStudy:
 
-    def __init__(self, gid, sid):
-        self.sid = int(sid)
+    def __init__(self, gid, study_id):
+        self.study_id = int(study_id)
         self.gid = int(gid)
 
     def create(self):
         tx = get_db()
         tx.run(
-            "MATCH (s:Study {sid:{sid}}) "
+            "MATCH (s:Study {study_id:{study_id}}) "
             "MATCH (g:Group {gid:{gid}}) "
             "MERGE (g)-[:ACCESS_TO]->(s);", {
-                "sid": self.sid,
+                "study_id": self.study_id,
                 "gid": self.gid
             }
         )
@@ -22,8 +21,8 @@ class Access:
     def delete(self):
         tx = get_db()
         tx.run(
-            "MATCH (g:Group {gid:{gid}})-[rel:ACCESS_TO]->(s:Study {sid:{sid}}) DELETE rel;", {
-                "sid": self.sid,
+            "MATCH (g:Group {gid:{gid}})-[rel:ACCESS_TO]->(s:Study {study_id:{study_id}}) DELETE rel;", {
+                "study_id": self.study_id,
                 "gid": self.gid
             }
         )
