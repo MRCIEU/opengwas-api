@@ -5,15 +5,18 @@ from neo4j import GraphDatabase
 
 VERSION = '0.2.0'
 
+root_path = os.path.dirname(os.path.dirname(__file__))
+
 # Toggle for local vs deployed
-APP_CONF = "./conf_files/app_conf.json"
-PLINK = './ld_files/plink1.90'
-LD_REF = './ld_files/data_maf0.01_rs'
-TMP_FOLDER = './tmp/'
+APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
+PLINK = os.path.join(root_path, 'ld_files', 'plink1.90')
+LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
+TMP_FOLDER = os.path.join(root_path, 'tmp')
+LOG_FILE = os.path.join(root_path, 'logs', 'mrbaseapi.log')
+LOG_FILE_DEBUG = os.path.join(root_path, 'logs', 'mrbaseapi-debug.log')
+
 OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
 USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
-LOG_FILE = "./logs/mrbaseapi.log"
-LOG_FILE_DEBUG = "./logs/mrbaseapi-debug.log"
 
 # TODO make local file CMD arg
 with open(APP_CONF) as f:

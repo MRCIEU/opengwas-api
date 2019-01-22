@@ -1,5 +1,5 @@
 from flask import Flask
-from resources import api
+from apis import api
 from resources._globals import app_config
 from resources._neo4j import close_db
 

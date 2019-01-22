@@ -1,9 +1,5 @@
-from flask_restplus import Resource, reqparse, abort, Namespace, fields
-from flask import request
-from resources._globals import *
-from resources._logger import *
-from resources._auth import *
-from resources._es import *
+from flask_restplus import Resource, reqparse, abort, Namespace
+from queries.es import *
 
 
 api = Namespace('associations', description="Retrieve GWAS associations")
