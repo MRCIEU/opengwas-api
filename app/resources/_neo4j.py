@@ -19,13 +19,17 @@ def clear_db():
     tx = get_db()
     tx.run("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;")
 
-
-# TODO study id should be study_id not id (collision with neo internals)
+#TODO
 def install_index():
     tx = get_db()
     tx.run("CREATE CONSTRAINT ON (n:User) ASSERT n.uid IS UNIQUE;")
     tx.run("CREATE CONSTRAINT ON (n:Group) ASSERT n.gid IS UNIQUE;")
     tx.run("CREATE CONSTRAINT ON (n:Study) ASSERT n.study_id IS UNIQUE;")
+
+
+def check_running():
+    tx = get_db()
+    tx.run("MATCH (n) RETURN n LIMIT 0;")
 
 
 def study_info(study_list):

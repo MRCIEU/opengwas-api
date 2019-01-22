@@ -1,19 +1,20 @@
 from flask_restplus import Namespace, Resource
 from resources._globals import *
 from resources._logger import *
+from resources._neo4j import check_running
 import requests
 
 api = Namespace('status', description="Status of API and linked resources")
 
 
 @api.route('/')
-@api.doc(description="Something something something")
+@api.doc(description="Check services are running")
 class Status(Resource):
     def get(self):
         logger_info()
         out = {
             'API version': VERSION,
-            'Neo4j status': check_neo4j(),
+            'Neo4j status': check_running(),
             'ElasticSearch status': check_elastic(),
             'LD reference panel': check_ld_ref(),
             'PLINK executable': check_plink()
@@ -46,8 +47,3 @@ def check_elastic():
     except Exception as e:
         print(e)
         return "Error"
-
-
-def check_neo4j():
-    # TODO
-    pass

@@ -1,119 +1,188 @@
-from resources._neo4j import get_db
-from queries.trait_description_node import TraitDescriptionNode
+from queries.unique_node import UniqueNode
 
 
-# TODO parameter validation
-class StudyNode:
+class Study(UniqueNode):
 
-    def __init__(self, study_id, pmid, year, trait, trait_description, category, population,
-                 access=None, author=None,
-                 consortium=None, filename=None,
-                 mr=None,
-                 ncase=None, ncontrol=None, note=None, nsnp=None, path=None, priority=None,
-                 sample_size=None, sd=None, sex=None, status=None, unit=None):
+    def __init__(self, uid, pmid, year, filename, path, mr, trait, sample_size, unit, priority, author, note=None,
+                 ncase=None, ncontrol=None, nsnp=None, sd=None, consortium=None, covariates=None,
+                 beta_transformation=None):
+        super().__init__(uid)
 
-        self.study_id = int(study_id)
-        self.pmid = int(pmid)
-        self.year = int(year)
-        self.trait = str(trait)
-        self.trait_description = str(trait_description).lower()
-        self.category = str(category).lower()
+        self._pmid = pmid
+        self._year = year
+        self._filename = filename
+        self._path = path
+        self._mr = mr
+        self._trait = trait
+        self._sample_size = sample_size
+        self._unit = unit
+        self._priority = priority
+        self._author = author
+        self._note = note
+        self._ncase = ncase
+        self._ncontrol = ncontrol
+        self._nsnp = nsnp
+        self._sd = sd
+        self._consortium = consortium
+        self._covariates = covariates
+        self._beta_transformation = beta_transformation
 
-        self.access = access
-        self.author = author
-        self.consortium = consortium
-        self.filename = filename
-        self.mr = mr
-        self.ncase = ncase
-        self.ncontrol = ncontrol
-        self.note = note
-        self.nsnp = nsnp
-        self.path = path
-        self.population = population
-        self.priority = priority
-        self.sample_size = sample_size
-        self.sd = sd
-        self.sex = sex
-        self.status = status
-        self.unit = unit
+    # required fields
 
-        # check year is somewhat valid
-        if self.year < 1950 or self.year > 2050:
-            raise ValueError("The study year was invalid {}".format(year))
+    @property
+    def pmid(self):
+        return self._pmid
 
-        # check description is valid
-        trait_description_node = TraitDescriptionNode(self.trait_description)
-        if len(trait_description_node.get()) == 0:
-            raise ValueError("Invalid trait description provided: {}".format(trait_description))
+    @pmid.setter
+    def pmid(self, pmid):
+        self._pmid = int(pmid)
 
-        if self.category != 'disease' and self.category != 'non-disease':
-            raise ValueError("Category must be: disease or non-disease. You provided: {}".format(category))
+    @property
+    def year(self):
+        return self._year
 
-    def create(self):
-        tx = get_db()
-        tx.run("MERGE (n:Study {study_id:{study_id}}) "
-               "SET n.access={access} "
-               "SET n.author={author} "
-               "SET n.category={category} "
-               "SET n.consortium={consortium} "
-               "SET n.filename={filename} "
-               "SET n.mr={mr} "
-               "SET n.ncase={ncase} "
-               "SET n.ncontrol={ncontrol} "
-               "SET n.note={note} "
-               "SET n.nsnp={nsnp} "
-               "SET n.path={path} "
-               "SET n.pmid={pmid} "
-               "SET n.population={population} "
-               "SET n.priority={priority} "
-               "SET n.sample_size={sample_size} "
-               "SET n.sd={sd} "
-               "SET n.sex={sex} "
-               "SET n.status={status} "
-               "SET n.subcategory={subcategory} "
-               "SET n.trait={trait} "
-               "SET n.unit={unit} "
-               "SET n.year={year} ",
-               {
-                   "study_id": self.study_id,
-                   "access": self.access,
-                   "author": self.author,
-                   "category": self.category,
-                   "consortium": self.consortium,
-                   "filename": self.filename,
-                   "mr": self.mr,
-                   "ncase": self.ncase,
-                   "ncontrol": self.ncontrol,
-                   "note": self.note,
-                   "nsnp": self.nsnp,
-                   "path": self.path,
-                   "pmid": self.pmid,
-                   "population": self.population,
-                   "priority": self.priority,
-                   "sample_size": self.sample_size,
-                   "sd": self.sd,
-                   "sex": self.sex,
-                   "status": self.status,
-                   "subcategory": self.subcategory,
-                   "trait": self.trait,
-                   "unit": self.unit,
-                   "year": self.year
-               })
+    @year.setter
+    def year(self, year):
+        if int(year) < 1990 or int(year) > 2040:
+            raise ValueError("The study year is incorrect, you provided: {}".format(year))
+        self._year = int(year)
 
-    def get(self):
-        tx = get_db()
-        results = tx.run(
-            "MATCH (n:Study {study_id:{study_id}}) "
-            "RETURN n as study;", {
-                "study_id": self.study_id
-            }
-        )
-        result = results.single()
-        return self.__deserialize(result['study'])
+    @property
+    def filename(self):
+        return self._filename
 
-    @staticmethod
-    def __deserialize(node):
-        n = StudyNode(node['study_id'])
-        for key in node['study_id']:
-            setattr(n, key, node['study_id'][key])
-        return n
+    @filename.setter
+    def filename(self, filename):
+        self._filename = str(filename)
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, path):
+        self._path = str(path)
+
+    @property
+    def mr(self):
+        return self._mr
+
+    @mr.setter
+    def mr(self, mr):
+        if int(mr) < 0 or int(mr) > 1:
+            raise ValueError("The mr field must be 0 or 1, you provided: {}".format(mr))
+        self._mr = int(mr)
+
+    @property
+    def trait(self):
+        return self._trait
+
+    @trait.setter
+    def trait(self, trait):
+        self._trait = str(trait)
+
+    @property
+    def sample_size(self):
+        return self._sample_size
+
+    @sample_size.setter
+    def sample_size(self, sample_size):
+        self._sample_size = int(sample_size)
+
+    @property
+    def unit(self):
+        return self._unit
+
+    @unit.setter
+    def unit(self, unit):
+        self._unit = str(unit)
+
+    @property
+    def priority(self):
+        return self._priority
+
+    @priority.setter
+    def priority(self, priority):
+        self._priority = int(priority)
+
+    @property
+    def author(self):
+        return self._author
+
+    @author.setter
+    def author(self, author):
+        self._author = str(author)
+
+    # optional fields
+
+    @property
+    def note(self):
+        return self._note
+
+    @note.setter
+    def note(self, note):
+        if note is not None:
+            self._note = str(note)
+
+    @property
+    def ncase(self):
+        return self._ncase
+
+    @ncase.setter
+    def ncase(self, ncase):
+        if ncase is not None:
+            self._ncase = int(ncase)
+
+    @property
+    def ncontrol(self):
+        return self._ncontrol
+
+    @ncontrol.setter
+    def ncontrol(self, ncontrol):
+        if ncontrol is not None:
+            self._ncontrol = int(ncontrol)
+
+    @property
+    def nsnp(self):
+        return self._nsnp
+
+    @nsnp.setter
+    def nsnp(self, nsnp):
+        if nsnp is not None:
+            self._nsnp = int(nsnp)
+
+    @property
+    def sd(self):
+        return self._sd
+
+    @sd.setter
+    def sd(self, sd):
+        if sd is not None:
+            self._sd = float(sd)
+
+    @property
+    def consortium(self):
+        return self._consortium
+
+    @consortium.setter
+    def consortium(self, consortium):
+        if consortium is not None:
+            self._consortium = str(consortium)
+
+    @property
+    def covariates(self):
+        return self._covariates
+
+    @covariates.setter
+    def covariates(self, value):
+        if value is not None:
+            self._covariates = str(value)
+
+    @property
+    def beta_transformation(self):
+        return self._beta_transformation
+
+    @beta_transformation.setter
+    def beta_transformation(self, value):
+        if value is not None:
+            self._beta_transformation = str(value)
