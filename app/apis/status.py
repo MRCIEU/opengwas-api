@@ -1,7 +1,7 @@
 from flask_restplus import Namespace, Resource
 from resources._globals import *
 from resources._logger import *
-from resources._neo4j import check_running
+from resources._neo4j import Neo4j
 import requests
 
 api = Namespace('status', description="Status of API and linked resources")
@@ -14,7 +14,7 @@ class Status(Resource):
         logger_info()
         out = {
             'API version': VERSION,
-            'Neo4j status': check_running(),
+            'Neo4j status': Neo4j.check_running(),
             'ElasticSearch status': check_elastic(),
             'LD reference panel': check_ld_ref(),
             'PLINK executable': check_plink()

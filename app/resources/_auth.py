@@ -21,6 +21,7 @@ def get_user_email(token):
         return "NULL"
 
 
+# TODO neo4j
 def email_query(user_email):
     query = """(c.id IN (select d.id from study_e d, memberships m, permissions_e p
     				WHERE m.uid = "{0}"

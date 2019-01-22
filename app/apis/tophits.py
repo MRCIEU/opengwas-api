@@ -30,7 +30,7 @@ class Tophits(Resource):
 	@api.expect(parser1)
 	def post(self):
 		logger_info()
-		args = parser.parse_args()
+		args = parser1.parse_args()
 
 		user_email = get_user_email(request.headers.get('X-Api-Token'))
 
