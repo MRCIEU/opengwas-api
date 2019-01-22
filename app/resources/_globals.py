@@ -17,8 +17,8 @@ LOG_FILE_DEBUG = os.path.join(root_path, 'logs', 'mrbaseapi-debug.log')
 
 OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
 USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
+ALLOWED_EXTENSIONS = {'txt'}
 
-# TODO make local file CMD arg
 with open(APP_CONF) as f:
     app_config = json.load(f)
 if os.path.isfile('local') is True:

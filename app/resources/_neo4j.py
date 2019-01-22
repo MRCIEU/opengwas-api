@@ -3,90 +3,112 @@ from resources._logger import *
 import flask
 
 
-def close_db(error):
-    logging.info("Closing neo4j session")
-    if hasattr(flask.g, 'neo4j_db'):
-        flask.g.neo4j_db.close()
+class Neo4j:
 
+    @staticmethod
+    def close_db(error):
+        logging.info("Closing neo4j session")
+        if hasattr(flask.g, 'neo4j_db'):
+            flask.g.neo4j_db.close()
 
-def get_db():
-    if not hasattr(flask.g, 'neo4j_db'):
-        flask.g.neo4j_db = dbConnection.session()
-    return flask.g.neo4j_db
+    @staticmethod
+    def get_db():
+        if not hasattr(flask.g, 'neo4j_db'):
+            flask.g.neo4j_db = dbConnection.session()
+        return flask.g.neo4j_db
 
+    @staticmethod
+    def clear_db():
+        tx = Neo4j.get_db()
+        tx.run("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;")
 
-def clear_db():
-    tx = get_db()
-    tx.run("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;")
+    @staticmethod
+    def check_running():
+        tx = Neo4j.get_db()
+        tx.run("MATCH (n) RETURN n LIMIT 0;")
 
-#TODO
-def install_index():
-    tx = get_db()
-    tx.run("CREATE CONSTRAINT ON (n:User) ASSERT n.uid IS UNIQUE;")
-    tx.run("CREATE CONSTRAINT ON (n:Group) ASSERT n.gid IS UNIQUE;")
-    tx.run("CREATE CONSTRAINT ON (n:Study) ASSERT n.study_id IS UNIQUE;")
+    @staticmethod
+    def create_unique_rel(rel_type, lhs_label, lhs_uid, rhs_label, rhs_uid, rel_props=None, lhs_uid_key='uid',
+                          rhs_uid_key='uid'):
+        tx = Neo4j.get_db()
+        tx.run(
+            "MATCH (l:{lhs_label}:{{lhs_uid_key}:{lhs_uid}} "
+            "MATCH (r:{rhs_label}:{{rhs_uid_key}:{rhs_uid}} "
+            "MERGE (l)-[r:{rel_type}]->(r) "
+            "SET r = {rel_props};",
+            lhs_label=lhs_label,
+            lhs_uid_key=lhs_uid_key,
+            lhs_uid=lhs_uid,
+            rhs_label=rhs_label,
+            rhs_uid_key=rhs_uid_key,
+            rhs_uid=rhs_uid,
+            rel_type=rel_type,
+            rel_props=rel_props
+        )
 
+    @staticmethod
+    def delete_rel(rel_type, lhs_label, lhs_uid, rhs_label, rhs_uid, lhs_uid_key='uid', rhs_uid_key='uid'):
+        tx = Neo4j.get_db()
+        tx.run(
+            "MATCH (l:{lhs_label}:{{lhs_uid_key}:{lhs_uid}}-[r:{rel_type}]->(r:{rhs_label}:{{rhs_uid_key}:{rhs_uid}}"
+            "DELETE (r);",
+            lhs_label=lhs_label,
+            lhs_uid_key=lhs_uid_key,
+            lhs_uid=lhs_uid,
+            rhs_label=rhs_label,
+            rhs_uid_key=rhs_uid_key,
+            rhs_uid=rhs_uid,
+            rel_type=rel_type
+        )
 
-def check_running():
-    tx = get_db()
-    tx.run("MATCH (n) RETURN n LIMIT 0;")
+    @staticmethod
+    def create_unique_node(label, uid, props=None, uid_key='uid'):
+        cql = "MERGE (n:" + label + " {" + uid_key + ":{uid}})"
+        if props is not None:
+            cql += "SET n = {params}"
+        cql += "SET n." + uid_key + " = {uid};"
+        tx = Neo4j.get_db()
+        tx.run(
+            cql, uid=uid, params=props
+        )
 
+    @staticmethod
+    def delete_unique_node(label, uid, uid_key='uid'):
+        tx = Neo4j.get_db()
+        tx.run(
+            "MATCH (n:" + label + " {" + uid_key + ":{uid}}) OPTIONAL MATCH (n)-[r]-() DELETE n, r;",
+            uid=uid
+        )
 
-def study_info(study_list):
-    print(study_list)
-    study_data = {}
-    # SQL   = "SELECT * FROM study_e where id in ('"+str(",".join(study_list))+"');"
-    if study_list == 'snp_lookup':
-        SQL = "SELECT * FROM study_e, permissions_e where study_e.id = permissions_e.study_id and permissions_e.gid = 1;"
-    else:
-        SQL = "SELECT * FROM study_e where id in (" + study_list + ");"
+    @staticmethod
+    def get_unique_node(label, uid, uid_key='uid'):
+        tx = Neo4j.get_db()
+        results = tx.run(
+            "MATCH (n:" + label + " {" + uid_key + ":{uid}}) RETURN n;",
+            uid=uid
+        )
+        result = results.single()
 
-    logger2.debug(SQL)
-    query = PySQLPool.getNewQuery(dbConnection)
-    query.Query(SQL)
-    for q in query.record:
-        study_data[q['id']] = q
-    # logger2.debug(study_data)
-    logger2.debug('study_info:' + str(len(study_data)))
-    return study_data
+        if result is None:
+            raise LookupError("Node does not exist for: {}".format(uid))
 
+        return result['n']
 
-def snp_info(snp_list, type):
-    snp_data = {}
-    if type == 'id_to_rsid':
-        SQL = "SELECT * FROM snp where id in (" + str(",".join(snp_list)) + ");"
-    else:
-        SQL = "SELECT * FROM snp where name in (" + str(",".join(snp_list)) + ");"
-    # logger2.debug(SQL)
-    start = time.time()
-    query = PySQLPool.getNewQuery(dbConnection)
-    query.Query(SQL)
-    for q in query.record:
-        snp_data[q['id']] = q['name']
-    end = time.time()
-    t = round((end - start), 4)
-    logger2.debug('snp_info:' + str(len(snp_data)) + ' in ' + str(t) + ' seconds')
-    return snp_data
+    @staticmethod
+    def set_constraint(label, prop):
+        tx = Neo4j.get_db()
+        tx.run(
+            "CREATE CONSTRAINT ON (n:" + label + ") ASSERT n." + prop + " IS UNIQUE;"
+        )
 
-
-# create list of studies available to user
-def email_query_list(user_email):
-    qList = []
-    logger2.debug("getting credentials for " + user_email)
-    SQL = """select id from study_e c where (c.id IN (select d.id from study_e d, memberships m, permissions_e p
-		WHERE m.uid = "{0}"
-		AND p.gid = m.gid
-		AND d.id = p.study_id
-		)
-		OR c.id IN (select d.id from study_e d, permissions_e p
-		WHERE p.gid = 1
-		AND d.id = p.study_id
-		))""".format(user_email)
-    SQL2 = """select id from study_e""".format(user_email)
-    # logger2.debug(SQL)
-    query = PySQLPool.getNewQuery(dbConnection)
-    query.Query(SQL)
-    for q in query.record:
-        qList.append(q['id'])
-    logger2.debug('access to ' + str(len(qList)) + ' studies')
-    return qList
+    @staticmethod
+    def check_constraint(label, prop):
+        labels = set()
+        tx = Neo4j.get_db()
+        results = tx.run(
+            "CALL db.indexes();"
+        )
+        for result in results:
+            if prop in result['properties']:
+                labels.add(result['label'])
+        return label in labels
