@@ -1,5 +1,5 @@
-from marshmallow import Schema
+from marshmallow import Schema, post_load
 
 
 class MemberOfRelSchema(Schema):
-    REL = 'MEMBER_OF'
+    pass
