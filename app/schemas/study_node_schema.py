@@ -1,5 +1,6 @@
-from marshmallow import Schema, fields, ValidationError, post_load
+from marshmallow import fields, ValidationError, post_load
 from queries.study_node import Study
+from schemas.frpm_schema import FRPMSchema
 
 
 # TODO pre_load map '' to None
@@ -50,7 +51,7 @@ def check_population_is_valid(data):
 
 # TODO clean data
 def check_sex_is_valid(data):
-    valid = {'Males and Females', 'Males and females', 'Males', 'Females'}
+    valid = {'Males and Females', 'Males', 'Females'}
     if data not in valid:
         raise ValidationError("Sex must be one of: {}".format(valid))
 
@@ -81,7 +82,7 @@ def check_genome_build_is_valid(data):
         raise ValidationError("Imputation panel must be one of: {}".format(valid))
 
 
-class StudyNodeSchema(Schema):
+class StudyNodeSchema(FRPMSchema):
     id = fields.Str(required=True, allow_none=False)
     pmid = fields.Int(required=True, allow_none=False)
     year = fields.Int(required=True, validate=check_study_year, allow_none=False)
@@ -110,6 +111,7 @@ class StudyNodeSchema(Schema):
     beta_transformation = fields.Str(required=False, allow_none=True)
     imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True)
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True)
+    status = fields.Str(required=False, allow_none=True)
 
     @post_load
     def map_to_obj(self, data):

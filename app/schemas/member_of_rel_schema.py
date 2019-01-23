@@ -1,5 +1,5 @@
-from marshmallow import Schema, post_load
+from schemas.frpm_schema import FRPMSchema
 
 
-class MemberOfRelSchema(Schema):
+class MemberOfRelSchema(FRPMSchema):
     pass
