@@ -1,8 +1,7 @@
-from flask_restplus import Resource, reqparse, abort, Namespace
-from resources._globals import *
+from flask_restplus import Resource, reqparse, Namespace
 from resources._logger import *
+from queries.cql_queries import *
 
-# TODO map SQL to NEO4j
 
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 
@@ -18,14 +17,8 @@ parser1.add_argument(
 class GwasList(Resource):
     def get(self):
         logger_info()
-        access_query = email_query(get_user_email(request.headers.get('X-Api-Token')))
-        SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
-        try:
-            query = PySQLPool.getNewQuery(dbConnection)
-            query.Query(SQL)
-        except:
-            abort(503)
-        return query.record, 200
+        user_email = get_user_email(request.headers.get('X-Api-Token'))
+        return get_all_gwas(user_email)
 
 
 @api.route('/<id>')
@@ -35,18 +28,19 @@ class GwasList(Resource):
     params={'id': 'An ID or comma-separated list of IDs'}
 )
 class GwasInfoGet(Resource):
-    def get(self, id=None):
+    def get(self, id):
         logger_info()
-        access_query = email_query(get_user_email(request.headers.get('X-Api-Token')))
-        id_query = "','".join(id.split(',')).replace(';', '')
-        SQL = """SELECT * FROM study_e c WHERE c.id IN
-			('{0}') AND {1}""".format(id_query, access_query)
-        try:
-            query = PySQLPool.getNewQuery(dbConnection)
-            query.Query(SQL)
-        except:
-            abort(503)
-        return query.record, 200
+        user_email = get_user_email(request.headers.get('X-Api-Token'))
+        study_ids = id.replace(';', '').split(',')
+        recs = []
+
+        for sid in study_ids:
+            try:
+                recs.append(get_specific_gwas(user_email, sid))
+            except LookupError as e:
+                continue
+
+        return recs
 
 
 parser2 = reqparse.RequestParser()
@@ -64,15 +58,16 @@ class GwasInfoPost(Resource):
     def post(self):
         logger_info()
         args = parser2.parse_args()
-        access_query = email_query(get_user_email(request.headers.get('X-Api-Token')))
+        user_email = get_user_email(request.headers.get('X-Api-Token'))
+
         if (len(args['id']) == 0):
-            SQL = """SELECT * FROM study_e c WHERE {0}""".format(access_query)
+            return get_all_gwas(user_email)
         else:
-            id_query = "','".join(args['id']).replace(';', '')
-            SQL = """SELECT * FROM study_e c WHERE c.id IN ('{0}') AND {1}""".format(id_query, access_query)
-        try:
-            query = PySQLPool.getNewQuery(dbConnection)
-            query.Query(SQL)
-        except:
-            abort(503)
-        return query.record, 200
+            study_ids = args['id'].replace(';', '').split(',')
+            recs = []
+            for sid in study_ids:
+                try:
+                    recs.append(get_specific_gwas(user_email, sid))
+                except LookupError as e:
+                    continue
+            return recs

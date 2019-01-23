@@ -3,9 +3,6 @@ from queries.study_node import Study
 from schemas.frpm_schema import FRPMSchema
 
 
-# TODO pre_load map '' to None
-
-# TODO clean data
 def check_study_year(data):
     if data < 2000 or data > 2050:
         raise ValidationError("Study year is invalid")
@@ -29,15 +26,54 @@ def check_category_is_valid(data):
         raise ValidationError("Trait category must be one of: {}".format(valid))
 
 
-# TODO remove ''
 def check_subcategory_is_valid(data):
-    valid = {'NA', 'Metabolite salt', '', 'Sleeping', 'Immune cell-surface protein expression levels', 'Cancer',
-             'Unknown metabolite', 'Reproductive aging', 'Aging', 'Energy', 'Protein', 'Psychiatric / neurological',
-             'Peptide', 'Anthropometric', 'Nucleotide', 'Haemotological', 'Other', 'Xenobiotics',
-             'Paediatric disease', 'Kidney', 'Bone', 'Education', 'Fatty acid', 'Cardiovascular', 'Lipid', 'Eye',
-             'Cofactors and vitamins', 'Glycemic', 'Immune system', 'Keto acid', 'Metabolites ratio', 'Hemodynamic',
-             'Carbohydrate', 'Diabetes', 'Immune cell subset frequency', 'Hormone', 'Behavioural', 'Personality',
-             'Blood pressure', 'Autoimmune / inflammatory', 'Amino acid', 'Metal', 'Lung disease'}
+    valid = {"Anthropometric", "Psychiatric / neurological", "Education", "Hormone",
+             "Reproductive aging",
+             "Lung disease",
+             "Haemotological",
+             "Personality",
+             "Cancer",
+             "Immune system",
+             "Autoimmune / inflammatory",
+             "Cardiovascular",
+             "Lipid",
+             "Metal",
+             "Other",
+             "Hemodynamic",
+             "Kidney",
+             "Sleeping",
+             "Diabetes",
+             "Aging",
+             "null",
+             "Fatty acid",
+             "Bone",
+             "Immune cell subset frequency",
+             "Cytokines",
+             "Immune cell-surface protein expression levels",
+             "Eye",
+             "Amino acid",
+             "Carbohydrate",
+             "Nucleotide",
+             "Energy",
+             "Cofactors and vitamins",
+             "Peptide",
+             "Unknown metabolite",
+             "Xenobiotics",
+             "Glycemic",
+             "Protein",
+             "Behavioural",
+             "Blood pressure",
+             "Keto acid",
+             "Metabolite salt",
+             "Metabolites ratio",
+             "Lung function",
+             "Paediatric disease",
+             "Growth hormone",
+             "Biomarker",
+             "gtex_eqtl",
+             "subcategory",
+             "NA"}
+
     if data not in valid:
         raise ValidationError("Trait subcategory must be one of: {}".format(valid))
 
@@ -48,15 +84,12 @@ def check_population_is_valid(data):
     if data not in valid:
         raise ValidationError("Population must be one of: {}".format(valid))
 
-
-# TODO clean data
 def check_sex_is_valid(data):
     valid = {'Males and Females', 'Males', 'Females'}
     if data not in valid:
         raise ValidationError("Sex must be one of: {}".format(valid))
 
 
-# TODO clean data
 def check_access_is_valid(data):
     valid = {'public', 'Public'}
     if data not in valid:
@@ -84,9 +117,9 @@ def check_genome_build_is_valid(data):
 
 class StudyNodeSchema(FRPMSchema):
     id = fields.Str(required=True, allow_none=False)
-    pmid = fields.Int(required=True, allow_none=False)
-    year = fields.Int(required=True, validate=check_study_year, allow_none=False)
-    filename = fields.Str(required=True, allow_none=False)
+    pmid = fields.Int(required=False, allow_none=True)
+    year = fields.Int(required=False, validate=check_study_year, allow_none=True)
+    filename = fields.Str(required=False, allow_none=False)
     path = fields.Str(required=True, allow_none=False)
     mr = fields.Int(required=True, validate=check_mr_is_0_or_1, allow_none=False)
     note = fields.Str(required=False, allow_none=True)
@@ -105,7 +138,7 @@ class StudyNodeSchema(FRPMSchema):
     priority = fields.Int(required=True, allow_none=False)
     author = fields.Str(required=True, allow_none=False)
     consortium = fields.Str(required=False, allow_none=True)
-    access = fields.Str(required=False, validate=check_access_is_valid, allow_none=True)
+    access = fields.Str(required=False, allow_none=True)
     study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True)
     covariates = fields.Str(required=False, allow_none=True)
     beta_transformation = fields.Str(required=False, allow_none=True)
