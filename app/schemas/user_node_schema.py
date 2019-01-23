@@ -1,8 +1,9 @@
-from marshmallow import Schema, fields, validate, post_load
+from marshmallow import fields, validate, post_load
 from queries.user_node import User
+from schemas.frpm_schema import FRPMSchema
 
 
-class UserNodeSchema(Schema):
+class UserNodeSchema(FRPMSchema):
     uid = fields.Str(
         required=True,
         validate=validate.Email(error='Not a valid email address')

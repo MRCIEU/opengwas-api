@@ -1,5 +1,5 @@
-from marshmallow import Schema
+from schemas.frpm_schema import FRPMSchema
 
 
-class AccessToRelSchema(Schema):
+class AccessToRelSchema(FRPMSchema):
     pass
