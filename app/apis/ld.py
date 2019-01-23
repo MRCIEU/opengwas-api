@@ -1,6 +1,4 @@
-from flask_restplus import Resource, reqparse, abort, Namespace, fields
-from resources._globals import *
-from resources._logger import *
+from flask_restplus import Resource, reqparse, abort, Namespace
 from resources._ld import *
 
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
