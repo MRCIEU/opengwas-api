@@ -1,5 +1,8 @@
-from marshmallow import Schema, fields, ValidationError
+from marshmallow import Schema, fields, ValidationError, post_load
+from queries.study_node import Study
 
+
+# TODO pre_load map '' to None
 
 # TODO clean data
 def check_study_year(data):
@@ -79,35 +82,35 @@ def check_genome_build_is_valid(data):
 
 
 class StudyNodeSchema(Schema):
-    LABEL = 'Study'
+    id = fields.Str(required=True, allow_none=False)
+    pmid = fields.Int(required=True, allow_none=False)
+    year = fields.Int(required=True, validate=check_study_year, allow_none=False)
+    filename = fields.Str(required=True, allow_none=False)
+    path = fields.Str(required=True, allow_none=False)
+    mr = fields.Int(required=True, validate=check_mr_is_0_or_1, allow_none=False)
+    note = fields.Str(required=False, allow_none=True)
+    trait = fields.Str(required=True, allow_none=False)
+    trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True)
+    category = fields.Str(required=True, validate=check_category_is_valid, allow_none=False)
+    subcategory = fields.Str(required=True, validate=check_subcategory_is_valid, allow_none=False)
+    population = fields.Str(required=True, validate=check_population_is_valid, allow_none=False)
+    sex = fields.Str(required=True, validate=check_sex_is_valid, allow_none=False)
+    ncase = fields.Int(required=False, allow_none=True)
+    ncontrol = fields.Int(required=False, allow_none=True)
+    sample_size = fields.Int(required=True, allow_none=False)
+    nsnp = fields.Int(required=False, allow_none=True)
+    unit = fields.Str(required=True, allow_none=False)
+    sd = fields.Float(required=False, allow_none=True)
+    priority = fields.Int(required=True, allow_none=False)
+    author = fields.Str(required=True, allow_none=False)
+    consortium = fields.Str(required=False, allow_none=True)
+    access = fields.Str(required=False, validate=check_access_is_valid, allow_none=True)
+    study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True)
+    covariates = fields.Str(required=False, allow_none=True)
+    beta_transformation = fields.Str(required=False, allow_none=True)
+    imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True)
+    build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True)
 
-    id = fields.Str(required=True)
-    pmid = fields.Int(required=True)
-    year = fields.Int(required=True, validate=check_study_year)
-    filename = fields.Str(required=True)
-    path = fields.Str(required=True)
-    mr = fields.Int(required=True, validate=check_mr_is_0_or_1)
-    note = fields.Str(required=False)
-    trait = fields.Str(required=True)
-    trait_description = fields.Str(required=False, validate=check_trait_description)
-    category = fields.Str(required=True, validate=check_category_is_valid)
-    subcategory = fields.Str(required=True, validate=check_subcategory_is_valid)
-    population = fields.Str(required=True, validate=check_population_is_valid)
-    sex = fields.Str(required=True, validate=check_sex_is_valid)
-    ncase = fields.Int(required=False)
-    ncontrol = fields.Int(required=False)
-    sample_size = fields.Int(required=True)
-    nsnp = fields.Int(required=False)
-    unit = fields.Str(required=True)
-    sd = fields.Float(required=False)
-    priority = fields.Int(required=True)
-    author = fields.Str(required=True)
-    consortium = fields.Str(required=False)
-    access = fields.Str(required=False, validate=check_access_is_valid)
-    study_design = fields.Str(required=False, validate=check_study_design_is_valid)
-    covariates = fields.Str(required=False)
-    beta_transformation = fields.Str(required=False)
-    imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid)
-    build = fields.Str(required=False, validate=check_genome_build_is_valid)
-
-    # TODO pre_load map '' to None
+    @post_load
+    def map_to_obj(self, data):
+        return Study(**data)
