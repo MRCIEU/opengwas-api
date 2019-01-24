@@ -52,3 +52,6 @@ class StudyResource(Resource):
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
+
+
+
