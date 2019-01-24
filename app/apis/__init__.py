@@ -8,7 +8,7 @@ from .tophits import api as tophits
 from resources._globals import VERSION
 from .ld import api as ld
 from .study import api as study
-from .upload import api as upload
+from .upload_gwas import api as upload
 
 api = Api(version=VERSION, title='Bristol GWAS Datastore',
           description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full')
