@@ -7,7 +7,7 @@ from resources._globals import ALLOWED_EXTENSIONS
 def check_filename(strg, search=re.compile(r'[^a-z0-9.]').search):
     return not bool(search(strg))
 
-
+# TODO is maketrans supported by py3
 def clean_snp_string(snpstring):
     # Function to clean snp string of bad characters
     snpstring = snpstring.encode("ascii")

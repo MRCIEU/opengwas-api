@@ -56,7 +56,7 @@ def get_specific_gwas(uid, sid):
 
 """ Returns studies for a list of study identifiers (or all public if keyword 'snp_lookup' provided)  """
 
-
+# TODO @Gib should this check for user permissions?
 def study_info(study_list):
     res = []
     schema = StudyNodeSchema()

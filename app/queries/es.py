@@ -2,6 +2,7 @@ from resources._neo4j import *
 import flask
 import time
 import re
+from queries.cql_queries import *
 
 
 def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
@@ -244,8 +245,8 @@ def query_summary_stats(user_email, snps, outcomes):
     #### es
     # logger2.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
     # get available studies
-    study_access = email_query_list(user_email)
-    # logger2.debug(study_access)
+    study_access = get_all_gwas_ids(user_email)
+    # logger2.debug(study_access)get_all_gwas_ids
     snpList = snps.split(',')
     logger2.debug('len snplist = ' + str(len(snpList)))
 

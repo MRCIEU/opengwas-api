@@ -13,7 +13,7 @@ Setup logging
 
 USER_EMAIL = None
 
-
+# TODO @Gib does the log work correctly?
 class ContextFilter(logging.Filter):
     """
     This is a filter which injects contextual information into the log.
