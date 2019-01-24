@@ -12,3 +12,4 @@ app/__pycache__/
 app/logs/
 app/tests/data
 app/local
+*.pytest_cache/
