@@ -1,11 +1,12 @@
 uuid
-flask
-flask_restplus
-werkzeug
 elasticsearch
+Flask
+flask-restplus
+marshmallow>=3.0.0rc3
+neo4j
 pytest
 requests
-neo4j
+werkzeug
 pandas
 numpy
 matplotlib
