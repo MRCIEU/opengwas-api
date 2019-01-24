@@ -2,7 +2,6 @@ from flask_restplus import Resource, reqparse, Namespace
 from resources._logger import *
 from queries.cql_queries import *
 
-
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 
 parser1 = api.parser()
@@ -61,11 +60,11 @@ class GwasInfoPost(Resource):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
 
         if (len(args['id']) == 0):
+            # TODO @Gib reqparse will not allow no args provided
             return get_all_gwas(user_email)
         else:
-            study_ids = args['id'].replace(';', '').split(',')
             recs = []
-            for sid in study_ids:
+            for sid in args['id']:
                 try:
                     recs.append(get_specific_gwas(user_email, sid))
                 except LookupError as e:
