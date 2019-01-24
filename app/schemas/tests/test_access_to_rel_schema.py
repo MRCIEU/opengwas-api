@@ -4,4 +4,5 @@ d = {}
 
 
 def test_schema():
-    AccessToRelSchema().load(d)
+    schema = AccessToRelSchema()
+    schema.load(d)

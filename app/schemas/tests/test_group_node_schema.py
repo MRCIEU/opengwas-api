@@ -7,4 +7,5 @@ d = {
 
 
 def test_schema():
-    GroupNodeSchema().load(d)
+    schema = GroupNodeSchema()
+    schema.load(d)

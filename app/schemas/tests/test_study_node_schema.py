@@ -9,4 +9,5 @@ d = {'id': '100', 'pmid': 23754948, 'year': 2013,
 
 
 def test_schema():
-    StudyNodeSchema().load(d)
+    schema = StudyNodeSchema()
+    schema.load(d)

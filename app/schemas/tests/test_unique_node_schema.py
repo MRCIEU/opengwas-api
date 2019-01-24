@@ -8,4 +8,5 @@ d = {
 
 
 def test_schema():
-    UniqueNodeSchema().load(d)
+    schema = UniqueNodeSchema()
+    schema.load(d)

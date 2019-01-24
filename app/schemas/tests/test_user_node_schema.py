@@ -6,4 +6,5 @@ d = {
 
 
 def test_schema():
-    UserNodeSchema().load(d)
+    schema = UserNodeSchema()
+    schema.load(d)
