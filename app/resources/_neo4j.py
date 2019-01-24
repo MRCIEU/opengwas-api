@@ -24,8 +24,12 @@ class Neo4j:
 
     @staticmethod
     def check_running():
-        tx = Neo4j.get_db()
-        tx.run("MATCH (n) RETURN n LIMIT 0;")
+        try:
+            tx = Neo4j.get_db()
+            tx.run("MATCH (n) RETURN n LIMIT 0;")
+        except Exception:
+            return 'Unavailable'
+        return 'Available'
 
     @staticmethod
     def create_unique_rel(rel_type, lhs_label, lhs_uid, rhs_label, rhs_uid, rel_props=None, lhs_uid_key='uid',

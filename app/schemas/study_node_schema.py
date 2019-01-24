@@ -84,6 +84,7 @@ def check_population_is_valid(data):
     if data not in valid:
         raise ValidationError("Population must be one of: {}".format(valid))
 
+
 def check_sex_is_valid(data):
     valid = {'Males and Females', 'Males', 'Females'}
     if data not in valid:
@@ -131,7 +132,7 @@ class StudyNodeSchema(FRPMSchema):
     sex = fields.Str(required=True, validate=check_sex_is_valid, allow_none=False)
     ncase = fields.Int(required=False, allow_none=True)
     ncontrol = fields.Int(required=False, allow_none=True)
-    sample_size = fields.Int(required=True, allow_none=False)
+    sample_size = fields.Int(required=False, allow_none=True)
     nsnp = fields.Int(required=False, allow_none=True)
     unit = fields.Str(required=True, allow_none=False)
     sd = fields.Float(required=False, allow_none=True)
