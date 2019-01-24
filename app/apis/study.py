@@ -1,4 +1,4 @@
-from flask_restplus import Resource, Namespace, reqparse
+from flask_restplus import Resource, Namespace, reqparse, fields
 from resources._logger import *
 from schemas.study_node_schema import StudyNodeSchema
 from schemas.user_node_schema import UserNodeSchema
@@ -10,7 +10,8 @@ import time
 
 api = Namespace('study', description="Add new study to database")
 params = StudyNodeSchema.get_flask_model()
-model = api.model('study', params['comments'])
+params['comments'] = fields.String
+model = api.model('study', params)
 
 parser = reqparse.RequestParser()
 parser.add_argument(
