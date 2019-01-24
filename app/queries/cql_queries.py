@@ -1,6 +1,8 @@
 from resources._neo4j import Neo4j
 from schemas.study_node_schema import StudyNodeSchema
 
+# TODO @Gib how are users added to the graph? Who decides?
+
 """Return all available GWAS summary datasets"""
 
 
