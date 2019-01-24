@@ -11,3 +11,4 @@ app/.idea/
 app/__pycache__/
 app/logs/
 app/tests/data
+app/local

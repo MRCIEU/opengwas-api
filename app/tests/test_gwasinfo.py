@@ -23,6 +23,7 @@ def test_gwasinfo3(url):
 	r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
 	assert r.status_code == 200 and len(r.json()) == 2
 
+# TODO failing
 # This time should have authentication to get private study
 def test_gwasinfo4(url):
 	headers = {'X-API-TOKEN': token}
