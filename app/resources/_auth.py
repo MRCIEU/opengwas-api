@@ -11,7 +11,7 @@ def get_user_email(token):
     res = requests.get(url)
 
     if res.status_code != 200:
-        raise requests.exceptions.HTTPError
+        raise requests.exceptions.HTTPError("Status code was {}".format(res.status_code))
 
     data = res.json()
 
