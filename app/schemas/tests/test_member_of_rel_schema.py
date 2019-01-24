@@ -4,4 +4,5 @@ d = {}
 
 
 def test_schema():
-    MemberOfRelSchema().load(d)
+    schema = MemberOfRelSchema()
+    schema.load(d)
