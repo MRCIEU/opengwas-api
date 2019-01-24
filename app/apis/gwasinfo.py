@@ -60,7 +60,7 @@ class GwasInfoPost(Resource):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
 
         if (len(args['id']) == 0):
-            # TODO @Gib reqparse will not allow no args provided
+            # TODO @Gib reqparse will not allow no args provided shall we remove?
             return get_all_gwas(user_email)
         else:
             recs = []
