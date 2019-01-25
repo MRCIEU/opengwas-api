@@ -1,5 +1,68 @@
-from marshmallow import fields, ValidationError, post_load
+from marshmallow import fields, ValidationError
 from schemas.frpm_schema import FRPMSchema
+
+valid_trait_subcategories = {
+    "Anthropometric",
+    "Psychiatric / neurological",
+    "Education",
+    "Hormone",
+    "Reproductive aging",
+    "Lung disease",
+    "Haemotological",
+    "Personality",
+    "Cancer",
+    "Immune system",
+    "Autoimmune / inflammatory",
+    "Cardiovascular",
+    "Lipid",
+    "Metal",
+    "Other",
+    "Hemodynamic",
+    "Kidney",
+    "Sleeping",
+    "Diabetes",
+    "Aging",
+    "null",
+    "Fatty acid",
+    "Bone",
+    "Immune cell subset frequency",
+    "Cytokines",
+    "Immune cell-surface protein expression levels",
+    "Eye",
+    "Amino acid",
+    "Carbohydrate",
+    "Nucleotide",
+    "Energy",
+    "Cofactors and vitamins",
+    "Peptide",
+    "Unknown metabolite",
+    "Xenobiotics",
+    "Glycemic",
+    "Protein",
+    "Behavioural",
+    "Blood pressure",
+    "Keto acid",
+    "Metabolite salt",
+    "Metabolites ratio",
+    "Lung function",
+    "Paediatric disease",
+    "Growth hormone",
+    "Biomarker",
+    "gtex_eqtl",
+    "subcategory",
+    "NA"
+}
+
+valid_trait_descriptions = {'Continuous', 'Binary', 'Ordinal'}
+valid_categories = {'Immune system', 'NA', 'Risk factor', 'Continuous', 'Metabolites', 'Disease', 'Binary',
+                    'Catagorial Ordered'}
+valid_populations = {'Chinese', 'European', 'African American', 'East Asian', 'Iranian', 'Indian', 'Hispanic', 'Mixed',
+                     'Japanese'}
+valid_sex = {'Males and Females', 'Males', 'Females'}
+valid_study_designs = {'Meta-analysis of case-control studies', 'case-control study', 'cohort study',
+                       'case-only survival analysis'}
+valid_imputation_panels = {'no imputed genotypes', '1000 Genomes', 'HapMap', 'HRC', 'UK10K', 'other'}
+valid_genome_build = {'HG18/GRCh36', 'HG19/GRCh37', 'HG38/GRCh38'}
 
 
 def check_study_year(data):
@@ -13,81 +76,28 @@ def check_mr_is_0_or_1(data):
 
 
 def check_trait_description(data):
-    valid = {'Continuous', 'Binary', 'Ordinal'}
-    if data not in valid:
-        raise ValidationError("Trait description must be one of: {}".format(valid))
+    if data not in valid_trait_descriptions:
+        raise ValidationError("Trait description must be one of: {}".format(valid_trait_descriptions))
 
 
 def check_category_is_valid(data):
-    valid = {'Immune system', 'NA', 'Risk factor', 'Continuous', 'Metabolites', 'Disease', 'Binary',
-             'Catagorial Ordered'}
-    if data not in valid:
-        raise ValidationError("Trait category must be one of: {}".format(valid))
+    if data not in valid_categories:
+        raise ValidationError("Trait category must be one of: {}".format(valid_categories))
 
 
 def check_subcategory_is_valid(data):
-    valid = {"Anthropometric", "Psychiatric / neurological", "Education", "Hormone",
-             "Reproductive aging",
-             "Lung disease",
-             "Haemotological",
-             "Personality",
-             "Cancer",
-             "Immune system",
-             "Autoimmune / inflammatory",
-             "Cardiovascular",
-             "Lipid",
-             "Metal",
-             "Other",
-             "Hemodynamic",
-             "Kidney",
-             "Sleeping",
-             "Diabetes",
-             "Aging",
-             "null",
-             "Fatty acid",
-             "Bone",
-             "Immune cell subset frequency",
-             "Cytokines",
-             "Immune cell-surface protein expression levels",
-             "Eye",
-             "Amino acid",
-             "Carbohydrate",
-             "Nucleotide",
-             "Energy",
-             "Cofactors and vitamins",
-             "Peptide",
-             "Unknown metabolite",
-             "Xenobiotics",
-             "Glycemic",
-             "Protein",
-             "Behavioural",
-             "Blood pressure",
-             "Keto acid",
-             "Metabolite salt",
-             "Metabolites ratio",
-             "Lung function",
-             "Paediatric disease",
-             "Growth hormone",
-             "Biomarker",
-             "gtex_eqtl",
-             "subcategory",
-             "NA"}
-
-    if data not in valid:
-        raise ValidationError("Trait subcategory must be one of: {}".format(valid))
+    if data not in valid_trait_subcategories:
+        raise ValidationError("Trait subcategory must be one of: {}".format(valid_trait_subcategories))
 
 
 def check_population_is_valid(data):
-    valid = {'Chinese', 'European', 'African American', 'East Asian', 'Iranian', 'Indian', 'Hispanic', 'Mixed',
-             'Japanese'}
-    if data not in valid:
-        raise ValidationError("Population must be one of: {}".format(valid))
+    if data not in valid_populations:
+        raise ValidationError("Population must be one of: {}".format(valid_populations))
 
 
 def check_sex_is_valid(data):
-    valid = {'Males and Females', 'Males', 'Females'}
-    if data not in valid:
-        raise ValidationError("Sex must be one of: {}".format(valid))
+    if data not in valid_sex:
+        raise ValidationError("Sex must be one of: {}".format(valid_sex))
 
 
 def check_access_is_valid(data):
@@ -97,51 +107,77 @@ def check_access_is_valid(data):
 
 
 def check_study_design_is_valid(data):
-    valid = {'Meta-analysis of case-control studies', 'case-control study', 'cohort study',
-             'case-only survival analysis'}
-    if data not in valid:
-        raise ValidationError("Study design must be one of: {}".format(valid))
+    if data not in valid_study_designs:
+        raise ValidationError("Study design must be one of: {}".format(valid_study_designs))
 
 
 def check_imputation_panel_is_valid(data):
-    valid = {'no imputed genotypes', '1000 Genomes', 'HapMap', 'HRC', 'UK10K', 'other'}
-    if data not in valid:
-        raise ValidationError("Imputation panel must be one of: {}".format(valid))
+    if data not in valid_imputation_panels:
+        raise ValidationError("Imputation panel must be one of: {}".format(valid_imputation_panels))
 
 
 def check_genome_build_is_valid(data):
-    valid = {'HG18/GRCh36', 'HG19/GRCh37', 'HG38/GRCh38'}
-    if data not in valid:
-        raise ValidationError("Imputation panel must be one of: {}".format(valid))
+    if data not in valid_genome_build:
+        raise ValidationError("Imputation panel must be one of: {}".format(valid_genome_build))
 
 
 class GwasInfoNodeSchema(FRPMSchema):
-    id = fields.Str(required=True, allow_none=False)
-    pmid = fields.Int(required=False, allow_none=True)
-    year = fields.Int(required=False, validate=check_study_year, allow_none=True)
-    filename = fields.Str(required=False, allow_none=False)
-    path = fields.Str(required=True, allow_none=False)
-    mr = fields.Int(required=True, validate=check_mr_is_0_or_1, allow_none=False)
-    note = fields.Str(required=False, allow_none=True)
-    trait = fields.Str(required=True, allow_none=False)
-    trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True)
-    category = fields.Str(required=True, validate=check_category_is_valid, allow_none=False)
-    subcategory = fields.Str(required=True, validate=check_subcategory_is_valid, allow_none=False)
-    population = fields.Str(required=True, validate=check_population_is_valid, allow_none=False)
-    sex = fields.Str(required=True, validate=check_sex_is_valid, allow_none=False)
-    ncase = fields.Int(required=False, allow_none=True)
-    ncontrol = fields.Int(required=False, allow_none=True)
-    sample_size = fields.Int(required=False, allow_none=True)
-    nsnp = fields.Int(required=False, allow_none=True)
-    unit = fields.Str(required=True, allow_none=False)
-    sd = fields.Float(required=False, allow_none=True)
+    id = fields.Str(required=True, allow_none=False, description="GWAS study identifier")
+    pmid = fields.Int(required=False, allow_none=True,
+                      description="Pubmed identifer. Leave blank for unpublished studies.")
+    year = fields.Int(required=False, validate=check_study_year, allow_none=True,
+                      description="What year was this GWAS published?")
+    filename = fields.Str(required=False, allow_none=False, description="GWAS summary stats filename")
+    path = fields.Str(required=True, allow_none=False, description="Path to GWAS summary stats on remote server")
+    mr = fields.Int(required=True, validate=check_mr_is_0_or_1, allow_none=False,
+                    description="Is the study suitable for MR studies: 0 or 1")
+    note = fields.Str(required=False, allow_none=True,
+                      description="Is there any other information you would like to provide us about your GWAS?")
+    trait = fields.Str(required=True, allow_none=False,
+                       description="Avoid acronyms; don't include other information in the trait name (e.g. don't include array name, whether restricted to males or females or whether adjusted or unadjusted for covariates)")
+    trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True,
+                                   description="Describe the distribution of your phenotype: {}".format(
+                                       valid_trait_descriptions))
+    category = fields.Str(required=True, validate=check_category_is_valid, allow_none=False,
+                          description="Is your phenotype a binary disease phenotype or a non-disease phenotype: {}".format(
+                              valid_categories))
+    subcategory = fields.Str(required=True, validate=check_subcategory_is_valid, allow_none=False,
+                             description="Select the option that best describes your phenotype:{}".format(
+                                 valid_trait_subcategories))
+    population = fields.Str(required=True, validate=check_population_is_valid, allow_none=False,
+                            description="Describe the geographic origins of your population: {}".format(
+                                valid_populations))
+    sex = fields.Str(required=True, validate=check_sex_is_valid, allow_none=False,
+                     description="Indicate whether males or females are included in your study: {}".format(valid_sex))
+    ncase = fields.Int(required=False, allow_none=True,
+                       description="Provide number of cases in your study (if applicable)")
+    ncontrol = fields.Int(required=False, allow_none=True,
+                          description="Provide number of controls in your study (if applicable)")
+    sample_size = fields.Int(required=False, allow_none=True, description="Provide the sample size of your study")
+    nsnp = fields.Int(required=False, allow_none=True,
+                      description="How many SNPs are in your results file that you are uploading?")
+    unit = fields.Str(required=True, allow_none=False,
+                      description="How do you interpret a 1-unit change in the phenotype? eg log odds ratio, mmol/L, SD units?")
+    sd = fields.Float(required=False, allow_none=True,
+                      description="What is the standard deviation of the sample mean of the phenotype?")
     priority = fields.Int(required=True, allow_none=False)
-    author = fields.Str(required=True, allow_none=False)
-    consortium = fields.Str(required=False, allow_none=True)
-    access = fields.Str(required=False, allow_none=True)
-    study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True)
-    covariates = fields.Str(required=False, allow_none=True)
-    beta_transformation = fields.Str(required=False, allow_none=True)
-    imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True)
-    build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True)
+    author = fields.Str(required=True, allow_none=False,
+                        description="Provide the name of the first author of your study")
+    consortium = fields.Str(required=False, allow_none=True,
+                            description="What is the name of your study or consortium (if applicable)?")
+    # TODO @Gib This does not reflect the data already captured. Need to sanitize.
+    access = fields.Str(required=False, allow_none=True,
+                        description="Yes: You may make these results publically accessible for MR and may allow users to download the full results and to share with LD Hub and the GWAS catalog. No: No for priviate (but public in 6-12? months)")
+    study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True,
+                              description="Which best describes the design of your study: {}".format(
+                                  valid_study_designs))
+    covariates = fields.Str(required=False, allow_none=True,
+                            description="Describe the covariates included in your regression model")
+    beta_transformation = fields.Str(required=False, allow_none=True,
+                                     description="Describe transformations applied to your phenotype (e.g. inverse rank normal, Z transformations, etc)")
+    imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True,
+                                  description="Select the imputation panel used in your study: {}".format(
+                                      valid_imputation_panels))
+    build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
+                       description="Select the genome build for your study: {}".format(valid_genome_build))
     status = fields.Str(required=False, allow_none=True)
