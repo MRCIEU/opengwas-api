@@ -2,7 +2,6 @@ from resources._neo4j import Neo4j
 from schemas.unique_node_schema import UniqueNodeSchema
 
 
-# TODO param cql
 class UniqueNode(dict):
     _UID_KEY = 'uid'
     _SCHEMA = UniqueNodeSchema
@@ -14,6 +13,9 @@ class UniqueNode(dict):
         return self._UID_KEY
 
     def create_node(self):
+        if self.get(self._UID_KEY) is None:
+            raise KeyError("You must provide a value for the unique key.")
+
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":{uid}}) SET n = {params};",
@@ -23,6 +25,8 @@ class UniqueNode(dict):
 
     @classmethod
     def delete_node(cls, uid):
+        if uid is None:
+            raise KeyError("You must provide a value for the unique key.")
         tx = Neo4j.get_db()
         tx.run(
             "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ":{uid}}) OPTIONAL MATCH (n)-[r]-() DELETE n, r;",
@@ -31,6 +35,8 @@ class UniqueNode(dict):
 
     @classmethod
     def get_node(cls, uid):
+        if uid is None:
+            raise KeyError("You must provide a value for the unique key.")
 
         tx = Neo4j.get_db()
         results = tx.run(
@@ -49,7 +55,7 @@ class UniqueNode(dict):
         d = schema.load(result['n'])
 
         # return instance of populated subclass
-        return cls(d)
+        return cls(**d)
 
     @classmethod
     def set_constraint(cls):

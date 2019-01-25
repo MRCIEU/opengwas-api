@@ -5,6 +5,7 @@ from schemas.user_node_schema import UserNodeSchema
 from schemas.added_by_rel_schema import AddedByRelSchema
 from queries.user_node import User
 from queries.study_node import Study
+from queries.added_by_rel import AddedByRel
 
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
@@ -42,20 +43,17 @@ class StudyResource(Resource):
             study = Study(self.study_schema.load(req))
 
             try:
-                rel = self.added_rel.load({'epoch': time.time(), "comments": req['comments']})
+                props = self.added_rel.load({'epoch': time.time(), "comments": req['comments']})
             except KeyError:
-                rel = self.added_rel.load({'epoch': time.time()})
+                props = self.added_rel.load({'epoch': time.time()})
 
             # persist or update
             user.create_node()
             study.create_node()
 
-            # link study to user; record epoch
-            Neo4j.create_unique_rel("ADDED_BY", str(Study.__class__.__name__), study['id'], str(User.__class__.__name__), user['uid'], rel_props=rel,
-                                    lhs_uid_key='id', rhs_uid_key='uid')
+            # link study to user; record epoch and optional comments
+            rel = AddedByRel(**props)
+            rel.create_rel(study, user)
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
-
-
-
