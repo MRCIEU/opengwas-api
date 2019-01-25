@@ -1,5 +1,4 @@
 from marshmallow import fields, ValidationError, post_load
-from queries.study_node import Study
 from schemas.frpm_schema import FRPMSchema
 
 
@@ -146,7 +145,3 @@ class StudyNodeSchema(FRPMSchema):
     imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True)
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True)
     status = fields.Str(required=False, allow_none=True)
-
-    @post_load
-    def map_to_obj(self, data):
-        return Study(**data)

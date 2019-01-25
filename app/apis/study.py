@@ -3,6 +3,9 @@ from resources._logger import *
 from schemas.study_node_schema import StudyNodeSchema
 from schemas.user_node_schema import UserNodeSchema
 from schemas.added_by_rel_schema import AddedByRelSchema
+from queries.user_node import User
+from queries.study_node import Study
+
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 from queries.cql_queries import Neo4j
@@ -35,8 +38,9 @@ class StudyResource(Resource):
             req = request.get_json()
 
             # load
-            user = self.user_schema.load({"uid": get_user_email(request.headers.get('X-Api-Token'))})
-            study = self.study_schema.load(req)
+            user = User(self.user_schema.load({"uid": get_user_email(request.headers.get('X-Api-Token'))}))
+            study = Study(self.study_schema.load(req))
+
             try:
                 rel = self.added_rel.load({'epoch': time.time(), "comments": req['comments']})
             except KeyError:
@@ -47,7 +51,7 @@ class StudyResource(Resource):
             study.create_node()
 
             # link study to user; record epoch
-            Neo4j.create_unique_rel("ADDED_BY", "Study", study['id'], "User", user['uid'], rel_props=rel,
+            Neo4j.create_unique_rel("ADDED_BY", str(Study.__class__.__name__), study['id'], str(User.__class__.__name__), user['uid'], rel_props=rel,
                                     lhs_uid_key='id', rhs_uid_key='uid')
 
         except marshmallow.exceptions.ValidationError as e:
