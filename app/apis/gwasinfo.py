@@ -7,6 +7,7 @@ from schemas.added_by_rel_schema import AddedByRelSchema
 from queries.user_node import User
 from queries.gwas_info_node import GwasInfo
 from queries.added_by_rel import AddedByRel
+from werkzeug.datastructures import FileStorage
 import time
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
@@ -88,13 +89,13 @@ parser3.add_argument(
 
 params = GwasInfoNodeSchema.get_flask_model()
 params['comments'] = fields.String
-model = api.model('study', params)
+model = api.model('gwasinfo', params)
 
 
 @api.route('/add')
 @api.expect(parser3)
 @api.doc(description="Add new gwas information")
-class StudyResource(Resource):
+class GwasInfoAdd(Resource):
     study_schema = GwasInfoNodeSchema()
     user_schema = UserNodeSchema()
     added_rel = AddedByRelSchema()
@@ -123,5 +124,46 @@ class StudyResource(Resource):
             rel = AddedByRel(**props)
             rel.create_rel(study, user)
 
+            # TODO return gwasinfo identifier
+
+
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
+
+
+parser3.add_argument('gwas_info_identifier', location='files', type=FileStorage, required=True,
+                     help="Identifier to which the summary stats belong.")
+parser3.add_argument('file', location='files', type=FileStorage, required=True,
+                     help="Path to GWAS summary stats text file for upload.")
+parser3.add_argument('sep', type=str, required=True, default='\t', help="Column separator for file")
+parser3.add_argument('skip_rows', type=int, required=True, help="Number of header lines to skip")
+
+parser3.add_argument('chr_idx', type=int, required=False, help="Column index for chromosome (0-indexed)")
+parser3.add_argument('pos_idx', type=int, required=False, help="Column index for base position (0-indexed)")
+parser3.add_argument('ea_idx', type=int, required=True, help="Column index for effect allele (0-indexed)")
+parser3.add_argument('nea_idx', type=int, required=True, help="Column index for non-effect allele (0-indexed)")
+parser3.add_argument('dbsnp_idx', type=int, required=False, help="Column index for rs identifer (0-indexed)")
+parser3.add_argument('ea_af_idx', type=int, required=False, help="Column index for effect allele frequency (0-indexed)")
+parser3.add_argument('effect_idx', type=int, required=True, help="Column index for effect size (0-indexed)")
+parser3.add_argument('se_idx', type=int, required=True, help="Column index for standard error (0-indexed)")
+parser3.add_argument('pval_idx', type=int, required=True, help="Column index for P-value (0-indexed)")
+parser3.add_argument('size_idx', type=int, required=False, help="Column index for study sample size (0-indexed)")
+parser3.add_argument('cases_idx', type=int, required=False,
+                     help="Column index for number of cases (if case-control study); 0-indexed)")
+
+
+@api.route('/', methods=["post"])
+@api.doc(description="Upload GWAS summary stats file")
+class UploadGwasSummaryStatsResource(Resource):
+
+    @api.expect(parser3)
+    def post(self):
+        args = parser3.parse_args()
+        uploaded_file = args['file']
+
+        # read file
+        contents = uploaded_file.read()
+
+        # TODO validate file
+
+        return {'message': 'Upload successful'}, 201
