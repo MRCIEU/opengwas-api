@@ -15,6 +15,7 @@ from werkzeug.exceptions import BadRequest
 # TODO check logger_info() is on all endpoints
 
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
+gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
 
 @api.route('/list')
@@ -26,6 +27,7 @@ class List(Resource):
         help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
     @api.expect(parser)
+    @api.doc(model=gwas_info_model)
     def get(self):
         logger_info()
         user_email = get_user_email(request.headers.get('X-Api-Token'))
@@ -43,6 +45,7 @@ class InfoPost(Resource):
     parser.add_argument('id', required=True, type=str, action='append', default=[], help="List of IDs")
 
     @api.expect(parser)
+    @api.doc(model=gwas_info_model)
     def post(self):
         logger_info()
         args = self.parser.parse_args()
