@@ -20,6 +20,19 @@ def get_all_gwas(uid):
 
     return res
 
+def get_permitted_studies(uid, sid):
+    schema = StudyNodeSchema()
+    gids = get_groups_for_user(uid)
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (g:Group)-[:ACCESS_TO]->(s:Study) WHERE g.gid IN {gids} AND s.id IN {sid} RETURN distinct(s) as s;",
+        gids=list(gids), sid=list(sid)
+    )
+    res = []
+    for result in results:
+        res.append(schema.load(result['s']))
+    return res
+
 
 def get_all_gwas_ids(uid):
     recs = []
