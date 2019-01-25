@@ -32,32 +32,6 @@ class List(Resource):
         return get_all_gwas(user_email)
 
 
-@api.route('/<id>')
-@api.doc(description="Get metadata about specified GWAS summary datasets")
-class InfoGet(Resource):
-    parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
-    parser.add_argument('id', required=True, type=str, action='append', help="List of GWAS identifiers to query")
-
-    @api.expect(parser)
-    def get(self, id):
-        logger_info()
-        user_email = get_user_email(request.headers.get('X-Api-Token'))
-        study_ids = id.replace(';', '').split(',')
-        recs = []
-
-        for sid in study_ids:
-            try:
-                recs.append(get_specific_gwas(user_email, sid))
-            except LookupError as e:
-                continue
-
-        return recs
-
-
-# TODO @Gib this duplicates the GET /gwasinfo/{id} function. Do we need to keep both for legacy?
 @api.route('/')
 @api.doc(description="Get metadata about specified GWAS summary datasets")
 class InfoPost(Resource):
