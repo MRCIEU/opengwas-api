@@ -26,11 +26,7 @@ class AssocGet(Resource):
 			abort(404)
 		try:
 			user_email = get_user_email(request.headers.get('X-Api-Token'))
-			out = query_summary_stats(
-				user_email, 
-				",".join([ "'" + x + "'" for x in rsid.split(',')]), 
-				",".join([ "'" + x + "'" for x in id.split(',')])
-			)
+			out = get_assoc(user_email, rsid.split(','), id.split(','), 1, 0.8, 1, 1, 0.3)
 		except:
 			abort(503)
 		return out

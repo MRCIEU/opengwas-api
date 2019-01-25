@@ -10,11 +10,7 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
         logger2.debug("not using LD proxies")
 
         try:
-            return query_summary_stats(
-                user_email,
-                ",".join(["'" + x + "'" for x in rsid]),
-                ",".join(["'" + x + "'" for x in id])
-            )
+            return query_summary_stats(user_email, rsid, id)
         except Exception as e:
             flask.abort(503, e)
 
@@ -25,11 +21,7 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
             proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
 
-            proxy_query = query_summary_stats(
-                user_email,
-                ",".join(["'" + x + "'" for x in proxies]),
-                ",".join(["'" + x + "'" for x in id])
-            )
+            proxy_query = query_summary_stats(user_email, proxies, id)
 
             res = []
 
@@ -245,35 +237,29 @@ def query_summary_stats(user_email, snps, outcomes):
     #### es
     # logger2.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
     # get available studies
-    study_access = get_all_gwas_ids(user_email)
-    # logger2.debug(study_access)get_all_gwas_ids
-    snpList = snps.split(',')
-    logger2.debug('len snplist = ' + str(len(snpList)))
+    logger2.debug('requested studies: ' + str(len(outcomes)))
+    logger2.debug('len snplist = ' + str(len(snps)))
 
     # get study and snp data
     # snp_data = {}
-    snp_data = snps.replace("'", "").split(',')
+    snp_data = snps
     # if snps!='':
     # snp_data = snp_info(snpList,'rsid_to_id')
     # logger2.debug(snp_data)
 
     # logger2.debug(sorted(study_access))
-    logger2.debug('searching ' + str(len(outcomes)) + ' outcomes')
+    logger2.debug('searching ' + str(outcomes.count(',')+1) + ' outcomes')
     logger2.debug('creating outcomes list and study_data dictionary')
     start = time.time()
     outcomes_access = []
-    outcomes_clean = outcomes.replace("'", "")
+    # outcomes_clean = outcomes.replace("'", "")
+    outcomes_clean = ','.join(outcomes)
     if outcomes == 'snp_lookup':
         outcomes_access = 'snp_lookup'
         study_data = study_info(outcomes)
     else:
-        study_data = study_info(outcomes)
-        for o in outcomes_clean.split(','):
-            if o in study_access:
-                outcomes_access.append(o)
-            else:
-                logger2.debug(o + " not in access_list")
-    # logger2.debug(outcomes_access)
+        study_data = get_permitted_studies(user_email, outcomes)
+        outcomes_access = [x['id'] for x in study_data]
     end = time.time()
     t = round((end - start), 4)
     logger2.debug('took: ' + str(t) + ' seconds')
@@ -295,23 +281,23 @@ def query_summary_stats(user_email, snps, outcomes):
         for hit in hits:
             # logger2.debug(hit)
             other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
-            if hit['_source']['effect_allele_freq'] < 999:
-                effect_allele_freq = hit['_source']['effect_allele_freq']
-            if hit['_source']['beta'] < 999:
+            # if float(hit['_source']['effect_allele_freq']) < 999:
+            effect_allele_freq = hit['_source']['effect_allele_freq']
+            # if hit['_source']['beta'] < 999:
                 # beta = "%4.3f" % float(hit['_source']['beta'])
-                beta = hit['_source']['beta']
-            if hit['_source']['se'] < 999:
+            beta = hit['_source']['beta']
+            # if hit['_source']['se'] < 999:
                 # se = "%03.02e" % float(hit['_source']['se'])
-                se = hit['_source']['se']
-            if hit['_source']['p'] < 999:
+            se = hit['_source']['se']
+            # if hit['_source']['p'] < 999:
                 # p = "%03.02e" % float(hit['_source']['p'])
-                p = hit['_source']['p']
-            if 'n' in hit['_source']:
-                n = hit['_source']['n']
-            if 'effect_allele' in hit['_source']:
-                effect_allele = hit['_source']['effect_allele']
-            if 'other_allele' in hit['_source']:
-                other_allele = hit['_source']['other_allele']
+            p = hit['_source']['p']
+            # if 'n' in hit['_source']:
+            n = hit['_source']['n']
+            # if 'effect_allele' in hit['_source']:
+            effect_allele = hit['_source']['effect_allele']
+            # if 'other_allele' in hit['_source']:
+            other_allele = hit['_source']['other_allele']
             # name = snp_data[int(hit['_source']['snp_id'])]
             name = hit['_source']['snp_id']
             # logger2.debug(hit)
@@ -319,7 +305,7 @@ def query_summary_stats(user_email, snps, outcomes):
             if p != '':
                 assocDic = {'effect_allele': effect_allele,
                             'other_allele': other_allele,
-                            'effect_allelel_freq': effect_allele_freq,
+                            'effect_allele_freq': effect_allele_freq,
                             'beta': beta,
                             'se': se,
                             'p': p,
@@ -330,8 +316,10 @@ def query_summary_stats(user_email, snps, outcomes):
                 if s != mrb_batch:
                     study_id = s + ':' + hit['_source']['study_id']
                 # make sure only to return available studies
-                if study_id in study_data:
-                    assocDic.update(study_data[study_id])
+                idlist = [x['id'] for x in study_data]
+                if study_id in idlist:
+                    i = idlist.index(study_id)
+                    assocDic.update(study_data[i])
                     es_res.append(assocDic)
     # logger2.debug(json.dumps(es_res,indent=4))
     logger2.debug('Total hits returned = ' + str(len(es_res)))
@@ -346,7 +334,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
     matched_proxies = []
     proxy_query_copy = [a.get('name') for a in proxy_query]
     for i in range(len(outcomes)):
-        logger2.debug("matching proxies to query snps for " + str(i))
+        logger2.debug("matching proxies to query snps for " + str(outcomes[i]))
         for j in range(len(snps)):
             # logger.info(str(j)+' '+snps[j])
             flag = 0
