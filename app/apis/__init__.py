@@ -7,7 +7,6 @@ from .phewas import api as phewas
 from .tophits import api as tophits
 from resources._globals import VERSION
 from .ld import api as ld
-from .study import api as study
 from .upload_gwas import api as upload
 
 api = Api(version=VERSION, title='Bristol GWAS Datastore',
@@ -19,5 +18,4 @@ api.add_namespace(assoc)
 api.add_namespace(phewas)
 api.add_namespace(tophits)
 api.add_namespace(ld)
-api.add_namespace(study)
 api.add_namespace(upload)

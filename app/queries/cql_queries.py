@@ -1,5 +1,5 @@
 from resources._neo4j import Neo4j
-from schemas.study_node_schema import StudyNodeSchema
+from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 # TODO @Gib how are users added to the graph? Who decides?
 
@@ -7,30 +7,31 @@ from schemas.study_node_schema import StudyNodeSchema
 
 
 def get_all_gwas(uid):
-    schema = StudyNodeSchema()
+    schema = GwasInfoNodeSchema()
     gids = get_groups_for_user(uid)
     res = []
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(s:Study) WHERE g.gid IN {gids} RETURN distinct(s) as s;",
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo) WHERE g.gid IN {gids} RETURN distinct(gi) as gi;",
         gids=list(gids)
     )
     for result in results:
-        res.append(schema.load(result['s']))
+        res.append(schema.load(result['gi']))
 
     return res
 
-def get_permitted_studies(uid, sid):
-    schema = StudyNodeSchema()
+
+def get_permitted_studies(uid, gwasid):
+    schema = GwasInfoNodeSchema()
     gids = get_groups_for_user(uid)
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(s:Study) WHERE g.gid IN {gids} AND s.id IN {sid} RETURN distinct(s) as s;",
-        gids=list(gids), sid=list(sid)
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo) WHERE g.gid IN {gids} AND gi.id IN {gwasid} RETURN distinct(gi) as gi;",
+        gids=list(gids), gwasid=list(gwasid)
     )
     res = []
     for result in results:
-        res.append(schema.load(result['s']))
+        res.append(schema.load(result['gi']))
     return res
 
 
@@ -40,7 +41,7 @@ def get_all_gwas_ids(uid):
 
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(s:Study) WHERE g.gid IN {gids} RETURN distinct(s.id) as id;",
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo) WHERE g.gid IN {gids} RETURN distinct(gi.id) as id;",
         gids=list(gids)
     )
 
@@ -50,40 +51,41 @@ def get_all_gwas_ids(uid):
     return recs
 
 
-def get_specific_gwas(uid, sid):
-    schema = StudyNodeSchema()
+def get_specific_gwas(uid, gwasid):
+    schema = GwasInfoNodeSchema()
     gids = get_groups_for_user(uid)
 
     tx = Neo4j.get_db()
 
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(s:Study {id:{sid}}) WHERE g.gid IN {gids} RETURN distinct(s);",
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}}) WHERE g.gid IN {gids} RETURN distinct(gi);",
         gids=list(gids),
-        sid=sid
+        gwasid=gwasid
     )
 
     result = results.single()
     if result is None:
-        raise LookupError("Study ID {} does not exist or you do not have the required access".format(sid))
+        raise LookupError("Study ID {} does not exist or you do not have the required access".format(gwasid))
 
-    return schema.load(result['s'])
+    return schema.load(result['gi'])
 
 
 """ Returns studies for a list of study identifiers (or all public if keyword 'snp_lookup' provided)  """
 
+
 # TODO @Gib should this check for user permissions?
 def study_info(study_list):
     res = []
-    schema = StudyNodeSchema()
+    schema = GwasInfoNodeSchema()
     tx = Neo4j.get_db()
 
     if study_list == 'snp_lookup':
         results = tx.run(
-            "MATCH (:Group {gid:{gid}})-[:ACCESS_TO]->(s:Study) RETURN s;",
+            "MATCH (:Group {gid:{gid}})-[:ACCESS_TO]->(gi:GwasInfo) RETURN gi;",
             gid=int(1)
         )
         for result in results:
-            res.append(schema.load(result['s']))
+            res.append(schema.load(result['gi']))
 
         return res
     else:
@@ -92,11 +94,11 @@ def study_info(study_list):
             study_list_str.append(str(s))
 
         results = tx.run(
-            "MATCH (s:Study) WHERE s.id IN {study_list} RETURN s;",
+            "MATCH (gi:GwasInfo) WHERE gi.id IN {study_list} RETURN gi;",
             study_list=study_list_str
         )
         for result in results:
-            res.append(schema.load(result['s']))
+            res.append(schema.load(result['gi']))
 
         return res
 

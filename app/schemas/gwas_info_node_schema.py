@@ -115,7 +115,7 @@ def check_genome_build_is_valid(data):
         raise ValidationError("Imputation panel must be one of: {}".format(valid))
 
 
-class StudyNodeSchema(FRPMSchema):
+class GwasInfoNodeSchema(FRPMSchema):
     id = fields.Str(required=True, allow_none=False)
     pmid = fields.Int(required=False, allow_none=True)
     year = fields.Int(required=False, validate=check_study_year, allow_none=True)
