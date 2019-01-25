@@ -46,3 +46,5 @@ MATCH (n:Study) WHERE n.sex = "Males and females" SET n.sex = "Males and Females
 MATCH (n:Study) WHERE n.subcategory = "NULL" REMOVE n.subcategory;
 MATCH (n:Study) WHERE n.subcategory = "Test" REMOVE n.subcategory;
 
+// rename study to gwasinfo
+MATCH (n:Study) SET n:GwasInfo REMOVE n:Study;
