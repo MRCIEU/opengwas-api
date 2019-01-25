@@ -12,22 +12,20 @@ import time
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 
+# TODO check logger_info() is on all endpoints
+
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
-
-params = GwasInfoNodeSchema.get_flask_model()
-params['comments'] = fields.String
-model = api.model('gwasinfo', params)
-
-parser1 = api.parser()
-parser1.add_argument(
-    'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
 
 @api.route('/list')
-@api.expect(parser1)
 @api.doc(description="Return all available GWAS summary datasets")
-class GwasList(Resource):
+class List(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=False, default='null',
+        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+
+    @api.expect(parser)
     def get(self):
         logger_info()
         user_email = get_user_email(request.headers.get('X-Api-Token'))
@@ -35,12 +33,15 @@ class GwasList(Resource):
 
 
 @api.route('/<id>')
-@api.expect(parser1)
-@api.doc(
-    description="Get information about specified GWAS summary datasets",
-    params={'id': 'An ID or comma-separated list of IDs'}
-)
-class GwasInfoGet(Resource):
+@api.doc(description="Get metadata about specified GWAS summary datasets")
+class InfoGet(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=False, default='null',
+        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    parser.add_argument('id', required=True, type=str, action='append', help="List of GWAS identifiers to query")
+
+    @api.expect(parser)
     def get(self, id):
         logger_info()
         user_email = get_user_email(request.headers.get('X-Api-Token'))
@@ -56,21 +57,21 @@ class GwasInfoGet(Resource):
         return recs
 
 
-parser2 = reqparse.RequestParser()
-parser2.add_argument('id', required=True, type=str, action='append', default=[], help="List of IDs")
-parser2.add_argument(
-    'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+# TODO @Gib this duplicates the GET /gwasinfo/{id} function. Do we need to keep both for legacy?
+@api.route('/')
+@api.doc(description="Get metadata about specified GWAS summary datasets")
+class InfoPost(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=False, default='null',
+        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
+    parser.add_argument('id', required=True, type=str, action='append', default=[], help="List of IDs")
 
-@api.route('/', methods=["post"])
-@api.doc(
-    description="Get information about specified GWAS summary datasets")
-class GwasInfoPost(Resource):
-    @api.expect(parser2)
+    @api.expect(parser)
     def post(self):
         logger_info()
-        args = parser2.parse_args()
+        args = self.parser.parse_args()
         user_email = get_user_email(request.headers.get('X-Api-Token'))
 
         if (len(args['id']) == 0):
@@ -78,34 +79,33 @@ class GwasInfoPost(Resource):
             return get_all_gwas(user_email)
         else:
             recs = []
-            for sid in args['id']:
+            for gwas_info_id in args['id']:
                 try:
-                    recs.append(get_specific_gwas(user_email, sid))
+                    recs.append(get_specific_gwas(user_email, gwas_info_id))
                 except LookupError as e:
                     continue
             return recs
 
 
-parser3 = api.parser()
-parser3.add_argument(
-    'X-Api-Token', location='headers', required=True,
-    help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
-
-
 @api.route('/add')
-@api.expect(parser3)
-@api.doc(description="Add new gwas information")
-class GwasInfoAdd(Resource):
+@api.doc(description="Add new gwas metadata")
+class Add(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=True,
+        help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    GwasInfoNodeSchema.populate_parser(parser)
+
     study_schema = GwasInfoNodeSchema()
     user_schema = UserNodeSchema()
     added_rel = AddedByRelSchema()
 
-    @api.expect(model, validate=False)
+    @api.expect(parser)
     def post(self):
         logger_info()
 
         try:
-            # TODO ? race condition
+            # TODO race condition?
             req = request.get_json()
             req['id'] = GwasInfo.get_next_numeric_id()
 
@@ -132,34 +132,37 @@ class GwasInfoAdd(Resource):
             raise BadRequest("Could not validate payload: {}".format(e))
 
 
-parser3.add_argument('gwas_info_identifier', type=str, required=True,
-                     help="Identifier to which the summary stats belong.")
-parser3.add_argument('file', location='files', type=FileStorage, required=True,
-                     help="Path to GWAS summary stats text file for upload.")
-parser3.add_argument('sep', type=str, required=True, default='\t', help="Column separator for file")
-parser3.add_argument('skip_rows', type=int, required=True, help="Number of header lines to skip")
-
-parser3.add_argument('chr_idx', type=int, required=False, help="Column index for chromosome (0-indexed)")
-parser3.add_argument('pos_idx', type=int, required=False, help="Column index for base position (0-indexed)")
-parser3.add_argument('ea_idx', type=int, required=True, help="Column index for effect allele (0-indexed)")
-parser3.add_argument('nea_idx', type=int, required=True, help="Column index for non-effect allele (0-indexed)")
-parser3.add_argument('dbsnp_idx', type=int, required=False, help="Column index for rs identifer (0-indexed)")
-parser3.add_argument('ea_af_idx', type=int, required=False, help="Column index for effect allele frequency (0-indexed)")
-parser3.add_argument('effect_idx', type=int, required=True, help="Column index for effect size (0-indexed)")
-parser3.add_argument('se_idx', type=int, required=True, help="Column index for standard error (0-indexed)")
-parser3.add_argument('pval_idx', type=int, required=True, help="Column index for P-value (0-indexed)")
-parser3.add_argument('size_idx', type=int, required=False, help="Column index for study sample size (0-indexed)")
-parser3.add_argument('cases_idx', type=int, required=False,
-                     help="Column index for number of cases (if case-control study); 0-indexed)")
-
-
-@api.route('/upload', methods=["post"])
+@api.route('/upload')
 @api.doc(description="Upload GWAS summary stats file")
-class UploadGwasSummaryStatsResource(Resource):
+class Upload(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=True,
+        help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    parser.add_argument('gwas_info_identifier', type=str, required=True,
+                        help="Identifier to which the summary stats belong.")
+    parser.add_argument('file', location='files', type=FileStorage, required=True,
+                        help="Path to GWAS summary stats text file for upload.")
+    parser.add_argument('sep', type=str, required=True, default='\t', help="Column separator for file")
+    parser.add_argument('skip_rows', type=int, required=True, help="Number of header lines to skip")
 
-    @api.expect(parser3)
+    parser.add_argument('chr_idx', type=int, required=False, help="Column index for chromosome (0-indexed)")
+    parser.add_argument('pos_idx', type=int, required=False, help="Column index for base position (0-indexed)")
+    parser.add_argument('ea_idx', type=int, required=True, help="Column index for effect allele (0-indexed)")
+    parser.add_argument('nea_idx', type=int, required=True, help="Column index for non-effect allele (0-indexed)")
+    parser.add_argument('dbsnp_idx', type=int, required=False, help="Column index for rs identifer (0-indexed)")
+    parser.add_argument('ea_af_idx', type=int, required=False,
+                        help="Column index for effect allele frequency (0-indexed)")
+    parser.add_argument('effect_idx', type=int, required=True, help="Column index for effect size (0-indexed)")
+    parser.add_argument('se_idx', type=int, required=True, help="Column index for standard error (0-indexed)")
+    parser.add_argument('pval_idx', type=int, required=True, help="Column index for P-value (0-indexed)")
+    parser.add_argument('size_idx', type=int, required=False, help="Column index for study sample size (0-indexed)")
+    parser.add_argument('cases_idx', type=int, required=False,
+                        help="Column index for number of cases (if case-control study); 0-indexed)")
+
+    @api.expect(parser)
     def post(self):
-        args = parser3.parse_args()
+        args = self.parser.parse_args()
         uploaded_file = args['file']
 
         # read file
