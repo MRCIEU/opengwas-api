@@ -1,7 +1,7 @@
 from queries.unique_node import UniqueNode
+from schemas.study_node_schema import StudyNodeSchema
 
 
 class Study(UniqueNode):
     _UID_KEY = 'id'
-    _SCHEMA_CLASS_NAME = 'StudyNodeSchema'
-    _SCHEMA_MODULE_NAME = 'schemas.study_node_schema'
+    _SCHEMA = StudyNodeSchema
