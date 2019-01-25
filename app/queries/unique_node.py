@@ -6,6 +6,14 @@ class UniqueNode(dict):
     _UID_KEY = 'uid'
     _SCHEMA = UniqueNodeSchema
 
+    @classmethod
+    def get_next_numeric_id(cls):
+        tx = Neo4j.get_db()
+        results = tx.run(
+            "MATCH (n:" + cls.get_node_label() + ") RETURN max(toInteger(n." + cls._UID_KEY + ")) + 1 as uid;"
+        )
+        return results.single()['uid']
+
     def get_uid(self):
         return self[self._UID_KEY]
 
