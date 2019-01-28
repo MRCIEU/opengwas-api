@@ -12,6 +12,7 @@ APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
 PLINK = os.path.join(root_path, 'ld_files', 'plink1.90')
 LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
 TMP_FOLDER = os.path.join(root_path, 'tmp')
+UPLOAD_FOLDER = os.path.join(root_path, 'tmp')
 LOG_FILE = os.path.join(root_path, 'logs', 'mrbaseapi.log')
 LOG_FILE_DEBUG = os.path.join(root_path, 'logs', 'mrbaseapi-debug.log')
 
