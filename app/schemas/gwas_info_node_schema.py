@@ -130,25 +130,24 @@ class GwasInfoNodeSchema(FRPMSchema):
     filename = fields.Str(required=False, allow_none=False, description="GWAS summary stats filename")
     path = fields.Str(required=True, allow_none=False, description="Path to GWAS summary stats on remote server")
     mr = fields.Int(required=True, validate=check_mr_is_0_or_1, allow_none=False,
-                    description="Is the study suitable for MR studies: 0 or 1")
+                    description="Is the study suitable for MR studies?", choices=(0, 1))
     note = fields.Str(required=False, allow_none=True,
                       description="Is there any other information you would like to provide us about your GWAS?")
     trait = fields.Str(required=True, allow_none=False,
                        description="Avoid acronyms; don't include other information in the trait name (e.g. don't include array name, whether restricted to males or females or whether adjusted or unadjusted for covariates)")
     trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True,
-                                   description="Describe the distribution of your phenotype: {}".format(
-                                       valid_trait_descriptions))
+                                   choices=valid_trait_descriptions,
+                                   description="Describe the distribution of your phenotype")
     category = fields.Str(required=True, validate=check_category_is_valid, allow_none=False,
-                          description="Is your phenotype a binary disease phenotype or a non-disease phenotype: {}".format(
-                              valid_categories))
+                          description="Is your phenotype a binary disease phenotype or a non-disease phenotype",
+                          choices=valid_categories)
     subcategory = fields.Str(required=True, validate=check_subcategory_is_valid, allow_none=False,
-                             description="Select the option that best describes your phenotype:{}".format(
-                                 valid_trait_subcategories))
+                             description="Select the option that best describes your phenotype.",
+                             choices=valid_trait_subcategories)
     population = fields.Str(required=True, validate=check_population_is_valid, allow_none=False,
-                            description="Describe the geographic origins of your population: {}".format(
-                                valid_populations))
+                            description="Describe the geographic origins of your population", choices=valid_populations)
     sex = fields.Str(required=True, validate=check_sex_is_valid, allow_none=False,
-                     description="Indicate whether males or females are included in your study: {}".format(valid_sex))
+                     description="Indicate whether males or females are included in your study", choices=valid_sex)
     ncase = fields.Int(required=False, allow_none=True,
                        description="Provide number of cases in your study (if applicable)")
     ncontrol = fields.Int(required=False, allow_none=True,
@@ -169,15 +168,14 @@ class GwasInfoNodeSchema(FRPMSchema):
     access = fields.Str(required=False, allow_none=True,
                         description="Yes: You may make these results publically accessible for MR and may allow users to download the full results and to share with LD Hub and the GWAS catalog. No: No for priviate (but public in 6-12? months)")
     study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True,
-                              description="Which best describes the design of your study: {}".format(
-                                  valid_study_designs))
+                              description="Which best describes the design of your study", choices=valid_study_designs)
     covariates = fields.Str(required=False, allow_none=True,
                             description="Describe the covariates included in your regression model")
     beta_transformation = fields.Str(required=False, allow_none=True,
                                      description="Describe transformations applied to your phenotype (e.g. inverse rank normal, Z transformations, etc)")
     imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True,
-                                  description="Select the imputation panel used in your study: {}".format(
-                                      valid_imputation_panels))
+                                  description="Select the imputation panel used in your study",
+                                  choices=valid_imputation_panels)
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
-                       description="Select the genome build for your study: {}".format(valid_genome_build))
+                       description="Select the genome build for your study", choices=valid_genome_build)
     status = fields.Str(required=False, allow_none=True)

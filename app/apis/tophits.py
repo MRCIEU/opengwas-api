@@ -51,7 +51,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
     outcomes = ",".join(["'" + x + "'" for x in id])
     outcomes_clean = outcomes.replace("'", "")
     # get available studies
-    study_access = set(get_all_gwas_ids(user_email))
+    study_access = set(get_all_gwas_ids_for_user(user_email))
     # logger2.debug(sorted(study_access))
     logger2.debug('searching ' + outcomes_clean)
     outcomes_access = []

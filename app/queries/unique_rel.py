@@ -3,6 +3,7 @@ from schemas.unique_rel_schema import UniqueRelSchema
 
 
 class UniqueRel(dict):
+    _TYPE = "UNIQUE_REL"
     _SCHEMA = UniqueRelSchema
 
     def create_rel(self, lhs_node, rhs_node):
@@ -70,4 +71,4 @@ class UniqueRel(dict):
 
     @classmethod
     def get_rel_type(cls):
-        return str(cls.__name__)
+        return str(cls._TYPE)

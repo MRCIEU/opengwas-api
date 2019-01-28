@@ -22,14 +22,18 @@ class UniqueNode(dict):
         return cls._UID_KEY
 
     def create_node(self):
-        if self.get(self._UID_KEY) is None:
+        # map using schema; fail when violates
+        schema = self._SCHEMA()
+        d = schema.load(self)
+
+        if d.get(self._UID_KEY) is None:
             raise KeyError("You must provide a value for the unique key.")
 
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":{uid}}) SET n = {params};",
             uid=self.get(self._UID_KEY),
-            params=self
+            params=d
         )
 
     @classmethod
