@@ -6,7 +6,9 @@ from queries.gwas_info_node import GwasInfo
 from werkzeug.datastructures import FileStorage
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
-from resources._globals import TMP_FOLDER
+from resources._globals import UPLOAD_FOLDER
+import gzip
+import uuid
 
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
@@ -107,7 +109,7 @@ class Delete(Resource):
 
 
 @api.route('/upload')
-@api.doc(description="Upload GWAS summary stats file")
+@api.doc(description="Upload GWAS summary stats file to MR Base")
 class Upload(Resource):
     parser = api.parser()
     parser.add_argument(
@@ -115,13 +117,8 @@ class Upload(Resource):
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
     parser.add_argument('id', type=str, required=True,
                         help="Identifier to which the summary stats belong.")
-    parser.add_argument('file', location='files', type=FileStorage, required=True,
+    parser.add_argument('gwas_file', location='files', type=FileStorage, required=True,
                         help="Path to GWAS summary stats text file for upload.")
-    parser.add_argument('delimiter', type=str, required=True, default='\t', help="Column delimiter for file")
-    parser.add_argument('header', type=bool, required=True, help="Does the file have a header line?",
-                        choices=('True', 'False'))
-    parser.add_argument('gzipped', type=bool, required=True, help="Is the file compressed with gzip?",
-                        choices=('True', 'False'))
     parser.add_argument('chr_col', type=int, required=False, help="Column index for chromosome (0-indexed)")
     parser.add_argument('pos_col', type=int, required=False, help="Column index for base position (0-indexed)")
     parser.add_argument('snp_col', type=int, required=False, help="Column index for dbsnp rs-identifer (0-indexed)")
@@ -135,13 +132,60 @@ class Upload(Resource):
     parser.add_argument('ncontrol_col', type=int, required=False,
                         help="Column index for control sample size; total sample size if continuous trait (0-indexed)")
     parser.add_argument('ncase_col', type=int, required=False, help="Column index for case sample size (0-indexed)")
+    parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
+                        help="Column delimiter for file")
+    parser.add_argument('header', type=bool, required=True, help="Does the file have a header line?",
+                        choices=(True, False))
+    parser.add_argument('gzipped', type=bool, required=True, help="Is the file compressed with gzip?",
+                        choices=(True, False))
 
     @api.expect(parser)
     def post(self):
-        logger_info()
         args = self.parser.parse_args()
+        output_path = os.path.join(UPLOAD_FOLDER, args['id'] + "_" + str(int(time.time())))
+        args['gwas_file'].save(output_path)
 
-        gwas_file = args['file']
-        gwas_file.save(os.path.join(TMP_FOLDER, 'out.txt'))
+        sep = None
+        if args['delimiter'] == 'comma':
+            sep = ","
+        elif args['delimiter'] == 'tab':
+            sep = "\t"
+
+        try:
+            with gzip.open(output_path, 'rb') as f:
+                # skip header
+                if args['header'] == 'True':
+                    f.readline()
+
+                # check lines of file
+                for line in f:
+                    fields = line.split(sep)
+                    row = dict()
+
+                    if 'chr_col' in args:
+                        row['chr'] = fields[args['chr_col']]
+                    if 'pos_col' in args:
+                        row['pos'] = fields[args['pos_col']]
+                    if 'ea_col' in args:
+                        row['ea'] = fields[args['ea_col']]
+                    if 'oa_col' in args:
+                        row['oa'] = fields[args['oa_col']]
+                    if 'eaf_col' in args:
+                        row['eaf'] = fields[args['eaf_col']]
+                    if 'beta_col' in args:
+                        row['beta'] = fields[args['beta_col']]
+                    if 'se_col' in args:
+                        row['se'] = fields[args['se_col']]
+                    if 'pval_col' in args:
+                        row['pval'] = fields[args['pval_col']]
+                    if 'ncontrol_col' in args:
+                        row['ncontrol'] = fields[args['ncontrol_col']]
+                    if 'ncase_col' in args:
+                        row['ncase'] = fields[args['ncase_col']]
+
+        except OSError as e:
+            return {'message': 'Could not read file: {}'.format(e)}, 400
+
+        # TODO upload metadata
 
         return {'message': 'Upload successful'}, 201
