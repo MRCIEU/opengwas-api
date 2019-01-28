@@ -1,4 +1,4 @@
 {
-        "host": "ieu-db-interface.epi.bris.ac.uk",
+        "host": "localhost",
         "port":9200
 }
