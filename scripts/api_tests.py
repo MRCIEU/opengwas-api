@@ -3,6 +3,8 @@ import json
 import time
 import random
 import PySQLPool
+from multiprocessing import Pool
+import multiprocessing
 
 
 example_get_effects='get_effects?access_token=null&outcomes=1,2,5,6,7,8,9,10,11,12&snps=rs999721,rs9821650,rs9821657,rs1919329,rs6444035,rs3957240,rs1919324,rs2739330'
@@ -184,8 +186,28 @@ def test_permissions():
 		print url
 		run_query(url)
 
+def stress_test():
+	q1=get_effects_query()
+	cluster=cluster_url+q1
+	processes = [ ]
+	time=[]
+
+	threadNum=10
+	pool = multiprocessing.Pool(processes = threadNum)
+	o=pool.map(run_query, [cluster]*threadNum)
+	print(o)
+	#for i in range(2):
+	#    t = multiprocessing.Process(target=run_query, args=(cluster,retr))
+	#    processes.append(t)
+	#    t.start()
+
+	#for one_process in processes:
+	#    one_process.join()
+
+
 if __name__ == "__main__":
-	test_apis()
+	#test_apis()
 	#compare_dbs()
 	#db_test()
 	#test_permissions()
+	stress_test()
