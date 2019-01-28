@@ -17,8 +17,9 @@ class UniqueNode(dict):
     def get_uid(self):
         return self[self._UID_KEY]
 
-    def get_uid_key(self):
-        return self._UID_KEY
+    @classmethod
+    def get_uid_key(cls):
+        return cls._UID_KEY
 
     def create_node(self):
         if self.get(self._UID_KEY) is None:
