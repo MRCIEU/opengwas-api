@@ -12,8 +12,6 @@ import time
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 
-# TODO check logger_info() is on all endpoints
-
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
@@ -52,7 +50,6 @@ class InfoPost(Resource):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
 
         if (len(args['id']) == 0):
-            # TODO @Gib reqparse will not allow no args provided shall we remove?
             return get_all_gwas(user_email)
         else:
             recs = []
@@ -71,7 +68,7 @@ class Add(Resource):
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
-    GwasInfoNodeSchema.populate_parser(parser)
+    GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key()})
 
     study_schema = GwasInfoNodeSchema()
     user_schema = UserNodeSchema()
@@ -82,29 +79,51 @@ class Add(Resource):
         logger_info()
 
         try:
-            # TODO race condition?
-            req = request.get_json()
-            req['id'] = GwasInfo.get_next_numeric_id()
+            req = self.parser.parse_args()
+            req['id'] = str(GwasInfo.get_next_numeric_id())
+            req.pop('X-Api-Token')
 
             # load
             user = User(self.user_schema.load({"uid": get_user_email(request.headers.get('X-Api-Token'))}))
             gwasinfo = GwasInfo(self.study_schema.load(req))
-
-            try:
-                props = self.added_rel.load({'epoch': time.time(), "comments": req['comments']})
-            except KeyError:
-                props = self.added_rel.load({'epoch': time.time()})
 
             # persist or update
             user.create_node()
             gwasinfo.create_node()
 
             # link study to user; record epoch and optional comments
-            rel = AddedByRel(**props)
+            rel = AddedByRel(epoch=time.time())
             rel.create_rel(gwasinfo, user)
 
             return {"id": gwasinfo['id']}, 200
 
+        except marshmallow.exceptions.ValidationError as e:
+            raise BadRequest("Could not validate payload: {}".format(e))
+
+
+@api.route('/delete')
+@api.doc(description="Delete gwas metadata")
+class Delete(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=True,
+        help='You must be authenticated to delete GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    parser.add_argument('id', type=str, required=True,
+                        help="Identifier to which the summary stats belong.")
+
+    user_schema = UserNodeSchema()
+
+    @api.expect(parser)
+    def delete(self):
+        logger_info()
+        args = self.parser.parse_args()
+
+        try:
+            # check token resolves to valid email
+            User(self.user_schema.load({"uid": get_user_email(request.headers.get('X-Api-Token'))}))
+
+            # delete gwasinfo node and connecting rels
+            GwasInfo.delete_node(args['id'])
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
 
@@ -116,7 +135,7 @@ class Upload(Resource):
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
-    parser.add_argument('gwas_info_identifier', type=str, required=True,
+    parser.add_argument('id', type=str, required=True,
                         help="Identifier to which the summary stats belong.")
     parser.add_argument('file', location='files', type=FileStorage, required=True,
                         help="Path to GWAS summary stats text file for upload.")
@@ -139,6 +158,7 @@ class Upload(Resource):
 
     @api.expect(parser)
     def post(self):
+        logger_info()
         args = self.parser.parse_args()
         uploaded_file = args['file']
 

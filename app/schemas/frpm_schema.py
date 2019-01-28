@@ -26,10 +26,14 @@ class FRPMSchema(Schema):
         return model
 
     @classmethod
-    def populate_parser(cls, parser):
+    def populate_parser(cls, parser, ignore=frozenset()):
         schema_fields = vars(cls)['_declared_fields']
 
         for prop in schema_fields:
+
+            if prop in ignore:
+                continue
+
             props = dict()
             field_type = str(type(schema_fields[prop]).__name__)
 

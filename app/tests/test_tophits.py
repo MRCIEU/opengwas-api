@@ -9,7 +9,6 @@ def test_tophits_post1(url):
 	r = requests.post(url + "/tophits", data=payload, headers=headers)
 	assert r.status_code == 200 and len(r.json()) < 3000 and len(set([x.get('id') for x in r.json()])) == 1
 
-# TODO failing
 def test_tophits_post2(url):
 	headers = {'X-API-TOKEN': token}
 	payload = {'id': [2,987], 'clump': 0}
@@ -22,7 +21,6 @@ def test_tophits_post3(url):
 	r = requests.post(url + "/tophits", data=payload, headers=headers)
 	assert r.status_code == 200 and len(r.json()) < 80 and len(set([x.get('id') for x in r.json()])) == 1
 
-# TODO failing
 def test_tophits_post4(url):
 	headers = {'X-API-TOKEN': token}
 	payload = {'id': [2,987], 'clump': 1}
