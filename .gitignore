@@ -13,3 +13,4 @@ app/logs/
 app/tests/data
 app/local
 *.pytest_cache/
+mrbase.oauth

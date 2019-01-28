@@ -258,7 +258,7 @@ def query_summary_stats(user_email, snps, outcomes):
         outcomes_access = 'snp_lookup'
         study_data = study_info(outcomes)
     else:
-        study_data = get_permitted_studies(user_email, outcomes)
+        study_data = get_gwas_for_user(user_email, outcomes)
         outcomes_access = [x['id'] for x in study_data]
     end = time.time()
     t = round((end - start), 4)

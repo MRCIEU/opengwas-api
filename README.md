@@ -74,19 +74,19 @@ pytest -v
 We can run specific groups of tests only
 
 ```
-pytest -v tests/test_assoc.py
+pytest -v apis/tests/test_assoc.py
 ```
 
 Or specific tests only
 
 ```
-pytest -v tests/test_assoc.py::test_assoc_get1
+pytest -v apis/tests/test_assoc.py::test_assoc_get1
 ```
 
 By default it will run tests for local API located at `http://localhost:8019`. However we can run for other deployed APIs e.g.
 
 ```
-pytest -v tests/test_assoc.py::test_assoc_get1 --url=http://apitest.mrbase.org
+pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url=http://apitest.mrbase.org
 ```
 
 

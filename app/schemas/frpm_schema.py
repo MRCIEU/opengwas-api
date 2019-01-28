@@ -55,4 +55,9 @@ class FRPMSchema(Schema):
             except KeyError:
                 pass
 
+            try:
+                props['choices'] = list(schema_fields[prop].metadata['choices'])
+            except KeyError:
+                pass
+
             parser.add_argument(str(prop), **props)
