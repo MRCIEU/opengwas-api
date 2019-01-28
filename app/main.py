@@ -19,6 +19,12 @@ import datetime
 from elasticsearch import Elasticsearch
 import time
 
+# initialize using environment variables 
+from elasticapm.contrib.flask import ElasticAPM
+app = Flask(__name__)
+apm = ElasticAPM(app)
+
+
 #unicode issues
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -74,7 +80,7 @@ formatter=logging.Formatter('%(asctime)s %(msecs)d %(user)s %(threadName)s %(lev
 def setup_logger(name, log_file, level=logging.INFO):
 	# Create the log message rotatin file handler to the logger
 	# 10000000 = 10 MB
-	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=100000000, backupCount=100)
+	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=1000000000, backupCount=100)
 	handler.setFormatter(formatter)
 
 	logger = logging.getLogger(name)
@@ -162,7 +168,7 @@ Get study batches
 
 mrb_batch='MRB'
 study_batches=[mrb_batch,'UKB-a','UKB-b','UKB-c','pQTL-a','eqtl-a']
-
+private_batches=['pQTL-a','eqtl-a','UKB-c']
 
 """
 
@@ -657,7 +663,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	if palindromes == "0":
 		filterData.append({"term" : {'palindromic':'0'}})
 		ESRes=es.search(
-			request_timeout=60,
+			request_timeout=120,
 			index='mrb-proxies',
 			doc_type="proxies",
 			body={
@@ -680,7 +686,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 		filterData1.append({"range" : {"pmaf": {"lt": str(maf_threshold) }}})
 		filterData2.append({"term" : {'palindromic':'0'}})
 		ESRes=es.search(
-			request_timeout=60,
+			request_timeout=120,
 			index='mrb-proxies',
 			doc_type="proxies",
 			body={
@@ -929,7 +935,7 @@ def snp_info(snp_list,type):
 
 def elastic_search(filterData,index_name):
 	res=es.search(
-		request_timeout=60,
+		request_timeout=120,
 		index=index_name,
 		#doc_type="assoc",
 		body={
@@ -954,7 +960,7 @@ def elastic_query(studies,snps,pval):
 		logger2.debug("Running snp_lookup elastic_query")
 		#need to add each index for snp_lookups
 		for i in study_batches:
-			if i != mrb_batch:
+			if i != mrb_batch and i not in private_batches:
 				study_indexes.update({i:[]})
 	else:
 		for o in studies:
