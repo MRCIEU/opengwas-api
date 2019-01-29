@@ -213,6 +213,6 @@ class Upload(Resource):
         except Exception as e:
             return {'message': e}, 400
 
-        # TODO update metadata
+
 
         return {'message': 'Upload successful'}, 201

@@ -6,6 +6,7 @@ from queries.access_to_rel import AccessToRel
 from queries.group_node import Group
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import time
+import os
 
 # TODO @Gib how are users added to the graph? Who decides?
 
@@ -81,6 +82,19 @@ def add_new_gwas(user_email, gwas_info_dict, group=1):
     access_to_rel.create_rel(group_node, gwas_info_node)
 
     return gwas_info_dict['id']
+
+
+def update_filename_and_path(uid, full_remote_file_path):
+    if os.path.exists(full_remote_file_path) == 'False':
+        raise FileNotFoundError("The GWAS file does not exist on this server: {}".format(full_remote_file_path))
+
+    tx = Neo4j.get_db()
+    tx.run(
+        "MATCH (gi:GwasInfo {id:{uid}}) SET gi.filename={filename}, gi.path={path};",
+        uid=uid,
+        path=os.path.basename(full_remote_file_path),
+        filename=full_remote_file_path.name
+    )
 
 
 def delete_gwas(uid, gwasid):
