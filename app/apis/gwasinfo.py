@@ -30,7 +30,7 @@ class List(Resource):
         return get_all_gwas_for_user(user_email)
 
 
-@api.route('/')
+@api.route('')
 @api.doc(description="Get metadata about specified GWAS summary datasets")
 class Info(Resource):
     parser = api.parser()
@@ -134,19 +134,19 @@ class Upload(Resource):
     parser.add_argument('ncase_col', type=int, required=False, help="Column index for case sample size (0-indexed)")
     parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
                         help="Column delimiter for file")
-    parser.add_argument('header', type=bool, required=True, help="Does the file have a header line?",
-                        choices=(True, False))
-    parser.add_argument('gzipped', type=bool, required=True, help="Is the file compressed with gzip?",
-                        choices=(True, False))
+    parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
+                        choices=('True', 'False'))
+    parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
+                        choices=('True', 'False'))
 
     @staticmethod
     def read_gzip(p, sep, args):
-        with gzip.open(p, 'rb') as f:
+        with gzip.open(p, 'rt', encoding='utf-8') as f:
             if args['header'] == 'True':
                 f.readline()
 
             for line in f:
-                Upload.validate_row_with_schema(line.split(sep), args)
+                Upload.validate_row_with_schema(line.strip().split(sep), args)
 
     @staticmethod
     def read_plain_text(p, sep, args):
@@ -155,31 +155,35 @@ class Upload(Resource):
                 f.readline()
 
             for line in f:
-                Upload.validate_row_with_schema(line.split(sep), args)
+                Upload.validate_row_with_schema(line.strip().split(sep), args)
 
     @staticmethod
     def validate_row_with_schema(line_split, args):
         row = dict()
-        if 'chr_col' in args:
+        print(line_split)
+
+        if 'chr_col' in args and args['chr_col'] is not None:
             row['chr'] = line_split[args['chr_col']]
-        if 'pos_col' in args:
+        if 'pos_col' in args and args['pos_col'] is not None:
             row['pos'] = line_split[args['pos_col']]
-        if 'ea_col' in args:
+        if 'ea_col' in args and args['ea_col'] is not None:
             row['ea'] = line_split[args['ea_col']]
-        if 'oa_col' in args:
+        if 'oa_col' in args and args['oa_col'] is not None:
             row['oa'] = line_split[args['oa_col']]
-        if 'eaf_col' in args:
+        if 'eaf_col' in args and args['eaf_col'] is not None:
             row['eaf'] = line_split[args['eaf_col']]
-        if 'beta_col' in args:
+        if 'beta_col' in args and args['beta_col'] is not None:
             row['beta'] = line_split[args['beta_col']]
-        if 'se_col' in args:
+        if 'se_col' in args and args['se_col'] is not None:
             row['se'] = line_split[args['se_col']]
-        if 'pval_col' in args:
+        if 'pval_col' in args and args['pval_col'] is not None:
             row['pval'] = line_split[args['pval_col']]
-        if 'ncontrol_col' in args:
+        if 'ncontrol_col' in args and args['ncontrol_col'] is not None:
             row['ncontrol'] = line_split[args['ncontrol_col']]
-        if 'ncase_col' in args:
+        if 'ncase_col' in args and args['ncase_col'] is not None:
             row['ncase'] = line_split[args['ncase_col']]
+
+        print(row)
 
         # check chrom pos or dbsnp is given
         if ('chr' not in row or 'pos' not in row) and 'snp' not in row:
@@ -213,6 +217,9 @@ class Upload(Resource):
         except Exception as e:
             return {'message': e}, 400
 
+        print('ok')
 
+        # update the graph
+        update_filename_and_path(str(args['id']), output_path)
 
         return {'message': 'Upload successful'}, 201

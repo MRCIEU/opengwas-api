@@ -17,7 +17,7 @@ class GwasRowSchema(FRPMSchema):
     beta = fields.Float(required=True, allow_none=False, description="Effect size")
     se = fields.Float(required=True, allow_none=False, description="Standard error of estimate")
     pval = fields.Float(required=True, allow_none=False, description="P-value")
-    ncontrol = fields.Int(required=True, allow_none=False,
+    ncontrol = fields.Float(required=True, allow_none=False,
                           description="Number of controls or total sample size if continuous")
     ncase = fields.Int(required=False, allow_none=True,
                        description="Number of cases")
