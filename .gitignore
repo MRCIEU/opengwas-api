@@ -6,11 +6,7 @@ logs/
 *pyc
 *DS_Store
 app/ld_files
-app/venv/
-app/.idea/
-app/__pycache__/
-app/logs/
-app/tests/data
+.idea
+__pycache__
 app/local
-*.pytest_cache/
-mrbase.oauth
+.pytest_cache
