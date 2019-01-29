@@ -9,8 +9,8 @@ d = dict(test_prop1="test_val1", test_prop2="test_val2")
 def test_create_rel():
     app = flask.Flask(__name__)
     with app.app_context():
-        u1 = UniqueNode(uid='testid1')
-        u2 = UniqueNode(uid='testid2')
+        u1 = UniqueNode(uid='testid1', propone='propone', proptwo='proptwo')
+        u2 = UniqueNode(uid='testid2', propone='propone', proptwo='proptwo')
 
         # create nodes in graph
         u1.create_node()
@@ -29,8 +29,8 @@ def test_create_rel():
 def test_del_rel():
     app = flask.Flask(__name__)
     with app.app_context():
-        u1 = UniqueNode(uid='testid1')
-        u2 = UniqueNode(uid='testid2')
+        u1 = UniqueNode(uid='testid1', propone='propone', proptwo='proptwo')
+        u2 = UniqueNode(uid='testid2', propone='propone', proptwo='proptwo')
 
         # create nodes in graph
         u1.create_node()
