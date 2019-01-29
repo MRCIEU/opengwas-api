@@ -1,6 +1,7 @@
 from queries.cql_queries import *
 import flask
 import pytest
+from urllib.request import urlopen
 
 
 def test_get_all_gwas():

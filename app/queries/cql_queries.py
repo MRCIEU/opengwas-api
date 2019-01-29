@@ -85,15 +85,15 @@ def add_new_gwas(user_email, gwas_info_dict, group=1):
 
 
 def update_filename_and_path(uid, full_remote_file_path):
-    if os.path.exists(full_remote_file_path) == 'False':
+    if not os.path.exists(full_remote_file_path):
         raise FileNotFoundError("The GWAS file does not exist on this server: {}".format(full_remote_file_path))
 
     tx = Neo4j.get_db()
     tx.run(
         "MATCH (gi:GwasInfo {id:{uid}}) SET gi.filename={filename}, gi.path={path};",
         uid=uid,
-        path=os.path.basename(full_remote_file_path),
-        filename=full_remote_file_path.name
+        path=os.path.dirname(full_remote_file_path),
+        filename=os.path.basename(full_remote_file_path)
     )
 
 
