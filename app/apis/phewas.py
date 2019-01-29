@@ -38,7 +38,7 @@ parser2.add_argument('rsid', required=False, type=str, action='append', default=
 parser2.add_argument(
 'X-Api-Token', location='headers', required=False, default='null', help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
-@api.route('/')
+@api.route('')
 @api.doc(
 	description="""
 Perform PheWAS of specified SNPs across all available GWAS datasets. Note the payload can be passed to curl via json using:

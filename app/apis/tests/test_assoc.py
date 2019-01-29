@@ -22,7 +22,6 @@ def test_assoc_get4(url):
 	r = requests.get(url + "/associations/2,987,7/rs234,rs123")
 	assert r.status_code == 200 and len(r.json()) == 4
 
-# TODO failing
 def test_assoc_get5(url):
 	headers = {'X-API-TOKEN': token}
 	r = requests.get(url + "/associations/2,987,7/rs234,rs123", headers=headers)
@@ -38,7 +37,6 @@ def test_assoc_post1(url):
 	r = requests.post(url + "/associations/", data=payload, headers=headers)
 	assert r.status_code == 200 and len(r.json()) == 4
 
-# TODO failing
 def test_assoc_post2(url):
 	headers = {'X-API-TOKEN': token}
 	payload = {'id': ['2','7','987'], 'rsid': ['rs234','rs123']}

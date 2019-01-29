@@ -136,6 +136,11 @@ def test_gwasinfo_upload_plain_text(url):
 
     assert r.status_code == 201
 
+    # delete metadata
+    payload = {'id': uid}
+    r = requests.delete(url + "/gwasinfo/delete", data=payload, headers=headers)
+    assert r.status_code == 200
+
 def test_gwasinfo_upload_gzip(url):
     payload = {
         'pmid': 1234, 'year': 2010,
@@ -175,6 +180,10 @@ def test_gwasinfo_upload_gzip(url):
         'header': 'True',
         'gzipped': 'True'
     }, files={'gwas_file': open(file_path, 'rb')}, headers=headers)
-    print(r.text)
 
     assert r.status_code == 201
+
+    # delete metadata
+    payload = {'id': uid}
+    r = requests.delete(url + "/gwasinfo/delete", data=payload, headers=headers)
+    assert r.status_code == 200

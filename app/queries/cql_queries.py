@@ -57,7 +57,7 @@ def get_gwas_for_user(uid, gwasid):
 
     result = results.single()
     if result is None:
-        raise LookupError("Study ID {} does not exist or you do not have the required access".format(gwasid))
+        raise LookupError("GwasInfo ID {} does not exist or you do not have the required access".format(gwasid))
 
     return schema.load(result['gi'])
 

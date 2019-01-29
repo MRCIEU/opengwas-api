@@ -7,7 +7,7 @@ import requests
 api = Namespace('status', description="Status of API and linked resources")
 
 
-@api.route('/')
+@api.route('')
 @api.doc(description="Check services are running")
 class Status(Resource):
     def get(self):
