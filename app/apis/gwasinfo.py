@@ -8,7 +8,7 @@ import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 from resources._globals import UPLOAD_FOLDER
 import gzip
-import uuid
+from schemas.gwas_row_schema import GwasRowSchema
 
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
@@ -139,6 +139,56 @@ class Upload(Resource):
     parser.add_argument('gzipped', type=bool, required=True, help="Is the file compressed with gzip?",
                         choices=(True, False))
 
+    @staticmethod
+    def read_gzip(p, sep, args):
+        with gzip.open(p, 'rb') as f:
+            if args['header'] == 'True':
+                f.readline()
+
+            for line in f:
+                Upload.validate_row_with_schema(line.split(sep), args)
+
+    @staticmethod
+    def read_plain_text(p, sep, args):
+        with open(p, 'r') as f:
+            if args['header'] == 'True':
+                f.readline()
+
+            for line in f:
+                Upload.validate_row_with_schema(line.split(sep), args)
+
+    @staticmethod
+    def validate_row_with_schema(line_split, args):
+        row = dict()
+        if 'chr_col' in args:
+            row['chr'] = line_split[args['chr_col']]
+        if 'pos_col' in args:
+            row['pos'] = line_split[args['pos_col']]
+        if 'ea_col' in args:
+            row['ea'] = line_split[args['ea_col']]
+        if 'oa_col' in args:
+            row['oa'] = line_split[args['oa_col']]
+        if 'eaf_col' in args:
+            row['eaf'] = line_split[args['eaf_col']]
+        if 'beta_col' in args:
+            row['beta'] = line_split[args['beta_col']]
+        if 'se_col' in args:
+            row['se'] = line_split[args['se_col']]
+        if 'pval_col' in args:
+            row['pval'] = line_split[args['pval_col']]
+        if 'ncontrol_col' in args:
+            row['ncontrol'] = line_split[args['ncontrol_col']]
+        if 'ncase_col' in args:
+            row['ncase'] = line_split[args['ncase_col']]
+
+        # check chrom pos or dbsnp is given
+        if ('chr' not in row or 'pos' not in row) and 'snp' not in row:
+            raise ValueError("Please provide chromosome and base-position (preferably) or dbsnp identifier.")
+
+        # check row - raises validation exception if invalid
+        schema = GwasRowSchema()
+        schema.load(row)
+
     @api.expect(parser)
     def post(self):
         args = self.parser.parse_args()
@@ -152,40 +202,17 @@ class Upload(Resource):
             sep = "\t"
 
         try:
-            with gzip.open(output_path, 'rb') as f:
-                # skip header
-                if args['header'] == 'True':
-                    f.readline()
+            if args['gzipped'] == 'True':
+                Upload.read_gzip(output_path, sep, args)
+            else:
+                Upload.read_plain_text(output_path, sep, args)
+        except OSError:
+            return {'message': 'Could not read file. Check encoding'}, 400
+        except marshmallow.exceptions.ValidationError as e:
+            return {'message': 'The file format was invalid {}'.format(e)}, 400
+        except Exception as e:
+            return {'message': e}, 400
 
-                # check lines of file
-                for line in f:
-                    fields = line.split(sep)
-                    row = dict()
-
-                    if 'chr_col' in args:
-                        row['chr'] = fields[args['chr_col']]
-                    if 'pos_col' in args:
-                        row['pos'] = fields[args['pos_col']]
-                    if 'ea_col' in args:
-                        row['ea'] = fields[args['ea_col']]
-                    if 'oa_col' in args:
-                        row['oa'] = fields[args['oa_col']]
-                    if 'eaf_col' in args:
-                        row['eaf'] = fields[args['eaf_col']]
-                    if 'beta_col' in args:
-                        row['beta'] = fields[args['beta_col']]
-                    if 'se_col' in args:
-                        row['se'] = fields[args['se_col']]
-                    if 'pval_col' in args:
-                        row['pval'] = fields[args['pval_col']]
-                    if 'ncontrol_col' in args:
-                        row['ncontrol'] = fields[args['ncontrol_col']]
-                    if 'ncase_col' in args:
-                        row['ncase'] = fields[args['ncase_col']]
-
-        except OSError as e:
-            return {'message': 'Could not read file: {}'.format(e)}, 400
-
-        # TODO upload metadata
+        # TODO update metadata
 
         return {'message': 'Upload successful'}, 201
