@@ -48,3 +48,12 @@ MATCH (n:Study) WHERE n.subcategory = "Test" REMOVE n.subcategory;
 
 // rename study to gwasinfo
 MATCH (n:Study) SET n:GwasInfo REMOVE n:Study;
+
+//test
+CREATE (n:Group {gid:999, name:"Test"})
+
+MATCH (gi:GwasInfo)
+CREATE (gi)<-[:ACCESS_TO]-(gr:Group {gid:999})
+
+MATCH (n:User {uid:"ml18692@bristol.ac.uk"})
+CREATE (n)-[:MEMBER_OF]->(gr:Group {id:999})
