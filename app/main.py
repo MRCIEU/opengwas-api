@@ -18,12 +18,31 @@ import sqlite3 as sqli
 import datetime
 from elasticsearch import Elasticsearch
 import time
+from flask import current_app
 
-# initialize using environment variables 
-from elasticapm.contrib.flask import ElasticAPM
+#cache
+#from flask import Flask
+#from flask_cache import Cache
+from flask_caching import Cache
+
 app = Flask(__name__)
-apm = ElasticAPM(app)
+# Check Configuring Flask-Cache section for more details
+#cache = Cache()
+#CACHE_TYPE='simple'
+#cache = Cache(app, config={'CACHE_TYPE': 'uwsgi','CACHE_UWSGI_NAME':'mycache@localhost'})
+cache = Cache(app,config={'CACHE_TYPE': 'filesystem','CACHE_DIR':'/tmp'})
+#cache = Cache(app,config={'CACHE_TYPE': 'simple'})
+#cache.init_app(app)
+#CACHE_DIR='/tmp/'
 
+# get flask_cache logger
+#flask_cache_logger = logging.getLogger('flask_caching')
+# set up a handler
+#formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#stderr_handler = logging.StreamHandler(sys.stderr)
+#stderr_handler.setFormatter(formatter)
+# add the handler
+#flask_cache_logger.addHandler(stderr_handler)
 
 #unicode issues
 reload(sys)
@@ -68,6 +87,8 @@ class ContextFilter(logging.Filter):
     def filter(self, record):
         token = request.args.get('access_token')
         record.user = get_user_email(token)
+        record.ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr).split(',')[0]
+
         #print record.user
         return True
 
@@ -75,12 +96,12 @@ class ContextFilter(logging.Filter):
 if not os.path.exists(LOG_FILE):
 	open('file', 'w').close()
 
-formatter=logging.Formatter('%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S')
+formatter=logging.Formatter('%(asctime)s %(ip)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S')
 
 def setup_logger(name, log_file, level=logging.INFO):
 	# Create the log message rotatin file handler to the logger
 	# 10000000 = 10 MB
-	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=1000000000, backupCount=100)
+	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=10000000, backupCount=100)
 	handler.setFormatter(formatter)
 
 	logger = logging.getLogger(name)
@@ -159,6 +180,8 @@ es = Elasticsearch(
 		[{'host': es_conf['host'],'port': es_conf['port']}],
 		#http_auth=(es_conf['user'], es_conf['password']),
 )
+
+es_timeout=120
 
 """
 
@@ -265,6 +288,9 @@ def token_query_list(token):
 	qList = []
 	user_email = get_user_email(token)
 	logger2.debug("getting credentials for "+user_email)
+        if user_email == 'AIzaSyCMFGGTR2mljNXEgYsmfHa4hK8masLxSDo':
+            logger2.debug("exiting")
+            sys.exit()
 	SQL =  """select id from study_e c where (c.id IN (select d.id from study_e d, memberships m, permissions_e p
 		WHERE m.uid = "{0}"
 		AND p.gid = m.gid
@@ -289,8 +315,7 @@ def token_query_list(token):
 Query functions
 
 """
-
-
+#@cache.cached(timeout=50)
 def query_summary_stats(token, snps, outcomes):
 	#### es
 	#logger2.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
@@ -663,7 +688,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 	if palindromes == "0":
 		filterData.append({"term" : {'palindromic':'0'}})
 		ESRes=es.search(
-			request_timeout=120,
+			request_timeout=es_timeout,
 			index='mrb-proxies',
 			doc_type="proxies",
 			body={
@@ -686,7 +711,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 		filterData1.append({"range" : {"pmaf": {"lt": str(maf_threshold) }}})
 		filterData2.append({"term" : {'palindromic':'0'}})
 		ESRes=es.search(
-			request_timeout=120,
+			request_timeout=es_timeout,
 			index='mrb-proxies',
 			doc_type="proxies",
 			body={
@@ -935,7 +960,7 @@ def snp_info(snp_list,type):
 
 def elastic_search(filterData,index_name):
 	res=es.search(
-		request_timeout=120,
+		request_timeout=es_timeout,
 		index=index_name,
 		#doc_type="assoc",
 		body={
@@ -1004,7 +1029,7 @@ def elastic_query(studies,snps,pval):
 			run = True
 		if run==True:
 			logger2.debug('running ES: index: '+s+' studies: '+str(len(studies))+' snps: '+str(len(snps))+' pval: '+str(pval))
-			#logger2.debug(filterData)
+			logger2.debug(filterData)
 			start=time.time()
 			e =  elastic_search(filterData,s)
 			res.update({s:e})
@@ -1029,6 +1054,7 @@ Methods
 """
 
 @app.route("/")
+@cache.cached(timeout=50,key_prefix='hello')
 def hello():
 	logger2.debug("INCOMING")
 	return "Welcome to the MR-Base API. This was automatically deployed."
@@ -1036,8 +1062,7 @@ def hello():
 
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
-	logger.info('upload')
-        if request.method == 'POST':
+	if request.method == 'POST':
 		file = request.files['file']
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
@@ -1089,6 +1114,7 @@ def get_effects():
 	return json.dumps(query_summary_stats(request.args.get('access_token'), snps, outcomes))
 
 @app.route("/snp_lookup", methods=[ 'GET' ])
+@cache.cached(300, key_prefix='snp-lookup')
 def snp_lookup():
 	logger.info('snp_lookup')
 	if not request.args.get('snps'):
@@ -1359,7 +1385,6 @@ def get_effects_from_file():
 
 @app.route("/clump", methods=[ 'GET' ])
 def clump():
-        logger.info('clump')
 	if not request.args.get('snpfile'):
 		return json.dumps([])
 	if not check_filename(request.args.get('snpfile')):
@@ -1402,7 +1427,6 @@ def clump():
 
 @app.route("/ld", methods=[ 'GET' ])
 def ld():
-    logger.info('ld')
     if not request.args.get('snpfile'):
         return json.dumps([])
     if not check_filename(request.args.get('snpfile')):
