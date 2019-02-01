@@ -22,7 +22,7 @@ def get_all_gwas_for_user(uid):
         gids=list(gids)
     )
     for result in results:
-        res.append(result['gi'])
+        res.append(GwasInfo(result['gi']))
 
     return res
 
@@ -59,7 +59,7 @@ def get_gwas_for_user(uid, gwasid):
     if result is None:
         raise LookupError("GwasInfo ID {} does not exist or you do not have the required access".format(gwasid))
 
-    return schema.load(result['gi'])
+    return schema.load(GwasInfo(result['gi']))
 
 
 def add_new_gwas(user_email, gwas_info_dict, group=1):

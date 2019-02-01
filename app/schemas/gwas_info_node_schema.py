@@ -127,8 +127,8 @@ class GwasInfoNodeSchema(FRPMSchema):
                       description="Pubmed identifer. Leave blank for unpublished studies.")
     year = fields.Int(required=False, validate=check_study_year, allow_none=True,
                       description="What year was this GWAS published?")
-    filename = fields.Str(required=False, allow_none=False, description="GWAS summary stats filename")
-    path = fields.Str(required=True, allow_none=False, description="Path to GWAS summary stats on remote server")
+    filename = fields.Str(required=False, allow_none=True, description="GWAS summary stats filename")
+    path = fields.Str(required=False, allow_none=True, description="Path to GWAS summary stats on remote server")
     mr = fields.Int(required=True, validate=check_mr_is_0_or_1, allow_none=False,
                     description="Is the study suitable for MR studies?", choices=(0, 1))
     note = fields.Str(required=False, allow_none=True,
