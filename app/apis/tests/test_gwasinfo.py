@@ -20,7 +20,6 @@ def test_gwasinfo2(url):
     assert r.status_code == 200 and len(r.json()) == 2
 
 
-### do not have permission to test ###
 # Don't get private studies without authentication
 def test_gwasinfo3(url):
     headers = {'X-API-TOKEN': 'NULL'}
@@ -29,7 +28,6 @@ def test_gwasinfo3(url):
     assert r.status_code == 200 and len(r.json()) == 2
 
 
-### do not have permission to test ###
 # This time should have authentication to get private study
 def test_gwasinfo4(url):
     headers = {'X-API-TOKEN': token}
@@ -37,14 +35,12 @@ def test_gwasinfo4(url):
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 3
 
-
 # This time should have authentication to get private study
 def test_gwasinfo5(url):
     headers = {'X-API-TOKEN': token}
     payload = {}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) > 1000
-
 
 # Using GET
 def test_gwasinfo6(url):
@@ -56,7 +52,6 @@ def test_gwasinfo6(url):
 def test_gwasinfo7(url):
     r = requests.get(url + "/gwasinfo/2")
     assert r.status_code == 200 and len(r.json()) == 1
-
 
 # Using GET
 def test_gwasinfo8(url):

@@ -1,11 +1,9 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
 from resources._ld import *
-from queries.cql_queries import *
 
 api = Namespace('tophits', description="Extract tophits from a GWAS dataset")
 
-parser1 = api.parser()
 parser1 = reqparse.RequestParser()
 parser1.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
 parser1.add_argument('pval', type=float, required=False, default=5e-8, help='P-value threshold')

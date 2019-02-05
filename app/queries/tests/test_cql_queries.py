@@ -58,7 +58,11 @@ def test_add_new_gwas_info():
         uid = add_new_gwas('g.hemani@bristol.ac.uk', d)
         assert int(uid) > 0
 
-        # check in graph
+        # TODO check new gwas requires qc
+
+        # TODO complete qc
+
+        # check in graph query of qc passing
         found = get_gwas_for_user('NULL', uid)
         for k in d:
             if d[k] is None:

@@ -20,6 +20,9 @@ def test_create_node():
         for k in d:
             assert u2.get(k) == d[k]
 
+        # delete
+        UniqueNode.delete_node(d['uid'])
+
 
 def test_delete_node():
     app = flask.Flask(__name__)

@@ -9,7 +9,7 @@ from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import time
 import os
 
-# TODO @Gib how are users added to the graph? Who decides?
+# TODO only show passing qc data
 
 """Return all available GWAS summary datasets"""
 
@@ -19,7 +19,7 @@ def get_all_gwas_for_user(uid):
     res = []
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo) WHERE g.gid IN {gids} RETURN distinct(gi) as gi;",
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} RETURN distinct(gi) as gi;",
         gids=list(gids)
     )
     for result in results:
@@ -34,7 +34,7 @@ def get_all_gwas_ids_for_user(uid):
 
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo) WHERE g.gid IN {gids} RETURN distinct(gi.id) as id;",
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} RETURN distinct(gi.id) as id;",
         gids=list(gids)
     )
 
@@ -51,7 +51,7 @@ def get_gwas_for_user(uid, gwasid):
     tx = Neo4j.get_db()
 
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}}) WHERE g.gid IN {gids} RETURN distinct(gi);",
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} RETURN distinct(gi);",
         gids=list(gids),
         gwasid=gwasid
     )
@@ -85,7 +85,6 @@ def add_new_gwas(user_email, gwas_info_dict, group=1):
     return gwas_info_dict['id']
 
 
-# TODO add column names to node
 def update_filename_and_path(uid, full_remote_file_path):
     if not os.path.exists(full_remote_file_path):
         raise FileNotFoundError("The GWAS file does not exist on this server: {}".format(full_remote_file_path))
@@ -104,7 +103,7 @@ def delete_gwas(uid, gwasid):
 
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}}) WHERE g.gid IN {gids} "
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} "
         "WITH distinct(gi) as gi "
         "OPTIONAL MATCH (gi)-[rel]-() "
         "DELETE rel, gi;",
@@ -116,7 +115,7 @@ def delete_gwas(uid, gwasid):
 """ Returns studies for a list of study identifiers (or all public if keyword 'snp_lookup' provided)  """
 
 
-# TODO check for user permissions - do not show private data
+# TODO do not show private data
 
 def study_info(study_list):
     res = []
@@ -125,7 +124,7 @@ def study_info(study_list):
 
     if study_list == 'snp_lookup':
         results = tx.run(
-            "MATCH (:Group {gid:{gid}})-[:ACCESS_TO]->(gi:GwasInfo) RETURN gi;",
+            "MATCH (:Group {gid:{gid}})-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) RETURN gi;",
             gid=int(1)
         )
         for result in results:
@@ -138,7 +137,7 @@ def study_info(study_list):
             study_list_str.append(str(s))
 
         results = tx.run(
-            "MATCH (gi:GwasInfo) WHERE gi.id IN {study_list} RETURN gi;",
+            "MATCH (gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE gi.id IN {study_list} RETURN gi;",
             study_list=study_list_str
         )
         for result in results:
@@ -175,7 +174,7 @@ def get_permitted_studies(uid, sid):
     gids = get_groups_for_user(uid)
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo) WHERE g.gid IN {gids} AND s.id IN {sid} RETURN distinct(s) as s;",
+        "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} AND s.id IN {sid} RETURN distinct(s) as s;",
         gids=list(gids), sid=list(sid)
     )
     res = []
@@ -196,6 +195,18 @@ def add_quality_control(user_email, gwas_info_id, data_passed, comment=None):
 def delete_quality_control(gwas_info_id):
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (gi:GwasInfo {id:{uid}})<-[r:DID_QC]-(:User) DELETE r;",
+        "MATCH (gi:GwasInfo {id:{uid}})-[r:DID_QC]->(:User) DELETE r;",
         uid=str(gwas_info_id)
     )
+
+
+def get_todo_quality_control():
+    res = []
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (gi:GwasInfo) WHERE NOT (gi)-[:DID_QC]->(:User) RETURN gi;"
+    )
+    for result in results:
+        res.append(GwasInfo(result['gi']))
+
+    return res
