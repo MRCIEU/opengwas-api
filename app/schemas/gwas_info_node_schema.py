@@ -164,9 +164,6 @@ class GwasInfoNodeSchema(FRPMSchema):
                         description="Provide the name of the first author of your study")
     consortium = fields.Str(required=False, allow_none=True,
                             description="What is the name of your study or consortium (if applicable)?")
-    # TODO @Gib This does not reflect the data already captured. Need to sanitize.
-    access = fields.Str(required=False, allow_none=True,
-                        description="Yes: You may make these results publically accessible for MR and may allow users to download the full results and to share with LD Hub and the GWAS catalog. No: No for priviate (but public in 6-12? months)")
     study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True,
                               description="Which best describes the design of your study", choices=valid_study_designs)
     covariates = fields.Str(required=False, allow_none=True,

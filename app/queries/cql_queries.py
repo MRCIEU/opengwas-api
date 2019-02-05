@@ -2,6 +2,7 @@ from resources._neo4j import Neo4j
 from queries.user_node import User
 from queries.gwas_info_node import GwasInfo
 from queries.added_by_rel import AddedByRel
+from queries.quality_control_rel import QualityControlRel
 from queries.access_to_rel import AccessToRel
 from queries.group_node import Group
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
@@ -84,6 +85,7 @@ def add_new_gwas(user_email, gwas_info_dict, group=1):
     return gwas_info_dict['id']
 
 
+# TODO add column names to node
 def update_filename_and_path(uid, full_remote_file_path):
     if not os.path.exists(full_remote_file_path):
         raise FileNotFoundError("The GWAS file does not exist on this server: {}".format(full_remote_file_path))
@@ -114,7 +116,8 @@ def delete_gwas(uid, gwasid):
 """ Returns studies for a list of study identifiers (or all public if keyword 'snp_lookup' provided)  """
 
 
-# TODO @Gib should this check for user permissions?
+# TODO check for user permissions - do not show private data
+
 def study_info(study_list):
     res = []
     schema = GwasInfoNodeSchema()
@@ -165,3 +168,20 @@ def get_groups_for_user(uid):
         gids.add(result['gid'])
 
     return gids
+
+
+def add_quality_control(user_email, gwas_info_id, data_passed, comment=None):
+    u = User.get_node(user_email)
+    g = GwasInfo.get_node(gwas_info_id)
+    r = QualityControlRel(epoch=time.time(), data_passed=data_passed, comment=comment)
+
+    # create QC rel
+    r.create_rel(g, u)
+
+
+def delete_quality_control(gwas_info_id):
+    tx = Neo4j.get_db()
+    tx.run(
+        "MATCH (gi:GwasInfo {id:{uid}})<-[r:DID_QC]-(:User) DELETE r;",
+        uid=str(gwas_info_id)
+    )

@@ -13,7 +13,6 @@ Setup logging
 
 USER_EMAIL = None
 
-# TODO @Gib does the log work correctly?
 class ContextFilter(logging.Filter):
     """
     This is a filter which injects contextual information into the log.
@@ -53,7 +52,6 @@ def setup_logger(name, log_file, level=logging.INFO):
 logger = setup_logger('info-log', LOG_FILE)
 # create debug log
 logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
-
 
 def logger_info():
     source = request.headers.get('X-Api-Source')

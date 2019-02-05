@@ -1,7 +1,6 @@
 from queries.cql_queries import *
 import flask
 import pytest
-from urllib.request import urlopen
 
 
 def test_get_all_gwas():
@@ -50,7 +49,7 @@ def test_add_new_gwas_info():
          'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
          'population': 'European',
          'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796, 'unit': 'SD (cm)',
-         'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'}
+         'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT'}
 
     app = flask.Flask(__name__)
     with app.app_context():

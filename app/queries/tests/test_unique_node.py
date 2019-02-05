@@ -34,7 +34,7 @@ def test_delete_node():
 def test_check_constraint():
     app = flask.Flask(__name__)
     with app.app_context():
-        UniqueNode.drop_constraint()
-        assert not UniqueNode.check_constraint()
         UniqueNode.set_constraint()
         assert UniqueNode.check_constraint()
+        UniqueNode.drop_constraint()
+        assert not UniqueNode.check_constraint()
