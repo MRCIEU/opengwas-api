@@ -27,13 +27,8 @@ class AssocGet(Resource):
             abort(404)
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))
-            print('user_email',user_email)
-            print('rsid', rsid)
-            print('rsid.split', rsid.split(','))
-            print('id.split', id.split(','))
             out = get_assoc(user_email, rsid.split(','), id.split(','), 1, 0.8, 1, 1, 0.3)
-        except Exception as e:
-            print('err=', e)
+        except:
             abort(503)
         return out
 
@@ -52,7 +47,7 @@ parser2.add_argument(
     help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
 
-@api.route('')
+@api.route('/')
 @api.doc(
     description="""
 Get specific SNP associations for specifc GWAS datasets. Note the payload can be passed to curl via json using:

@@ -1,6 +1,5 @@
 from resources._neo4j import *
 import flask
-import time
 import re
 from queries.cql_queries import *
 
@@ -19,12 +18,9 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
 
         try:
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
-            print('proxy_dat',proxy_dat)
             proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
-            print('proxies',proxies)
 
             proxy_query = query_summary_stats(user_email, proxies, id)
-            print('proxy_query', proxy_query)
 
             res = []
 
@@ -243,9 +239,6 @@ def query_summary_stats(user_email, snps, outcomes):
     logger2.debug('requested studies: ' + str(len(outcomes)))
     logger2.debug('len snplist = ' + str(len(snps)))
 
-    print('snps', snps)
-    print('outcomes', outcomes)
-
     # get study and snp data
     # snp_data = {}
     snp_data = snps
@@ -254,7 +247,7 @@ def query_summary_stats(user_email, snps, outcomes):
     # logger2.debug(snp_data)
 
     # logger2.debug(sorted(study_access))
-    logger2.debug('searching ' + str(outcomes.count(',')+1) + ' outcomes')
+    logger2.debug('searching ' + str(outcomes.count(',') + 1) + ' outcomes')
     logger2.debug('creating outcomes list and study_data dictionary')
     start = time.time()
     outcomes_access = []
@@ -264,10 +257,7 @@ def query_summary_stats(user_email, snps, outcomes):
         outcomes_access = 'snp_lookup'
         study_data = study_info(outcomes)
     else:
-        print('user_email', user_email)
-        print('outcomes', outcomes)
-        # TODO should not pass array of outcomes
-        study_data = get_gwas_for_user(user_email, outcomes)
+        study_data = get_permitted_studies(user_email, outcomes)
         outcomes_access = [x['id'] for x in study_data]
     end = time.time()
     t = round((end - start), 4)
@@ -293,13 +283,13 @@ def query_summary_stats(user_email, snps, outcomes):
             # if float(hit['_source']['effect_allele_freq']) < 999:
             effect_allele_freq = hit['_source']['effect_allele_freq']
             # if hit['_source']['beta'] < 999:
-                # beta = "%4.3f" % float(hit['_source']['beta'])
+            # beta = "%4.3f" % float(hit['_source']['beta'])
             beta = hit['_source']['beta']
             # if hit['_source']['se'] < 999:
-                # se = "%03.02e" % float(hit['_source']['se'])
+            # se = "%03.02e" % float(hit['_source']['se'])
             se = hit['_source']['se']
             # if hit['_source']['p'] < 999:
-                # p = "%03.02e" % float(hit['_source']['p'])
+            # p = "%03.02e" % float(hit['_source']['p'])
             p = hit['_source']['p']
             # if 'n' in hit['_source']:
             n = hit['_source']['n']
