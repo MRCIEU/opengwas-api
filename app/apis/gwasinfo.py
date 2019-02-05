@@ -59,6 +59,7 @@ class Info(Resource):
             return recs
 
 
+@api.route('/id/<gwas_info_id>')
 @api.doc(description="Get metadata about specified GWAS summary datasets")
 class GetId(Resource):
     parser = api.parser()
@@ -67,7 +68,6 @@ class GetId(Resource):
         help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
     @api.expect(parser)
-    @api.route('/id/<id>')
     @api.doc(model=gwas_info_model)
     def get(self, gwas_info_id):
         logger_info()

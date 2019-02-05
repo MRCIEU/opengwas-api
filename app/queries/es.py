@@ -19,9 +19,12 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
 
         try:
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
+            print('proxy_dat',proxy_dat)
             proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
+            print('proxies',proxies)
 
             proxy_query = query_summary_stats(user_email, proxies, id)
+            print('proxy_query', proxy_query)
 
             res = []
 
@@ -240,6 +243,9 @@ def query_summary_stats(user_email, snps, outcomes):
     logger2.debug('requested studies: ' + str(len(outcomes)))
     logger2.debug('len snplist = ' + str(len(snps)))
 
+    print('snps', snps)
+    print('outcomes', outcomes)
+
     # get study and snp data
     # snp_data = {}
     snp_data = snps
@@ -258,6 +264,9 @@ def query_summary_stats(user_email, snps, outcomes):
         outcomes_access = 'snp_lookup'
         study_data = study_info(outcomes)
     else:
+        print('user_email', user_email)
+        print('outcomes', outcomes)
+        # TODO should not pass array of outcomes
         study_data = get_gwas_for_user(user_email, outcomes)
         outcomes_access = [x['id'] for x in study_data]
     end = time.time()
