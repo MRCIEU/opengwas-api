@@ -22,7 +22,6 @@ valid_trait_subcategories = {
     "Sleeping",
     "Diabetes",
     "Aging",
-    "null",
     "Fatty acid",
     "Bone",
     "Immune cell subset frequency",
