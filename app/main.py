@@ -87,7 +87,7 @@ class ContextFilter(logging.Filter):
     def filter(self, record):
         token = request.args.get('access_token')
         record.user = get_user_email(token)
-        record.ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr).split(',')[0]
+        #record.ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr).split(',')[0]
 
         #print record.user
         return True
@@ -96,7 +96,7 @@ class ContextFilter(logging.Filter):
 if not os.path.exists(LOG_FILE):
 	open('file', 'w').close()
 
-formatter=logging.Formatter('%(asctime)s %(ip)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S')
+formatter=logging.Formatter('%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',datefmt='%d-%m-%Y:%H:%M:%S')
 
 def setup_logger(name, log_file, level=logging.INFO):
 	# Create the log message rotatin file handler to the logger
@@ -1062,6 +1062,7 @@ def hello():
 
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
+        logger.info('upload')
 	if request.method == 'POST':
 		file = request.files['file']
 		if file and allowed_file(file.filename):
@@ -1385,7 +1386,8 @@ def get_effects_from_file():
 
 @app.route("/clump", methods=[ 'GET' ])
 def clump():
-	if not request.args.get('snpfile'):
+	logger.info('clump')
+        if not request.args.get('snpfile'):
 		return json.dumps([])
 	if not check_filename(request.args.get('snpfile')):
 		return json.dumps([])
@@ -1427,6 +1429,7 @@ def clump():
 
 @app.route("/ld", methods=[ 'GET' ])
 def ld():
+    logger.info('ld')
     if not request.args.get('snpfile'):
         return json.dumps([])
     if not check_filename(request.args.get('snpfile')):
