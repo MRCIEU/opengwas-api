@@ -79,7 +79,12 @@ MATCH (n:Study) SET n:GwasInfo REMOVE n:Study;
 //delete duplicate field
 MATCH (n:GwasInfo) REMOVE n.access;
 
-//test
+// add retrospective quality control
+MATCH (u:User {uid:"ml18692@bristol.ac.uk"})
+MATCH (g:GwasInfo) WHERE NOT (g)-[:DID_QC]->(:User)
+CREATE (g)-[:DID_QC {epoch:1549379289.720649, comment:"historic", data_passed:True}]->(u)
+
+// add me to all studies for testing
 CREATE (n:Group {gid:999, name:"Test"})
 
 MATCH (gi:GwasInfo)

@@ -6,7 +6,10 @@ token = get_mrbase_access_token()
 
 
 def test_release(url):
-    payload = {
+    headers = {'X-API-TOKEN': token}
+
+    # make new metadata
+    r = requests.post(url + "/gwasinfo/add", data={
         'pmid': 1234, 'year': 2010,
         'filename': 'test',
         'path': '/projects/test/test', 'mr': 1,
@@ -16,15 +19,12 @@ def test_release(url):
         'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
         'unit': 'SD (cm)', 'gid': 1,
         'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'
-    }
-    headers = {'X-API-TOKEN': token}
-
-    # make new metadata
-    r = requests.post(url + "/gwasinfo/add", data=payload, headers=headers)
+    }, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
     assert isinstance(int(uid), int)
 
+    # define gwas summary stats file
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
 
     # upload file for this study
@@ -48,14 +48,13 @@ def test_release(url):
     assert r.status_code == 201
 
     # set quality control
-    r = requests.post(url, '/quality_control/release', data={
-        'id': uid,
-        'comments': "test",
-        'passed_qc': "True"
-    }, headers=headers)
+    payload = {'id': uid, 'comments': "test", 'passed_qc': "True"}
+    r = requests.post(url + '/quality_control/release', data=payload, headers=headers)
     assert r.status_code == 200
 
     # delete metadata
     payload = {'id': uid}
     r = requests.delete(url + "/quality_control/delete", data=payload, headers=headers)
     assert r.status_code == 200
+
+    # TODO check deleted

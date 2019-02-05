@@ -26,7 +26,7 @@ class PhewasGet(Resource):
             user_email = get_user_email(request.headers.get('X-Api-Token'))
             out = query_summary_stats(
                 user_email,
-                ",".join(["'" + x + "'" for x in rsid.split(',')]),
+                rsid.split(','),
                 "snp_lookup"
             )
         except Exception as e:
@@ -66,7 +66,7 @@ class PhewasPost(Resource):
             user_email = get_user_email(request.headers.get('X-Api-Token'))
             out = query_summary_stats(
                 user_email,
-                ",".join(["'" + x + "'" for x in args['rsid']]),
+                args['rsid'],
                 "snp_lookup"
             )
         except Exception as e:
