@@ -170,6 +170,20 @@ def get_groups_for_user(uid):
     return gids
 
 
+def get_permitted_studies(uid, sid):
+    schema = GwasInfoNodeSchema()
+    gids = get_groups_for_user(uid)
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo) WHERE g.gid IN {gids} AND s.id IN {sid} RETURN distinct(s) as s;",
+        gids=list(gids), sid=list(sid)
+    )
+    res = []
+    for result in results:
+        res.append(schema.load(result['s']))
+    return res
+
+
 def add_quality_control(user_email, gwas_info_id, data_passed, comment=None):
     u = User.get_node(user_email)
     g = GwasInfo.get_node(gwas_info_id)
