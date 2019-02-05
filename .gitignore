@@ -10,3 +10,4 @@ app/ld_files
 __pycache__
 app/local
 .pytest_cache
+mrbase.oauth

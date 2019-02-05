@@ -1,12 +1,13 @@
 from marshmallow import fields, ValidationError
 from schemas.frpm_schema import FRPMSchema
 
-valid_alleles = {'A', 'T', 'C', 'G', 'a', 't', 'c', 'g', 'I', 'i', 'd', 'd'}
+valid_alleles = {'a', 't', 'c', 'g', 'i', 'd'}
 
 
 def check_alleles(data):
-    if data not in valid_alleles:
-        raise ValidationError("Allele must be one of: {}".format(valid_alleles))
+    for c in data:
+        if c.lower() not in valid_alleles:
+            raise ValidationError("Allele must be one of: {}".format(valid_alleles))
 
 
 class GwasRowSchema(FRPMSchema):
@@ -18,7 +19,7 @@ class GwasRowSchema(FRPMSchema):
     se = fields.Float(required=True, allow_none=False, description="Standard error of estimate")
     pval = fields.Float(required=True, allow_none=False, description="P-value")
     ncontrol = fields.Float(required=True, allow_none=False,
-                          description="Number of controls or total sample size if continuous")
+                            description="Number of controls or total sample size if continuous")
     ncase = fields.Int(required=False, allow_none=True,
                        description="Number of cases")
     chr = fields.String(required=False, allow_none=True, description="Variant chromosome")

@@ -141,6 +141,7 @@ def test_gwasinfo_upload_plain_text(url):
     r = requests.delete(url + "/gwasinfo/delete", data=payload, headers=headers)
     assert r.status_code == 200
 
+
 def test_gwasinfo_upload_gzip(url):
     payload = {
         'pmid': 1234, 'year': 2010,

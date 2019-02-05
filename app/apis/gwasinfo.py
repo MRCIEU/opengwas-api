@@ -59,6 +59,26 @@ class Info(Resource):
             return recs
 
 
+@api.doc(description="Get metadata about specified GWAS summary datasets")
+class GetId(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=False, default='null',
+        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+
+    @api.expect(parser)
+    @api.route('/id/<id>')
+    @api.doc(model=gwas_info_model)
+    def get(self, gwas_info_id):
+        logger_info()
+        user_email = get_user_email(request.headers.get('X-Api-Token'))
+
+        try:
+            return get_gwas_for_user(user_email, str(gwas_info_id))
+        except LookupError:
+            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(gwas_info_id))
+
+
 @api.route('/add')
 @api.doc(description="Add new gwas metadata")
 class Add(Resource):
@@ -160,7 +180,6 @@ class Upload(Resource):
     @staticmethod
     def validate_row_with_schema(line_split, args):
         row = dict()
-        print(line_split)
 
         if 'chr_col' in args and args['chr_col'] is not None:
             row['chr'] = line_split[args['chr_col']]
@@ -183,8 +202,6 @@ class Upload(Resource):
         if 'ncase_col' in args and args['ncase_col'] is not None:
             row['ncase'] = line_split[args['ncase_col']]
 
-        print(row)
-
         # check chrom pos or dbsnp is given
         if ('chr' not in row or 'pos' not in row) and 'snp' not in row:
             raise ValueError("Please provide chromosome and base-position (preferably) or dbsnp identifier.")
@@ -195,6 +212,7 @@ class Upload(Resource):
 
     @api.expect(parser)
     def post(self):
+        logger_info()
         args = self.parser.parse_args()
         output_path = os.path.join(UPLOAD_FOLDER, args['id'] + "_" + str(int(time.time())))
         args['gwas_file'].save(output_path)
@@ -216,8 +234,6 @@ class Upload(Resource):
             return {'message': 'The file format was invalid {}'.format(e)}, 400
         except Exception as e:
             return {'message': e}, 400
-
-        print('ok')
 
         # update the graph
         update_filename_and_path(str(args['id']), output_path)
