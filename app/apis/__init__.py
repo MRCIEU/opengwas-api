@@ -9,7 +9,7 @@ from .quality_control import api as quality_control
 from resources._globals import VERSION
 from .ld import api as ld
 
-api = Api(version=VERSION, title='Bristol GWAS Datastore',
+api = Api(version=VERSION, title='Bristol GWAS Collection',
           description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full')
 
 api.add_namespace(status)
