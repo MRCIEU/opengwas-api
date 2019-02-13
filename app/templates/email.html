@@ -1,0 +1,21 @@
+{% extends "template.html" %}
+{% block content %}
+    <style>
+        .grey-out {
+            background-color: #eee;
+        }
+
+        .row-line td {
+            border-bottom: 1px solid lightgrey;
+        }
+    </style>
+    <h4>Dear User</h4>
+    <p>Thank you for providing GWAS summary statistics for {{ study }}</p>
+    <p>We are writing to inform you the data have {{ qc }}</p>
+    <p>Here are some comments on the QC process {{ comments }}</p>
+    <p>Best wishes</p>
+    <p>MR Base Team</p>
+{% endblock %}
+{% block footer %}
+
+{% endblock %}
