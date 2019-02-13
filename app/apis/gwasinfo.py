@@ -7,6 +7,7 @@ from werkzeug.datastructures import FileStorage
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 from resources._globals import UPLOAD_FOLDER
+import hashlib
 import gzip
 from schemas.gwas_row_schema import GwasRowSchema
 
@@ -191,6 +192,14 @@ class Upload(Resource):
                 Upload.validate_row_with_schema(line.strip().split(sep), args)
 
     @staticmethod
+    def md5(fname):
+        hash_md5 = hashlib.md5()
+        with open(fname, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+
+    @staticmethod
     def validate_row_with_schema(line_split, args):
         row = dict()
 
@@ -249,6 +258,6 @@ class Upload(Resource):
             return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
 
         # update the graph
-        update_filename_and_path(str(args['id']), output_path)
+        update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
 
         return {'message': 'Upload successful'}, 201
