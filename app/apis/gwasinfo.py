@@ -236,7 +236,13 @@ class Upload(Resource):
     def post(self):
         logger_info()
         args = self.parser.parse_args()
-        output_path = os.path.join(UPLOAD_FOLDER, args['id'] + "_" + str(int(time.time())))
+        study_folder = os.path.join(UPLOAD_FOLDER, args['id'])
+
+        # make folder for new dataset
+        if not os.path.exists(study_folder):
+            os.makedirs(study_folder)
+
+        output_path = os.path.join(study_folder, args['id'] + "_" + str(int(time.time())))
         args['gwas_file'].save(output_path)
 
         sep = None
