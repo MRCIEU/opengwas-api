@@ -12,6 +12,11 @@
       "passwd": "dT9ymYwBsrzd",
       "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 27687
+    },
+    "email": {
+      "CLIENT_ID": "",
+      "CLIENT_SECRET": "",
+      "SHARED_MAILBOX": ""
     }
   },
   "production": {
@@ -27,6 +32,11 @@
       "passwd": "dT9ymYwBsrzd",
       "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 27687
+    },
+    "email": {
+      "CLIENT_ID": "",
+      "CLIENT_SECRET": "",
+      "SHARED_MAILBOX": ""
     }
   }
 }
