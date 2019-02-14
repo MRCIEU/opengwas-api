@@ -42,6 +42,12 @@ def test_get_specific_gwas():
             get_gwas_for_user('NULL', '1128')
 
 
+def test_check_user_is_admin():
+    app = flask.Flask(__name__)
+    with app.app_context():
+        u = User.get_node("ml18692@bristol.ac.uk")
+
+
 def test_add_new_gwas_info():
     d = {'pmid': 1234, 'year': 2013,
          'filename': 'test.tab',

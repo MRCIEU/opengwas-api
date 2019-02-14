@@ -201,6 +201,11 @@ def delete_quality_control(gwas_info_id):
     )
 
 
+def check_user_is_admin(uid):
+    if not User.get_node(uid)['admin']:
+        raise PermissionError("You must be an admin to complete this function")
+
+
 def get_todo_quality_control():
     res = []
     tx = Neo4j.get_db()
