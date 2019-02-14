@@ -35,7 +35,6 @@ def test_get_specific_gwas():
     app = flask.Flask(__name__)
     with app.app_context():
         assert get_gwas_for_user('NULL', '300')["id"] == '300'
-        print('study_info_chl', study_info(['2']))
         with pytest.raises(LookupError):
             get_gwas_for_user('NULL', '2456766435')
         with pytest.raises(LookupError):
@@ -46,6 +45,12 @@ def test_check_user_is_admin():
     app = flask.Flask(__name__)
     with app.app_context():
         u = User.get_node("ml18692@bristol.ac.uk")
+
+
+def test_get_node_with_new_prefix():
+    app = flask.Flask(__name__)
+    with app.app_context():
+        g = GwasInfo.get_node("bgc-1")
 
 
 def test_add_new_gwas_info():

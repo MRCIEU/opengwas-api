@@ -175,3 +175,4 @@ class GwasInfoNodeSchema(FRPMSchema):
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
                        description="Select the genome build for your study", choices=valid_genome_build)
     status = fields.Str(required=False, allow_none=True)
+    md5 = fields.Str(required=False, allow_none=True)

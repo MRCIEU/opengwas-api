@@ -22,7 +22,7 @@ def test_release(url):
     }, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
-    assert isinstance(int(uid), int)
+    assert isinstance(int(uid.replace('bgc-', '')), int)
 
     # define gwas summary stats file
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
@@ -61,6 +61,6 @@ def test_release(url):
     r = requests.get(url + "/quality_control/list")
     assert r.status_code == 200
     todos = set()
-    for res in r:
+    for res in r.json():
         todos.add(res['id'])
     assert uid in todos

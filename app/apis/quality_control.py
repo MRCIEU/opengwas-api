@@ -57,7 +57,7 @@ class Release(Resource):
 
 
 @api.route('/delete')
-@api.doc(description="Release data from quality control process")
+@api.doc(description="Delete data from quality control process")
 class Delete(Resource):
     parser = api.parser()
     parser.add_argument(
