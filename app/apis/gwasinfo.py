@@ -138,7 +138,12 @@ class Delete(Resource):
         logger_info()
         args = self.parser.parse_args()
         user_uid = get_user_email(request.headers.get('X-Api-Token'))
-        check_user_is_admin(user_uid)
+
+        try:
+            check_user_is_admin(user_uid)
+        except PermissionError as e:
+            return {"message": str(e)}, 403
+
         delete_gwas(user_uid)
 
         return {"message": "successfully deleted."}, 200

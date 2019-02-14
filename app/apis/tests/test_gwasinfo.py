@@ -35,12 +35,14 @@ def test_gwasinfo4(url):
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 3
 
+
 # This time should have authentication to get private study
 def test_gwasinfo5(url):
     headers = {'X-API-TOKEN': token}
     payload = {}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) > 1000
+
 
 # Using GET
 def test_gwasinfo6(url):
@@ -52,6 +54,7 @@ def test_gwasinfo6(url):
 def test_gwasinfo7(url):
     r = requests.get(url + "/gwasinfo/2")
     assert r.status_code == 200 and len(r.json()) == 1
+
 
 # Using GET
 def test_gwasinfo8(url):
@@ -76,7 +79,7 @@ def test_gwasinfo_add_delete(url):
     # add record
     r = requests.post(url + "/gwasinfo/add", data=payload, headers=headers)
     uid = str(r.json()['id'])
-    assert r.status_code == 200 and isinstance(int(uid), int)
+    assert r.status_code == 200 and isinstance(int(uid.replace('bgc-', '')), int)
 
     # delete record
     payload = {'id': uid}
@@ -107,7 +110,7 @@ def test_gwasinfo_upload_plain_text(url):
     r = requests.post(url + "/gwasinfo/add", data=payload, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
-    assert isinstance(int(uid), int)
+    assert isinstance(int(uid.replace('bgc-', '')), int)
 
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
 
@@ -155,7 +158,7 @@ def test_gwasinfo_upload_gzip(url):
     r = requests.post(url + "/gwasinfo/add", data=payload, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
-    assert isinstance(int(uid), int)
+    assert isinstance(int(uid.replace('bgc-', '')), int)
 
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt.gz')
 

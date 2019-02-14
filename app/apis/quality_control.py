@@ -42,7 +42,12 @@ class Release(Resource):
         try:
             req = self.parser.parse_args()
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
-            check_user_is_admin(user_uid)
+
+            try:
+                check_user_is_admin(user_uid)
+            except PermissionError as e:
+                return {"message": str(e)}, 403
+
             gwas_info_id = req['id']
 
             add_quality_control(user_uid, gwas_info_id, req['passed_qc'] == "True", comment=req['comments'])
@@ -67,7 +72,12 @@ class Delete(Resource):
         try:
             req = self.parser.parse_args()
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
-            check_user_is_admin(user_uid)
+
+            try:
+                check_user_is_admin(user_uid)
+            except PermissionError as e:
+                return {"message": str(e)}, 403
+
             delete_quality_control(req['id'])
 
         except marshmallow.exceptions.ValidationError as e:
