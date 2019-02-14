@@ -87,7 +87,7 @@ def test_add_new_gwas_info():
             assert found[k] == d[k]
 
         # delete
-        delete_gwas('g.hemani@bristol.ac.uk', uid)
+        delete_gwas(uid)
 
         # check not in graph
         with pytest.raises(LookupError):

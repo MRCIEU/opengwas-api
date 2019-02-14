@@ -7,7 +7,6 @@ class GwasInfo(UniqueNode):
     _UID_KEY = 'id'
     _SCHEMA = GwasInfoNodeSchema
 
-    # TODO returns None
     @classmethod
     def get_next_numeric_id(cls):
         tx = Neo4j.get_db()
