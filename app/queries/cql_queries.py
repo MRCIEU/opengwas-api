@@ -9,8 +9,6 @@ from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import time
 import os
 
-# TODO only show passing qc data
-
 """Return all available GWAS summary datasets"""
 
 
@@ -99,16 +97,12 @@ def update_filename_and_path(uid, full_remote_file_path, md5):
     )
 
 
-def delete_gwas(uid, gwasid):
-    gids = get_groups_for_user(uid)
-
+def delete_gwas(gwasid):
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} "
-        "WITH distinct(gi) as gi "
+        "MATCH (gi:GwasInfo {id:{gwasid}}) "
         "OPTIONAL MATCH (gi)-[rel]-() "
         "DELETE rel, gi;",
-        gids=list(gids),
         gwasid=gwasid
     )
 

@@ -52,9 +52,15 @@ def test_release(url):
     r = requests.post(url + '/quality_control/release', data=payload, headers=headers)
     assert r.status_code == 200
 
-    # delete metadata
+    # delete quality control
     payload = {'id': uid}
     r = requests.delete(url + "/quality_control/delete", data=payload, headers=headers)
     assert r.status_code == 200
 
-    # TODO check deleted
+    # check deleted
+    r = requests.get(url + "/quality_control/list")
+    assert r.status_code == 200
+    todos = set()
+    for res in r:
+        todos.add(res['id'])
+    assert uid in todos

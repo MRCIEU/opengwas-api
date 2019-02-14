@@ -62,7 +62,8 @@ class Info(Resource):
             for gwas_info_id in args['id']:
                 try:
                     recs.append(get_gwas_for_user(user_email, str(gwas_info_id)))
-                except LookupError:
+                except LookupError as e:
+                    logging.warning("Could not locate study: {}".format(e))
                     continue
             return recs
 
@@ -138,7 +139,7 @@ class Delete(Resource):
         args = self.parser.parse_args()
         user_uid = get_user_email(request.headers.get('X-Api-Token'))
         check_user_is_admin(user_uid)
-        delete_gwas(user_uid, args['id'])
+        delete_gwas(user_uid)
 
         return {"message": "successfully deleted."}, 200
 
