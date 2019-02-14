@@ -52,6 +52,11 @@ def test_release(url):
     r = requests.post(url + '/quality_control/release', data=payload, headers=headers)
     assert r.status_code == 200
 
+    # delete quality control (permission denied)
+    payload = {'id': uid}
+    r = requests.delete(url + "/quality_control/delete", data=payload, headers={'X-API-TOKEN': 'null'})
+    assert r.status_code == 403
+
     # delete quality control
     payload = {'id': uid}
     r = requests.delete(url + "/quality_control/delete", data=payload, headers=headers)
