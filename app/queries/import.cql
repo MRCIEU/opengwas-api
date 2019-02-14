@@ -94,3 +94,11 @@ CREATE (gi)<-[:ACCESS_TO]-(gr)
 MATCH (n:User {uid:"ml18692@bristol.ac.uk"})
 MATCH (gr:Group {gid:999})
 CREATE (n)-[:MEMBER_OF]->(gr)
+
+//set all users to non-admin
+MATCH (u:User) SET u.admin = False
+
+//set admins TODO
+MATCH (u:User {uid:"baird.denis@gmail.com"}) SET u.admin = True
+MATCH (u:User {uid:"g.hemani@bristol.ac.uk"}) SET u.admin = True
+MATCH (u:User {uid:"matt.lyon@bristol.ac.uk"}) SET u.admin = True

@@ -37,13 +37,12 @@ class Release(Resource):
 
     @api.expect(parser)
     def post(self):
-        print('req', self.parser.parse_args())
         logger_info()
 
         try:
             req = self.parser.parse_args()
-            print('req', req)
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
+            check_user_is_admin(user_uid)
             gwas_info_id = req['id']
 
             add_quality_control(user_uid, gwas_info_id, req['passed_qc'] == "True", comment=req['comments'])
@@ -67,6 +66,8 @@ class Delete(Resource):
 
         try:
             req = self.parser.parse_args()
+            user_uid = get_user_email(request.headers.get('X-Api-Token'))
+            check_user_is_admin(user_uid)
             delete_quality_control(req['id'])
 
         except marshmallow.exceptions.ValidationError as e:
