@@ -62,7 +62,10 @@ def test_add_new_gwas_info():
     with app.app_context():
         # check returns id
         uid = add_new_gwas('g.hemani@bristol.ac.uk', d)
+        print(uid)
         assert int(uid) > 0
+
+        # TODO now returns string
 
         # TODO check new gwas requires qc
 
