@@ -30,7 +30,6 @@ class PhewasGet(Resource):
                 "snp_lookup"
             )
         except Exception as e:
-            print(e)
             abort(503)
         return {'data': out}
 
@@ -70,6 +69,5 @@ class PhewasPost(Resource):
                 "snp_lookup"
             )
         except Exception as e:
-            print(e)
             abort(503)
         return {'data': out}

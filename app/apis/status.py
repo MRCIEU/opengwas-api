@@ -45,5 +45,4 @@ def check_elastic():
         else:
             return "Available"
     except Exception as e:
-        print(e)
         return "Error"

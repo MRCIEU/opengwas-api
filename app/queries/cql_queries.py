@@ -197,7 +197,7 @@ def delete_quality_control(gwas_info_id):
 
 def check_user_is_admin(uid):
     u = User.get_node(uid)
-    if not 'admin' in u:
+    if 'admin' not in u:
         raise PermissionError("You must be an admin to complete this function")
     if not ['admin']:
         raise PermissionError("You must be an admin to complete this function")
