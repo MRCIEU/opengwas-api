@@ -196,7 +196,10 @@ def delete_quality_control(gwas_info_id):
 
 
 def check_user_is_admin(uid):
-    u = User.get_node(uid)
+    try:
+        u = User.get_node(uid)
+    except LookupError:
+        raise PermissionError("The token must resolve to a valid user")
     if 'admin' not in u:
         raise PermissionError("You must be an admin to complete this function")
     if not ['admin']:
