@@ -64,11 +64,20 @@ def test_add_new_gwas_info():
         uid = add_new_gwas('g.hemani@bristol.ac.uk', d)
         assert int(uid.replace('bgc-', '')) > 0
 
-        # TODO now returns string
+        # check new gwas requires qc
+        todos = set()
+        for todo in get_todo_quality_control():
+            todos.add(todo['id'])
+        assert uid in todos
 
-        # TODO check new gwas requires qc
+        # complete qc
+        add_quality_control('g.hemani@bristol.ac.uk', uid, True)
 
-        # TODO complete qc
+        # check gwas not need qc
+        todos = set()
+        for todo in get_todo_quality_control():
+            todos.add(todo['id'])
+        assert uid not in todos
 
         # check in graph query of qc passing
         found = get_gwas_for_user('NULL', uid)
