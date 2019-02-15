@@ -101,7 +101,7 @@ formatter=logging.Formatter('%(asctime)s %(msecs)d %(user)s %(threadName)s %(lev
 def setup_logger(name, log_file, level=logging.INFO):
 	# Create the log message rotatin file handler to the logger
 	# 10000000 = 10 MB
-	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=10000000, backupCount=100)
+	handler = logging.handlers.RotatingFileHandler(log_file,maxBytes=100 * 1024 * 1024, backupCount=10)
 	handler.setFormatter(formatter)
 
 	logger = logging.getLogger(name)
@@ -118,6 +118,9 @@ def setup_logger(name, log_file, level=logging.INFO):
 logger = setup_logger('info-log', LOG_FILE)
 #create debug log
 logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
+#disable logger2 in production
+logger2.disabled = True
+
 
 
 """
