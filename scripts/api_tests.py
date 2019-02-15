@@ -130,7 +130,7 @@ def test_apis():
 		print "\nRunning "+u+" ..."
 		url = u+q2
 		print url
-		#run_query(url)
+		run_query(url)
 		#run_query(url)
 
 def compare_dbs():
@@ -206,8 +206,8 @@ def stress_test():
 
 
 if __name__ == "__main__":
-	#test_apis()
+	test_apis()
 	#compare_dbs()
 	#db_test()
 	#test_permissions()
-	stress_test()
+	#stress_test()

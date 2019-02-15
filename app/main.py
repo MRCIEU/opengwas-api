@@ -23,14 +23,14 @@ from flask import current_app
 #cache
 #from flask import Flask
 #from flask_cache import Cache
-from flask_caching import Cache
+#from flask_caching import Cache
 
 app = Flask(__name__)
 # Check Configuring Flask-Cache section for more details
 #cache = Cache()
 #CACHE_TYPE='simple'
 #cache = Cache(app, config={'CACHE_TYPE': 'uwsgi','CACHE_UWSGI_NAME':'mycache@localhost'})
-cache = Cache(app,config={'CACHE_TYPE': 'filesystem','CACHE_DIR':'/tmp'})
+#cache = Cache(app,config={'CACHE_TYPE': 'filesystem','CACHE_DIR':'/tmp'})
 #cache = Cache(app,config={'CACHE_TYPE': 'simple'})
 #cache.init_app(app)
 #CACHE_DIR='/tmp/'
@@ -118,7 +118,7 @@ def setup_logger(name, log_file, level=logging.INFO):
 logger = setup_logger('info-log', LOG_FILE)
 #create debug log
 logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
-
+#logger2.disabled = True
 
 """
 
@@ -356,6 +356,7 @@ def query_summary_stats(token, snps, outcomes):
 	logger2.debug('len outcomes_access = '+str(len(outcomes_access)))
 	if len(outcomes_access)==0 and outcomes != 'snp_lookup':
 		return json.dumps([])
+	#this is slower than fetching all and filtering afterwards
 	#if outcomes == 'snp_lookup':
         #    ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='1e-5')
         #else:
@@ -1054,7 +1055,7 @@ Methods
 """
 
 @app.route("/")
-@cache.cached(timeout=50,key_prefix='hello')
+#@cache.cached(timeout=50,key_prefix='hello')
 def hello():
 	logger2.debug("INCOMING")
 	return "Welcome to the MR-Base API. This was automatically deployed."
@@ -1115,13 +1116,27 @@ def get_effects():
 	return json.dumps(query_summary_stats(request.args.get('access_token'), snps, outcomes))
 
 @app.route("/snp_lookup", methods=[ 'GET' ])
-@cache.cached(300, key_prefix='snp-lookup')
+#@cache.cached(300, key_prefix='snp-lookup')
 def snp_lookup():
 	logger.info('snp_lookup')
 	if not request.args.get('snps'):
 		return json.dumps([])
 	snps = joinarg('snps')
-	return json.dumps({'data':query_summary_stats(request.args.get('access_token'), snps, 'snp_lookup')})
+	search_type = request.args.get('search_type')
+	logger2.debug('search_type = '+search_type)
+	data = query_summary_stats(request.args.get('access_token'), snps, 'snp_lookup')
+	dataFilt=[]
+	if search_type == 'all':
+		dataFilt = data
+	else:
+		logger2.debug('Filtering...')
+		for d in data:
+			if float(d['p'])<1e-3:
+				dataFilt.append(d)
+			#logger.info(d)
+	logger2.debug(len(dataFilt))
+	logger2.debug('Done')
+	return json.dumps({'data':dataFilt})
 
 
 @app.route("/get_status", methods=[ 'GET' ])
@@ -1454,5 +1469,5 @@ def test_api_server():
 
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', debug=True, port=80)
-	#app.run(host='0.0.0.0', debug=True, port=8019)
+	#app.run(host='0.0.0.0', debug=True, port=80)
+	app.run(host='0.0.0.0', debug=True, port=8080)
