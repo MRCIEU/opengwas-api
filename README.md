@@ -98,7 +98,7 @@ pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url=http://apitest.mrbase.
 git clone git@github.com:MRCIEU/mr-base-api.git
 cd mr-base-api
 git fetch
-git checkout refactor
+git checkout restpluspy3
 ```
 
 ### Generate dirs
@@ -113,20 +113,24 @@ mkdir -p app/logs
 ### Create image
 
 ```
-docker build -t mr-base-api2-image .
+docker build -t mr-base-api-restpluspy3 .
+```
+
+### Create net and attach neo4j
+```
+docker network create mrb-net
+docker network connect  mrb-net  mrb-neo4j
 ```
 
 ### Create container mapping this repo to volume
 
 ```
-docker run -d -it --name mr-base-api2 -p 8082:80 --volume=`pwd`/app:/app mr-base-api2-image
+docker run -d -it --name mr-base-restpluspy3 --network mrb-net -p 8085:80 --volume=`pwd`/app:/app mr-base-api-restpluspy3
 ```
 
 Check it:
 
 ```
-docker logs -f mr-base-api2
-docker rm -f mr-base-api2
+docker logs -f mr-base-api-restpluspy3
+docker rm -f mr-base-api-restpluspy3
 ```
-
-
