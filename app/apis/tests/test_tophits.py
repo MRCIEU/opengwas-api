@@ -7,6 +7,7 @@ def test_tophits_post1(url):
 	headers = {'X-API-TOKEN': 'NULL'}
 	payload = {'id': [2,987], 'clump': 0}
 	r = requests.post(url + "/tophits", data=payload, headers=headers)
+	print(r.json())
 	assert r.status_code == 200 and len(r.json()) < 3000 and len(set([x.get('id') for x in r.json()])) == 1
 
 def test_tophits_post2(url):
