@@ -85,8 +85,16 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
             numRecords += int(ESRes[s]['hits']['total'])
             for hit in hits:
                 other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
-                if float(hit['_source']['effect_allele_freq']) < 999:
-                    effect_allele_freq = float(hit['_source']['effect_allele_freq'])
+
+                try:
+                    float(hit['_source']['effect_allele_freq'])
+                except (ValueError, TypeError) as e:
+                    print(e)
+                    print(hit['_source']['effect_allele_freq'])
+                    raise e
+
+                if hit['_source']['effect_allele_freq'] < 999:
+                    effect_allele_freq = hit['_source']['effect_allele_freq']
                 if hit['_source']['beta'] < 999:
                     # beta = "%4.3f" % float(hit['_source']['beta'])
                     beta = hit['_source']['beta']
