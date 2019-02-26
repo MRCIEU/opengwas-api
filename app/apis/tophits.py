@@ -136,10 +136,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                 except (ValueError, TypeError, IndexError) as e:
                     logger2.debug("Could not obtain other_allele for hit: {}".format(e))
 
-                try:
-                    name = hit['_source']['snp_id']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain name for hit: {}".format(e))
+                name = hit['_source']['snp_id']
 
                 # logger2.debug(hit)
                 # don't want data with no pval
