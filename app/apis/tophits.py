@@ -45,11 +45,16 @@ class Tophits(Resource):
 
 def extract_instruments(user_email, id, clump, pval, r2, kb):
     ### elastic query
+
     # fix outcomes
     outcomes = ",".join(["'" + x + "'" for x in id])
     outcomes_clean = outcomes.replace("'", "")
+
     # get available studies
-    study_access = set(get_all_gwas_ids_for_user(user_email))
+    study_access = set()
+    for s in get_all_gwas_ids_for_user(user_email):
+        study_access.add(str(s))
+
     # logger2.debug(sorted(study_access))
     logger2.debug('searching ' + outcomes_clean)
     outcomes_access = []
@@ -87,30 +92,55 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                 other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
 
                 try:
-                    float(hit['_source']['effect_allele_freq'])
-                except (ValueError, TypeError) as e:
-                    print(e)
-                    print(hit['_source']['effect_allele_freq'])
-                    raise e
+                    if hit['_source']['effect_allele_freq'] < 999:
+                        effect_allele_freq = hit['_source']['effect_allele_freq']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain effect allele frequency for hit: {}".format(e))
 
-                if hit['_source']['effect_allele_freq'] < 999:
-                    effect_allele_freq = hit['_source']['effect_allele_freq']
-                if hit['_source']['beta'] < 999:
-                    # beta = "%4.3f" % float(hit['_source']['beta'])
-                    beta = hit['_source']['beta']
-                if hit['_source']['se'] < 999:
-                    # se = "%03.02e" % float(hit['_source']['se'])
-                    se = hit['_source']['se']
-                if hit['_source']['p'] < 999:
-                    # p = "%03.02e" % float(hit['_source']['p'])
-                    p = hit['_source']['p']
-                if 'n' in hit['_source']:
-                    n = hit['_source']['n']
-                if 'effect_allele' in hit['_source']:
-                    effect_allele = hit['_source']['effect_allele']
-                if 'other_allele' in hit['_source']:
-                    other_allele = hit['_source']['other_allele']
-                name = hit['_source']['snp_id']
+                try:
+                    if hit['_source']['beta'] < 999:
+                        # beta = "%4.3f" % float(hit['_source']['beta'])
+                        beta = hit['_source']['beta']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain effect size for hit: {}".format(e))
+
+                try:
+                    if hit['_source']['se'] < 999:
+                        # se = "%03.02e" % float(hit['_source']['se'])
+                        se = hit['_source']['se']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain SE for hit: {}".format(e))
+
+                try:
+                    if hit['_source']['p'] < 999:
+                        # p = "%03.02e" % float(hit['_source']['p'])
+                        p = hit['_source']['p']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain P-val for hit: {}".format(e))
+
+                try:
+                    if 'n' in hit['_source']:
+                        n = hit['_source']['n']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain N for hit: {}".format(e))
+
+                try:
+                    if 'effect_allele' in hit['_source']:
+                        effect_allele = hit['_source']['effect_allele']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain effect_allele for hit: {}".format(e))
+
+                try:
+                    if 'other_allele' in hit['_source']:
+                        other_allele = hit['_source']['other_allele']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain other_allele for hit: {}".format(e))
+
+                try:
+                    name = hit['_source']['snp_id']
+                except (ValueError, TypeError, IndexError) as e:
+                    logger2.debug("Could not obtain name for hit: {}".format(e))
+
                 # logger2.debug(hit)
                 # don't want data with no pval
                 if p != '':

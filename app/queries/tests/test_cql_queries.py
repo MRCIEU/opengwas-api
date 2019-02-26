@@ -16,6 +16,14 @@ def test_get_all_gwas_ids():
         assert len(get_all_gwas_ids_for_user('NULL')) > 7900
 
 
+def test_get_all_gwas_ids_private():
+    app = flask.Flask(__name__)
+    with app.app_context():
+        res = get_all_gwas_ids_for_user('ml18692@bristol.ac.uk')
+        assert len(res) > 7900
+        assert '987' in res
+
+
 def test_get_groups_for_user():
     app = flask.Flask(__name__)
     with app.app_context():
