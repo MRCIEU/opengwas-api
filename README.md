@@ -68,7 +68,7 @@ TwoSampleMR::get_mrbase_access_token()
 This is an interactive process that requires logging in with a browser. To run the tests, from `/app` directory
 
 ```
-pytest -v
+pytest -v --url http://0.0.0.0:8019
 ```
 
 We can run specific groups of tests only

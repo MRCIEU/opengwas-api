@@ -35,7 +35,6 @@ class Tophits(Resource):
         args = parser1.parse_args()
 
         user_email = get_user_email(request.headers.get('X-Api-Token'))
-
         try:
             out = extract_instruments(user_email, args['id'], args['clump'], args['pval'], args['r2'], args['kb'])
         except:
@@ -55,14 +54,14 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
     for s in get_all_gwas_ids_for_user(user_email):
         study_access.add(str(s))
 
-    # logger2.debug(sorted(study_access))
     logger2.debug('searching ' + outcomes_clean)
-    outcomes_access = []
-    for o in outcomes_clean.split(','):
-        if o in study_access:
-            outcomes_access.append(o)
-        else:
-            logger2.debug(o + " not in access_list")
+    study_data = get_permitted_studies(user_email, outcomes)
+    print(study_data)
+    study_data = get_permitted_studies(user_email, id)
+    print(study_data)
+    outcomes_access = [x['id'] for x in study_data]
+    logger2.debug(str(outcomes_access))
+    # logger2.debug(sorted(study_access))
     if len(outcomes_access) == 0:
         logger2.debug('No outcomes left after permissions check')
         return json.dumps([], ensure_ascii=False)
@@ -78,7 +77,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
 
         # get study and snp data
         # study_data = study_info([outcomes])[outcomes]
-        study_data = study_info(outcomes)
+        study_data = study_info(id)
         # snp_data = snp_info(snpDic.keys(),'id_to_rsid')
         snp_data = snpDic.keys()
 
@@ -90,9 +89,8 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
             numRecords += int(ESRes[s]['hits']['total'])
             for hit in hits:
                 other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
-
                 try:
-                    if hit['_source']['effect_allele_freq'] < 999:
+                    if int(hit['_source']['effect_allele_freq']) < 999:
                         effect_allele_freq = hit['_source']['effect_allele_freq']
                 except (ValueError, TypeError, IndexError) as e:
                     logger2.debug("Could not obtain effect allele frequency for hit: {}".format(e))
@@ -137,8 +135,6 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                     logger2.debug("Could not obtain other_allele for hit: {}".format(e))
 
                 name = hit['_source']['snp_id']
-
-                # logger2.debug(hit)
                 # don't want data with no pval
                 if p != '':
                     assocDic = {'effect_allele': effect_allele,
@@ -154,10 +150,10 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                     if s != mrb_batch:
                         study_id = s + ':' + hit['_source']['study_id']
                     # make sure only to return available studies
-                    if study_id in study_data:
-                        assocDic.update(study_data[study_id])
-                        # logger2.debug(assocDic)
-                        # res.append(study_data)
+                    idlist = [x['id'] for x in study_data]
+                    if study_id in idlist:
+                        i = idlist.index(study_id)
+                        assocDic.update(study_data[i])
                         res.append(assocDic)
         studies = outcomes.strip().split(",")
         nsnps = len(res)
