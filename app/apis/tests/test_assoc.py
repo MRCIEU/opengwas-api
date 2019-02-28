@@ -11,21 +11,26 @@ def test_assoc_get1(url):
 	assert r.status_code == 200 and len(r.json()) == 1
 
 def test_assoc_get2(url):
-	r = requests.get(url + "/associations/2,987/rs234")
+	r = requests.get(url + "/associations/300/rs4988235")
 	assert r.status_code == 200 and len(r.json()) == 1
 
 def test_assoc_get3(url):
+	r = requests.get(url + "/associations/2,987/rs234")
+	assert r.status_code == 200 and len(r.json()) == 1
+
+def test_assoc_get4(url):
 	r = requests.get(url + "/associations/2,987,7/rs234")
 	assert r.status_code == 200 and len(r.json()) == 2
 
-def test_assoc_get4(url):
+def test_assoc_get5(url):
 	r = requests.get(url + "/associations/2,987,7/rs234,rs123")
 	assert r.status_code == 200 and len(r.json()) == 4
 
-def test_assoc_get5(url):
+def test_assoc_get6(url):
 	headers = {'X-API-TOKEN': token}
 	r = requests.get(url + "/associations/2,987,7/rs234,rs123", headers=headers)
 	assert r.status_code == 200 and len(r.json()) == 6
+
 
 
 ## POST
