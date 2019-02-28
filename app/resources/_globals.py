@@ -2,10 +2,12 @@ from elasticsearch import Elasticsearch
 import json
 import os.path
 from neo4j import GraphDatabase
+from resources._logger import logger2
 
 VERSION = '0.2.0'
 
 root_path = os.path.dirname(os.path.dirname(__file__))
+logger2.debug("root path {}".format(root_path))
 
 # Toggle for local vs deployed
 APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
@@ -16,6 +18,14 @@ UPLOAD_FOLDER = os.path.join('data', 'bgc')
 LOG_FILE = os.path.join(root_path, 'logs', 'mrbaseapi.log')
 LOG_FILE_DEBUG = os.path.join(root_path, 'logs', 'mrbaseapi-debug.log')
 
+logger2.debug("APP_CONF {}".format(APP_CONF))
+logger2.debug("PLINK {}".format(PLINK))
+logger2.debug("LD_REF {}".format(LD_REF))
+logger2.debug("TMP_FOLDER {}".format(TMP_FOLDER))
+logger2.debug("UPLOAD_FOLDER {}".format(UPLOAD_FOLDER))
+logger2.debug("LOG_FILE {}".format(LOG_FILE))
+logger2.debug("LOG_FILE_DEBUG {}".format(LOG_FILE_DEBUG))
+
 OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
 USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
 ALLOWED_EXTENSIONS = {'txt'}
@@ -23,10 +33,10 @@ ALLOWED_EXTENSIONS = {'txt'}
 with open(APP_CONF) as f:
     app_config = json.load(f)
 if os.path.isfile('local') is True:
-    print("local")
+    logger2.debug("local")
     app_config = app_config['local']
 else:
-    print("production")
+    logger2.debug("production")
     app_config = app_config['production']
 
 dbConnection = GraphDatabase.driver(
