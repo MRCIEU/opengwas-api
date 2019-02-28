@@ -13,7 +13,9 @@ class GwasInfo(UniqueNode):
         results = tx.run(
             "MATCH (n:" + cls.get_node_label() + ") WHERE n." + cls._UID_KEY + " =~ 'bgc-[0-9]*' RETURN max(toInteger(substring(n." + cls._UID_KEY + ", 4))) + 1 as uid;"
         )
-        if results.single() is None:
-            return 'bgc-1'
+        result = results.single()
+
+        if result['uid'] is None:
+            return "bgc-1"
         else:
-            return 'bgc-' + str(results.single()['uid'])
+            return "bgc-" + str(result['uid'])
