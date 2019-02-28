@@ -55,12 +55,6 @@ def test_check_user_is_admin():
         u = User.get_node("ml18692@bristol.ac.uk")
 
 
-def test_get_node_with_new_prefix():
-    app = flask.Flask(__name__)
-    with app.app_context():
-        g = GwasInfo.get_node("bgc-1")
-
-
 def test_add_new_gwas_info():
     d = {'pmid': 1234, 'year': 2013,
          'filename': 'test.tab',
