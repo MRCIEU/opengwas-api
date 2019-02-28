@@ -30,8 +30,8 @@
     "neo4j": {
       "user": "matt",
       "passwd": "dT9ymYwBsrzd",
-      "host": "mrb-neo4j",
-      "port": 7687
+      "host": "ieu-db-interface.epi.bris.ac.uk",
+      "port": 27687
     },
     "email": {
       "CLIENT_ID": "",

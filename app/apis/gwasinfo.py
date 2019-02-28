@@ -183,7 +183,7 @@ class Upload(Resource):
     @staticmethod
     def read_gzip(p, sep, args):
         with gzip.open(p, 'rt', encoding='utf-8') as f:
-            if args['header'] == 'True':
+            if args['header']:
                 f.readline()
 
             for line in f:
@@ -192,7 +192,7 @@ class Upload(Resource):
     @staticmethod
     def read_plain_text(p, sep, args):
         with open(p, 'r') as f:
-            if args['header'] == 'True':
+            if args['header']:
                 f.readline()
 
             for line in f:
@@ -243,13 +243,24 @@ class Upload(Resource):
     def post(self):
         logger_info()
         args = self.parser.parse_args()
+
         study_folder = os.path.join(UPLOAD_FOLDER, args['id'])
+        raw_folder = os.path.join(study_folder, 'raw')
 
         # make folder for new dataset
         if not os.path.exists(study_folder):
             os.makedirs(study_folder)
 
-        output_path = os.path.join(study_folder, args['id'] + "_" + str(int(time.time())))
+        if not os.path.exists(raw_folder):
+            os.makedirs(raw_folder)
+
+        output_path = os.path.join(raw_folder, args['id'] + "_" + str(int(time.time())))
+
+        if args['gzipped']:
+            output_path += '.txt.gz'
+        else:
+            output_path += '.txt'
+
         args['gwas_file'].save(output_path)
 
         sep = None
@@ -259,7 +270,7 @@ class Upload(Resource):
             sep = "\t"
 
         try:
-            if args['gzipped'] == 'True':
+            if args['gzipped']:
                 Upload.read_gzip(output_path, sep, args)
             else:
                 Upload.read_plain_text(output_path, sep, args)
