@@ -1,7 +1,9 @@
 from marshmallow import fields, ValidationError
 from schemas.frpm_schema import FRPMSchema
+import re
 
 valid_alleles = {'a', 't', 'c', 'g', 'i', 'd'}
+dbsnp_reg = re.compile('^rs[0-9]*')
 
 
 def check_alleles(data):
@@ -10,8 +12,14 @@ def check_alleles(data):
             raise ValidationError("Allele must be one of: {}".format(valid_alleles))
 
 
+def check_dbsnpid(data):
+    if not dbsnp_reg.match(data):
+        raise ValidationError("Invalid dbsnp identifier: {}".format(data))
+
+
 class GwasRowSchema(FRPMSchema):
-    snp = fields.Str(required=False, allow_none=True, description="dbsnp identifier for variant")
+    snp = fields.Str(required=False, allow_none=True, validate=check_dbsnpid,
+                     description="dbsnp identifier for variant")
     ea = fields.Str(required=True, allow_none=False, validate=check_alleles, description="Effect allele")
     oa = fields.Str(required=True, allow_none=False, validate=check_alleles, description="Other allele")
     eaf = fields.Float(required=False, allow_none=True, description="Effect allele frequency")

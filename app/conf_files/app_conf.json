@@ -13,6 +13,10 @@
       "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 27687
     },
+    "redis": {
+      "host": "ieu-db-interface.epi.bris.ac.uk",
+      "port": 6379
+    },
     "email": {
       "CLIENT_ID": "",
       "CLIENT_SECRET": "",
@@ -32,6 +36,10 @@
       "passwd": "dT9ymYwBsrzd",
       "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 27687
+    },
+    "redis": {
+      "host": "mrb-redis",
+      "port": 6379
     },
     "email": {
       "CLIENT_ID": "",
