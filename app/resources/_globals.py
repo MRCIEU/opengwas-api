@@ -34,9 +34,11 @@ with open(APP_CONF) as f:
 if os.path.isfile('local') is True:
     print("local")
     app_config = app_config['local']
+    print(app_config)
 else:
     print("production")
     app_config = app_config['production']
+    print(app_config)
 
 dbConnection = GraphDatabase.driver(
     'bolt://' + app_config['neo4j']['host'] + ":" + str(app_config['neo4j']['port']),
