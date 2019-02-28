@@ -50,6 +50,7 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
 
 def plink_ldsquare_rs(upload_folder, snps):
     try:
+        out = {}
         fn = str(uuid.uuid4())
         filename = os.path.join(upload_folder, fn + "_recode")
         filenameb = os.path.join(upload_folder, fn + "_recode.bim")
@@ -91,20 +92,24 @@ def plink_ldsquare_rs(upload_folder, snps):
         if not os.path.isfile(filename_c):
             logger2.debug("no file found")
             [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
-            return ['NA']
+            return {'snplist': '', 'matrix': []}
 
-        mat = []
+
         f = open(filenameka, "r")
-        mat.append(filter(None, f.read().split("\n")))
+        out["snplist"] = list(filter(None, f.read().split("\n")))
         f.close()
 
+        mat = []
         f = open(filename_c, "r")
         for line in open(filename_c, "r").readlines():
             mat.append(line.strip("\n").split("\t"))
         f.close()
-
+        out["matrix"] = mat
     finally:
-        # logger2.debug("finished")
+        # print(upload_folder)
+        logger2.debug("finished")
         [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
 
-    return mat
+    print(str(out))
+
+    return out
