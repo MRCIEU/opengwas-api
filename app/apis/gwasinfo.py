@@ -10,6 +10,7 @@ from resources._globals import UPLOAD_FOLDER
 import hashlib
 import gzip
 from schemas.gwas_row_schema import GwasRowSchema
+import json
 
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
@@ -254,12 +255,10 @@ class Upload(Resource):
         if not os.path.exists(raw_folder):
             os.makedirs(raw_folder)
 
-        output_path = os.path.join(raw_folder, args['id'] + "_" + str(int(time.time())))
-
         if args['gzipped']:
-            output_path += '.txt.gz'
+            output_path = os.path.join(raw_folder, 'uploaded.txt.gz')
         else:
-            output_path += '.txt'
+            output_path = os.path.join(raw_folder, 'uploaded.txt')
 
         args['gwas_file'].save(output_path)
 
@@ -283,5 +282,9 @@ class Upload(Resource):
 
         # update the graph
         update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
+
+        # write to json
+        with open(os.path.join(raw_folder, 'uploaded.json'), 'w') as f:
+            json.dump(args, f)
 
         return {'message': 'Upload successful'}, 201
