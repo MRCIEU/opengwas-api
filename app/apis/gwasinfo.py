@@ -178,14 +178,14 @@ class Upload(Resource):
     parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
                         help="Column delimiter for file")
     parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
-                        choices=(True, False))
+                        choices=('True', 'False'))
     parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
-                        choices=(True, False))
+                        choices=('True', 'False'))
 
     @staticmethod
     def read_gzip(p, sep, args):
         with gzip.open(p, 'rt', encoding='utf-8') as f:
-            if args['header']:
+            if args['header'] == 'True':
                 f.readline()
 
             for line in f:
@@ -194,7 +194,7 @@ class Upload(Resource):
     @staticmethod
     def read_plain_text(p, sep, args):
         with open(p, 'r') as f:
-            if args['header']:
+            if args['header'] == 'True':
                 f.readline()
 
             for line in f:
@@ -256,18 +256,21 @@ class Upload(Resource):
         if not os.path.exists(raw_folder):
             os.makedirs(raw_folder)
 
-        if args['gzipped']:
+        if args['gzipped'] == 'True':
             output_path = os.path.join(raw_folder, 'upload.txt.gz')
         else:
             output_path = os.path.join(raw_folder, 'upload.txt')
 
+        # save file to server
         args['gwas_file'].save(output_path)
 
         # compress file
-        if not args['gzipped']:
+        if args['gzipped'] != 'True':
             with open(output_path, 'rb') as f_in:
                 with gzip.open(output_path + '.gz', 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
+            os.remove(output_path)
+            output_path += '.gz'
 
         sep = None
         if args['delimiter'] == 'comma':
@@ -276,10 +279,7 @@ class Upload(Resource):
             sep = "\t"
 
         try:
-            if args['gzipped']:
-                Upload.read_gzip(output_path, sep, args)
-            else:
-                Upload.read_plain_text(output_path, sep, args)
+            Upload.read_gzip(output_path, sep, args)
         except OSError:
             return {'message': 'Could not read file. Check encoding'}, 400
         except marshmallow.exceptions.ValidationError as e:
@@ -291,8 +291,10 @@ class Upload(Resource):
         update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
 
         # write to json
+        j = args
+        j.pop('gwas_file', None)
         with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
-            json.dump(args, f)
+            json.dump(j, f)
 
         # write out flag
         with open(os.path.join(study_folder, 'flag.upload_complete'), 'w') as f:
