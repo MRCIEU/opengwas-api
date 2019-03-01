@@ -176,9 +176,9 @@ class Upload(Resource):
     parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
                         help="Column delimiter for file")
     parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
-                        choices=('True', 'False'))
+                        choices=(True, False))
     parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
-                        choices=('True', 'False'))
+                        choices=(True, False))
 
     @staticmethod
     def read_gzip(p, sep, args):
