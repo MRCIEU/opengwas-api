@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch
 import json
 import os.path
+import platform
 from neo4j import GraphDatabase
 
 VERSION = '0.2.0'
@@ -10,7 +11,7 @@ print("root path {}".format(root_path))
 
 # Toggle for local vs deployed
 APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
-PLINK = os.path.join(root_path, 'ld_files', 'plink1.90')
+PLINK = os.path.join(root_path, 'bin', 'plink'+'_'+platform.system())
 LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
 TMP_FOLDER = os.path.join(root_path, 'tmp')
 UPLOAD_FOLDER = os.path.join(os.sep, 'data', 'bgc')

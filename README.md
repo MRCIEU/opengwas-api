@@ -68,7 +68,7 @@ TwoSampleMR::get_mrbase_access_token()
 This is an interactive process that requires logging in with a browser. To run the tests, from `/app` directory
 
 ```
-pytest -v --url http://0.0.0.0:8019
+pytest -v
 ```
 
 We can run specific groups of tests only
@@ -83,10 +83,10 @@ Or specific tests only
 pytest -v apis/tests/test_assoc.py::test_assoc_get1
 ```
 
-By default it will run tests for local API located at `http://localhost:8019`. However we can run for other deployed APIs e.g.
+By default it will run tests for local API located at `http://localhost:8019` (defined here `apis/tests/conftest.py`. However we can run for other deployed APIs e.g.
 
 ```
-pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url=http://apitest.mrbase.org
+pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url http://apitest.mrbase.org
 ```
 
 
