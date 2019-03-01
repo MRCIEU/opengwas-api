@@ -10,6 +10,8 @@ from resources._globals import UPLOAD_FOLDER
 import hashlib
 import gzip
 from schemas.gwas_row_schema import GwasRowSchema
+import json
+import shutil
 
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
@@ -176,14 +178,14 @@ class Upload(Resource):
     parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
                         help="Column delimiter for file")
     parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
-                        choices=('True', 'False'))
+                        choices=(True, False))
     parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
-                        choices=('True', 'False'))
+                        choices=(True, False))
 
     @staticmethod
     def read_gzip(p, sep, args):
         with gzip.open(p, 'rt', encoding='utf-8') as f:
-            if args['header'] == 'True':
+            if args['header']:
                 f.readline()
 
             for line in f:
@@ -192,7 +194,7 @@ class Upload(Resource):
     @staticmethod
     def read_plain_text(p, sep, args):
         with open(p, 'r') as f:
-            if args['header'] == 'True':
+            if args['header']:
                 f.readline()
 
             for line in f:
@@ -243,14 +245,29 @@ class Upload(Resource):
     def post(self):
         logger_info()
         args = self.parser.parse_args()
+
         study_folder = os.path.join(UPLOAD_FOLDER, args['id'])
+        raw_folder = os.path.join(study_folder, 'raw')
 
         # make folder for new dataset
         if not os.path.exists(study_folder):
             os.makedirs(study_folder)
 
-        output_path = os.path.join(study_folder, args['id'] + "_" + str(int(time.time())))
+        if not os.path.exists(raw_folder):
+            os.makedirs(raw_folder)
+
+        if args['gzipped']:
+            output_path = os.path.join(raw_folder, 'upload.txt.gz')
+        else:
+            output_path = os.path.join(raw_folder, 'upload.txt')
+
         args['gwas_file'].save(output_path)
+
+        # compress file
+        if not args['gzipped']:
+            with open(output_path, 'rb') as f_in:
+                with gzip.open(output_path + '.gz', 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
 
         sep = None
         if args['delimiter'] == 'comma':
@@ -259,7 +276,7 @@ class Upload(Resource):
             sep = "\t"
 
         try:
-            if args['gzipped'] == 'True':
+            if args['gzipped']:
                 Upload.read_gzip(output_path, sep, args)
             else:
                 Upload.read_plain_text(output_path, sep, args)
@@ -272,5 +289,13 @@ class Upload(Resource):
 
         # update the graph
         update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
+
+        # write to json
+        with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
+            json.dump(args, f)
+
+        # write out flag
+        with open(os.path.join(study_folder, 'flag.upload_complete'), 'w') as f:
+            f.write('')
 
         return {'message': 'Upload successful'}, 201
