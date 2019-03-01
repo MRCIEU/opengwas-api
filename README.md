@@ -43,6 +43,7 @@ The presence of a file called `app/local` will signify that we are running local
 
 ```
 touch local
+touch app/queries/tests/local
 ```
 
 ### Start the API
