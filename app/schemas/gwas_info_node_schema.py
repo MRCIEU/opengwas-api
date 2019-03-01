@@ -117,7 +117,7 @@ def check_imputation_panel_is_valid(data):
 
 def check_genome_build_is_valid(data):
     if data not in valid_genome_build:
-        raise ValidationError("Genome build must be one of: {}".format(valid_genome_build))
+        raise ValidationError("Imputation panel must be one of: {}".format(valid_genome_build))
 
 
 class GwasInfoNodeSchema(FRPMSchema):
@@ -176,19 +176,3 @@ class GwasInfoNodeSchema(FRPMSchema):
                        description="Select the genome build for your study", choices=valid_genome_build)
     status = fields.Str(required=False, allow_none=True)
     md5 = fields.Str(required=False, allow_none=True)
-
-    # file format
-    chr_col = fields.Int(required=False, allow_none=True)
-    pos_col = fields.Int(required=False, allow_none=True)
-    snp_col = fields.Int(required=False, allow_none=True)
-    ea_col = fields.Int(required=False, allow_none=True)
-    oa_col = fields.Int(required=False, allow_none=True)
-    eaf_col = fields.Int(required=False, allow_none=True)
-    beta_col = fields.Int(required=False, allow_none=True)
-    se_col = fields.Int(required=False, allow_none=True)
-    pval_col = fields.Int(required=False, allow_none=True)
-    ncontrol_col = fields.Int(required=False, allow_none=True)
-    ncase_col = fields.Int(required=False, allow_none=True)
-    delimiter = fields.Int(required=False, allow_none=True)
-    header = fields.Int(required=False, allow_none=True)
-    gzipped = fields.Int(required=False, allow_none=True)

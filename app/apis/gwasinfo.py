@@ -102,25 +102,7 @@ class Add(Resource):
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
     parser.add_argument('gid', type=int, required=True, help='Identifier for the group this study should belong to.')
-    GwasInfoNodeSchema.populate_parser(parser, ignore={
-        GwasInfo.get_uid_key(),
-        'filename',
-        'path',
-        'chr_col',
-        'pos_col',
-        'snp_col',
-        'ea_col',
-        'oa_col',
-        'eaf_col',
-        'beta_col',
-        'se_col,'
-        'pval_col',
-        'ncontrol_col',
-        'ncase_col',
-        'delimiter'
-        'header',
-        'gzipped'
-    })
+    GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key(), 'filename', 'path'})
 
     @api.expect(parser)
     def post(self):
@@ -300,11 +282,6 @@ class Upload(Resource):
             return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
 
         # update the graph
-        update_gwasinfo_file(
-            str(args['id']),
-            output_path,
-            Upload.md5(output_path),
-            **args
-        )
+        update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
 
         return {'message': 'Upload successful'}, 201
