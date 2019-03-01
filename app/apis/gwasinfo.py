@@ -11,6 +11,7 @@ import hashlib
 import gzip
 from schemas.gwas_row_schema import GwasRowSchema
 import json
+import shutil
 
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
@@ -256,11 +257,17 @@ class Upload(Resource):
             os.makedirs(raw_folder)
 
         if args['gzipped']:
-            output_path = os.path.join(raw_folder, 'uploaded.txt.gz')
+            output_path = os.path.join(raw_folder, 'upload.txt.gz')
         else:
-            output_path = os.path.join(raw_folder, 'uploaded.txt')
+            output_path = os.path.join(raw_folder, 'upload.txt')
 
         args['gwas_file'].save(output_path)
+
+        # compress file
+        if not args['gzipped']:
+            with open(output_path, 'rb') as f_in:
+                with gzip.open(output_path + '.gz', 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
 
         sep = None
         if args['delimiter'] == 'comma':
@@ -284,7 +291,11 @@ class Upload(Resource):
         update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
 
         # write to json
-        with open(os.path.join(raw_folder, 'uploaded.json'), 'w') as f:
+        with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
             json.dump(args, f)
+
+        # write out flag
+        with open(os.path.join(study_folder, 'flag.upload_complete'), 'w') as f:
+            f.write('')
 
         return {'message': 'Upload successful'}, 201
