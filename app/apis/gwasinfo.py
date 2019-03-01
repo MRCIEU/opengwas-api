@@ -291,8 +291,11 @@ class Upload(Resource):
         update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
 
         # write to json
-        j = args
-        j.pop('gwas_file', None)
+        j = dict()
+        for k in args:
+            if args[k] is not None and k != 'gwas_file' and k != 'X-Api-Token':
+                j[k] = args[k]
+
         with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
             json.dump(j, f)
 
