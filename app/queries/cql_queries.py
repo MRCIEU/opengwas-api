@@ -83,17 +83,50 @@ def add_new_gwas(user_email, gwas_info_dict, group=1):
     return gwas_info_dict['id']
 
 
-def update_filename_and_path(uid, full_remote_file_path, md5):
+def update_gwasinfo_file(
+        uid,
+        full_remote_file_path,
+        md5,
+        ea_col,
+        oa_col,
+        beta_col,
+        se_col,
+        pval_col,
+        delimiter,
+        header,
+        gzipped,
+        chr_col=None,
+        pos_col=None,
+        snp_col=None,
+        eaf_col=None,
+        ncontrol_col=None,
+        ncase_col=None):
     if not os.path.exists(full_remote_file_path):
         raise FileNotFoundError("The GWAS file does not exist on this server: {}".format(full_remote_file_path))
 
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (gi:GwasInfo {id:{uid}}) SET gi.filename={filename}, gi.path={path}, gi.md5={md5};",
-        uid=uid,
-        path=os.path.dirname(full_remote_file_path),
-        filename=os.path.basename(full_remote_file_path),
-        md5=md5
+        "MATCH (gi:GwasInfo {id:{uid}}) SET += {params};",
+        params=dict(
+            uid=uid,
+            path=os.path.dirname(full_remote_file_path),
+            filename=os.path.basename(full_remote_file_path),
+            md5=md5,
+            ea_col=ea_col,
+            oa_col=oa_col,
+            beta_col=beta_col,
+            se_col=se_col,
+            pval_col=pval_col,
+            delimiter=delimiter,
+            header=header,
+            gzipped=gzipped,
+            chr_col=chr_col,
+            pos_col=pos_col,
+            snp_col=snp_col,
+            eaf_col=eaf_col,
+            ncontrol_col=ncontrol_col,
+            ncase_col=ncase_col
+        )
     )
 
 
