@@ -126,7 +126,7 @@ docker network connect  mrb-net  mrb-neo4j
 ### Create container mapping this repo to volume
 
 ```
-docker create --name mr-base-restpluspy3 -p 8085:80 --volume=/data/bgc:/data/bgc --volume=`pwd`/app:/app mr-base-api-restpluspy3
+docker create --name mr-base-restpluspy3 -p 8082:80 --volume=/data/bgc:/data/bgc --volume=`pwd`/app:/app mr-base-api-restpluspy3
 docker network connect mrb-net mr-base-restpluspy3
 docker start mr-base-restpluspy3
 ```
