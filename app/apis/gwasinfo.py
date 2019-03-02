@@ -150,7 +150,8 @@ class Delete(Resource):
 
         return {"message": "successfully deleted."}, 200
 
-
+# TODO collect imp_z_col , imp_info_col
+# TODO write build to json
 @api.route('/upload')
 @api.doc(description="Upload GWAS summary stats file to MR Base")
 class Upload(Resource):
