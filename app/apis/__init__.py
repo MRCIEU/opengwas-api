@@ -6,6 +6,7 @@ from .assoc import api as assoc
 from .phewas import api as phewas
 from .tophits import api as tophits
 from .quality_control import api as quality_control
+from .edit import api as edit
 from resources._globals import VERSION
 from .ld import api as ld
 
