@@ -10,7 +10,7 @@ from resources._globals import VERSION
 from .ld import api as ld
 
 api = Api(version=VERSION, title='Bristol GWAS Collection',
-          description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full')
+          description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full', doc='/docs/')
 
 api.add_namespace(status)
 api.add_namespace(assoc)
@@ -19,3 +19,4 @@ api.add_namespace(tophits)
 api.add_namespace(ld)
 api.add_namespace(gwasinfo)
 api.add_namespace(quality_control)
+api.add_namespace(edit)
