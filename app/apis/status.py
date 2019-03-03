@@ -48,7 +48,7 @@ def count_elastic_records():
         print(out)
         return out
     except Exception as e:
-        return "Error"
+        return None
 
 
 # TODO: This doesn't work
@@ -63,9 +63,12 @@ def count_elastic_calls(epoch='30d'):
 
 
 def count_neo4j_datasets():
-    tx = Neo4j.get_db()
-    res = tx.run("MATCH (n:GwasInfo) return count(n) as n").single()[0]
-    return(res)
+    try:
+        tx = Neo4j.get_db()
+        res = tx.run("MATCH (n:GwasInfo) return count(n) as n").single()[0]
+        return(res)
+    except Exception as e:
+        return None
 
 
 def check_elastic():

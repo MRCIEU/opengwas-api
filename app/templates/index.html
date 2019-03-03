@@ -20,13 +20,31 @@
 <div class="container" style="background-color: 'green';">
 <div class="bs-component">
 	<div class="jumbotron">
-		<h1 class="display-3">Bristol GWAS collection</h1>
-		<p class="lead">This is a REST API enabling rapid access to a database of complete GWAS summary datasets and various LD operations.</p>
-
-		<hr class="my-4">
-
 		<div class="row">
-			<div class="col-lg-4">
+			<div class="col-lg-7">
+				<h1 class="display-3">Bristol GWAS collection</h1>
+				<p class="lead">This is a REST API enabling rapid access to a database of complete GWAS summary datasets and basic LD operations.</p>
+				<hr class="my-4">
+				<p>These operations are also accessible through convenient functions in the <a href="https://github.com/MRCIEU/TwoSampleMR/">TwoSampleMR</a> R package.</p>
+			</div>
+			<div class="col-lg-5">
+				<p class="lead">
+					{% if elastic_counts %}
+					<span class="badge badge-info">{{ "{:,}".format(elastic_counts) }}</span> genetic associations<br/>
+					{% endif %}
+					{% if neo4j_counts %}
+					<span class="badge badge-info">{{ "{:,}".format(neo4j_counts) }}</span> complete GWAS summary datasets.
+					{% endif %}
+				</p>
+
+				<hr class="my-4">
+				
+				<p class="text-center">API Version: <span class="badge badge-warning">{{ status['API version'] }}</span></p>
+				<p class="lead text-center">
+		  			<a class="btn btn-primary btn-lg" href="/docs/" role="button">Documentation</a>
+				</p>
+
+				<hr class="my-4">
 				<div class="alert alert-dismissible alert-light">
 					<ul class="list-group">
 						<li class=" d-flex justify-content-between align-items-center">Neo4j status<span class="badge badge-warning">{{ status['Neo4j status'] }}</span></li>
@@ -36,49 +54,44 @@
 					</ul>
 				</div>
 			</div>
-			<div class="col-lg-8 text-center">
-				<p class="lead"><span class="badge badge-info">{{ "{:,}".format(elastic_counts) }}</span> genetic associations across<br/>
-				<span class="badge badge-info">{{ "{:,}".format(neo4j_counts) }}</span> complete GWAS summary datasets.
-				</p>
-				<p>API Version: <span class="badge badge-warning">{{ status['API version'] }}</span></p>
-				<p class="lead">
-		  			<a class="btn btn-primary btn-lg" href="/docs/" role="button">Documentation</a>
-				</p>
-				<p>Also accessible through the <a href="https://github.com/MRCIEU/TwoSampleMR/">TwoSampleMR</a>  R package.</p>
-			</div>
 		</div>
 
 </div>
 </div>
 
-<p class="lead">
-		<a class="btn btn-primary btn-lg" href="mailto:mr-base@bristol.ac.uk" role="button">Contact us</a> to contribute data, provide feedback or seek assistance
-</p>
 
+				<p><a class="btn btn-primary btn-lg" href="mailto:mr-base@bristol.ac.uk" role="button">Contact us</a> to contribute data, provide feedback or seek assistance</p>
 <hr class="my-4">
 
-<h3>Linked services</h3>
-
-<ul>
-	<li><a href="http://www.mrbase.org/">MR-Base</a></li>
-	<li><a href="http://ldsc.broadinstitute.org/ldhub/">LD Hub</a></li>
-	<li><a href="https://github.com/MRCIEU/TwoSampleMR/">R/TwoSampleMR</a></li>
-	<li><a href="http://eve.mrbase.org/">MR-EVE</a></li>
-	<li><a href="http://www.epigraphdb.org/">EpigraphDB</a></li>
-</ul>
+<div class="row">
+	<div class="col-lg-8">
+		<div class="card text-white bg-primary mb-3">
+			<div class="card-body">
+				<h4 class="card-title">Citation</h4>
+				<p class="card-text">If you use this resource please cite:</p>
+				<p class="card-text">Gibran Hemani, Jie Zheng, Benjamin Elsworth, Kaitlin H Wade, Valeriia Haberland, Denis Baird, Charles Laurin, Stephen Burgess, Jack Bowden, Ryan Langdon, Vanessa Y Tan, James Yarmolinsky, Hashem A Shihab, Nicholas J Timpson, David M Evans, Caroline Relton, Richard M Martin, George Davey Smith, Tom R Gaunt, Philip C Haycock<br/><b>The MR-Base platform supports systematic causal inference across the human phenome.</b><br/><i>eLife 2018. doi: <a href="https://doi.org/10.7554/eLife.34408">https://doi.org/10.7554/eLife.34408</a></i></p>
+				<p class="card-text">along with any publications that gave rise to the data that you queried</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-4">
+		<div class="card text-white bg-primary mb-3">
+			<div class="card-body">
+				<h4 class="card-title">Linked services</h4>
+					<ul>
+						<li><a href="http://www.mrbase.org/">MR-Base</a></li>
+						<li><a href="http://ldsc.broadinstitute.org/ldhub/">LD Hub</a></li>
+						<li><a href="https://github.com/MRCIEU/TwoSampleMR/">R/TwoSampleMR</a></li>
+						<li><a href="http://eve.mrbase.org/">MR-EVE</a></li>
+						<li><a href="http://www.epigraphdb.org/">EpigraphDB</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 
 <hr class="my-4">
-
-
-<h3>Citation</h3>
-<p>If you use this resource please cite:</p>
-<p>Gibran Hemani, Jie Zheng, Benjamin Elsworth, Kaitlin H Wade, Valeriia Haberland, Denis Baird, Charles Laurin, Stephen Burgess, Jack Bowden, Ryan Langdon, Vanessa Y Tan, James Yarmolinsky, Hashem A Shihab, Nicholas J Timpson, David M Evans, Caroline Relton, Richard M Martin, George Davey Smith, Tom R Gaunt, Philip C Haycock<br/><b>The MR-Base platform supports systematic causal inference across the human phenome.</b><br/><i>eLife 2018. doi: <a href="https://doi.org/10.7554/eLife.34408">https://doi.org/10.7554/eLife.34408</a></i></p>
-<p>along with any publications that gave rise to the data that you queried</p>
-
-
-
-<hr class="my-4">
-
 
 <p class="text-center">
 	<a href="https://www.elastic.co" target="_blank"><img src="{{ url_for('static', filename='img/elastic.png') }}" height="40" hspace="20"></a>
