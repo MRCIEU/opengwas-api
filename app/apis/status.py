@@ -12,7 +12,7 @@ api = Namespace('status', description="Status of API and linked resources")
 @api.doc(description="Check services are running")
 class Status(Resource):
     def get(self):
-
+        print(str(count_elastic_calls()))
         logger_info()
         return check_all()
 
@@ -49,6 +49,18 @@ def count_elastic_records():
         return out
     except Exception as e:
         return "Error"
+
+
+# TODO: This doesn't work
+# curl -XPOST 'localhost:9200/logstash*/_search' -H 'Content-Type: application/json' -d '{"_source":"/var/www/api/mr-base-api/app/logs/mrbaseapi.log","size":0, "query": { "bool": {"filter": { "range": { "@timestamp": {"gte": "now-30d", "lte": "now"}}}}}, "aggs" : {"api-calls" : {"date_histogram" : {"field" : "@timestamp","interval" : "day"}}}}' | jq '.aggregations."api-calls".buckets'
+def count_elastic_calls(epoch='30d'):
+    url = 'http://' + app_config['es']['host'] + ':' + str(app_config['es']['port']) + "/logstash*/_search"
+
+    payload = {"_source":"/var/www/api/mr-base-api/app/logs/mrbaseapi.log","size":0, "query": { "bool": {"filter": { "range": { "@timestamp": {"gte": "now-"+epoch, "lte": "now"}}}}}, "aggs" : {"api-calls" : {"date_histogram" : {"field" : "@timestamp","interval" : "day"}}}}
+    r = requests.post(url, data=payload, headers={"Content-Type": "application/json"})
+    print(r.json())
+    return(r)
+
 
 def count_neo4j_datasets():
     tx = Neo4j.get_db()
