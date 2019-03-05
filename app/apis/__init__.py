@@ -7,7 +7,7 @@ from .phewas import api as phewas
 from .tophits import api as tophits
 from .quality_control import api as quality_control
 from .edit import api as edit
-from resources._globals import VERSION, APP_CONF
+from resources._globals import VERSION, app_config
 from .ld import api as ld
 
 api = Api(version=VERSION, title='Bristol GWAS Collection',
@@ -23,6 +23,6 @@ api.add_namespace(ld)
 api.add_namespace(gwasinfo)
 
 # private
-if APP_CONF['enable_private_endpoints']:
+if app_config['enable_private_endpoints']:
     api.add_namespace(quality_control)
     api.add_namespace(edit)
