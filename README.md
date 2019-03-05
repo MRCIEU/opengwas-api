@@ -111,6 +111,9 @@ mkdir -p app/tmp
 mkdir -p app/logs
 ```
 
+### Enable private endpoints
+set app_conf.json::enable_private_endpoints = true
+
 ### Create image
 
 ```
