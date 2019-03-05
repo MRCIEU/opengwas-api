@@ -15,12 +15,14 @@ api.init_app(app)
 def send_js(path):
     return send_from_directory('reports', path)
 
+
 @app.route('/about')
 def index():
     status = check_all()
     elastic_counts = count_elastic_records()
     neo4j_counts = count_neo4j_datasets()
     return render_template('index.html', status=status, elastic_counts=elastic_counts, neo4j_counts=neo4j_counts)
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=app_config['flask']['port'])
