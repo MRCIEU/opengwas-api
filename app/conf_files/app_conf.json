@@ -39,6 +39,6 @@
       "CLIENT_SECRET": "",
       "SHARED_MAILBOX": ""
     },
-    "enable_private_endpoints": false
+    "enable_private_endpoints": true
   }
 }
