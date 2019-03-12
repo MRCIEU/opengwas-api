@@ -214,12 +214,18 @@ class Upload(Resource):
         # write to json
         j = dict()
         for k in args:
-            if args[k] is not None and k != 'gwas_file' and k != 'X-Api-Token':
+            if args[k] is not None and k != 'gwas_file' and k != 'X-Api-Token' and k != 'gzipped':
                 j[k] = args[k]
 
         # get build
         g = GwasInfo.get_node(j['id'])
         j['build'] = g['build']
+
+        # convert text to bool
+        if j['header'] == "True":
+            j['header'] = True
+        else:
+            j['header'] = False
 
         with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
             json.dump(j, f)
