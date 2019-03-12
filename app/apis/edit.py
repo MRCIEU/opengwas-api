@@ -71,7 +71,6 @@ class Delete(Resource):
         return {"message": "successfully deleted."}, 200
 
 
-# TODO write build to json
 @api.route('/upload')
 @api.doc(description="Upload GWAS summary stats file to MR Base")
 class Upload(Resource):
@@ -86,7 +85,7 @@ class Upload(Resource):
     parser.add_argument('beta_col', type=int, required=True, help="Column index for effect size (0-indexed)")
     parser.add_argument('se_col', type=int, required=True, help="Column index for standard error (0-indexed)")
     parser.add_argument('pval_col', type=int, required=True, help="Column index for P-value (0-indexed)")
-    parser.add_argument('delimiter', type=str, required=True, choices=(",", "\t"),
+    parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
                         help="Column delimiter for file")
     parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
                         choices=('True', 'False'))
@@ -198,6 +197,12 @@ class Upload(Resource):
                     shutil.copyfileobj(f_in, f_out)
             os.remove(output_path)
             output_path += '.gz'
+
+        # fix delim
+        if args['delimiter'] == "comma":
+            args['delimiter'] = ","
+        elif args['delimiter'] == "tab":
+            args['delimiter'] = "\t"
 
         try:
             Upload.read_gzip(output_path, args['delimiter'], args)
