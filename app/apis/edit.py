@@ -16,7 +16,6 @@ import shutil
 api = Namespace('edit', description="Upload and delete data")
 
 
-
 @api.route('/add')
 @api.doc(description="Add new gwas metadata")
 class Add(Resource):
@@ -25,7 +24,7 @@ class Add(Resource):
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
     parser.add_argument('gid', type=int, required=True, help='Identifier for the group this study should belong to.')
-    GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key(), 'filename', 'path'})
+    GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key(), 'filename', 'path', 'md5'})
 
     @api.expect(parser)
     def post(self):
@@ -71,7 +70,7 @@ class Delete(Resource):
 
         return {"message": "successfully deleted."}, 200
 
-# TODO collect imp_z_col , imp_info_col
+
 # TODO write build to json
 @api.route('/upload')
 @api.doc(description="Upload GWAS summary stats file to MR Base")
@@ -80,27 +79,33 @@ class Upload(Resource):
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    parser.add_argument('chr_col', type=int, required=False, help="Column index for chromosome (0-indexed)")
+    parser.add_argument('pos_col', type=int, required=False, help="Column index for base position (0-indexed)")
+    parser.add_argument('ea_col', type=int, required=True, help="Column index for effect allele (0-indexed)")
+    parser.add_argument('oa_col', type=int, required=True, help="Column index for non-effect allele (0-indexed)")
+    parser.add_argument('beta_col', type=int, required=True, help="Column index for effect size (0-indexed)")
+    parser.add_argument('se_col', type=int, required=True, help="Column index for standard error (0-indexed)")
+    parser.add_argument('pval_col', type=int, required=True, help="Column index for P-value (0-indexed)")
+    parser.add_argument('delimiter', type=str, required=True, choices=(",", "\t"),
+                        help="Column delimiter for file")
+    parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
+                        choices=('True', 'False'))
+    parser.add_argument('ncase_col', type=int, required=False, help="Column index for case sample size (0-indexed)")
+    parser.add_argument('snp_col', type=int, required=False, help="Column index for dbsnp rs-identifer (0-indexed)")
+    parser.add_argument('eaf_col', type=int, required=False,
+                        help="Column index for effect allele frequency (0-indexed)")
+    parser.add_argument('oaf_col', type=int, required=False,
+                        help="Column index for other allele frequency (0-indexed)")
+    parser.add_argument('imp_z_col', type=int, required=False,
+                        help="Column number for summary statistics imputation Z score")
+    parser.add_argument('imp_info_col', type=int, required=False,
+                        help="Column number for summary statistics imputation INFO score")
+    parser.add_argument('ncontrol_col', type=int, required=False,
+                        help="Column index for control sample size; total sample size if continuous trait (0-indexed)")
     parser.add_argument('id', type=str, required=True,
                         help="Identifier to which the summary stats belong.")
     parser.add_argument('gwas_file', location='files', type=FileStorage, required=True,
                         help="Path to GWAS summary stats text file for upload.")
-    parser.add_argument('chr_col', type=int, required=False, help="Column index for chromosome (0-indexed)")
-    parser.add_argument('pos_col', type=int, required=False, help="Column index for base position (0-indexed)")
-    parser.add_argument('snp_col', type=int, required=False, help="Column index for dbsnp rs-identifer (0-indexed)")
-    parser.add_argument('ea_col', type=int, required=True, help="Column index for effect allele (0-indexed)")
-    parser.add_argument('oa_col', type=int, required=True, help="Column index for non-effect allele (0-indexed)")
-    parser.add_argument('eaf_col', type=int, required=False,
-                        help="Column index for effect allele frequency (0-indexed)")
-    parser.add_argument('beta_col', type=int, required=True, help="Column index for effect size (0-indexed)")
-    parser.add_argument('se_col', type=int, required=True, help="Column index for standard error (0-indexed)")
-    parser.add_argument('pval_col', type=int, required=True, help="Column index for P-value (0-indexed)")
-    parser.add_argument('ncontrol_col', type=int, required=False,
-                        help="Column index for control sample size; total sample size if continuous trait (0-indexed)")
-    parser.add_argument('ncase_col', type=int, required=False, help="Column index for case sample size (0-indexed)")
-    parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
-                        help="Column delimiter for file")
-    parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
-                        choices=('True', 'False'))
     parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
                         choices=('True', 'False'))
 
@@ -194,14 +199,8 @@ class Upload(Resource):
             os.remove(output_path)
             output_path += '.gz'
 
-        sep = None
-        if args['delimiter'] == 'comma':
-            sep = ","
-        elif args['delimiter'] == 'tab':
-            sep = "\t"
-
         try:
-            Upload.read_gzip(output_path, sep, args)
+            Upload.read_gzip(output_path, args['delimiter'], args)
         except OSError:
             return {'message': 'Could not read file. Check encoding'}, 400
         except marshmallow.exceptions.ValidationError as e:
@@ -217,6 +216,10 @@ class Upload(Resource):
         for k in args:
             if args[k] is not None and k != 'gwas_file' and k != 'X-Api-Token':
                 j[k] = args[k]
+
+        # get build
+        g = GwasInfo.get_node(j['id'])
+        j['build'] = g['build']
 
         with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
             json.dump(j, f)
