@@ -135,20 +135,20 @@ class GwasInfoNodeSchema(FRPMSchema):
     trait = fields.Str(required=True, allow_none=False,
                        description="Avoid acronyms; don't include other information in the trait name (e.g. don't include array name, whether restricted to males or females or whether adjusted or unadjusted for covariates)")
     trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True,
-                                   choices=list(valid_trait_descriptions).sort(),
+                                   choices=sorted(list(valid_trait_descriptions)),
                                    description="Describe the distribution of your phenotype")
     category = fields.Str(required=True, validate=check_category_is_valid, allow_none=False,
                           description="Is your phenotype a binary disease phenotype or a non-disease phenotype",
-                          choices=list(valid_categories).sort())
+                          choices=sorted(list(valid_categories)))
     subcategory = fields.Str(required=True, validate=check_subcategory_is_valid, allow_none=False,
                              description="Select the option that best describes your phenotype.",
-                             choices=list(valid_trait_subcategories).sort())
+                             choices=sorted(list(valid_trait_subcategories)))
     population = fields.Str(required=True, validate=check_population_is_valid, allow_none=False,
                             description="Describe the geographic origins of your population",
-                            choices=list(valid_populations).sort())
+                            choices=sorted(list(valid_populations)))
     sex = fields.Str(required=True, validate=check_sex_is_valid, allow_none=False,
                      description="Indicate whether males or females are included in your study",
-                     choices=list(valid_sex).sort())
+                     choices=sorted(list(valid_sex)))
     ncase = fields.Int(required=False, allow_none=True,
                        description="Provide number of cases in your study (if applicable)")
     ncontrol = fields.Int(required=False, allow_none=True,
@@ -167,15 +167,15 @@ class GwasInfoNodeSchema(FRPMSchema):
                             description="What is the name of your study or consortium (if applicable)?")
     study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True,
                               description="Which best describes the design of your study",
-                              choices=list(valid_study_designs).sort())
+                              choices=sorted(list(valid_study_designs)))
     covariates = fields.Str(required=False, allow_none=True,
                             description="Describe the covariates included in your regression model")
     beta_transformation = fields.Str(required=False, allow_none=True,
                                      description="Describe transformations applied to your phenotype (e.g. inverse rank normal, Z transformations, etc)")
     imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True,
                                   description="Select the imputation panel used in your study",
-                                  choices=list(valid_imputation_panels).sort())
+                                  choices=sorted(list(valid_imputation_panels)))
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
-                       description="Select the genome build for your study", choices=list(valid_genome_build).sort())
+                       description="Select the genome build for your study", choices=sorted(list(valid_genome_build)))
     status = fields.Str(required=False, allow_none=True)
     md5 = fields.Str(required=False, allow_none=True)
