@@ -20,11 +20,14 @@ class Status(Resource):
 def check_all():
     out = {
         'API version': VERSION,
+        'Access': 'public',
         'Neo4j status': Neo4j.check_running(),
         'ElasticSearch status': check_elastic(),
         'LD reference panel': check_ld_ref(),
         'PLINK executable': check_plink()
     }
+    if app_config['enable_private_endpoints']:
+        out['Access'] = 'private'
     return out
 
 def check_ld_ref():
