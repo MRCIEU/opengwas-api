@@ -23,6 +23,6 @@ api.add_namespace(ld)
 api.add_namespace(gwasinfo)
 
 # private
-if app_config['enable_private_endpoints']:
+if app_config['access'] == 'private':
     api.add_namespace(quality_control)
     api.add_namespace(edit)

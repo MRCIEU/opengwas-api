@@ -46,6 +46,16 @@ touch local
 touch app/queries/tests/local
 ```
 
+### Enable editing endpoints
+
+The `/edit` and `/quality_control` endpoints are sensitive so need to only be available internally. To indicate that it is an internal instance of the API, create an empty file called `app/private`:
+
+```
+touch app/private
+touch app/queries/tests/private
+```
+
+
 ### Start the API
 ```
 python main.py
