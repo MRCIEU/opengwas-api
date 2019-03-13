@@ -4,7 +4,7 @@ import os.path
 import platform
 from neo4j import GraphDatabase
 
-VERSION = '0.2.0'
+VERSION = '2.0.0'
 
 root_path = os.path.dirname(os.path.dirname(__file__))
 print("root path {}".format(root_path))
