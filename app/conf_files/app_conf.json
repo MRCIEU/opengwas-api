@@ -17,8 +17,7 @@
       "CLIENT_ID": "",
       "CLIENT_SECRET": "",
       "SHARED_MAILBOX": ""
-    },
-    "enable_private_endpoints": true
+    }
   },
   "production": {
     "flask": {
@@ -38,7 +37,6 @@
       "CLIENT_ID": "",
       "CLIENT_SECRET": "",
       "SHARED_MAILBOX": ""
-    },
-    "enable_private_endpoints": true
+    }
   }
 }

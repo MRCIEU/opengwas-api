@@ -41,6 +41,13 @@ else:
     app_config = app_config['production']
     print(app_config)
 
+if os.path.isfile('private') is True:
+    print("private")
+    app_config['access'] = 'private'
+else:
+    print("public")
+    app_config['access'] = 'public'
+
 dbConnection = GraphDatabase.driver(
     'bolt://' + app_config['neo4j']['host'] + ":" + str(app_config['neo4j']['port']),
     auth=(app_config['neo4j']['user'], app_config['neo4j']['passwd'])
