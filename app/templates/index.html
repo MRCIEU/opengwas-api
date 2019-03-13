@@ -5,20 +5,8 @@
 </head>
 <body>
 
-<div class="container" style="margin-top: 20px;">
-	<p class="text-center">
-	  	<a href="http://www.bristol.ac.uk/" target="_blank"><img src="{{ url_for('static', filename='img/uob40.png') }}" height="40" hspace="10"></a>
-	  	<a href="https://www.bristol.ac.uk/integrative-epidemiology/" target="_blank"><img src="{{ url_for('static', filename='img/ieu40.png') }}" height="40" hspace="10"></a>
-		<a href="https://royalsociety.org/" target="_blank"><img src="{{ url_for('static', filename='img/royalsociety.jpg') }}" height="40" hspace="10"></a>
-	  	<a href="https://wellcome.ac.uk/" target="_blank"><img src="{{ url_for('static', filename='img/wellcome.png') }}" height="40" hspace="10"></a>
-	  	<a href="https://www.cancerresearchuk.org/" target="_blank"><img src="{{ url_for('static', filename='img/cruk40.png') }}" height="40" hspace="10"></a>
-	  	<a href="https://www.gsk.com/" target="_blank"><img src="{{ url_for('static', filename='img/gsk.png') }}" height="40" hspace="10"></a>
-	  	<a href="https://www.biogen.com/" target="_blank"><img src="{{ url_for('static', filename='img/biogen.png') }}" height="40" hspace="10"></a>
-	</p>
-</div>
 
 
-<hr class="my-4">
 <div class="container" style="background-color: 'green';">
 	<div class="row text-center">
 		<div class="col-lg-3">
@@ -33,6 +21,9 @@
 		<p>This is a REST API enabling rapid access to a database of complete GWAS summary datasets and basic LD operations.</p>
 		<p class="lead text-center">
   			<a class="btn btn-primary btn-lg" href="/docs/" role="button">Documentation</a>
+  			{% if status['Access'] == 'private' %}
+  			<a class="btn btn-secondary btn-lg" href="https://github.com/MRCIEU/mr-base-structure/blob/master/how-to-upload.md" role="button">How to upload</a>
+  			{% endif %}
 		</p>
 		<p>These operations are also accessible through convenient functions in the <a href="https://github.com/MRCIEU/TwoSampleMR/">TwoSampleMR</a> R package.</p>
 		<hr class="my-4">
@@ -77,14 +68,26 @@
 
 <div class="container">
 
-<p class="text-center">
+<div class="container" style="margin-top: 20px;">
+	<p class="text-center">
+	  	<a href="http://www.bristol.ac.uk/" target="_blank"><img src="{{ url_for('static', filename='img/uob40.png') }}" height="40" hspace="10"></a>
+	  	<a href="https://www.bristol.ac.uk/integrative-epidemiology/" target="_blank"><img src="{{ url_for('static', filename='img/ieu40.png') }}" height="40" hspace="10"></a>
+		<a href="https://royalsociety.org/" target="_blank"><img src="{{ url_for('static', filename='img/royalsociety.jpg') }}" height="40" hspace="10"></a>
+	  	<a href="https://wellcome.ac.uk/" target="_blank"><img src="{{ url_for('static', filename='img/wellcome.png') }}" height="40" hspace="10"></a>
+	  	<a href="https://www.cancerresearchuk.org/" target="_blank"><img src="{{ url_for('static', filename='img/cruk40.png') }}" height="40" hspace="10"></a>
+	  	<a href="https://www.gsk.com/" target="_blank"><img src="{{ url_for('static', filename='img/gsk.png') }}" height="40" hspace="10"></a>
+	  	<a href="https://www.biogen.com/" target="_blank"><img src="{{ url_for('static', filename='img/biogen.png') }}" height="40" hspace="10"></a>
+	</p>
+</div>
+
+<!-- <p class="text-center">
 	<a href="https://www.elastic.co" target="_blank"><img src="{{ url_for('static', filename='img/elastic.png') }}" height="40" hspace="20"></a>
   	<a href="https://www.docker.com" target="_blank"><img src="{{ url_for('static', filename='img/dockers.png') }}" height="40" hspace="20"></a>
   	<a href="https://www.r-project.org" target="_blank"><img src="{{ url_for('static', filename='img/r.png') }}" height="40" hspace="20"></a>
   	<a href="www.flaskapi.org" target="_blank"><img src="{{ url_for('static', filename='img/flask.png') }}" height="40" hspace="20"></a>
   	<a href="https://neo4j.com/" target="_blank"><img src="{{ url_for('static', filename='img/neo4j.png') }}" height="40" hspace="20"></a>
 </p>
-</div>
+ --></div>
 
 
 
