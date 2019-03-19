@@ -102,3 +102,6 @@ MATCH (u:User) SET u.admin = False
 MATCH (u:User {uid:"baird.denis@gmail.com"}) SET u.admin = True
 MATCH (u:User {uid:"g.hemani@bristol.ac.uk"}) SET u.admin = True
 MATCH (u:User {uid:"matt.lyon@bristol.ac.uk"}) SET u.admin = True
+
+// delete status property
+MATCH (n:GwasInfo) REMOVE n.status
