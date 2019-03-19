@@ -1,5 +1,6 @@
 from marshmallow import fields, ValidationError
 from schemas.frpm_schema import FRPMSchema
+import idutils
 
 valid_trait_subcategories = {
     "Anthropometric",
@@ -120,15 +121,22 @@ def check_genome_build_is_valid(data):
         raise ValidationError("Imputation panel must be one of: {}".format(valid_genome_build))
 
 
+def check_doi(data):
+    if not idutils.is_doi:
+        raise ValidationError("DOI is invalid: {}".format(data))
+
+
 class GwasInfoNodeSchema(FRPMSchema):
     id = fields.Str(required=True, allow_none=False, description="GWAS study identifier")
     pmid = fields.Int(required=False, allow_none=True,
-                      description="Pubmed identifer. Leave blank for unpublished studies.")
+                      description="Pubmed identifier. Leave blank for unpublished studies.")
+    doi = fields.Str(required=False, allow_none=True,
+                     description="DOI. Leave blank for unpublished studies.", validate=check_doi)
     year = fields.Int(required=False, validate=check_study_year, allow_none=True,
                       description="What year was this GWAS published?")
     filename = fields.Str(required=False, allow_none=True, description="GWAS summary stats filename")
     path = fields.Str(required=False, allow_none=True, description="Path to GWAS summary stats on remote server")
-    mr = fields.Int(required=True, validate=check_mr_is_0_or_1, allow_none=False,
+    mr = fields.Int(required=False, allow_none=True, validate=check_mr_is_0_or_1,
                     description="Is the study suitable for MR studies?", choices=(0, 1))
     note = fields.Str(required=False, allow_none=True,
                       description="Is there any other information you would like to provide us about your GWAS?")
@@ -162,7 +170,7 @@ class GwasInfoNodeSchema(FRPMSchema):
                       description="What is the standard deviation of the sample mean of the phenotype?")
     priority = fields.Int(required=True, allow_none=False)
     author = fields.Str(required=True, allow_none=False,
-                        description="Provide the name of the first author of your study")
+                        description="Provide the last name of the first author of your study")
     consortium = fields.Str(required=False, allow_none=True,
                             description="What is the name of your study or consortium (if applicable)?")
     study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True,
@@ -177,5 +185,6 @@ class GwasInfoNodeSchema(FRPMSchema):
                                   choices=sorted(list(valid_imputation_panels)))
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
                        description="Select the genome build for your study", choices=sorted(list(valid_genome_build)))
-    status = fields.Str(required=False, allow_none=True)
     md5 = fields.Str(required=False, allow_none=True)
+    qc_prior_to_upload = fields.Str(required=False, allow_none=True,
+                                    description="Detail any QC or filtering steps taken prior to data upload")

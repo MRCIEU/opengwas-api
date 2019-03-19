@@ -64,6 +64,7 @@ def get_gwas_for_user(uid, gwasid):
 def add_new_gwas(user_email, gwas_info_dict, group=1):
     # get new id
     gwas_info_dict['id'] = str(GwasInfo.get_next_numeric_id())
+    gwas_info_dict['priority'] = 0
 
     # populate nodes
     user_node = User({"uid": user_email})
