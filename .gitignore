@@ -12,3 +12,4 @@ app/local
 .pytest_cache
 mrbase.oauth
 token.temp
+app/private
