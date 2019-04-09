@@ -1,6 +1,5 @@
 import requests
 from apis.tests.token import get_mrbase_access_token
-import os
 
 token = get_mrbase_access_token()
 
