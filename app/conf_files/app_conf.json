@@ -8,7 +8,7 @@
       "port": 9200
     },
     "neo4j": {
-      "user": "matt",
+      "user": "neo4j",
       "passwd": "dT9ymYwBsrzd",
       "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 27687
@@ -28,7 +28,7 @@
       "port": 9200
     },
     "neo4j": {
-      "user": "matt",
+      "user": "neo4j",
       "passwd": "dT9ymYwBsrzd",
       "host": "mrb-neo4j",
       "port": 7687
