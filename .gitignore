@@ -13,3 +13,4 @@ app/local
 mrbase.oauth
 token.temp
 app/private
+import/data

@@ -1,29 +1,23 @@
-version: '2'
+version: '3'
 services:
- #elasticsearch interface
+#neo4j
    db:
-    image: elasticsearch:6.2.4
+    image: neo4j:3.5
     restart: always
+    container_name: mrb-neo4j
     #comment out ports to lock down neo4j
     ports:
-     - "19200:9200"
-     - "19300:9300"
+     - "27474:7474"
+     - "27687:7687"
+     - "27473:7473"
     environment:
-     - node.data=false
-     - cluster.name=mr-base
-     #- xpack.security.enabled=false
-     - ELASTIC_PASSWORD=mrbase
-     - node.master=false
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
- #api
-   api:
-     build: .
-     restart: always
-     ports:
-       - "8000:80"
-     depends_on:
-       - db
-     tty: true
+     - NEO4J_AUTH=neo4j/dT9ymYwBsrzd # configure the instance with custom username/password
+     - NEO4J_dbms_memory_heap_max__size=10G # configure the heap memory
+     - NEO4J_dbms_memory_heap_initial__size=5G
+     - NEO4J_dbms_memory_pagecache_size=10G # configure the cache memory
+     - NEO4J_dbms_shell_enabled=true
+     - NEO4J_dbms_allow__upgrade=true
+     - NEO4J_dbms_security_allow__csv__import__from__file__urls=true
+    volumes:
+     - /data/mrb_neo4j/data:/data
+     - /data/mrb_neo4j/logs:/logs

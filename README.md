@@ -55,6 +55,11 @@ touch app/private
 touch app/queries/tests/private
 ```
 
+### deploying the database
+
+```
+docker-compose up -d
+```
 
 ### Start the API
 ```
