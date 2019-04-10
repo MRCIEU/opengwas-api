@@ -61,6 +61,20 @@ touch app/queries/tests/private
 docker-compose up -d
 ```
 
+### importing mysql data
+
+```
+# copy data to import folder
+cp groups.tsv app/import/data
+cp memberships.tsv app/import/data
+cp permissions_e.tsv app/import/data
+cp study_e.tsv app/import/data
+
+cd app/import 
+touch local
+python import.py
+```
+
 ### Start the API
 ```
 python main.py
