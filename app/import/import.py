@@ -1,15 +1,30 @@
 from queries.gwas_info_node import GwasInfo
-from queries.group_node import Group
 import flask
 import logging
 from marshmallow.exceptions import ValidationError
+from resources._neo4j import Neo4j
+
+
+def add_nodes(nodes, label):
+    print("importing")
+    tx = Neo4j.get_db()
+    tx.run(
+        "UNWIND {nodes} AS d "
+        "MERGE (n:" + label + ") SET n = {d};",
+        nodes=nodes
+    )
+
 
 app = flask.Flask(__name__)
+app.teardown_appcontext(Neo4j.close_db)
+
 with app.app_context():
+    Neo4j.clear_db()
     GwasInfo.set_constraint()
+    nodes = []
 
     # import gwas info
-    with open('data/study_e.tsv', newline='') as f:
+    with open('data/study_e.tsv') as f:
         # skip first row which are NULL
         f.readline()
 
@@ -96,5 +111,11 @@ with app.app_context():
             if d['category'] == "Molecular":
                 d['category'] = "NA"
 
-            g = GwasInfo(d)
-            g.create_node()
+            nodes.append(d)
+
+            if len(nodes) > 5000:
+                add_nodes(nodes, GwasInfo.get_uid_key())
+                nodes = []
+
+    # add remaining nodes
+    add_nodes(nodes, GwasInfo.get_uid_key())
