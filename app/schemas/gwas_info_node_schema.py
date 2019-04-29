@@ -164,12 +164,12 @@ class GwasInfoNodeSchema(FRPMSchema):
     sample_size = fields.Int(required=False, allow_none=True, description="Provide the sample size of your study")
     nsnp = fields.Int(required=False, allow_none=True,
                       description="How many SNPs are in your results file that you are uploading?")
-    unit = fields.Str(required=True, allow_none=False,
+    unit = fields.Str(required=False,
                       description="How do you interpret a 1-unit change in the phenotype? eg log odds ratio, mmol/L, SD units?")
     sd = fields.Float(required=False, allow_none=True,
                       description="What is the standard deviation of the sample mean of the phenotype?")
     priority = fields.Int(required=True, allow_none=False)
-    author = fields.Str(required=True, allow_none=False,
+    author = fields.Str(required=False,
                         description="Provide the last name of the first author of your study")
     consortium = fields.Str(required=False, allow_none=True,
                             description="What is the name of your study or consortium (if applicable)?")
