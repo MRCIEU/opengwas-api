@@ -2,7 +2,7 @@ from queries.gwas_info_node import GwasInfo
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import flask
 import logging
-from resources._neo4j import Neo4j
+from resources.neo4j import Neo4j
 from marshmallow import ValidationError
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')

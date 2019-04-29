@@ -1,4 +1,4 @@
-from resources._neo4j import Neo4j
+from resources.neo4j import Neo4j
 from queries.user_node import User
 from queries.gwas_info_node import GwasInfo
 from queries.added_by_rel import AddedByRel

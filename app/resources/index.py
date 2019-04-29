@@ -1,6 +1,6 @@
 from flask_restplus import Api, Resource, abort
 from flask import send_from_directory
-from resources._logger import *
+from resources.logger import *
 
 
 class Index(Resource):

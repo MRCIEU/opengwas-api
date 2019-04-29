@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, render_template
 from apis import api
-from resources._globals import app_config
-from resources._neo4j import Neo4j
+from resources.globals import app_config
+from resources.neo4j import Neo4j
 from apis.status import check_all, count_elastic_records, count_neo4j_datasets
 
 app = Flask(__name__, static_folder="reports")

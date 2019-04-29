@@ -1,6 +1,6 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
-from resources._ld import *
+from resources.ld import *
 
 api = Namespace('tophits', description="Extract tophits from a GWAS dataset")
 

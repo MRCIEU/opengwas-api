@@ -1,6 +1,6 @@
 from queries.unique_node import UniqueNode
 from schemas.user_node_schema import UserNodeSchema
-from resources._neo4j import Neo4j
+from resources.neo4j import Neo4j
 
 
 class User(UniqueNode):

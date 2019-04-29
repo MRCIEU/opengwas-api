@@ -1,7 +1,7 @@
 from pyo365 import Account
 import logging
 import re
-from resources._globals import app_config
+from resources.globals import app_config
 import flask
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')

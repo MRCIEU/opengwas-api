@@ -1,4 +1,4 @@
-from resources._neo4j import Neo4j
+from resources.neo4j import Neo4j
 from schemas.unique_node_schema import UniqueNodeSchema
 
 

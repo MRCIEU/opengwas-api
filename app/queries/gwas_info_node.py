@@ -1,6 +1,6 @@
 from queries.unique_node import UniqueNode
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
-from resources._neo4j import Neo4j
+from resources.neo4j import Neo4j
 
 
 class GwasInfo(UniqueNode):

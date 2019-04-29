@@ -1,4 +1,4 @@
-from resources._neo4j import *
+from resources.neo4j import *
 import flask
 import re
 from queries.cql_queries import *

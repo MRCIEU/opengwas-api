@@ -1,5 +1,5 @@
-from resources._globals import *
-from resources._logger import *
+from resources.globals import *
+from resources.logger import *
 import uuid
 import time
 

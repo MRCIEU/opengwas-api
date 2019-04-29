@@ -2,7 +2,7 @@ from queries.group_node import Group
 from queries.user_node import User
 import flask
 import logging
-from resources._neo4j import Neo4j
+from resources.neo4j import Neo4j
 from queries.access_to_rel import AccessToRel
 from queries.gwas_info_node import GwasInfo
 from queries.cql_queries import add_new_user

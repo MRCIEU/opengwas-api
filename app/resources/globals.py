@@ -1,52 +1,48 @@
 from elasticsearch import Elasticsearch
 import json
-import os.path
 import platform
+import os
 from neo4j import GraphDatabase
+import logging
 
 VERSION = '2.0.0'
 
 root_path = os.path.dirname(os.path.dirname(__file__))
-print("root path {}".format(root_path))
 
 # Toggle for local vs deployed
 APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
-PLINK = os.path.join(root_path, 'bin', 'plink'+'_'+platform.system())
+PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
 LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
 TMP_FOLDER = os.path.join(root_path, 'tmp')
 UPLOAD_FOLDER = os.path.join(os.sep, 'data', 'bgc')
 LOG_FILE = os.path.join(root_path, 'logs', 'mrbaseapi.log')
 LOG_FILE_DEBUG = os.path.join(root_path, 'logs', 'mrbaseapi-debug.log')
 
-print("APP_CONF {}".format(APP_CONF))
-print("PLINK {}".format(PLINK))
-print("LD_REF {}".format(LD_REF))
-print("TMP_FOLDER {}".format(TMP_FOLDER))
-print("UPLOAD_FOLDER {}".format(UPLOAD_FOLDER))
-print("LOG_FILE {}".format(LOG_FILE))
-print("LOG_FILE_DEBUG {}".format(LOG_FILE_DEBUG))
-
 OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
 USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
 ALLOWED_EXTENSIONS = {'txt'}
 
+""" Set environment files to toggle between local and production & private vs public APIs """
 with open(APP_CONF) as f:
     app_config = json.load(f)
-if os.path.isfile('local') is True:
-    print("local")
-    app_config = app_config['local']
-    print(app_config)
-else:
-    print("production")
-    app_config = app_config['production']
-    print(app_config)
 
-if os.path.isfile('private') is True:
-    print("private")
-    app_config['access'] = 'private'
-else:
-    print("public")
-    app_config['access'] = 'public'
+    try:
+        if os.environ['ENV'] == 'production':
+            app_config = app_config['production']
+        else:
+            app_config = app_config['local']
+    except KeyError as e:
+        app_config = app_config['local']
+        logging.warning("Environmental variable 'ENV' not set assuming local configuration")
+
+    try:
+        if os.environ['ACCESS'] == 'public':
+            app_config['access'] = 'public'
+        else:
+            app_config['access'] = 'private'
+    except KeyError as e:
+        app_config['access'] = 'private'
+        logging.warning("Environmental variable 'ACCESS' not set assuming private configuration")
 
 dbConnection = GraphDatabase.driver(
     'bolt://' + app_config['neo4j']['host'] + ":" + str(app_config['neo4j']['port']),
