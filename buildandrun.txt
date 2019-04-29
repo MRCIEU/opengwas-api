@@ -1,2 +1,0 @@
-docker build -t flaskmrbaseapi .
-docker run -d --name mrbaseapi -p 8019:80 flaskmrbaseapi

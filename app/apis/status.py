@@ -1,8 +1,8 @@
 from flask import g
 from flask_restplus import Namespace, Resource
-from resources._globals import *
-from resources._logger import *
-from resources._neo4j import Neo4j
+from resources.globals import *
+from resources.logger import *
+from resources.neo4j import Neo4j
 import requests
 
 api = Namespace('status', description="Status of API and linked resources")

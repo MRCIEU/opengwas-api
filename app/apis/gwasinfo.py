@@ -1,12 +1,12 @@
 from flask_restplus import Resource, reqparse, Namespace, fields
-from resources._logger import *
+from resources.logger import *
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 from queries.gwas_info_node import GwasInfo
 from werkzeug.datastructures import FileStorage
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
-from resources._globals import UPLOAD_FOLDER
+from resources.globals import UPLOAD_FOLDER
 import hashlib
 import gzip
 from schemas.gwas_row_schema import GwasRowSchema

@@ -1,5 +1,5 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
-from resources._ld import *
+from resources.ld import *
 
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
 parser = reqparse.RequestParser()

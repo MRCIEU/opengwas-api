@@ -1,5 +1,5 @@
 from flask_restplus import Resource, reqparse, Namespace, fields
-from resources._logger import *
+from resources.logger import *
 from queries.cql_queries import *
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest

@@ -7,7 +7,7 @@ from .phewas import api as phewas
 from .tophits import api as tophits
 from .quality_control import api as quality_control
 from .edit import api as edit
-from resources._globals import VERSION, app_config
+from resources.globals import VERSION, app_config
 from .ld import api as ld
 
 api = Api(version=VERSION, title='Bristol GWAS Collection',
