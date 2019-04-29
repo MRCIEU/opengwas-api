@@ -1,5 +1,7 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
+from resources.auth import get_user_email
+from flask import request
 
 api = Namespace('phewas', description="Perform PheWAS of specified SNPs across all available GWAS datasets")
 
@@ -19,7 +21,6 @@ parser1.add_argument(
 )
 class PhewasGet(Resource):
     def get(self, rsid=None):
-        logger_info()
         if rsid is None:
             abort(404)
         try:
@@ -59,7 +60,6 @@ Perform PheWAS of specified SNPs across all available GWAS datasets. Note the pa
 class PhewasPost(Resource):
     @api.expect(parser2)
     def post(self):
-        logger_info()
         args = parser2.parse_args()
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))

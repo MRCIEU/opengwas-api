@@ -1,10 +1,8 @@
 from pyo365 import Account
 import logging
 import re
-from resources.globals import app_config
+from resources.globals import Globals
 import flask
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
 
 class EmailDataUploader:
@@ -51,7 +49,7 @@ class EmailDataUploader:
         )
 
         m = self.account.new_message()
-        m.sender.address = app_config['SHARED_MAILBOX']
+        m.sender.address = Globals.app_config['SHARED_MAILBOX']
         m.to.add(address)
         m.subject = subject
         m.body = html

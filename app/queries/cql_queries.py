@@ -14,12 +14,12 @@ import os
 
 
 def get_all_gwas_for_user(uid):
-    gids = get_groups_for_user(uid)
+    group_names = get_groups_for_user(uid)
     res = []
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} RETURN distinct(gi) as gi;",
-        gids=list(gids)
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi) as gi;",
+        group_names=list(group_names)
     )
     for result in results:
         res.append(GwasInfo(result['gi']))
@@ -29,12 +29,12 @@ def get_all_gwas_for_user(uid):
 
 def get_all_gwas_ids_for_user(uid):
     recs = []
-    gids = get_groups_for_user(uid)
+    group_names = get_groups_for_user(uid)
 
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} RETURN distinct(gi.id) as id;",
-        gids=list(gids)
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi.id) as id;",
+        group_names=list(group_names)
     )
 
     for result in results:
@@ -44,14 +44,14 @@ def get_all_gwas_ids_for_user(uid):
 
 
 def get_gwas_for_user(uid, gwasid):
-    gids = get_groups_for_user(uid)
+    group_names = get_groups_for_user(uid)
     schema = GwasInfoNodeSchema()
 
     tx = Neo4j.get_db()
 
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} RETURN distinct(gi);",
-        gids=list(gids),
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi);",
+        group_names=list(group_names),
         gwasid=gwasid
     )
 
@@ -137,8 +137,8 @@ def study_info(study_list):
 
     if study_list == 'snp_lookup':
         results = tx.run(
-            "MATCH (:Group {gid:{gid}})-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) RETURN gi;",
-            gid=int(1)
+            "MATCH (:Group {name:{name}})-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) RETURN gi;",
+            name=int(1)
         )
         for result in results:
             res.append(schema.load(result['gi']))
@@ -159,10 +159,13 @@ def study_info(study_list):
         return res
 
 
-""" Returns list of group identifiers for a given user email (will accept NULL) """
+""" Returns list of group identifiers for a given user email (will accept None) """
 
 
 def get_groups_for_user(uid):
+    if uid is None:
+        return {'public'}
+
     names = set()
     tx = Neo4j.get_db()
     results = tx.run(

@@ -93,7 +93,8 @@ class UniqueNode(dict):
         )
         for result in results:
             if cls._UID_KEY in result['properties']:
-                labels.add(result['label'])
+                for l in result['tokenNames']:
+                    labels.add(l)
         return cls.get_node_label() in labels
 
     @classmethod

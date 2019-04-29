@@ -1,17 +1,18 @@
-from flask_restplus import Resource, reqparse, Namespace, fields
-from resources.logger import *
+from flask_restplus import Resource, Namespace
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 from queries.gwas_info_node import GwasInfo
 from werkzeug.datastructures import FileStorage
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
-from resources.globals import UPLOAD_FOLDER
+from resources.globals import Globals
 import hashlib
 import gzip
 from schemas.gwas_row_schema import GwasRowSchema
 import json
 import shutil
+from resources.auth import get_user_email
+from flask import request
 
 api = Namespace('edit', description="Upload and delete data")
 
@@ -24,11 +25,11 @@ class Add(Resource):
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
     parser.add_argument('gid', type=int, required=True, help='Identifier for the group this study should belong to.')
-    GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key(), 'filename', 'path', 'md5', 'priority', 'mr'})
+    GwasInfoNodeSchema.populate_parser(parser,
+                                       ignore={GwasInfo.get_uid_key(), 'filename', 'path', 'md5', 'priority', 'mr'})
 
     @api.expect(parser)
     def post(self):
-        logger_info()
 
         try:
             req = self.parser.parse_args()
@@ -57,7 +58,6 @@ class Delete(Resource):
 
     @api.expect(parser)
     def delete(self):
-        logger_info()
         args = self.parser.parse_args()
         user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
@@ -169,10 +169,9 @@ class Upload(Resource):
 
     @api.expect(parser)
     def post(self):
-        logger_info()
         args = self.parser.parse_args()
 
-        study_folder = os.path.join(UPLOAD_FOLDER, args['id'])
+        study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
         raw_folder = os.path.join(study_folder, 'raw')
 
         # make folder for new dataset

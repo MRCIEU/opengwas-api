@@ -37,9 +37,8 @@ def test_assoc_get6(url):
 
 # Should return json entries for each study
 def test_assoc_post1(url):
-	headers = {'X-API-TOKEN': 'NULL'}
 	payload = {'id': ['2','7','987'], 'rsid': ['rs234','rs123']}
-	r = requests.post(url + "/associations/", data=payload, headers=headers)
+	r = requests.post(url + "/associations/", data=payload)
 	assert r.status_code == 200 and len(r.json()) == 4
 
 def test_assoc_post2(url):

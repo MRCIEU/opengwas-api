@@ -16,7 +16,7 @@ def batch_add_nodes(nodes, label):
                                   "SET n = map;", props=nodes)
 
 
-# import to neo4
+# populate_db to neo4
 app = flask.Flask(__name__)
 app.teardown_appcontext(Neo4j.close_db)
 
@@ -26,8 +26,8 @@ with app.app_context():
     GwasInfo.set_constraint()
     nodes = []
 
-    # import gwas info
-    with open('data/study_e.tsv') as f:
+    # populate_db gwas info
+    with open('populate_db/data/study_e.tsv') as f:
         # skip first row which are NULL
         f.readline()
 
@@ -138,10 +138,10 @@ with app.app_context():
             try:
                 d = schema.load(d)
             except ValidationError as e:
-                logging.error("Could not import {} because {}".format(line, e))
+                logging.error("Could not populate_db {} because {}".format(line, e))
                 continue
 
-            # append to import queue
+            # append to populate_db queue
             nodes.append(d)
 
             if len(nodes) > 5000:

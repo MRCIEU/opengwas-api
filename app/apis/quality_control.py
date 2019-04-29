@@ -1,8 +1,9 @@
-from flask_restplus import Resource, reqparse, Namespace, fields
-from resources.logger import *
+from flask_restplus import Resource, Namespace
 from queries.cql_queries import *
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
+from resources.auth import get_user_email
+from flask import request
 
 api = Namespace('quality_control', description="Quality control the GWAS data")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
@@ -19,7 +20,6 @@ class List(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
     def get(self):
-        logger_info()
         return get_todo_quality_control()
 
 
@@ -37,7 +37,6 @@ class Release(Resource):
 
     @api.expect(parser)
     def post(self):
-        logger_info()
 
         try:
             req = self.parser.parse_args()
@@ -67,7 +66,6 @@ class Delete(Resource):
 
     @api.expect(parser)
     def delete(self):
-        logger_info()
 
         try:
             req = self.parser.parse_args()

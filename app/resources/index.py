@@ -1,9 +1,7 @@
-from flask_restplus import Api, Resource, abort
+from flask_restplus import Resource
 from flask import send_from_directory
-from resources.logger import *
 
 
 class Index(Resource):
     def get(self):
-        logger_info()
         return send_from_directory(".", "index.html")
