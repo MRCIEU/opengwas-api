@@ -172,13 +172,6 @@ def get_groups_for_user(uid):
     for result in results:
         names.add(result['name'])
 
-    results = tx.run(
-        "MATCH (g:Group {name:{name}}) RETURN g.gid as gid;",
-        name=str('public')
-    )
-    for result in results:
-        names.add(result['name'])
-
     return names
 
 
