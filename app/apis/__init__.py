@@ -7,10 +7,10 @@ from .phewas import api as phewas
 from .tophits import api as tophits
 from .quality_control import api as quality_control
 from .edit import api as edit
-from resources.globals import VERSION, app_config
+from resources.globals import Globals
 from .ld import api as ld
 
-api = Api(version=VERSION, title='Bristol GWAS Collection',
+api = Api(version=Globals.VERSION, title='Bristol GWAS Collection',
           description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs/')
 
@@ -23,6 +23,6 @@ api.add_namespace(ld)
 api.add_namespace(gwasinfo)
 
 # private
-if app_config['access'] == 'private':
+if Globals.app_config['access'] == 'private':
     api.add_namespace(quality_control)
     api.add_namespace(edit)

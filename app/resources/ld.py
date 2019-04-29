@@ -1,7 +1,7 @@
 from resources.globals import *
-from resources.logger import *
 import uuid
 import time
+import logging
 
 
 def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
@@ -24,7 +24,7 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
                   " --clump-kb {6} " \
                   " --out {7}".format(PLINK, LD_REF, filename, p1, p2, r2, kb, filename)
 
-        logger2.debug(command)
+        logging.debug(command)
         os.system(command)
 
         filename_c = filename + ".clumped"
@@ -33,15 +33,15 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
         words = f.read().split("\n")
         f.close()
 
-        logger2.debug("matching clumps to original query")
+        logging.debug("matching clumps to original query")
         out = []
         for x in words:
             if x is not '':
                 out.append([y for y in rsid if y == x.split()[2]][0])
-        logger2.debug("done match")
+        logging.debug("done match")
         end = time.time()
         t = round((end - start), 4)
-        logger2.debug('clumping: took ' + str(t) + ' seconds')
+        logging.debug('clumping: took ' + str(t) + ' seconds')
     finally:
         [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if
          f.startswith(os.path.basename(filename))]
@@ -64,33 +64,33 @@ def plink_ldsquare_rs(upload_folder, snps):
         tfile.close()
 
         # Find which SNPs are present
-        logger2.debug("Finding which snps are available")
+        logging.debug("Finding which snps are available")
         # cmd = "fgrep -wf " + filename + " ./ld_files/data_maf0.01_rs.bim > " + filenameb
         cmd = "{0} " \
               "--bfile {1} " \
               " --extract {2} " \
               " --make-just-bim " \
               " --out {3}".format(PLINK, LD_REF, filename, filename)
-        logger2.debug(cmd)
+        logging.debug(cmd)
         os.system(cmd)
         cmd = "cut -d ' ' -f 1 " + filenameb + " > " + filenamek
-        logger2.debug(cmd)
+        logging.debug(cmd)
         os.system(cmd)
         cmd = "awk '{OFS=\"\"; print $2, \"_\", $5, \"_\", $6 }' " + filenameb + " > " + filenameka
-        logger2.debug(cmd)
+        logging.debug(cmd)
         os.system(cmd)
-        logger2.debug("found")
+        logging.debug("found")
         command = "{0} " \
                   "--bfile {1} " \
                   " --extract {2} " \
                   " --r square " \
                   " --out {3}".format(PLINK, LD_REF, filenamek, filename)
 
-        logger2.debug(command)
+        logging.debug(command)
         os.system(command)
         filename_c = filename + ".ld"
         if not os.path.isfile(filename_c):
-            logger2.debug("no file found")
+            logging.debug("no file found")
             [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
             return {'snplist': '', 'matrix': []}
 
@@ -107,9 +107,9 @@ def plink_ldsquare_rs(upload_folder, snps):
         out["matrix"] = mat
     finally:
         # print(upload_folder)
-        logger2.debug("finished")
+        logging.debug("finished")
         [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
 
-    print(str(out))
+    #print(str(out))
 
     return out

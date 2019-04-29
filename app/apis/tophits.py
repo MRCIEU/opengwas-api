@@ -1,6 +1,9 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
 from resources.ld import *
+from resources.auth import get_user_email
+from flask import request
+import logging
 
 api = Namespace('tophits', description="Extract tophits from a GWAS dataset")
 
@@ -31,7 +34,6 @@ Extract tophits from a GWAS dataset. Note the payload can be passed to curl via 
 class Tophits(Resource):
     @api.expect(parser1)
     def post(self):
-        logger_info()
         args = parser1.parse_args()
 
         user_email = get_user_email(request.headers.get('X-Api-Token'))
@@ -54,20 +56,20 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
     for s in get_all_gwas_ids_for_user(user_email):
         study_access.add(str(s))
 
-    logger2.debug('searching ' + outcomes_clean)
+    logging.debug('searching ' + outcomes_clean)
     study_data = get_permitted_studies(user_email, outcomes)
     print(study_data)
     study_data = get_permitted_studies(user_email, id)
     print(study_data)
     outcomes_access = [x['id'] for x in study_data]
-    logger2.debug(str(outcomes_access))
-    # logger2.debug(sorted(study_access))
+    logging.debug(str(outcomes_access))
+    # logging.debug(sorted(study_access))
     if len(outcomes_access) == 0:
-        logger2.debug('No outcomes left after permissions check')
+        logging.debug('No outcomes left after permissions check')
         return json.dumps([], ensure_ascii=False)
     else:
         ESRes = elastic_query(snps='', studies=outcomes_access, pval=pval)
-        # logger2.debug(ESRes)
+        # logging.debug(ESRes)
         snpDic = {}
         # create lookup for snp names
         for s in ESRes:
@@ -93,46 +95,46 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                     if int(hit['_source']['effect_allele_freq']) < 999:
                         effect_allele_freq = hit['_source']['effect_allele_freq']
                 except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain effect allele frequency for hit: {}".format(e))
+                    logging.debug("Could not obtain effect allele frequency for hit: {}".format(e))
 
                 try:
                     if hit['_source']['beta'] < 999:
                         # beta = "%4.3f" % float(hit['_source']['beta'])
                         beta = hit['_source']['beta']
                 except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain effect size for hit: {}".format(e))
+                    logging.debug("Could not obtain effect size for hit: {}".format(e))
 
                 try:
                     if hit['_source']['se'] < 999:
                         # se = "%03.02e" % float(hit['_source']['se'])
                         se = hit['_source']['se']
                 except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain SE for hit: {}".format(e))
+                    logging.debug("Could not obtain SE for hit: {}".format(e))
 
                 try:
                     if hit['_source']['p'] < 999:
                         # p = "%03.02e" % float(hit['_source']['p'])
                         p = hit['_source']['p']
                 except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain P-val for hit: {}".format(e))
+                    logging.debug("Could not obtain P-val for hit: {}".format(e))
 
                 try:
                     if 'n' in hit['_source']:
                         n = hit['_source']['n']
                 except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain N for hit: {}".format(e))
+                    logging.debug("Could not obtain N for hit: {}".format(e))
 
                 try:
                     if 'effect_allele' in hit['_source']:
                         effect_allele = hit['_source']['effect_allele']
                 except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain effect_allele for hit: {}".format(e))
+                    logging.debug("Could not obtain effect_allele for hit: {}".format(e))
 
                 try:
                     if 'other_allele' in hit['_source']:
                         other_allele = hit['_source']['other_allele']
                 except (ValueError, TypeError, IndexError) as e:
-                    logger2.debug("Could not obtain other_allele for hit: {}".format(e))
+                    logging.debug("Could not obtain other_allele for hit: {}".format(e))
 
                 name = hit['_source']['snp_id']
                 # don't want data with no pval
@@ -147,7 +149,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                                 'name': name
                                 }
                     study_id = hit['_source']['study_id']
-                    if s != mrb_batch:
+                    if s != Globals.mrb_batch:
                         study_id = s + ':' + hit['_source']['study_id']
                     # make sure only to return available studies
                     idlist = [x['id'] for x in study_data]
@@ -162,10 +164,10 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
             found_outcomes = set([x.get('id') for x in res])
             all_out = []
             for outcome in found_outcomes:
-                logger2.debug("clumping results for " + str(outcome))
+                logging.debug("clumping results for " + str(outcome))
                 rsid = [x.get('name') for x in res if x.get('id') == outcome]
                 p = [x.get('p') for x in res if x.get('id') == outcome]
-                out = plink_clumping_rs(TMP_FOLDER, rsid, p, pval, pval, r2, kb)
+                out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb)
                 all_out = all_out + [x for x in res if x.get('id') == outcome and x.get('name') in out]
 
             return all_out

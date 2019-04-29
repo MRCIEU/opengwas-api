@@ -1,5 +1,7 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
+from resources.auth import get_user_email
+from flask import request
 
 api = Namespace('associations', description="Retrieve GWAS associations")
 
@@ -20,7 +22,6 @@ parser1.add_argument(
 )
 class AssocGet(Resource):
     def get(self, id=None, rsid=None):
-        logger_info()
         if rsid is None:
             abort(404)
         if id is None:
@@ -65,7 +66,6 @@ Get specific SNP associations for specifc GWAS datasets. Note the payload can be
 class AssocPost(Resource):
     @api.expect(parser2)
     def post(self):
-        logger_info()
         args = parser2.parse_args()
 
         if (len(args['id']) == 0):

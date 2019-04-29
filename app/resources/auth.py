@@ -7,8 +7,11 @@ OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
 
 
 def get_user_email(token):
-    if token is None or token == "null" or token == "NULL":
-        return "NULL"
+    try:
+        if token.lower() == 'null':
+            return None
+    except TypeError:
+        return None
 
     url = OAUTH2_URL + str(token)
     res = requests.get(url)
@@ -24,4 +27,4 @@ def get_user_email(token):
     if "email" in data:
         return data['email']
     else:
-        return "NULL"
+        return None

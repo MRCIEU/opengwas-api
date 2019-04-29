@@ -7,6 +7,14 @@ class User(UniqueNode):
     _UID_KEY = 'uid'
     _SCHEMA = UserNodeSchema
 
+    @classmethod
+    def set_admin(cls, uid):
+        tx = Neo4j.get_db()
+        tx.run(
+            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ":{uid}}) SET n.admin=True;",
+            uid=uid
+        )
+
     def create_node(self):
         # map using schema; fail when violates
         schema = self._SCHEMA()

@@ -1,5 +1,6 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
 from resources.ld import *
+from resources.globals import Globals
 
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
 parser = reqparse.RequestParser()
@@ -27,7 +28,6 @@ class Clump(Resource):
 
     @api.expect(parser)
     def post(self):
-        logger_info()
         args = parser.parse_args()
         if (len(args['rsid']) == 0):
             abort(405)
@@ -37,7 +37,7 @@ class Clump(Resource):
             abort(405)
 
         try:
-            out = plink_clumping_rs(TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'],
+            out = plink_clumping_rs(Globals.TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'],
                                     args['r2'], args['kb'])
         except:
             abort(503)
@@ -63,10 +63,9 @@ class LdMatrix(Resource):
 
     @api.expect(parser)
     def post(self):
-        logger_info()
         args = parser.parse_args()
         try:
-            out = plink_ldsquare_rs(TMP_FOLDER, args['rsid'])
+            out = plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'])
         except:
             abort(503)
         return out, 200

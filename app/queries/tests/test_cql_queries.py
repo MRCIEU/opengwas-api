@@ -7,87 +7,57 @@ from marshmallow.exceptions import ValidationError
 def test_add_new_user():
     app = flask.Flask(__name__)
     with app.app_context():
+        g = Group(name='public-test')
+        g.create_node()
+
         # should work
-        add_new_user('test.email.ac.uk', {'public-test'})
-        User.get_node('test.email.ac.uk')
-        User.delete_node('test.email.ac.uk')
+        add_new_user('test@email.ac.uk', {'public-test'})
+        User.get_node('test@email.ac.uk')
+        User.delete_node('test@email.ac.uk')
 
         # check email formatting
-        add_new_user('   Test1.email.ac.uk', {'public-test'})
-        User.get_node('test1.email.ac.uk')
-        User.delete_node('test1.email.ac.uk')
+        add_new_user('   Test1@email.ac.uk', {'public-test'})
+        User.get_node('test1@email.ac.uk')
+        User.delete_node('test1@email.ac.uk')
 
         # test not email
         with pytest.raises(ValidationError):
             add_new_user('test12344', {'public-test'})
 
+        Group.delete_node('public-test')
+
 
 def test_add_group_to_user():
-    e = 'test2.email.ac.uk'
-    g = 'pytest'
-
-    add_new_user(e)
-
-    g = Group(uid=g)
-    g.create_node()
-
-    add_group_to_user(e, g)
-    grps = get_groups_for_user(e)
-
-    assert g in grps
-    assert 'public' in grps
-
-
-def test_get_all_gwas():
     app = flask.Flask(__name__)
+
     with app.app_context():
-        assert len(get_all_gwas_for_user('NULL')) > 7900
-        assert len(get_all_gwas_for_user('g.hemani@bristol.ac.uk')) > 7900
+        email = 'test2@email.ac.uk'
+        group_name = 'pytest'
 
+        g = Group(name='public')
+        g.create_node()
 
-def test_get_all_gwas_ids():
-    app = flask.Flask(__name__)
-    with app.app_context():
-        assert len(get_all_gwas_ids_for_user('NULL')) > 7900
+        add_new_user(email)
 
+        g = Group(name=group_name)
+        g.create_node()
 
-def test_get_all_gwas_ids_private():
-    app = flask.Flask(__name__)
-    with app.app_context():
-        res = get_all_gwas_ids_for_user('ml18692@bristol.ac.uk')
-        assert len(res) > 7900
-        assert '987' in res
+        add_group_to_user(email, group_name)
+        grps = get_groups_for_user(email)
+
+        assert group_name in grps
+        assert 'public' in grps
+
+        MemberOfRel.delete_rel(User.get_node(email), g)
+        Group.delete_node(group_name)
+        Group.delete_node('public')
+        User.delete_node(email)
 
 
 def test_get_groups_for_user():
     app = flask.Flask(__name__)
     with app.app_context():
-        assert len(get_groups_for_user('NULL')) == 1
-        assert len(get_groups_for_user('g.hemani@bristol.ac.uk')) > 1
-
-
-def test_study_info():
-    app = flask.Flask(__name__)
-    with app.app_context():
-        assert len(study_info('snp_lookup')) > 7900
-        assert len(study_info([300])) == 1
-        assert len(study_info(['300'])) == 1
-
-
-def test_get_specific_gwas():
-    app = flask.Flask(__name__)
-    with app.app_context():
-        assert get_gwas_for_user('NULL', '300')["id"] == '300'
-        with pytest.raises(LookupError):
-            get_gwas_for_user('NULL', '2456766435')
-        with pytest.raises(LookupError):
-            get_gwas_for_user('NULL', '1128')
-
-
-def test_check_user_is_admin():
-    app = flask.Flask(__name__)
-    with app.app_context():
-        u = User.get_node("ml18692@bristol.ac.uk")
+        assert len(get_groups_for_user(None)) == 1
 
 
 def test_add_new_gwas_info():
@@ -102,8 +72,14 @@ def test_add_new_gwas_info():
 
     app = flask.Flask(__name__)
     with app.app_context():
+        u = User(uid="test@test.ac.uk")
+        u.create_node()
+
+        g = Group(name="public")
+        g.create_node()
+
         # check returns id
-        uid = add_new_gwas('g.hemani@bristol.ac.uk', d)
+        uid = add_new_gwas(u['uid'], d)
         assert int(uid.replace('bgc-', '')) > 0
 
         # check new gwas requires qc
@@ -113,7 +89,7 @@ def test_add_new_gwas_info():
         assert uid in todos
 
         # complete qc
-        add_quality_control('g.hemani@bristol.ac.uk', uid, True)
+        add_quality_control(u['uid'], uid, True)
 
         # check gwas not need qc
         todos = set()
@@ -122,7 +98,7 @@ def test_add_new_gwas_info():
         assert uid not in todos
 
         # check in graph query of qc passing
-        found = get_gwas_for_user('NULL', uid)
+        found = get_gwas_for_user(None, uid)
         for k in d:
             if d[k] is None:
                 continue
@@ -133,4 +109,4 @@ def test_add_new_gwas_info():
 
         # check not in graph
         with pytest.raises(LookupError):
-            get_gwas_for_user('NULL', uid)
+            get_gwas_for_user(None, uid)

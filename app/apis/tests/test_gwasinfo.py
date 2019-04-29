@@ -13,17 +13,15 @@ def test_gwasinfo1(url):
 
 # Should return json entries for each study
 def test_gwasinfo2(url):
-    headers = {'X-API-TOKEN': 'NULL'}
     payload = {'id': [2, 7]}
-    r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
+    r = requests.post(url + "/gwasinfo", data=payload)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
 # Don't get private studies without authentication
 def test_gwasinfo3(url):
-    headers = {'X-API-TOKEN': 'NULL'}
     payload = {'id': [2, 7, 987]}
-    r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
+    r = requests.post(url + "/gwasinfo", data=payload)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
