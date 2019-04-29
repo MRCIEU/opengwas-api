@@ -1,6 +1,41 @@
 from queries.cql_queries import *
 import flask
 import pytest
+from marshmallow.exceptions import ValidationError
+
+
+def test_add_new_user():
+    app = flask.Flask(__name__)
+    with app.app_context():
+        # should work
+        add_new_user('test.email.ac.uk', {'public-test'})
+        User.get_node('test.email.ac.uk')
+        User.delete_node('test.email.ac.uk')
+
+        # check email formatting
+        add_new_user('   Test1.email.ac.uk', {'public-test'})
+        User.get_node('test1.email.ac.uk')
+        User.delete_node('test1.email.ac.uk')
+
+        # test not email
+        with pytest.raises(ValidationError):
+            add_new_user('test12344', {'public-test'})
+
+
+def test_add_group_to_user():
+    e = 'test2.email.ac.uk'
+    g = 'pytest'
+
+    add_new_user(e)
+
+    g = Group(uid=g)
+    g.create_node()
+
+    add_group_to_user(e, g)
+    grps = get_groups_for_user(e)
+
+    assert g in grps
+    assert 'public' in grps
 
 
 def test_get_all_gwas():

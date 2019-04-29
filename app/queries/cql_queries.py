@@ -4,6 +4,7 @@ from queries.gwas_info_node import GwasInfo
 from queries.added_by_rel import AddedByRel
 from queries.quality_control_rel import QualityControlRel
 from queries.access_to_rel import AccessToRel
+from queries.member_of_rel import MemberOfRel
 from queries.group_node import Group
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import time
@@ -61,27 +62,43 @@ def get_gwas_for_user(uid, gwasid):
     return schema.load(GwasInfo(result['gi']))
 
 
-def add_new_gwas(user_email, gwas_info_dict, group=1):
+def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public'])):
     # get new id
     gwas_info_dict['id'] = str(GwasInfo.get_next_numeric_id())
     gwas_info_dict['priority'] = 0
 
     # populate nodes
-    user_node = User({"uid": user_email})
     gwas_info_node = GwasInfo(gwas_info_dict)
     added_by_rel = AddedByRel({'epoch': time.time()})
     access_to_rel = AccessToRel()
 
-    # get group
-    group_node = Group.get_node(group)
-
     # persist or update
-    user_node.create_node()
     gwas_info_node.create_node()
-    added_by_rel.create_rel(gwas_info_node, user_node)
-    access_to_rel.create_rel(group_node, gwas_info_node)
+    added_by_rel.create_rel(gwas_info_node, User.get_node(user_email))
+
+    # add grps
+    for group_name in group_names:
+        group_node = Group.get_node(group_name)
+        access_to_rel.create_rel(group_node, gwas_info_node)
 
     return gwas_info_dict['id']
+
+
+def add_new_user(email, group_names=frozenset(['public'])):
+    member_of_rel = MemberOfRel()
+    u = User(uid=email.strip().lower())
+    u.create_node()
+
+    for group_name in group_names:
+        g = Group.get_node(group_name)
+        member_of_rel.create_rel(u, g)
+
+
+def add_group_to_user(email, group_name):
+    member_of_rel = MemberOfRel()
+    u = User.get_node(email)
+    g = Group.get_node(group_name)
+    member_of_rel.create_rel(u, g)
 
 
 def update_filename_and_path(uid, full_remote_file_path, md5):
@@ -146,32 +163,32 @@ def study_info(study_list):
 
 
 def get_groups_for_user(uid):
-    gids = set()
+    names = set()
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (:User {uid:{uid}})-[:MEMBER_OF]->(g:Group) RETURN g.gid as gid;",
+        "MATCH (:User {uid:{uid}})-[:MEMBER_OF]->(g:Group) RETURN g.name as name;",
         uid=str(uid)
     )
     for result in results:
-        gids.add(result['gid'])
+        names.add(result['name'])
 
     results = tx.run(
         "MATCH (g:Group {name:{name}}) RETURN g.gid as gid;",
         name=str('public')
     )
     for result in results:
-        gids.add(result['gid'])
+        names.add(result['name'])
 
-    return gids
+    return names
 
 
 def get_permitted_studies(uid, sid):
     schema = GwasInfoNodeSchema()
-    gids = get_groups_for_user(uid)
+    group_names = get_groups_for_user(uid)
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.gid IN {gids} AND s.id IN {sid} RETURN distinct(s) as s;",
-        gids=list(gids), sid=list(sid)
+        "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} AND s.id IN {sid} RETURN distinct(s) as s;",
+        group_names=list(group_names), sid=list(sid)
     )
     res = []
     for result in results:

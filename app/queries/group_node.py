@@ -3,5 +3,5 @@ from schemas.group_node_schema import GroupNodeSchema
 
 
 class Group(UniqueNode):
-    _UID_KEY = 'gid'
+    _UID_KEY = 'name'
     _SCHEMA = GroupNodeSchema
