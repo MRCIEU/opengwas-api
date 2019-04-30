@@ -15,3 +15,4 @@ token.temp
 app/private
 app/import/data
 app/import/local
+populate_db/data

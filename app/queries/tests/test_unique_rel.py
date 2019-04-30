@@ -6,7 +6,7 @@ import pytest
 d = dict(test_prop1="test_val1", test_prop2="test_val2")
 
 
-def test_create_rel():
+def test_create_rel(reset_db):
     app = flask.Flask(__name__)
     with app.app_context():
         u1 = UniqueNode(uid='testid1', propone='propone', proptwo='proptwo')
@@ -26,7 +26,7 @@ def test_create_rel():
         assert props['test_prop2'] == "test_val2"
 
 
-def test_del_rel():
+def test_del_rel(reset_db):
     app = flask.Flask(__name__)
     with app.app_context():
         u1 = UniqueNode(uid='testid1', propone='propone', proptwo='proptwo')

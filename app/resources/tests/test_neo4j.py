@@ -6,3 +6,9 @@ def test_check_running():
     app = flask.Flask(__name__)
     with app.app_context():
         assert Neo4j.check_running()
+
+
+def test_drop_all_index():
+    app = flask.Flask(__name__)
+    with app.app_context():
+        Neo4j.drop_all_constraints()

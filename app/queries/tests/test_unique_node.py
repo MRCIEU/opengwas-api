@@ -5,7 +5,7 @@ import pytest
 d = dict(uid='testid', propone='prop123', proptwo='prop456')
 
 
-def test_create_node():
+def test_create_node(reset_db):
     app = flask.Flask(__name__)
     with app.app_context():
         u1 = UniqueNode(d)
@@ -24,7 +24,7 @@ def test_create_node():
         UniqueNode.delete_node(d['uid'])
 
 
-def test_delete_node():
+def test_delete_node(reset_db):
     app = flask.Flask(__name__)
     with app.app_context():
         u = UniqueNode(d)
@@ -34,7 +34,7 @@ def test_delete_node():
             UniqueNode.get_node(d['uid'])
 
 
-def test_check_constraint():
+def test_check_constraint(reset_db):
     app = flask.Flask(__name__)
     with app.app_context():
         UniqueNode.set_constraint()

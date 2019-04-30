@@ -1,12 +1,14 @@
-from resources.neo4j import *
 import flask
 import re
 from queries.cql_queries import *
+import logging
+from resources.globals import Globals
+import json
 
 
 def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
     if proxies == 0:
-        logger2.debug("not using LD proxies")
+        logging.debug("not using LD proxies")
 
         try:
             return query_summary_stats(user_email, rsid, id)
@@ -14,7 +16,7 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
             flask.abort(503, e)
 
     else:
-        logger2.debug("using LD proxies")
+        logging.debug("using LD proxies")
 
         try:
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
@@ -34,8 +36,8 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
 
 
 def get_proxies_es(snps, rsq, palindromes, maf_threshold):
-    logger2.debug("obtaining LD proxies from ES")
-    logger2.debug("palindromes " + str(palindromes))
+    logging.debug("obtaining LD proxies from ES")
+    logging.debug("palindromes " + str(palindromes))
     start = time.time()
     start = time.time()
     # pquery = PySQLPool.getNewQuery(dbConnection)
@@ -45,7 +47,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
     # logger.info(filterData)
     if palindromes == 0:
         filterData.append({"term": {'palindromic': '0'}})
-        ESRes = es.search(
+        ESRes = Globals.es.search(
             request_timeout=60,
             index='mrb-proxies',
             doc_type="proxies",
@@ -68,7 +70,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
         filterData1.append({"term": {'palindromic': '1'}})
         filterData1.append({"range": {"pmaf": {"lt": str(maf_threshold)}}})
         filterData2.append({"term": {'palindromic': '0'}})
-        ESRes = es.search(
+        ESRes = Globals.es.search(
             request_timeout=60,
             index='mrb-proxies',
             doc_type="proxies",
@@ -95,9 +97,9 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
                     }
                 }
             })
-        logger2.debug(filterData)
-        logger2.debug(filterData1)
-        logger2.debug(filterData2)
+        logging.debug(filterData)
+        logging.debug(filterData1)
+        logging.debug(filterData2)
     # SQL = "SELECT * " \
     # "FROM proxies " \
     # "WHERE target in ({0}) " \
@@ -105,13 +107,13 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 
     # return res
     # logger.info(res)
-    logger2.debug("performing proxy query")
+    logging.debug("performing proxy query")
     # pquery.Query(SQL)
-    # logger2.debug(SQL)
-    logger2.debug("done proxy query")
+    # logging.debug(SQL)
+    logging.debug("done proxy query")
     # res = pquery.record
     proxy_dat = []
-    logger2.debug("matching proxy SNPs")
+    logging.debug("matching proxy SNPs")
     for i in range(len(snps)):
         snp = snps[i]
         dat = [
@@ -119,7 +121,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
         hits = ESRes['hits']['hits']
         # logger.info('total proxies = '+str(ESRes['hits']['total']))
         for hit in hits:
-            # logger2.debug(hit['_source'])
+            # logging.debug(hit['_source'])
             if hit['_source']['target'] == snp:
                 # logger.info(snp+' '+hit['_source']['proxy'])
                 dat.append({
@@ -132,16 +134,16 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
                     'pal': hit['_source']['palindromic']}
                 )
         proxy_dat.append(dat)
-    logger2.debug("done proxy matching")
+    logging.debug("done proxy matching")
     end = time.time()
     t = round((end - start), 4)
-    logger2.debug('proxy matching took: ' + str(t) + ' seconds')
-    logger2.debug('returned ' + str(len(proxy_dat)) + ' results')
+    logging.debug('proxy matching took: ' + str(t) + ' seconds')
+    logging.debug('returned ' + str(len(proxy_dat)) + ' results')
     return proxy_dat
 
 
 def elastic_search(filterData, index_name):
-    res = es.search(
+    res = Globals.es.search(
         request_timeout=60,
         index=index_name,
         # doc_type="assoc",
@@ -160,19 +162,19 @@ def elastic_search(filterData, index_name):
 # studies and snps are lists
 def elastic_query(studies, snps, pval):
     # separate studies by index
-    # logger2.debug(studies)
-    study_indexes = {mrb_batch: []}
+    # logging.debug(studies)
+    study_indexes = {Globals.mrb_batch: []}
     mrbase_original = True
     # deal with snp_lookup
     if studies == 'snp_lookup':
-        logger2.debug("Running snp_lookup elastic_query")
+        logging.debug("Running snp_lookup elastic_query")
         # need to add each index for snp_lookups
-        for i in study_batches:
-            if i != mrb_batch:
+        for i in Globals.study_batches:
+            if i != Globals.mrb_batch:
                 study_indexes.update({i: []})
     else:
         for o in studies:
-            # logger2.debug('o = '+o)
+            # logging.debug('o = '+o)
             if re.search(':', o):
                 study_prefix, study_id = o.split(':')
                 if study_prefix in study_indexes:
@@ -180,11 +182,11 @@ def elastic_query(studies, snps, pval):
                 else:
                     study_indexes[study_prefix] = [study_id]
             else:
-                study_indexes[mrb_batch].append(o)
+                study_indexes[Globals.mrb_batch].append(o)
 
     res = {}
     for s in study_indexes:
-        logger2.debug('checking ' + s + ' ...')
+        logging.debug('checking ' + s + ' ...')
         filterSelect = {}
         if type(studies) is list:
             filterSelect['study_id'] = study_indexes[s]
@@ -202,7 +204,7 @@ def elastic_query(studies, snps, pval):
 
         # deal with mrbase-original complications
         run = False
-        if s == mrb_batch:
+        if s == Globals.mrb_batch:
             if studies == 'snp_lookup':
                 run = True
             elif 'study_id' in filterSelect:
@@ -211,9 +213,9 @@ def elastic_query(studies, snps, pval):
         else:
             run = True
         if run == True:
-            logger2.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' snps: ' + str(
+            logging.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' snps: ' + str(
                 len(snps)) + ' pval: ' + str(pval))
-            # logger2.debug(filterData)
+            # logging.debug(filterData)
             start = time.time()
             e = elastic_search(filterData, s)
             res.update({s: e})
@@ -221,34 +223,34 @@ def elastic_query(studies, snps, pval):
             end = time.time()
             t = round((end - start), 4)
             numRecords = res[s]['hits']['total']
-            logger2.debug("Time taken: " + str(t) + " seconds")
-            logger2.debug('ES returned ' + str(numRecords) + ' records')
+            logging.debug("Time taken: " + str(t) + " seconds")
+            logging.debug('ES returned ' + str(numRecords) + ' records')
     # if numRecords>10000:
     #	for i in range(10000,numRecords,10000):
-    #		logger2.debug(i)
+    #		logging.debug(i)
     #		res1 = elastic_search(i,10,filterData)
     #		res = merge_two_dicts(res,res1)
-    #	logger2.debug(str(numRecords)+' !!!! large number of records !!!!')
+    #	logging.debug(str(numRecords)+' !!!! large number of records !!!!')
     return res
 
 
 def query_summary_stats(user_email, snps, outcomes):
     #### es
-    # logger2.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
+    # logging.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
     # get available studies
-    logger2.debug('requested studies: ' + str(len(outcomes)))
-    logger2.debug('len snplist = ' + str(len(snps)))
+    logging.debug('requested studies: ' + str(len(outcomes)))
+    logging.debug('len snplist = ' + str(len(snps)))
 
     # get study and snp data
     # snp_data = {}
     snp_data = snps
     # if snps!='':
     # snp_data = snp_info(snpList,'rsid_to_id')
-    # logger2.debug(snp_data)
+    # logging.debug(snp_data)
 
-    # logger2.debug(sorted(study_access))
-    logger2.debug('searching ' + str(outcomes.count(',') + 1) + ' outcomes')
-    logger2.debug('creating outcomes list and study_data dictionary')
+    # logging.debug(sorted(study_access))
+    logging.debug('searching ' + str(outcomes.count(',') + 1) + ' outcomes')
+    logging.debug('creating outcomes list and study_data dictionary')
     start = time.time()
     outcomes_access = []
     # outcomes_clean = outcomes.replace("'", "")
@@ -261,9 +263,9 @@ def query_summary_stats(user_email, snps, outcomes):
         outcomes_access = [x['id'] for x in study_data]
     end = time.time()
     t = round((end - start), 4)
-    logger2.debug('took: ' + str(t) + ' seconds')
-    logger2.debug('len study_data = ' + str(len(study_data)))
-    logger2.debug('len outcomes_access = ' + str(len(outcomes_access)))
+    logging.debug('took: ' + str(t) + ' seconds')
+    logging.debug('len study_data = ' + str(len(study_data)))
+    logging.debug('len outcomes_access = ' + str(len(outcomes_access)))
     if len(outcomes_access) == 0 and outcomes != 'snp_lookup':
         return json.dumps([])
     # if outcomes == 'snp_lookup':
@@ -278,7 +280,7 @@ def query_summary_stats(user_email, snps, outcomes):
         # create final file
 
         for hit in hits:
-            # logger2.debug(hit)
+            # logging.debug(hit)
             other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
             # if float(hit['_source']['effect_allele_freq']) < 999:
             effect_allele_freq = hit['_source']['effect_allele_freq']
@@ -299,7 +301,7 @@ def query_summary_stats(user_email, snps, outcomes):
             other_allele = hit['_source']['other_allele']
             # name = snp_data[int(hit['_source']['snp_id'])]
             name = hit['_source']['snp_id']
-            # logger2.debug(hit)
+            # logging.debug(hit)
             # don't want data with no pval
             if p != '':
                 assocDic = {'effect_allele': effect_allele,
@@ -312,7 +314,7 @@ def query_summary_stats(user_email, snps, outcomes):
                             'name': name
                             }
                 study_id = hit['_source']['study_id']
-                if s != mrb_batch:
+                if s != Globals.mrb_batch:
                     study_id = s + ':' + hit['_source']['study_id']
                 # make sure only to return available studies
                 idlist = [x['id'] for x in study_data]
@@ -320,20 +322,20 @@ def query_summary_stats(user_email, snps, outcomes):
                     i = idlist.index(study_id)
                     assocDic.update(study_data[i])
                     es_res.append(assocDic)
-    # logger2.debug(json.dumps(es_res,indent=4))
-    logger2.debug('Total hits returned = ' + str(len(es_res)))
+    # logging.debug(json.dumps(es_res,indent=4))
+    logging.debug('Total hits returned = ' + str(len(es_res)))
     return es_res
 
 
-# logger2.debug(json.dumps(es_res[0],indent=4))
+# logging.debug(json.dumps(es_res[0],indent=4))
 
 def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles):
-    logger2.debug("entering extract_proxies_from_query")
+    logging.debug("entering extract_proxies_from_query")
     start = time.time()
     matched_proxies = []
     proxy_query_copy = [a.get('name') for a in proxy_query]
     for i in range(len(outcomes)):
-        logger2.debug("matching proxies to query snps for " + str(outcomes[i]))
+        logging.debug("matching proxies to query snps for " + str(outcomes[i]))
         for j in range(len(snps)):
             # logger.info(str(j)+' '+snps[j])
             flag = 0
@@ -361,7 +363,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                         else:
                             if align_alleles == "1":
                                 al = proxy_alleles(proxy_query[l], proxy_dat[j][k], maf_threshold)
-                                logger2.debug(al)
+                                logging.debug(al)
                                 if al == "straight":
                                     y['proxy'] = True
                                     y['effect_allele'] = proxy_dat[j][k].get('tallele1')
@@ -389,7 +391,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                     # print "switch", i, j, k, l
                                     break
                                 if al == "skip":
-                                    logger2.debug("skip")
+                                    logging.debug("skip")
                             else:
                                 y['proxy'] = True
                                 y['target_a1'] = proxy_dat[j][k].get('tallele1')
@@ -403,7 +405,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                 break
     end = time.time()
     t = round((end - start), 4)
-    logger2.debug('extract_proxies_from_query took :' + str(t) + ' seconds')
+    logging.debug('extract_proxies_from_query took :' + str(t) + ' seconds')
     return matched_proxies
 
 
