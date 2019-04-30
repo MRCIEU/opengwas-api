@@ -10,6 +10,7 @@ def test_gwasinfo_add_delete(url):
         'filename': 'test',
         'path': '/projects/test/test', 'mr': 1,
         'note': 'test',
+        'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
         'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
@@ -40,16 +41,17 @@ def test_gwasinfo_upload_plain_text(url):
         'filename': 'test',
         'path': '/projects/test/test', 'mr': 1,
         'note': 'test',
+        'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
         'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
-        'unit': 'SD (cm)', 'gid': 1,
+        'unit': 'SD (cm)', 'group_name': "public",
         'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'
     }
     headers = {'X-API-TOKEN': token}
 
     # make new metadata
-    r = requests.post(url + "/gwasinfo/add", data=payload, headers=headers)
+    r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
     assert isinstance(int(uid.replace('bgc-', '')), int)
@@ -57,7 +59,7 @@ def test_gwasinfo_upload_plain_text(url):
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
 
     # upload file for this study
-    r = requests.post(url + "/gwasinfo/upload", data={
+    r = requests.post(url + "/edit/upload", data={
         'id': uid,
         'chr_col': 0,
         'pos_col': 1,
@@ -78,7 +80,7 @@ def test_gwasinfo_upload_plain_text(url):
 
     # delete metadata
     payload = {'id': uid}
-    r = requests.delete(url + "/gwasinfo/delete", data=payload, headers=headers)
+    r = requests.delete(url + "/edit/delete", data=payload, headers=headers)
     assert r.status_code == 200
 
 
@@ -88,16 +90,17 @@ def test_gwasinfo_upload_gzip(url):
         'filename': 'test',
         'path': '/projects/test/test', 'mr': 1,
         'note': 'test',
+        'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
         'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
-        'unit': 'SD (cm)', 'gid': 1,
+        'unit': 'SD (cm)', 'group_name': "public",
         'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'
     }
     headers = {'X-API-TOKEN': token}
 
     # make new metadata
-    r = requests.post(url + "/gwasinfo/add", data=payload, headers=headers)
+    r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
     assert isinstance(int(uid.replace('bgc-', '')), int)
@@ -105,7 +108,7 @@ def test_gwasinfo_upload_gzip(url):
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt.gz')
 
     # upload file for this study
-    r = requests.post(url + "/gwasinfo/upload", data={
+    r = requests.post(url + "/edit/upload", data={
         'id': uid,
         'chr_col': 0,
         'pos_col': 1,
@@ -126,5 +129,5 @@ def test_gwasinfo_upload_gzip(url):
 
     # delete metadata
     payload = {'id': uid}
-    r = requests.delete(url + "/gwasinfo/delete", data=payload, headers=headers)
+    r = requests.delete(url + "/edit/delete", data=payload, headers=headers)
     assert r.status_code == 200
