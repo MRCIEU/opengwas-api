@@ -56,8 +56,12 @@ valid_trait_subcategories = {
 valid_trait_descriptions = {'Continuous', 'Binary', 'Ordinal'}
 valid_categories = {'Immune system', 'NA', 'Risk factor', 'Continuous', 'Metabolites', 'Disease', 'Binary',
                     'Catagorial Ordered'}
-valid_populations = {'Chinese', 'European', 'African American', 'East Asian', 'Iranian', 'Indian', 'Hispanic', 'Mixed',
-                     'Japanese'}
+valid_populations = {
+    "Aboriginal Australian", "African American or Afro-Caribbean", "African unspecified", "Asian unspecified",
+    "Central Asian", "East Asian", "European", "Greater Middle Eastern (Middle Eastern, North African, or Persian)",
+    "Hispanic or Latin American", "Native American", "Not reported", "Oceanian", "Other", "Other admixed ancestry",
+    "South Asian", "South East Asian", "Sub-Saharan African", "Mixed", "NA"
+}
 valid_sex = {'Males and Females', 'Males', 'Females'}
 valid_study_designs = {'Meta-analysis of case-control studies', 'case-control study', 'cohort study',
                        'case-only survival analysis'}

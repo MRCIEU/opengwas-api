@@ -57,3 +57,10 @@ def test_gwasinfo7(url):
 def test_gwasinfo8(url):
     r = requests.get(url + "/gwasinfo/2,987")
     assert r.status_code == 200 and len(r.json()) == 1
+
+
+# issue 57
+def test_gwasinfo_issue_57(url):
+    r = requests.get(url + "/gwasinfo/2")
+    assert r.status_code == 200 and len(r.json()) == 1
+    assert r.json()[0]['trait'] == "Body mass index"

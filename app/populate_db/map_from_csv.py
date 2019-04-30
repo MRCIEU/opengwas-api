@@ -29,6 +29,27 @@ def batch_add_rel(records):
            "MERGE (grp)-[:ACCESS_TO]->(gi);", props=records)
 
 
+def map_population(pop):
+    if pop.lower() == "african american":
+        return "African American or Afro-Caribbean"
+    elif pop.lower() == "chinese, japanese, east asian":
+        return "East Asian"
+    elif pop.lower() == "european":
+        return "European"
+    elif pop.lower() == "iranian":
+        return "Greater Middle Eastern (Middle Eastern, North African, or Persian)"
+    elif pop.lower() == "hispanic":
+        return "Hispanic or Latin American"
+    elif pop.lower() == "indian":
+        return "South Asian"
+    elif pop.lower() == "mixed":
+        return "Mixed"
+    elif pop.lower() == "na":
+        return "NA"
+    else:
+        raise ValueError("Unknown pop :{}".format(pop))
+
+
 # populate_db to neo4
 app = flask.Flask(__name__)
 app.teardown_appcontext(Neo4j.close_db)
@@ -93,6 +114,7 @@ with app.app_context():
             else:
                 d['subcategory'] = str(fields[9])
 
+            # TODO should be None
             if fields[10] == "NULL" or fields[10] == "" or fields[10] == "population":
                 d['population'] = "NA"
             else:
