@@ -38,7 +38,7 @@ def test_add_group_to_user(reset_db):
     app = flask.Flask(__name__)
 
     with app.app_context():
-        second_grp = "sec_grp"
+        second_grp = "developer"
 
         g = Group(name=group_name)
         g.create_node()
