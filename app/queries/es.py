@@ -257,7 +257,7 @@ def query_summary_stats(user_email, snps, outcomes):
     outcomes_clean = ','.join(outcomes)
     if outcomes == 'snp_lookup':
         outcomes_access = 'snp_lookup'
-        study_data = study_info(outcomes)
+        study_data = get_all_gwas_for_user(user_email)
     else:
         study_data = get_permitted_studies(user_email, outcomes)
         outcomes_access = [x['id'] for x in study_data]

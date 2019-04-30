@@ -30,5 +30,5 @@ services:
      - ENV=production
      - ACCESS=private
     volumes:
-     - /data/mrb_neo4j/data:/data
+     - /data/bgc:/data/bgc
      - /data/mrb_neo4j/logs:/logs

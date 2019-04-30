@@ -77,7 +77,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
 
         # get study and snp data
         # study_data = study_info([outcomes])[outcomes]
-        study_data = study_info(id)
+        study_data = get_permitted_studies(user_email, id)
         # snp_data = snp_info(snpDic.keys(),'id_to_rsid')
         snp_data = snpDic.keys()
 
