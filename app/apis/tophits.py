@@ -57,10 +57,8 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
         study_access.add(str(s))
 
     logging.debug('searching ' + outcomes_clean)
-    study_data = get_permitted_studies(user_email, outcomes)
-    print(study_data)
+    study_data = get_permitted_studies(user_email, outcomes.strip().split(","))
     study_data = get_permitted_studies(user_email, id)
-    print(study_data)
     outcomes_access = [x['id'] for x in study_data]
     logging.debug(str(outcomes_access))
     # logging.debug(sorted(study_access))
