@@ -63,8 +63,16 @@ valid_populations = {
     "South Asian", "South East Asian", "Sub-Saharan African", "Mixed", "NA"
 }
 valid_sex = {'Males and Females', 'Males', 'Females'}
-valid_study_designs = {'Meta-analysis of case-control studies', 'case-control study', 'cohort study',
-                       'case-only survival analysis'}
+valid_study_designs = {
+    "Meta-analysis of case-control studies",
+    "Meta-analysis of cohort/cross-sectional studies",
+    "Meta-analysis of studies with varying designs",
+    "Case-control study",
+    "Cohort/cross-sectional study",
+    "Case-only analysis",
+    "Other",
+    "Unknown"
+}
 valid_imputation_panels = {'no imputed genotypes', '1000 Genomes', 'HapMap', 'HRC', 'UK10K', 'other'}
 valid_genome_build = {'HG18/GRCh36', 'HG19/GRCh37', 'HG38/GRCh38'}
 
