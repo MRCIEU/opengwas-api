@@ -4,6 +4,7 @@ import os
 
 token = get_mrbase_access_token()
 
+
 def test_gwasinfo_add_delete(url):
     payload = {
         'pmid': 1234, 'year': 2010,
@@ -61,16 +62,16 @@ def test_gwasinfo_upload_plain_text(url):
     # upload file for this study
     r = requests.post(url + "/edit/upload", data={
         'id': uid,
-        'chr_col': 0,
-        'pos_col': 1,
-        'snp_col': 2,
-        'ea_col': 3,
-        'oa_col': 4,
-        'eaf_col': 9,
-        'beta_col': 5,
-        'se_col': 6,
-        'pval_col': 8,
-        'ncontrol_col': 7,
+        'chr_col': 1,
+        'pos_col': 2,
+        'snp_col': 3,
+        'ea_col': 4,
+        'oa_col': 5,
+        'eaf_col': 10,
+        'beta_col': 6,
+        'se_col': 7,
+        'pval_col': 9,
+        'ncontrol_col': 8,
         'delimiter': 'tab',
         'header': 'True',
         'gzipped': 'False'
@@ -110,16 +111,16 @@ def test_gwasinfo_upload_gzip(url):
     # upload file for this study
     r = requests.post(url + "/edit/upload", data={
         'id': uid,
-        'chr_col': 0,
-        'pos_col': 1,
-        'snp_col': 2,
-        'ea_col': 3,
-        'oa_col': 4,
-        'eaf_col': 9,
-        'beta_col': 5,
-        'se_col': 6,
-        'pval_col': 8,
-        'ncontrol_col': 7,
+        'chr_col': 1,
+        'pos_col': 2,
+        'snp_col': 3,
+        'ea_col': 4,
+        'oa_col': 5,
+        'eaf_col': 10,
+        'beta_col': 6,
+        'se_col': 7,
+        'pval_col': 9,
+        'ncontrol_col': 8,
         'delimiter': 'tab',
         'header': 'True',
         'gzipped': 'True'

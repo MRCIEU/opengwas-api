@@ -84,29 +84,29 @@ class Upload(Resource):
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
-    parser.add_argument('chr_col', type=int, required=False, help="Column index for chromosome (0-indexed)")
-    parser.add_argument('pos_col', type=int, required=False, help="Column index for base position (0-indexed)")
-    parser.add_argument('ea_col', type=int, required=True, help="Column index for effect allele (0-indexed)")
-    parser.add_argument('oa_col', type=int, required=True, help="Column index for non-effect allele (0-indexed)")
-    parser.add_argument('beta_col', type=int, required=True, help="Column index for effect size (0-indexed)")
-    parser.add_argument('se_col', type=int, required=True, help="Column index for standard error (0-indexed)")
-    parser.add_argument('pval_col', type=int, required=True, help="Column index for P-value (0-indexed)")
+    parser.add_argument('chr_col', type=int, required=True, help="Column index for chromosome")
+    parser.add_argument('pos_col', type=int, required=True, help="Column index for base position")
+    parser.add_argument('ea_col', type=int, required=True, help="Column index for effect allele")
+    parser.add_argument('oa_col', type=int, required=True, help="Column index for non-effect allele")
+    parser.add_argument('beta_col', type=int, required=True, help="Column index for effect size")
+    parser.add_argument('se_col', type=int, required=True, help="Column index for standard error")
+    parser.add_argument('pval_col', type=int, required=True, help="Column index for P-value")
     parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
                         help="Column delimiter for file")
     parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
                         choices=('True', 'False'))
-    parser.add_argument('ncase_col', type=int, required=False, help="Column index for case sample size (0-indexed)")
-    parser.add_argument('snp_col', type=int, required=False, help="Column index for dbsnp rs-identifer (0-indexed)")
+    parser.add_argument('ncase_col', type=int, required=False, help="Column index for case sample size")
+    parser.add_argument('snp_col', type=int, required=False, help="Column index for dbsnp rs-identifer")
     parser.add_argument('eaf_col', type=int, required=False,
-                        help="Column index for effect allele frequency (0-indexed)")
+                        help="Column index for effect allele frequency")
     parser.add_argument('oaf_col', type=int, required=False,
-                        help="Column index for other allele frequency (0-indexed)")
+                        help="Column index for other allele frequency")
     parser.add_argument('imp_z_col', type=int, required=False,
                         help="Column number for summary statistics imputation Z score")
     parser.add_argument('imp_info_col', type=int, required=False,
                         help="Column number for summary statistics imputation INFO score")
     parser.add_argument('ncontrol_col', type=int, required=False,
-                        help="Column index for control sample size; total sample size if continuous trait (0-indexed)")
+                        help="Column index for control sample size; total sample size if continuous trait")
     parser.add_argument('id', type=str, required=True,
                         help="Identifier to which the summary stats belong.")
     parser.add_argument('gwas_file', location='files', type=FileStorage, required=True,
@@ -165,17 +165,35 @@ class Upload(Resource):
         if 'ncase_col' in args and args['ncase_col'] is not None:
             row['ncase'] = line_split[args['ncase_col']]
 
-        # check chrom pos or dbsnp is given
-        if ('chr' not in row or 'pos' not in row) and 'snp' not in row:
-            raise ValueError("Please provide chromosome and base-position (preferably) or dbsnp identifier.")
-
         # check row - raises validation exception if invalid
         schema = GwasRowSchema()
         schema.load(row)
 
+    @staticmethod
+    def __convert_index(val):
+        try:
+            return val - 1
+        except TypeError:
+            return val
+
     @api.expect(parser)
     def post(self):
         args = self.parser.parse_args()
+
+        # convert to 0-based indexing
+        args['chr_col'] = Upload.__convert_index(args['chr_col'])
+        args['pos_col'] = Upload.__convert_index(args['pos_col'])
+        args['ea_col'] = Upload.__convert_index(args['ea_col'])
+        args['oa_col'] = Upload.__convert_index(args['oa_col'])
+        args['beta_col'] = Upload.__convert_index(args['beta_col'])
+        args['se_col'] = Upload.__convert_index(args['se_col'])
+        args['pval_col'] = Upload.__convert_index(args['pval_col'])
+        args['ncase_col'] = Upload.__convert_index(args['ncase_col'])
+        args['snp_col'] = Upload.__convert_index(args['snp_col'])
+        args['eaf_col'] = Upload.__convert_index(args['eaf_col'])
+        args['imp_z_col'] = Upload.__convert_index(args['imp_z_col'])
+        args['imp_info_col'] = Upload.__convert_index(args['imp_info_col'])
+        args['ncontrol_col'] = Upload.__convert_index(args['ncontrol_col'])
 
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
         raw_folder = os.path.join(study_folder, 'raw')
