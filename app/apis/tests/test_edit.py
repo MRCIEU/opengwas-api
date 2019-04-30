@@ -13,19 +13,19 @@ def test_gwasinfo_add_delete(url):
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
         'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
-        'unit': 'SD (cm)', 'gid': 1,
+        'unit': 'SD (cm)', 'group_name': "public",
         'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'
     }
     headers = {'X-API-TOKEN': token}
 
     # add record
-    r = requests.post(url + "/gwasinfo/add", data=payload, headers=headers)
+    r = requests.post(url + "/edit/add", data=payload, headers=headers)
     uid = str(r.json()['id'])
     assert r.status_code == 200 and isinstance(int(uid.replace('bgc-', '')), int)
 
     # delete record
     payload = {'id': uid}
-    r = requests.delete(url + "/gwasinfo/delete", data=payload, headers=headers)
+    r = requests.delete(url + "/edit/delete", data=payload, headers=headers)
     assert r.status_code == 200
 
     # check deleted
