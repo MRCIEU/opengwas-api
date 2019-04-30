@@ -1,7 +1,7 @@
 from queries.group_node import Group
 from queries.user_node import User
 from queries.access_to_rel import AccessToRel
-from queries.cql_queries import add_new_user, add_quality_control
+from queries.cql_queries import add_new_user
 from queries.gwas_info_node import GwasInfo
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import flask
