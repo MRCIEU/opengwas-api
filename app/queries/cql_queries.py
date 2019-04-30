@@ -129,40 +129,6 @@ def delete_gwas(gwasid):
     )
 
 
-""" Returns studies for a list of study identifiers (or all public if keyword 'snp_lookup' provided)  """
-
-
-# TODO do not show private data
-
-def study_info(study_list):
-    res = []
-    schema = GwasInfoNodeSchema()
-    tx = Neo4j.get_db()
-
-    if study_list == 'snp_lookup':
-        results = tx.run(
-            "MATCH (:Group {name:{name}})-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) RETURN gi;",
-            name=int(1)
-        )
-        for result in results:
-            res.append(schema.load(result['gi']))
-
-        return res
-    else:
-        study_list_str = []
-        for s in study_list:
-            study_list_str.append(str(s))
-
-        results = tx.run(
-            "MATCH (gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE gi.id IN {study_list} RETURN gi;",
-            study_list=study_list_str
-        )
-        for result in results:
-            res.append(schema.load(result['gi']))
-
-        return res
-
-
 """ Returns list of group identifiers for a given user email (will accept None) """
 
 

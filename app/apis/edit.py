@@ -14,6 +14,7 @@ import shutil
 from resources.auth import get_user_email
 from flask import request
 from schemas.gwas_info_node_schema import valid_genome_build
+from schemas.group_node_schema import valid_group_names
 
 api = Namespace('edit', description="Upload and delete data")
 
@@ -26,8 +27,9 @@ class Add(Resource):
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
     parser.add_argument('group_name', type=str, required=True,
+                        help='Name for the group this study should belong to.', choices=tuple(valid_group_names))
+    parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
                         help='Name for the group this study should belong to.')
-    parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True, help='Name for the group this study should belong to.')
     GwasInfoNodeSchema.populate_parser(parser,
                                        ignore={GwasInfo.get_uid_key(), 'build', 'filename', 'path', 'md5', 'priority',
                                                'mr'})
