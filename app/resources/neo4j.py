@@ -23,6 +23,16 @@ class Neo4j:
         tx.run("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;")
 
     @staticmethod
+    def drop_all_constraints():
+        tx = Neo4j.get_db()
+        cmd = []
+        results = tx.run("CALL db.constraints;")
+        for result in results:
+            cmd.append("DROP " + result['description'])
+        for c in cmd:
+            tx.run(c)
+
+    @staticmethod
     def check_running():
         try:
             tx = Neo4j.get_db()

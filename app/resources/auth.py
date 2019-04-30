@@ -10,7 +10,7 @@ def get_user_email(token):
     try:
         if token.lower() == 'null':
             return None
-    except TypeError:
+    except AttributeError:
         return None
 
     url = OAUTH2_URL + str(token)

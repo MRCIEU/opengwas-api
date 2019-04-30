@@ -1,3 +1,7 @@
+from queries.group_node import Group
+from queries.user_node import User
+from queries.access_to_rel import AccessToRel
+from queries.cql_queries import add_new_user, add_quality_control
 from queries.gwas_info_node import GwasInfo
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import flask
@@ -16,6 +20,15 @@ def batch_add_nodes(nodes, label):
                                   "SET n = map;", props=nodes)
 
 
+def batch_add_rel(records):
+    logging.info("importing: n={}".format(len(records)))
+    tx = Neo4j.get_db()
+    tx.run("UNWIND $props AS map "
+           "MATCH (gi:GwasInfo) where gi.id = map.gwas_id "
+           "MATCH (grp:Group) where grp.name = map.grp_id "
+           "MERGE (grp)-[:ACCESS_TO]->(gi);", props=records)
+
+
 # populate_db to neo4
 app = flask.Flask(__name__)
 app.teardown_appcontext(Neo4j.close_db)
@@ -23,8 +36,14 @@ app.teardown_appcontext(Neo4j.close_db)
 with app.app_context():
     schema = GwasInfoNodeSchema()
     Neo4j.clear_db()
+    Group.set_constraint()
+    User.set_constraint()
     GwasInfo.set_constraint()
+    access_to_rel = AccessToRel()
     nodes = []
+    gid_to_name = dict()
+    email_to_gid = dict()
+    all_gwas_id = set()
 
     # populate_db gwas info
     with open('populate_db/data/study_e.tsv') as f:
@@ -36,6 +55,8 @@ with app.app_context():
             d = dict()
 
             d['id'] = str(fields[0])
+            all_gwas_id.add(str(fields[0]))
+
             try:
                 d['pmid'] = int(fields[1])
             except ValueError as e:
@@ -150,3 +171,74 @@ with app.app_context():
 
     # add remaining nodes
     batch_add_nodes(nodes, GwasInfo.get_node_label())
+
+    # populate_db groups
+    logging.info("importing groups")
+    with open('populate_db/data/groups.tsv') as f:
+        for line in f:
+            fields = line.strip().split("\t")
+            g = Group(name=str(fields[1]))
+            g.create_node()
+
+            # gid = name
+            gid_to_name[int(fields[0])] = fields[1]
+
+    # populate_db users
+    logging.info("importing users")
+    with open('populate_db/data/memberships.tsv') as f:
+        for line in f:
+            fields = line.strip().split("\t")
+            email = str(fields[0]).lower()
+            gid = int(fields[1])
+
+            # TODO @ben -- there are 0 grp but no grp name
+            if gid == 0:
+                continue
+
+            if email not in email_to_gid:
+                email_to_gid[email] = set()
+
+            # email = set(gid)
+            email_to_gid[email].add(gid)
+
+        for email in email_to_gid:
+            group_names = set()
+            for gid in email_to_gid[email]:
+                group_names.add(gid_to_name[int(gid)])
+
+            add_new_user(email, group_names=group_names)
+
+    # link gwas to group
+    # TODO @be -- some studies do not exist in study table but have permissions
+    logging.info("importing permissions")
+    with open('populate_db/data/permissions_e.tsv') as f:
+        rels = []
+        for line in f:
+            fields = line.strip().split("\t")
+
+            # store link
+            d = dict(gwas_id=fields[1], grp_id=gid_to_name[int(fields[0])])
+
+            # append to populate_db queue
+            rels.append(d)
+
+            if len(rels) > 5000:
+                batch_add_rel(rels)
+                rels = []
+
+        # add remaining rels
+        batch_add_rel(rels)
+
+    # create me as user
+    # add me to all GWAS groups for testing purposes
+    # TODO drop statement
+    groups = set()
+    for it in gid_to_name:
+        groups.add(gid_to_name[it])
+    add_new_user('ml18692@bristol.ac.uk', groups)
+
+    # set all gwas as QC passed
+    tx = Neo4j.get_db()
+    tx.run("MATCH (u:User {uid:\"ml18692@bristol.ac.uk\"}) "
+           "MATCH (g:GwasInfo) WHERE NOT (g)-[:DID_QC]->(:User) "
+           "CREATE (g)-[:DID_QC {epoch:1549379289.720649, comment:\"historic\", data_passed:True}]->(u)")

@@ -37,24 +37,6 @@ virtualenv venv
 pip install -r requirements.txt
 ```
 
-### Tell the app you are running locally
-
-The presence of a file called `app/local` will signify that we are running locally:
-
-```
-touch local
-touch app/queries/tests/local
-```
-
-### Enable editing endpoints
-
-The `/edit` and `/quality_control` endpoints are sensitive so need to only be available internally. To indicate that it is an internal instance of the API, create an empty file called `app/private`:
-
-```
-touch app/private
-touch app/queries/tests/private
-```
-
 ### deploying the database
 
 ```
@@ -65,7 +47,7 @@ docker-compose up -d
 
 ```
 # copy data to import folder
-cp groups.tsv app/import/data
+cp groups.tsv app/populate_db/data
 cp memberships.tsv app/import/data
 cp permissions_e.tsv app/import/data
 cp study_e.tsv app/import/data
