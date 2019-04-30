@@ -24,7 +24,7 @@ class Add(Resource):
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
-    parser.add_argument('gid', type=int, required=True, help='Identifier for the group this study should belong to.')
+    parser.add_argument('group_name', type=str, required=True, help='Name for the group this study should belong to.')
     GwasInfoNodeSchema.populate_parser(parser,
                                        ignore={GwasInfo.get_uid_key(), 'filename', 'path', 'md5', 'priority', 'mr'})
 
@@ -34,12 +34,12 @@ class Add(Resource):
         try:
             req = self.parser.parse_args()
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
-            group_uid = req['gid']
+            group_name = req['group_name']
 
             req.pop('X-Api-Token')
-            req.pop('gid')
+            req.pop('group_name')
 
-            gwas_uid = add_new_gwas(user_uid, req, group_uid)
+            gwas_uid = add_new_gwas(user_uid, req, {group_name})
 
             return {"id": gwas_uid}, 200
 

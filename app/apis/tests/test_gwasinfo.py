@@ -57,5 +57,3 @@ def test_gwasinfo7(url):
 def test_gwasinfo8(url):
     r = requests.get(url + "/gwasinfo/2,987")
     assert r.status_code == 200 and len(r.json()) == 1
-
-

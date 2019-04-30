@@ -84,10 +84,14 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public'])):
     return gwas_info_dict['id']
 
 
-def add_new_user(email, group_names=frozenset(['public'])):
+def add_new_user(email, group_names=frozenset(['public']), admin=False):
+    uid = email.strip().lower()
     member_of_rel = MemberOfRel()
-    u = User(uid=email.strip().lower())
+    u = User(uid=uid)
     u.create_node()
+
+    if admin:
+        User.set_admin(uid)
 
     for group_name in group_names:
         g = Group.get_node(group_name)
