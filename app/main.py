@@ -6,8 +6,7 @@ from apis.status import check_all, count_elastic_records, count_neo4j_datasets
 
 
 def main():
-    app = Flask(__name__, static_folder="reports")
-    app.add_url_rule('/reports/<path:path>', 'send_js', send_js)
+    app = Flask(__name__, static_folder="static")
     app.add_url_rule('/', 'index', index)
 
     app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
@@ -15,10 +14,6 @@ def main():
     api.init_app(app)
 
     app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'])
-
-
-def send_js(path):
-    return send_from_directory('reports', path)
 
 
 def index():
