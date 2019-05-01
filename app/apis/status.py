@@ -46,7 +46,6 @@ def count_elastic_records():
     url = 'http://' + Globals.app_config['es']['host'] + ':' + str(Globals.app_config['es']['port']) + '/_stats/docs'
     try:
         out = requests.get(url).json()['_all']['primaries']['docs']['count']
-        print(out)
         return out
     except Exception as e:
         return None
