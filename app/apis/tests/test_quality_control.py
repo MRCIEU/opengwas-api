@@ -1,15 +1,16 @@
 import requests
 from apis.tests.token import get_mrbase_access_token
 import os
+from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 token = get_mrbase_access_token()
 
 
 def test_release(url):
+    schema = GwasInfoNodeSchema()
     headers = {'X-API-TOKEN': token}
 
-    # make new metadata
-    r = requests.post(url + "/gwasinfo/add", data={
+    data = {
         'pmid': 1234, 'year': 2010,
         'filename': 'test',
         'path': '/projects/test/test', 'mr': 1,
@@ -17,9 +18,14 @@ def test_release(url):
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
         'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
-        'unit': 'SD (cm)', 'gid': 1,
-        'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'
-    }, headers=headers)
+        'unit': 'SD (cm)', 'group_name': "developer", "build": 'HG19/GRCh37',
+        'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT'
+    }
+
+    # schema.load(data)
+
+    # make new metadata
+    r = requests.post(url + "/edit/add", data=data, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
     assert isinstance(int(uid.replace('bgc-', '')), int)
@@ -28,18 +34,18 @@ def test_release(url):
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
 
     # upload file for this study
-    r = requests.post(url + "/gwasinfo/upload", data={
+    r = requests.post(url + "/edit/upload", data={
         'id': uid,
-        'chr_col': 0,
-        'pos_col': 1,
-        'snp_col': 2,
-        'ea_col': 3,
-        'oa_col': 4,
-        'eaf_col': 9,
-        'beta_col': 5,
-        'se_col': 6,
-        'pval_col': 8,
-        'ncontrol_col': 7,
+        'chr_col': 1,
+        'pos_col': 2,
+        'snp_col': 3,
+        'ea_col': 4,
+        'oa_col': 5,
+        'eaf_col': 10,
+        'beta_col': 6,
+        'se_col': 7,
+        'pval_col': 9,
+        'ncontrol_col': 8,
         'delimiter': 'tab',
         'header': 'True',
         'gzipped': 'False'

@@ -21,7 +21,7 @@ services:
    api:
     image: mr-base-api-restpluspy3:latest
     restart: always
-    container_name: mrb-flask
+    container_name: mrb-flask-restpluspy3
     ports:
      - "8082:80"
     environment:
@@ -31,3 +31,4 @@ services:
      - ACCESS=private
     volumes:
      - /data/bgc:/data/bgc
+     - /data/mrb_logs:/data/mrb_logs
