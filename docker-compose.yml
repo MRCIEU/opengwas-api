@@ -31,3 +31,4 @@ services:
      - ACCESS=private
     volumes:
      - /data/bgc:/data/bgc
+     - /data/mrb_neo4j/logs:/logs
