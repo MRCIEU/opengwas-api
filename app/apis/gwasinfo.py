@@ -6,6 +6,8 @@ from werkzeug.exceptions import BadRequest
 from resources.auth import get_user_email
 import logging
 
+logger = logging.getLogger('debug-log')
+
 api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
@@ -55,7 +57,7 @@ class Info(Resource):
                 try:
                     recs.append(get_gwas_for_user(user_email, str(gwas_info_id)))
                 except LookupError as e:
-                    logging.warning("Could not locate study: {}".format(e))
+                    logger.warning("Could not locate study: {}".format(e))
                     continue
             return recs
 

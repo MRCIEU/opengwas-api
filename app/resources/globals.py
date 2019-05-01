@@ -3,12 +3,9 @@ import json
 import platform
 import os
 from neo4j import GraphDatabase
-import logging
 
 
 class Globals:
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-
     VERSION = '2.0.0'
 
     root_path = os.path.dirname(os.path.dirname(__file__))
@@ -36,7 +33,6 @@ class Globals:
                 app_config = app_config['local']
         except KeyError as e:
             app_config = app_config['local']
-            logging.warning("Environmental variable 'ENV' not set assuming local configuration")
 
         try:
             if os.environ['ACCESS'] == 'public':
@@ -45,7 +41,6 @@ class Globals:
                 app_config['access'] = 'private'
         except KeyError as e:
             app_config['access'] = 'private'
-            logging.warning("Environmental variable 'ACCESS' not set assuming private configuration")
 
     dbConnection = GraphDatabase.driver(
         'bolt://' + app_config['neo4j']['host'] + ":" + str(app_config['neo4j']['port']),
