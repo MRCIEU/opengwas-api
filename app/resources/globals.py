@@ -3,6 +3,7 @@ import json
 import platform
 import os
 from neo4j import GraphDatabase
+import logging
 
 
 class Globals:
@@ -29,10 +30,13 @@ class Globals:
         try:
             if os.environ['ENV'] == 'production':
                 app_config = app_config['production']
+                print("Using production settings")
             else:
                 app_config = app_config['local']
+                print("Using local settings")
         except KeyError as e:
             app_config = app_config['local']
+            print("Using local settings")
 
         try:
             if os.environ['ACCESS'] == 'public':
