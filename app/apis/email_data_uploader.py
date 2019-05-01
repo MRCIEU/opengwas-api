@@ -1,8 +1,10 @@
 from pyo365 import Account
-import logging
 import re
 from resources.globals import Globals
 import flask
+import logging
+
+logger = logging.getLogger('debug-log')
 
 
 class EmailDataUploader:
@@ -33,7 +35,7 @@ class EmailDataUploader:
         # if all goes as expected, result will be True and a token will be stored in the default location.
 
     def send_to_submitter(self, study, qc, comments, address):
-        logging.info("Emailing {}".format(address))
+        logger.info("Emailing {}".format(address))
 
         if not EmailDataUploader.__is_valid_address(address):
             raise ValueError("Need to provide a valid email address")

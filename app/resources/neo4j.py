@@ -1,13 +1,15 @@
 from resources.globals import Globals
-import logging
 import flask
+import logging
+
+logger = logging.getLogger('debug-log')
 
 
 class Neo4j:
 
     @staticmethod
     def close_db(error):
-        logging.info("Closing neo4j session")
+        logger.info("Closing neo4j session")
         if hasattr(flask.g, 'neo4j_db'):
             flask.g.neo4j_db.close()
 
