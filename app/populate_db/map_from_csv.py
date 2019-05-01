@@ -40,6 +40,8 @@ def map_population(pop):
         return "East Asian"
     elif pop.lower() == "chinese":
         return "East Asian"
+    elif pop.lower() == "east asian":
+        return "East Asian"
     elif pop.lower() == "european":
         return "European"
     elif pop.lower() == "iranian":
