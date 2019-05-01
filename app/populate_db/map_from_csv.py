@@ -34,6 +34,12 @@ def map_population(pop):
         return "African American or Afro-Caribbean"
     elif pop.lower() == "chinese, japanese, east asian":
         return "East Asian"
+    elif pop.lower() == "japan":
+        return "East Asian"
+    elif pop.lower() == "japanese":
+        return "East Asian"
+    elif pop.lower() == "chinese":
+        return "East Asian"
     elif pop.lower() == "european":
         return "European"
     elif pop.lower() == "iranian":
@@ -119,6 +125,8 @@ with app.app_context():
                 d['population'] = "NA"
             else:
                 d['population'] = str(fields[10])
+
+            d['population'] = map_population(d['population'])
 
             if str(fields[11]) == "Males and females":
                 d['sex'] = "Males and Females"
