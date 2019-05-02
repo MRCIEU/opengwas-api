@@ -29,9 +29,11 @@ docker create \
 -e MRB_TOKEN="ya29.Glv9BqTugIA9tvEloR5-posYl55SAwApwhPn0vJgzSLIBo8vOvcoeDM-zKu3vBaVaAt3y_PPJ4qQagFWi6_syQfmiHjPfG3Z1mzPO5RCZ7CxEHiOCpnOBIPovs4g" \
 mr-base-api-restpluspy3:latest
 
-# attach
+# attach to network
 docker network connect mrb-net mr-base-api-restpluspy3-tests
 
 # run tests
-docker start mr-base-api-restpluspy3-tests
-docker exec -it mr-base-api-restpluspy3-tests pytest -v
+docker exec -it mr-base-api-restpluspy3-tests pytest -v apis/ --url http://localhost
+docker exec -it mr-base-api-restpluspy3-tests pytest -v resources/ --url http://localhost
+docker exec -it mr-base-api-restpluspy3-tests pytest -v schemas/ --url http://localhost
+docker exec -it mr-base-api-restpluspy3-tests pytest -v queries/ --url http://localhost
