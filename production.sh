@@ -52,6 +52,7 @@ docker create \
 mr-base-api-restpluspy3:latest
 
 # create network and attach
+docker network create mrb-net || true
 docker network connect  mrb-net  mrb-neo4j
 docker network connect mrb-net mr-base-api-restpluspy3
 
