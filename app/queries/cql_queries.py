@@ -137,6 +137,8 @@ def get_groups_for_user(uid):
         return {'public'}
 
     names = set()
+    names.add('public')
+
     tx = Neo4j.get_db()
     results = tx.run(
         "MATCH (:User {uid:{uid}})-[:MEMBER_OF]->(g:Group) RETURN g.name as name;",

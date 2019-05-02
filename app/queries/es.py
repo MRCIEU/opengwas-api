@@ -1,9 +1,10 @@
 import flask
 import re
-from queries.cql_queries import *
 from resources.globals import Globals
 import json
 import logging
+import time
+from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
 
 logger = logging.getLogger('debug-log')
 
