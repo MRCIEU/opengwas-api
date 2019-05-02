@@ -18,8 +18,10 @@ class LoggerMiddleWare(object):
             user_email = None
 
         try:
-            result = hashlib.md5(environ['HTTP_X_FORWARDED_FOR'].split(',')[-1].strip())
-            ip_hash = result.hexdigest()
+            # TODO
+            # result = hashlib.md5(environ['HTTP_X_FORWARDED_FOR'].split(',')[-1].strip())
+            # ip_hash = result.hexdigest()
+            ip_hash = environ['HTTP_X_FORWARDED_FOR']
         except Exception:
             ip_hash = None
 
