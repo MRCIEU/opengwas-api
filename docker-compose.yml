@@ -8,6 +8,11 @@ services:
       - "27474:7474"
       - "27687:7687"
       - "27473:7473"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:27474"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     environment:
       - NEO4J_AUTH=neo4j/dT9ymYwBsrzd # configure the instance with custom username/password
       - NEO4J_dbms_memory_heap_max__size=10G # configure the heap memory
@@ -26,11 +31,6 @@ services:
     container_name: mrb-flask-restpluspy3
     ports:
       - "8082:80"
-      healthcheck:
-      test: ["CMD", "curl", "-f", "http://mrb-neo4j:7474"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     environment:
       - NGINX_MAX_UPLOAD=500m
       - NGINX_UWSGI_READ_TIMEOUT=300
