@@ -11,6 +11,8 @@ app = flask.Flask(__name__, static_folder="static")
 
 
 def main():
+    print("Starting MRB API v{}".format(Globals.VERSION))
+    
     setup_logger('event-log', Globals.LOG_FILE)
     setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
 
@@ -21,7 +23,6 @@ def main():
     app.teardown_appcontext(Neo4j.close_db)
     api.init_app(app)
 
-    print("Starting MRB API v{}".format(Globals.VERSION))
     app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'])
 
 
