@@ -10,8 +10,8 @@ services:
       - "27473:7473"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:27474"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
     environment:
       - NEO4J_AUTH=neo4j/dT9ymYwBsrzd # configure the instance with custom username/password
@@ -25,7 +25,8 @@ services:
       - /data/mrb_neo4j/logs:/logs
   api:
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
     image: mr-base-api-restpluspy3:latest
     restart: always
     container_name: mrb-flask-restpluspy3
@@ -34,6 +35,8 @@ services:
     environment:
       - NGINX_MAX_UPLOAD=500m
       - NGINX_UWSGI_READ_TIMEOUT=300
+      - UWSGI_PROCESSES=20
+      - UWSGI_THREADS=2
       - ENV=production
       - ACCESS=private
     volumes:
