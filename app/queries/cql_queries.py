@@ -155,12 +155,15 @@ def get_groups_for_user(uid):
 
 def get_permitted_studies(uid, gwas_info_ids: list):
     assert isinstance(gwas_info_ids, list)
+    gwas_info_ids_str = []
+    for i in gwas_info_ids:
+        gwas_info_ids.append(str(i))
     schema = GwasInfoNodeSchema()
     group_names = get_groups_for_user(uid)
     tx = Neo4j.get_db()
     results = tx.run(
         "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} AND s.id IN {sid} RETURN distinct(s) as s;",
-        group_names=list(group_names), sid=gwas_info_ids
+        group_names=list(group_names), sid=gwas_info_ids_str
     )
     res = []
     for result in results:
