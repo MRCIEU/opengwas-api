@@ -15,7 +15,7 @@ docker rm mr-base-api-restpluspy3-tests || true
 tmpdir=$(mktemp -d)
 
 # run unit tests
-# obtain token from TwoSampleMR
+# obtain token.temp from TwoSampleMR
 docker create \
 --name mr-base-api-restpluspy3-tests \
 -v "$tmpdir":/data/bgc \
@@ -26,11 +26,14 @@ docker create \
 -e UWSGI_THREADS=2 \
 -e ENV=production \
 -e ACCESS=private \
--e MRB_TOKEN="ya29.Glv9BqTugIA9tvEloR5-posYl55SAwApwhPn0vJgzSLIBo8vOvcoeDM-zKu3vBaVaAt3y_PPJ4qQagFWi6_syQfmiHjPfG3Z1mzPO5RCZ7CxEHiOCpnOBIPovs4g" \
+-e MRB_TOKEN=$(cat token.temp | tr -d '\n') \
 mr-base-api-restpluspy3:latest
 
 # attach to network
 docker network connect mrb-net mr-base-api-restpluspy3-tests
+
+# start container
+docker start mr-base-api-restpluspy3-tests
 
 # run tests
 docker exec -it mr-base-api-restpluspy3-tests pytest -v apis/ --url http://localhost
