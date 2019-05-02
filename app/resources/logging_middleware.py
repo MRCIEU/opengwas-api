@@ -14,27 +14,23 @@ class LoggerMiddleWare(object):
     def __call__(self, environ, start_response):
         try:
             user_email = get_user_email(environ['HTTP_X_API_TOKEN'])
-        except Exception as e:
-            # logger.debug("Could not obtain email: {}".format(e))
+        except Exception:
             user_email = None
 
         try:
-            result = hashlib.md5(environ['REMOTE_ADDR'].encode())
+            result = hashlib.md5(environ['HTTP_X_FORWARDED_FOR'].split(',')[-1].strip())
             ip_hash = result.hexdigest()
-        except Exception as e:
-            # logger.debug("Could not obtain ip: {}".format(e))
+        except Exception:
             ip_hash = None
 
         try:
             path = environ['PATH_INFO']
-        except Exception as e:
-            # logger.debug("Could not obtain path: {}".format(e))
+        except Exception:
             path = None
 
         try:
             method = environ['REQUEST_METHOD']
-        except Exception as e:
-            # logger.debug("Could not obtain method: {}".format(e))
+        except Exception:
             method = None
 
         i = "path: {0}; method: {1}; ip_hash: {2}; user_email: {3}".format(
