@@ -7,24 +7,6 @@ from apis.status import check_all, count_elastic_records, count_neo4j_datasets
 from logging import handlers
 import logging
 
-app = flask.Flask(__name__, static_folder="static")
-
-
-def main():
-    print("Starting MRB API v{}".format(Globals.VERSION))
-    
-    setup_logger('event-log', Globals.LOG_FILE)
-    setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
-
-    app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
-    app.add_url_rule('/', 'index', index)
-
-    app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
-    app.teardown_appcontext(Neo4j.close_db)
-    api.init_app(app)
-
-    app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'])
-
 
 def index():
     status = check_all()
@@ -48,5 +30,18 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 
+print("Starting MRB API v{}".format(Globals.VERSION))
+app = flask.Flask(__name__, static_folder="static")
+
+setup_logger('event-log', Globals.LOG_FILE)
+setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
+
+app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
+app.add_url_rule('/', 'index', index)
+
+app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
+app.teardown_appcontext(Neo4j.close_db)
+api.init_app(app)
+
 if __name__ == "__main__":
-    main()
+    app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'])
