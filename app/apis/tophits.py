@@ -42,7 +42,8 @@ class Tophits(Resource):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
         try:
             out = extract_instruments(user_email, args['id'], args['clump'], args['pval'], args['r2'], args['kb'])
-        except:
+        except Exception as e:
+            logger.error("Could not obtain tophits: {}".format(e))
             abort(503)
         return out
 

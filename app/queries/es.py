@@ -9,6 +9,7 @@ from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
 logger = logging.getLogger('debug-log')
 
 
+# TODO not working in production
 def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
     if proxies == 0:
         logger.debug("not using LD proxies")
@@ -16,6 +17,7 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
         try:
             return query_summary_stats(user_email, rsid, id)
         except Exception as e:
+            logging.error("Could not obtain summary stats: {}".format(e))
             flask.abort(503, e)
 
     else:
@@ -35,6 +37,7 @@ def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf
             return res
 
         except Exception as e:
+            logging.error("Could not obtain summary stats: {}".format(e))
             flask.abort(503, e)
 
 

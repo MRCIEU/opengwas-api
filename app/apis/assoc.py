@@ -29,7 +29,8 @@ class AssocGet(Resource):
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))
             out = get_assoc(user_email, rsid.split(','), id.split(','), 1, 0.8, 1, 1, 0.3)
-        except:
+        except Exception as e:
+            logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
         return out
 
@@ -78,6 +79,7 @@ class AssocPost(Resource):
             user_email = get_user_email(request.headers.get('X-Api-Token'))
             out = get_assoc(user_email, args['rsid'], args['id'], args['proxies'], args['r2'], args['align_alleles'],
                             args['palindromes'], args['maf_threshold'])
-        except:
+        except Exception as e:
+            logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
         return out, 200

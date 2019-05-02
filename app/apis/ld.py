@@ -39,7 +39,8 @@ class Clump(Resource):
         try:
             out = plink_clumping_rs(Globals.TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'],
                                     args['r2'], args['kb'])
-        except:
+        except Exception as e:
+            logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
         return out, 200
 
@@ -66,6 +67,7 @@ class LdMatrix(Resource):
         args = parser.parse_args()
         try:
             out = plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'])
-        except:
+        except Exception as e:
+            logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
         return out, 200
