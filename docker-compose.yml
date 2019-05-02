@@ -25,8 +25,7 @@ services:
       - /data/mrb_neo4j/logs:/logs
   api:
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     image: mr-base-api-restpluspy3:latest
     restart: always
     container_name: mrb-flask-restpluspy3
