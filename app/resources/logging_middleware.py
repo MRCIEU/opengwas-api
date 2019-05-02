@@ -18,14 +18,6 @@ class LoggerMiddleWare(object):
             user_email = None
 
         try:
-            # TODO
-            # result = hashlib.md5(environ['HTTP_X_FORWARDED_FOR'].split(',')[-1].strip())
-            # ip_hash = result.hexdigest()
-            ip_hash = environ['HTTP_X_FORWARDED_FOR']
-        except Exception:
-            ip_hash = None
-
-        try:
             path = environ['PATH_INFO']
         except Exception:
             path = None
@@ -35,10 +27,9 @@ class LoggerMiddleWare(object):
         except Exception:
             method = None
 
-        i = "path: {0}; method: {1}; ip_hash: {2}; user_email: {3}".format(
+        i = "path: {0}; method: {1}; user_email: {2}".format(
             path,
             method,
-            ip_hash,
             user_email)
 
         logger_event.info(i)
