@@ -31,6 +31,7 @@ class PhewasGet(Resource):
                 "snp_lookup"
             )
         except Exception as e:
+            logger.error("Could not query summary stats: {}".format(e))
             abort(503)
         return {'data': out}
 
@@ -69,5 +70,6 @@ class PhewasPost(Resource):
                 "snp_lookup"
             )
         except Exception as e:
+            logger.error("Could not query summary stats: {}".format(e))
             abort(503)
         return {'data': out}

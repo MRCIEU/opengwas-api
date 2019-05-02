@@ -61,7 +61,6 @@ def count_elastic_calls(epoch='30d'):
                "query": {"bool": {"filter": {"range": {"@timestamp": {"gte": "now-" + epoch, "lte": "now"}}}}},
                "aggs": {"api-calls": {"date_histogram": {"field": "@timestamp", "interval": "day"}}}}
     r = requests.post(url, data=payload, headers={"Content-Type": "application/json"})
-    print(r.json())
     return (r)
 
 
