@@ -2,6 +2,7 @@ from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
 from resources.ld import *
 from resources.auth import get_user_email
+from queries.cql_queries import get_all_gwas_ids_for_user
 from flask import request
 import logging
 
