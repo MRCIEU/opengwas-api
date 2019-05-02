@@ -7,12 +7,12 @@ from apis.status import check_all, count_elastic_records, count_neo4j_datasets
 from logging import handlers
 import logging
 
+app = flask.Flask(__name__, static_folder="static")
 
 def main():
     setup_logger('event-log', Globals.LOG_FILE)
     setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
 
-    app = flask.Flask(__name__, static_folder="static")
     app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
     app.add_url_rule('/', 'index', index)
 
