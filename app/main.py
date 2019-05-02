@@ -5,7 +5,6 @@ from resources.logging_middleware import LoggerMiddleWare
 from resources.neo4j import Neo4j
 from apis.status import check_all, count_elastic_records, count_neo4j_datasets
 from logging import handlers
-import os
 import logging
 
 
@@ -33,9 +32,6 @@ def index():
 
 def setup_logger(name, log_file, level=logging.INFO):
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-
-    if not os.path.exists(log_file):
-        open('file', 'w').close()
 
     # Create the log message rotation file handler to the logger
     # 10000000 = 10 MB
