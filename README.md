@@ -5,6 +5,9 @@
 
 ```
 git clone git@github.com:MRCIEU/mr-base-api.git
+cd mr-base-api
+git fetch
+git checkout restpluspy3
 ```
 
 ### Obtain LD data
@@ -13,14 +16,6 @@ wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?
 tar xzvf app/ld_files.tgz -C app/
 rm app/ld_files.tgz
 ```
-
-### Create dirs
-
-```
-mkdir -p app/tmp
-mkdir -p app/logs
-```
-
 
 ### Create tunnel (need to be on VPN)
 ```
@@ -37,12 +32,6 @@ virtualenv venv
 pip install -r requirements.txt
 ```
 
-### deploying the database
-
-```
-docker-compose up -d
-```
-
 ### importing mysql data
 
 ```
@@ -52,9 +41,8 @@ cp memberships.tsv app/import/data
 cp permissions_e.tsv app/import/data
 cp study_e.tsv app/import/data
 
-cd app/import 
-touch local
-python import.py
+cd app/populate_db
+python map_from_csv.py
 ```
 
 ### Start the API
@@ -71,6 +59,7 @@ http://localhost:8019/gwasinfo/2
 ```
 
 ### Unit tests
+### WARNING tests will erase the database. Ensure you are using a development instance of Neo4j ###
 First need to obtain an `app/mrbase.oauth` file using the TwoSampleMR R package
 
 ```r
@@ -113,41 +102,9 @@ git fetch
 git checkout restpluspy3
 ```
 
-### Generate dirs
-```
-wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
-tar xzvf app/ld_files.tgz -C app/
-rm app/ld_files.tgz
-mkdir -p app/tmp
-mkdir -p app/logs
-```
+### deploy
+```bash production.sh```
 
-### Enable private endpoints
-set app_conf.json::enable_private_endpoints = true
-
-### Create image
-
-```
-docker build -t mr-base-api-restpluspy3 .
-```
-
-### Create net and attach neo4j
-```
-docker network create mrb-net
-docker network connect  mrb-net  mrb-neo4j
-```
-
-### Create container mapping this repo to volume
-
-```
-docker create --name mr-base-restpluspy3 -p 8082:80 --volume=/data/bgc:/data/bgc --volume=`pwd`/app:/app mr-base-api-restpluspy3
-docker network connect mrb-net mr-base-restpluspy3
-docker start mr-base-restpluspy3
-```
-
-Check it:
-
-```
-docker logs -f mr-base-api-restpluspy3
-docker rm -f mr-base-api-restpluspy3
-```
+### test
+### WARNING this will erase the Neo4j database ####
+```bash test.sh```
