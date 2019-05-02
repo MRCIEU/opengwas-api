@@ -12,7 +12,7 @@ app = flask.Flask(__name__, static_folder="static")
 
 def main():
     setup_logger('event-log', Globals.LOG_FILE)
-    logger = setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
+    setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
 
     app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
     app.add_url_rule('/', 'index', index)
@@ -21,7 +21,7 @@ def main():
     app.teardown_appcontext(Neo4j.close_db)
     api.init_app(app)
 
-    logger.info("Starting MRB API v{}".format(Globals.VERSION))
+    print("Starting MRB API v{}".format(Globals.VERSION))
     app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'])
 
 

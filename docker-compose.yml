@@ -1,36 +1,41 @@
 version: '3'
 services:
-   db:
+  db:
     image: neo4j:3.5
     restart: always
     container_name: mrb-neo4j
     ports:
-     - "27474:7474"
-     - "27687:7687"
-     - "27473:7473"
+      - "27474:7474"
+      - "27687:7687"
+      - "27473:7473"
     environment:
-     - NEO4J_AUTH=neo4j/dT9ymYwBsrzd # configure the instance with custom username/password
-     - NEO4J_dbms_memory_heap_max__size=10G # configure the heap memory
-     - NEO4J_dbms_memory_heap_initial__size=5G
-     - NEO4J_dbms_memory_pagecache_size=10G # configure the cache memory
-     - NEO4J_dbms_shell_enabled=true
-     - NEO4J_dbms_allow__upgrade=true
+      - NEO4J_AUTH=neo4j/dT9ymYwBsrzd # configure the instance with custom username/password
+      - NEO4J_dbms_memory_heap_max__size=10G # configure the heap memory
+      - NEO4J_dbms_memory_heap_initial__size=5G
+      - NEO4J_dbms_memory_pagecache_size=10G # configure the cache memory
+      - NEO4J_dbms_shell_enabled=true
+      - NEO4J_dbms_allow__upgrade=true
     volumes:
-     - /data/mrb_neo4j/data:/data
-     - /data/mrb_neo4j/logs:/logs
-   api:
+      - /data/mrb_neo4j/data:/data
+      - /data/mrb_neo4j/logs:/logs
+  api:
     depends_on:
-    - "db"
+      - "db"
     image: mr-base-api-restpluspy3:latest
     restart: always
     container_name: mrb-flask-restpluspy3
     ports:
-     - "8082:80"
+      - "8082:80"
+      healthcheck:
+      test: ["CMD", "curl", "-f", "http://mrb-neo4j:7474"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     environment:
-     - NGINX_MAX_UPLOAD=500m
-     - NGINX_UWSGI_READ_TIMEOUT=300
-     - ENV=production
-     - ACCESS=private
+      - NGINX_MAX_UPLOAD=500m
+      - NGINX_UWSGI_READ_TIMEOUT=300
+      - ENV=production
+      - ACCESS=private
     volumes:
-     - /data/bgc:/data/bgc
-     - /data/mrb_logs:/data/mrb_logs
+      - /data/bgc:/data/bgc
+      - /data/mrb_logs:/data/mrb_logs
