@@ -44,9 +44,10 @@ class Globals:
 
     print("Params: {}".format(app_config))
 
+    # reduced lifetime see here: https://github.com/neo4j/neo4j-python-driver/issues/196
     dbConnection = GraphDatabase.driver(
         'bolt://' + app_config['neo4j']['host'] + ":" + str(app_config['neo4j']['port']),
-        auth=(app_config['neo4j']['user'], app_config['neo4j']['passwd'])
+        auth=(app_config['neo4j']['user'], app_config['neo4j']['passwd']), max_connection_lifetime=5
     )
 
     # connect to elasticsearch
