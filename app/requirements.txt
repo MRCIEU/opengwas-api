@@ -1,4 +1,4 @@
-elasticsearch
+elasticsearch>=6.0.0,<7.0.0
 flask-restplus
 marshmallow==3.0.0rc5
 neo4j
