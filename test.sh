@@ -34,9 +34,10 @@ docker network connect mrb-net mr-base-api-restpluspy3-tests
 
 # start container
 docker start mr-base-api-restpluspy3-tests
+sleep 15
 
 # run tests
 docker exec -it mr-base-api-restpluspy3-tests pytest -v apis/ --url http://localhost
-docker exec -it mr-base-api-restpluspy3-tests pytest -v resources/ --url http://localhost
-docker exec -it mr-base-api-restpluspy3-tests pytest -v schemas/ --url http://localhost
-docker exec -it mr-base-api-restpluspy3-tests pytest -v queries/ --url http://localhost
+docker exec -it mr-base-api-restpluspy3-tests pytest -v resources/
+docker exec -it mr-base-api-restpluspy3-tests pytest -v schemas/
+docker exec -it mr-base-api-restpluspy3-tests pytest -v queries/
