@@ -157,7 +157,7 @@ def get_permitted_studies(uid, gwas_info_ids: list):
     assert isinstance(gwas_info_ids, list)
     gwas_info_ids_str = []
     for i in gwas_info_ids:
-        gwas_info_ids.append(str(i))
+        gwas_info_ids_str.append(str(i))
     schema = GwasInfoNodeSchema()
     group_names = get_groups_for_user(uid)
     tx = Neo4j.get_db()
