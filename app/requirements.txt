@@ -1,6 +1,7 @@
-elasticsearch==7.0.0
-flask-restplus==0.12.1
+elasticsearch
+flask-restplus
 marshmallow==3.0.0rc5
-neo4j==1.7.2
-pytest==4.4.1
-requests==2.21.0
+neo4j
+pytest
+requests
+idutils
