@@ -54,7 +54,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
     if palindromes == 0:
         filterData.append({"term": {'palindromic': '0'}})
         ESRes = Globals.es.search(
-            request_timeout=60,
+            request_timeout=120,
             index='mrb-proxies',
             doc_type="proxies",
             body={
@@ -77,7 +77,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
         filterData1.append({"range": {"pmaf": {"lt": str(maf_threshold)}}})
         filterData2.append({"term": {'palindromic': '0'}})
         ESRes = Globals.es.search(
-            request_timeout=60,
+            request_timeout=120,
             index='mrb-proxies',
             doc_type="proxies",
             body={
@@ -150,7 +150,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 
 def elastic_search(filterData, index_name):
     res = Globals.es.search(
-        request_timeout=60,
+        request_timeout=120,
         index=index_name,
         # doc_type="assoc",
         body={
