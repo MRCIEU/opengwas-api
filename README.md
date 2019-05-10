@@ -19,7 +19,7 @@ rm app/ld_files.tgz
 
 ### Create tunnel (need to be on VPN)
 ```
-ssh -L 9200:localhost:9200 <username>@ieu-db-interface.epi.bris.ac.uk
+ssh -L 8000:localhost:8000 9200:localhost:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ```
 
 

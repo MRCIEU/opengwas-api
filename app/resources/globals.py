@@ -22,6 +22,8 @@ class Globals:
     OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
 
+    CROMWELL_URL = "http://localhost:8000"
+
     """ Set environment files to toggle between local and production & private vs public APIs """
     with open(APP_CONF) as f:
         app_config = json.load(f)
@@ -29,8 +31,10 @@ class Globals:
         try:
             if os.environ['ENV'] == 'production':
                 app_config = app_config['production']
+                WDL_PATH = "/app/cromwell/upload.wdl"
             else:
                 app_config = app_config['local']
+                WDL_PATH = os.path.join(root_path, 'cromwell', 'upload.wdl')
         except KeyError as e:
             app_config = app_config['local']
 

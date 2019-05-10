@@ -71,3 +71,13 @@ docker run \
 --restart always \
 -p 8083:80 \
 -v /data/bgc/:/var/www clue/h5ai
+
+# start cromwell server (must be run natively)
+# uses port 8000 by default and not exposed
+nohup java \
+-Ddocker.hash-lookup.enabled=false \
+-Dsystem.max-concurrent-workflows=1 \
+-Dbackend.providers.Local.config.root="/data/cromwell-executions" \
+-Dworkflow-options.workflow-log-dir="/data/cromwell-workflow-logs" \
+-jar cromwell-40.jar \
+server &
