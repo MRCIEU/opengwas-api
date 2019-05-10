@@ -61,4 +61,11 @@ docker start mr-base-api-restpluspy3
 
 # serve static files using h5ai
 # TODO map to subdomain of API url
-docker run -it -d --rm --name mrb_download -p 8083:80 -v /data/bgc/:/var/www clue/h5ai
+docker run \
+-it \
+-d \
+--rm \
+--name mrb_download \
+--restart always \
+-p 8083:80 \
+-v /data/bgc/:/var/www clue/h5ai
