@@ -15,6 +15,10 @@ from resources.auth import get_user_email
 from flask import request
 from schemas.gwas_info_node_schema import valid_genome_build
 from schemas.group_node_schema import valid_group_names
+import requests
+import logging
+
+logger = logging.getLogger('debug-log')
 
 api = Namespace('edit', description="Upload and delete data")
 
@@ -258,8 +262,15 @@ class Upload(Resource):
         with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
             json.dump(j, f)
 
-        # write out flag
-        with open(os.path.join(study_folder, 'flag.upload_complete'), 'w') as f:
-            f.write('')
+        with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
+            json.dump({"upload.StudyId": str(args['id'])}, f)
 
-        return {'message': 'Upload successful'}, 201
+        # add to cromwell queue
+        r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
+                          files={'workflowSource': open(Globals.WDL_PATH, 'rb'),
+                                 'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
+        assert r.status_code == 201
+        assert r.json()['status'] == "Submitted"
+        logger.info("Submitted {} to cromwell".format(r.json()['id']))
+
+        return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201
