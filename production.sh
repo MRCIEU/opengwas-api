@@ -74,6 +74,7 @@ docker run \
 
 # start cromwell server (must be run natively)
 # uses port 8000 by default and not exposed
+cd /data/cromwell
 nohup java \
 -Ddocker.hash-lookup.enabled=false \
 -Dsystem.max-concurrent-workflows=1 \
