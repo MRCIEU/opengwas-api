@@ -4,6 +4,14 @@ set -euo pipefail
 #### WARNING running tests will ERASE ALL DATA in the neo4j ###
 ### set up a test database before proceeding ###
 
+read -p "This script will erase all data in Neo4j. Continue (y/n)?" CONT
+if [ "$CONT" = "y" ]; then
+  echo "Continuing";
+else
+  echo "Stopping";
+  exit;
+fi
+
 # ensure we're up to date
 git pull
 
