@@ -82,7 +82,8 @@ task bcf {
         --id ${StudyId} \
         --json ${ParamFile} \
         --ref ${RefGenomeFile} \
-        --out ${BcfFilePath}
+        --out ${BcfFilePath} \
+        --rm_chr_prefix
     >>>
 
     output {
