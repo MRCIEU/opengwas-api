@@ -1,6 +1,7 @@
 from flask_restplus import Namespace, Resource
 from resources.globals import Globals
 from resources.neo4j import Neo4j
+from resources.cromwell import Cromwell
 import requests
 import os
 
@@ -22,7 +23,8 @@ def check_all():
         'Neo4j status': Neo4j.check_running(),
         'ElasticSearch status': check_elastic(),
         'LD reference panel': check_ld_ref(),
-        'PLINK executable': check_plink()
+        'PLINK executable': check_plink(),
+        'Cromwell': Cromwell.get_version()
     }
     return out
 
@@ -74,7 +76,8 @@ def count_neo4j_datasets():
 
 
 def check_elastic():
-    url = 'http://' + Globals.app_config['es']['host'] + ':' + str(Globals.app_config['es']['port']) + '/_cluster/health?pretty'
+    url = 'http://' + Globals.app_config['es']['host'] + ':' + str(
+        Globals.app_config['es']['port']) + '/_cluster/health?pretty'
     count_elastic_records()
     try:
         out = requests.get(url).json()
