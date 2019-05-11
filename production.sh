@@ -72,6 +72,13 @@ docker run \
 -p 8083:80 \
 -v /data/bgc/:/var/www clue/h5ai
 
+# kill running cromwell
+j=$(ps -aux | grep cromwell | grep java | awk '{print $2}')
+
+if [[ ! -z "$j" ]]; then
+    kill "$j"
+fi
+
 # start cromwell server (must be run natively)
 # uses port 8000 by default and not exposed
 cd /data/cromwell
@@ -80,5 +87,7 @@ nohup java \
 -Dsystem.max-concurrent-workflows=1 \
 -Dbackend.providers.Local.config.root="/data/cromwell-executions" \
 -Dworkflow-options.workflow-log-dir="/data/cromwell-workflow-logs" \
+-Dwebservice.port="8000" \
+-DDwebservice.interface="0.0.0.0" \
 -jar cromwell-40.jar \
 server &
