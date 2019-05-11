@@ -40,7 +40,7 @@ neo4j:3.5
 docker create \
 --name mr-base-api-restpluspy3 \
 --restart always \
--p 8082:80 \
+-p 8084:80 \
 -v /data/bgc:/data/bgc \
 -v /data/mrb_logs:/data/mrb_logs \
 -e NGINX_MAX_UPLOAD=500m \
