@@ -259,9 +259,12 @@ class Upload(Resource):
         else:
             j['header'] = False
 
+        # write params for pipeline
+        del j['id']
         with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
             json.dump(j, f)
 
+        # write study id for cromwell
         with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
             json.dump({"upload.StudyId": str(args['id'])}, f)
 
