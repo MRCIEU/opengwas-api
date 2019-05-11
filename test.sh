@@ -18,7 +18,7 @@ tmpdir=$(mktemp -d)
 # obtain token.temp from TwoSampleMR
 docker create \
 --name mr-base-api-restpluspy3-tests \
--v "$tmpdir":/data/bgc \
+-v /data/bgc:/data/bgc \
 -v "$tmpdir":/data/mrb_logs \
 -e NGINX_MAX_UPLOAD=500m \
 -e NGINX_UWSGI_READ_TIMEOUT=300 \
