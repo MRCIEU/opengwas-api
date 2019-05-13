@@ -31,7 +31,7 @@ class Add(Resource):
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
     parser.add_argument('group_name', type=str, required=True,
-                        help='Name for the group this study should belong to.', choices=tuple(valid_group_names))
+                        help='Name for the group this study should belong to.', choices=sorted(list(valid_group_names)))
     parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
                         help='Name for the group this study should belong to.')
     GwasInfoNodeSchema.populate_parser(parser,
