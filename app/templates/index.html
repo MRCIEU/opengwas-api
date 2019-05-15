@@ -22,7 +22,7 @@
 		<p class="lead text-center">
   			<a class="btn btn-primary btn-lg" href="/docs/" role="button">Documentation</a>
   			{% if status['Access'] == 'private' %}
-  			<a class="btn btn-secondary btn-lg" href="https://github.com/MRCIEU/mr-base-structure/blob/master/how-to-upload.md" role="button">How to upload</a>
+  			<a class="btn btn-secondary btn-lg" href="https://github.com/mrcieu/mr-base-api/wiki" role="button">How to upload</a>
   			{% endif %}
 		</p>
 		<p>These operations are also accessible through convenient functions in the <a href="https://github.com/MRCIEU/TwoSampleMR/">TwoSampleMR</a> R package.</p>
@@ -41,6 +41,7 @@
 			<li class=" ">ElasticSearch status <span class="badge badge-warning">{{ status['ElasticSearch status'] }}</span></li>
 			<li class=" ">LD reference panel <span class="badge badge-warning">{{ status['LD reference panel'] }}</span></li>
 			<li class=" ">PLINK executable <span class="badge badge-warning">{{ status['PLINK executable'] }}</span></li>
+            <li class=" ">Cromwell <span class="badge badge-warning">{{ status['Cromwell'] }}</span></li>
 		</ul>
 		<hr class="my-4">
 		<p class="text-center"><a class="btn btn-primary btn-lg" href="mailto:mr-base@bristol.ac.uk" role="button">Contact us</a></p>
