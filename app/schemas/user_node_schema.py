@@ -8,6 +8,6 @@ class UserNodeSchema(FRPMSchema):
     admin = fields.Bool(required=False, description="Is the user an admin?")
 
     @post_load
-    def lowerstrip_email(self, item):
+    def lower_strip_email(self, item):
         item['uid'] = item['uid'].lower().strip()
         return item
