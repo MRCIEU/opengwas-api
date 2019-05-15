@@ -12,6 +12,11 @@ else
   exit;
 fi
 
+if [ ! -e token.temp ]; then
+    echo "You need to provide a token.temp file to proceed"
+    exit;
+fi
+
 # ensure we're up to date
 git pull
 
