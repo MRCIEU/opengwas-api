@@ -58,7 +58,6 @@ class Release(Resource):
 
             # insert new data to elastic
             if req['passed_qc'] == "True":
-
                 # find WDL params
                 study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
                 raw_folder = os.path.join(study_folder, 'raw')
@@ -71,7 +70,8 @@ class Release(Resource):
                 assert r.json()['status'] == "Submitted"
                 logger.info("Submitted {} to cromwell".format(r.json()['id']))
 
-                return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201
+                return {'message': 'Added to elastic import queue successful. Cromwell id :{}'.format(
+                    r.json()['id'])}, 200
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
