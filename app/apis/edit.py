@@ -266,7 +266,7 @@ class Upload(Resource):
 
         # write study id for cromwell
         with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
-            json.dump({"upload.StudyId": str(args['id'])}, f)
+            json.dump({"qc.StudyId": str(args['id'])}, f)
 
         # add to cromwell queue
         r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
