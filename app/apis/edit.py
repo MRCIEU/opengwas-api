@@ -270,7 +270,7 @@ class Upload(Resource):
 
         # add to cromwell queue
         r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
-                          files={'workflowSource': open(Globals.WDL_PATH, 'rb'),
+                          files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
                                  'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
         assert r.status_code == 201
         assert r.json()['status'] == "Submitted"

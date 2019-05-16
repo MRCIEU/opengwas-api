@@ -4,6 +4,11 @@ import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 from resources.auth import get_user_email
 from flask import request
+import requests
+from resources.globals import Globals
+import logging
+
+logger = logging.getLogger('debug-log')
 
 api = Namespace('quality_control', description="Quality control the GWAS data")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
@@ -47,9 +52,26 @@ class Release(Resource):
             except PermissionError as e:
                 return {"message": str(e)}, 403
 
+            # update graph
             gwas_info_id = req['id']
-
             add_quality_control(user_uid, gwas_info_id, req['passed_qc'] == "True", comment=req['comments'])
+
+            # insert new data to elastic
+            if req['passed_qc'] == "True":
+
+                # find WDL params
+                study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
+                raw_folder = os.path.join(study_folder, 'raw')
+
+                # add to cromwell queue
+                r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
+                                  files={'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
+                                         'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
+                assert r.status_code == 201
+                assert r.json()['status'] == "Submitted"
+                logger.info("Submitted {} to cromwell".format(r.json()['id']))
+
+                return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
