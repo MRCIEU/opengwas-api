@@ -1,13 +1,11 @@
 import requests
 from apis.tests.token import get_mrbase_access_token
 import os
-from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 token = get_mrbase_access_token()
 
 
 def test_release(url):
-    schema = GwasInfoNodeSchema()
     headers = {'X-API-TOKEN': token}
 
     data = {
@@ -21,8 +19,6 @@ def test_release(url):
         'unit': 'SD (cm)', 'group_name': "developer", "build": 'HG19/GRCh37',
         'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT'
     }
-
-    # schema.load(data)
 
     # make new metadata
     r = requests.post(url + "/edit/add", data=data, headers=headers)
