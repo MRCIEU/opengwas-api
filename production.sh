@@ -59,19 +59,6 @@ docker network connect mrb-net mr-base-api-restpluspy3
 docker start mrb-neo4j
 docker start mr-base-api-restpluspy3
 
-# serve static files using h5ai
-# TODO map to subdomain of API url
-docker stop mrb_download || true
-docker rm mrb_download || true
-
-docker run \
--it \
--d \
---name mrb_download \
---restart always \
--p 8083:80 \
--v /data/bgc/:/var/www clue/h5ai
-
 # kill running cromwell
 j=$(ps -aux | grep cromwell | grep java | awk '{print $2}')
 
