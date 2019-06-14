@@ -118,7 +118,7 @@ def setup_logger(name, log_file, level=logging.INFO):
 logger = setup_logger('info-log', LOG_FILE)
 #create debug log
 logger2 = setup_logger('debug-log', LOG_FILE_DEBUG, level=logging.DEBUG)
-#logger2.disabled = True
+logger2.disabled = True
 
 """
 
@@ -190,8 +190,8 @@ Get study batches
 """
 
 mrb_batch='MRB'
-study_batches=[mrb_batch,'UKB-a','UKB-b','UKB-c','pQTL-a','eqtl-a']
-private_batches=['pQTL-a','eqtl-a','UKB-c']
+study_batches=[mrb_batch,'UKB-a','UKB-b','UKB-c','pQTL-a','pQTL-b','eqtl-a']
+private_batches=['pQTL-a','pQTL-b','eqtl-a','UKB-c']
 
 """
 
@@ -1469,5 +1469,5 @@ def test_api_server():
 
 
 if __name__ == "__main__":
-	#app.run(host='0.0.0.0', debug=True, port=80)
-	app.run(host='0.0.0.0', debug=True, port=8080)
+	app.run(host='0.0.0.0', debug=True, port=80)
+	#app.run(host='0.0.0.0', debug=True, port=8080)
