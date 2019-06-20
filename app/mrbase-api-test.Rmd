@@ -26,7 +26,7 @@ ei <- function(){
   start.time <- Sys.time()
   #exposure_dat <- extract_instruments(outcomes=1,clump=FALSE)
   #exposure_dat <- extract_instruments(outcomes=89,clump=TRUE)
-  exposure_dat <- extract_instruments(outcomes=c('1','2','1129','1130'),clump=TRUE)
+  exposure_dat <- extract_instruments(outcomes=c('1','2','1129','1130'),clump=FALSE)
   #exposure_dat <- extract_instruments(outcomes=c('1','2','UKB-a:21','UKB-a:22'),clump=TRUE)
   end.time <- Sys.time()
   time.taken <- end.time - start.time
@@ -42,7 +42,7 @@ eo <- function(exposure_dat){
   print ('Running extract_outcome_data')
   start.time <- Sys.time()
   #outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('1','2','5','6','17','18','965','966','996','997','1090','UKB-a:96','UKB-a:1','UKB-a:2'))
-  #outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('17','18','UKB-a:96','UKB-a:1','UKB-a:2'))
+  #outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('17','18','UKB-a:96','UKB-a:1','UKB-a:2','UKB-b:20'),splitsize=500)
   outcome_dat <- extract_outcome_data(exposure_dat$SNP,c('1063'))
   #outcome_dat <- extract_outcome_data(exposure_dat$SNP, c('1129','1130'))
   #outcome_dat <- extract_outcome_data(outcomes=c('1','2','5','6'),snps=c('rs2825569','rs9821657','rs1919329'),splitsize=50000)
@@ -79,13 +79,13 @@ do_test <- function(){
   outcome_data = eo(exposure_data)
   end.time <- Sys.time()
   time.taken1 <- end.time - start.time
-  dat = harmonise(exposure_data,outcome_data)
-  mr_res = do_mr(dat)
-  print (head(mr_res))
-  end.time <- Sys.time()
-  time.taken2 <- end.time - start.time
+  #dat = harmonise(exposure_data,outcome_data)
+  #mr_res = do_mr(dat)
+  #print (head(mr_res))
+  #end.time <- Sys.time()
+  #time.taken2 <- end.time - start.time
   print(paste0('test1: ',time.taken1))
-  print(paste0('test2: ',time.taken2))
+  #print(paste0('test2: ',time.taken2))
   return(mr_res)
 }
 ```
@@ -101,8 +101,10 @@ mr_res=do_test()
 ```{r original-api, include=FALSE}
 #"test1: 50 seconds"
 #"test2: 20 seconds"
-load_all('~/projects/TwoSampleMR/')
-toggle_dev('release')
+#load_all('~/projects/TwoSampleMR/')
+install_github("MRCIEU/TwoSampleMR")
+library(TwoSampleMR)
+#toggle_api('release')
 mr_res=do_test()
 ```
 
@@ -110,8 +112,10 @@ mr_res=do_test()
 #load_all('~/projects/TwoSampleMR_edit/')
 install_github("MRCIEU/TwoSampleMR")
 library(TwoSampleMR)
-#toggle_dev('elastic')
-mr_res=do_test()
+toggle_api('release')
+mr_res1=do_test()
+toggle_api('test')
+mr_res2=do_test()
 ```
 
 ```{r bmc_chd}

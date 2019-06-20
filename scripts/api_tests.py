@@ -10,12 +10,14 @@ import multiprocessing
 example_get_effects='get_effects?access_token=null&outcomes=1,2,5,6,7,8,9,10,11,12&snps=rs999721,rs9821650,rs9821657,rs1919329,rs6444035,rs3957240,rs1919324,rs2739330'
 
 mrbase_url = 'http://api.mrbase.org/'
+mrbase_test_url = 'http://api.mrbase.org/'
 crashdown_url = 'http://crashdown.epi.bris.ac.uk:8080/'
 crashdown2_url = 'http://crashdown.epi.bris.ac.uk:8090/'
 local_url = 'http://localhost:8080/'
 cluster_url = 'http://ieu-db-interface.epi.bris.ac.uk:8080/'
+oracle_url = 'http://ieu-db-interface.epi.bris.ac.uk:8090/'
 #urls = [mrbase_url,crashdown_url]
-urls = [cluster_url]
+urls = [cluster_url,oracle_url]
 #urls = [mrbase_url,local_url,crashdown_url]
 
 #mysql
@@ -110,6 +112,13 @@ def extract_instruments_query():
 	url = base+str(outcomes_string)+end
 	return url
 
+def phewas_query():
+	base='snp_lookup?access_token=null&search_type=aaa&snps='
+	snps=create_random_rsids(1)
+	snps_string=','.join(str(x) for x in snps)
+	url = base+str(snps_string)
+	return url
+
 def test_apis():
 	#get_effects
 	print "\n### get_effects ###"
@@ -131,7 +140,21 @@ def test_apis():
 		url = u+q2
 		print url
 		run_query(url)
-		#run_query(url)
+		run_query(url)
+		run_query(url)
+		run_query(url)
+
+	#extract_instruments
+	print "\n### phewas ###"
+	q2 = phewas_query()
+	for u in urls:
+		print "\nRunning "+u+" ..."
+		url = u+q2
+		print url
+		run_query(url)
+		run_query(url)
+		run_query(url)
+		run_query(url)
 
 def compare_dbs():
 	compareList=[]
