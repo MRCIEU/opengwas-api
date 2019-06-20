@@ -76,4 +76,5 @@ docker build -t mrbase-api-image .
 
 ```
 docker run -d -it --name mrbase-api -p 8080:80 --volume=/var/www/api/mr-base-api/app:/app mrbase-api-image
+docker run -d -it --name mrbase-api-v1 --log-opt max-size=10m --log-opt max-file=3 -p 8070:80 --volume=/var/www/api/mr-base-api/app:/app mrbase-api-image
 ```
