@@ -17,6 +17,12 @@ class Status(Resource):
 
 
 def check_all():
+    try:
+        Cromwell.get_version()
+        cromwell_status = 'Available'
+    except Exception:
+        cromwell_status = 'Unavailable'
+
     out = {
         'API version': Globals.VERSION,
         'Access': Globals.app_config['access'],
@@ -24,7 +30,7 @@ def check_all():
         'ElasticSearch status': check_elastic(),
         'LD reference panel': check_ld_ref(),
         'PLINK executable': check_plink(),
-        'Cromwell': Cromwell.get_version()
+        'Cromwell': cromwell_status
     }
     return out
 

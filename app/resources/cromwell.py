@@ -13,5 +13,5 @@ class Cromwell:
             r = requests.get(Globals.CROMWELL_URL + "/engine/v1/version")
             assert r.status_code == 200
             return r.json()['cromwell']
-        except Exception:
-            return 'Unavailable'
+        except (requests.exceptions.HTTPError, AssertionError, KeyError) as e:
+            raise ConnectionError("Could not connect to Cromwell: {}".format(e))
