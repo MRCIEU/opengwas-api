@@ -74,7 +74,7 @@ valid_study_designs = {
     "Unknown"
 }
 valid_imputation_panels = {'no imputed genotypes', '1000 Genomes', 'HapMap', 'HRC', 'UK10K', 'other'}
-valid_genome_build = {'HG18/GRCh36', 'HG19/GRCh37', 'HG38/GRCh38'}
+valid_genome_build = {'HG19/GRCh37'}
 
 
 def check_study_year(data):
