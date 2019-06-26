@@ -95,7 +95,7 @@ class Upload(Resource):
     parser.add_argument('beta_col', type=int, required=True, help="Column index for effect size")
     parser.add_argument('se_col', type=int, required=True, help="Column index for standard error")
     parser.add_argument('pval_col', type=int, required=True, help="Column index for P-value")
-    parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab"),
+    parser.add_argument('delimiter', type=str, required=True, choices=("comma", "tab", "space"),
                         help="Column delimiter for file")
     parser.add_argument('header', type=str, required=True, help="Does the file have a header line?",
                         choices=('True', 'False'))
@@ -230,6 +230,8 @@ class Upload(Resource):
             args['delimiter'] = ","
         elif args['delimiter'] == "tab":
             args['delimiter'] = "\t"
+        elif args['delimiter'] == "space":
+            args['delimiter'] = " "
 
         try:
             Upload.read_gzip(output_path, args['delimiter'], args)
