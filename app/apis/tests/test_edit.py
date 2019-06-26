@@ -1,6 +1,8 @@
 import requests
 from apis.tests.token import get_mrbase_access_token
 import os
+import shutil
+import tempfile
 
 token = get_mrbase_access_token()
 
@@ -122,3 +124,53 @@ def test_gwasinfo_upload_gzip(url):
     }, files={'gwas_file': open(file_path, 'rb')}, headers=headers)
 
     assert r.status_code == 201
+
+
+def test_gwasinfo_upload_large(url):
+    file_url = 'https://zenodo.org/record/1251813/files/bmi.giant-ukbb.meta-analysis.combined.23May2018.txt.gz?download=1'
+
+    payload = {
+        'pmid': 1234, 'year': 2010,
+        'filename': 'test',
+        'path': '/projects/test/test', 'mr': 1,
+        'note': 'test',
+        'build': 'HG19/GRCh37',
+        'trait': 'BMI', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
+        'population': 'European',
+        'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
+        'unit': 'SD (cm)', 'group_name': "public",
+        'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'
+    }
+    headers = {'X-API-TOKEN': token}
+
+    # make new metadata
+    r = requests.post(url + "/edit/add", data=payload, headers=headers)
+    assert r.status_code == 200
+    uid = str(r.json()['id'])
+    assert isinstance(int(uid.replace('bgc-', '')), int)
+
+    # download large GWAS data & save to temp
+    with tempfile.TemporaryFile() as fp:
+        with requests.get(file_url, stream=True, allow_redirects=True) as r:
+            shutil.copyfileobj(r.raw, fp)
+
+        # upload file for this study
+        # TODO check cols
+        r = requests.post(url + "/edit/upload", data={
+            'id': uid,
+            'chr_col': 1,
+            'pos_col': 2,
+            'snp_col': 3,
+            'ea_col': 4,
+            'oa_col': 5,
+            'eaf_col': 10,
+            'beta_col': 6,
+            'se_col': 7,
+            'pval_col': 9,
+            'ncontrol_col': 8,
+            'delimiter': 'tab',
+            'header': 'True',
+            'gzipped': 'True'
+        }, files={'gwas_file': fp}, headers=headers)
+
+        assert r.status_code == 201
