@@ -107,3 +107,6 @@ git checkout restpluspy3
 ### test
 ### WARNING this will erase the Neo4j database ####
 ```bash test.sh```
+
+## Build images for backend processing of data
+```bash build.sh```
