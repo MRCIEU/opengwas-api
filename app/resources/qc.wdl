@@ -18,25 +18,56 @@ workflow qc {
             ParamFile=BaseDir + "/" + StudyId + "/raw/upload.json",
             StudyId=StudyId
     }
+    call validate_warn {
+        input:
+            MountDir=MountDir,
+            BcfFile=bcf.BcfFile,
+            BcfFileIdx=bcf.BcfFileIdx,
+            RefGenomeFile=RefGenomeFile,
+            RefGenomeFileIdx=RefGenomeFileIdx,
+            RefData=RefData,
+            RefDataIdx=RefDataIdx
+    }
+    call annotate {
+        input:
+            MountDir=MountDir,
+            BcfFile=bcf.BcfFile,
+            BcfFileIdx=bcf.BcfFileIdx,
+            RefGenomeFile=RefGenomeFile,
+            RefGenomeFileIdx=RefGenomeFileIdx,
+            RefData=RefData,
+            RefDataIdx=RefDataIdx,
+            BcfFileAnnoPath=BaseDir + "/" + StudyId + "/anno.bcf"
+    }
+    call validate_strict {
+        input:
+            MountDir=MountDir,
+            BcfFile=annotate.BcfFileAnno,
+            BcfFileIdx=annotate.BcfFileAnnoIdx,
+            RefGenomeFile=RefGenomeFile,
+            RefGenomeFileIdx=RefGenomeFileIdx,
+            RefData=RefData,
+            RefDataIdx=RefDataIdx
+    }
     call clumping {
         input:
             MountDir=MountDir,
             ClumpFilePath=BaseDir + "/" + StudyId + "/clump.txt",
-            BcfFile=bcf.BcfFile,
-            BcfFileIdx=bcf.BcfFileIdx
+            BcfFile=annotate.BcfFileAnno,
+            BcfFileIdx=annotate.BcfFileAnnoIdx
     }
     call ldsc {
         input:
             MountDir=MountDir,
             LdscFilePath=BaseDir + "/" + StudyId + "/ldsc.txt",
-            BcfFile=bcf.BcfFile,
-            BcfFileIdx=bcf.BcfFileIdx
+            BcfFile=annotate.BcfFileAnno,
+            BcfFileIdx=annotate.BcfFileAnnoIdx
     }
     call report {
         input:
             MountDir=MountDir,
-            BcfFile=bcf.BcfFile,
-            BcfFileIdx=bcf.BcfFileIdx,
+            BcfFile=annotate.BcfFileAnno,
+            BcfFileIdx=annotate.BcfFileAnnoIdx,
             RefData=RefData,
             RefDataIdx=RefDataIdx,
             OutputDir=BaseDir + "/" + StudyId
@@ -74,6 +105,93 @@ task bcf {
     output {
         File BcfFile = "${BcfFilePath}"
         File BcfFileIdx = "${BcfFilePath}.csi"
+    }
+
+}
+
+task validate_strict {
+
+    String MountDir
+    File BcfFile
+    File BcfFileIdx
+    File RefGenomeFile
+    File RefGenomeFileIdx
+    File RefData
+    File RefDataIdx
+
+    command <<<
+        set -e
+
+        docker run \
+        --rm \
+        -v ${MountDir}:${MountDir} \
+        --cpus="1" \
+        broadinstitute/gatk:4.1.2.0 \
+        gatk ValidateVariants \
+        -R ${RefGenomeFile} \
+        -V ${BcfFile} \
+        --dbsnp ${RefData}
+    >>>
+
+}
+
+task validate_warn {
+
+    String MountDir
+    File BcfFile
+    File BcfFileIdx
+    File RefGenomeFile
+    File RefGenomeFileIdx
+    File RefData
+    File RefDataIdx
+
+    command <<<
+        set -e
+
+        docker run \
+        --rm \
+        -v ${MountDir}:${MountDir} \
+        --cpus="1" \
+        broadinstitute/gatk:4.1.2.0 \
+        gatk ValidateVariants \
+        -R ${RefGenomeFile} \
+        -V ${BcfFile} \
+        --dbsnp ${RefData} \
+        --warn-on-errors
+    >>>
+
+}
+
+task annotate {
+
+    String MountDir
+    File BcfFile
+    File BcfFileIdx
+    File RefGenomeFile
+    File RefGenomeFileIdx
+    File RefData
+    File RefDataIdx
+    String BcfFileAnnoPath
+
+
+    command <<<
+        set -e
+
+        docker run \
+        --rm \
+        -v ${MountDir}:${MountDir} \
+        --cpus="1" \
+        broadinstitute/gatk:4.1.2.0 \
+        gatk VariantAnnotator \
+        -R ${RefGenomeFile} \
+        -V ${BcfFile} \
+        -o ${BcfFileAnnoPath} \
+        --dbsnp ${RefData}
+    >>>
+
+    output {
+        File BcfFileAnno = "${BcfFileAnnoPath}"
+        File BcfFileAnnoIdx = "${BcfFileAnnoPath}.csi"
     }
 
 }
