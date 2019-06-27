@@ -149,27 +149,35 @@ def test_gwasinfo_upload_large(url):
     uid = str(r.json()['id'])
     assert isinstance(int(uid.replace('bgc-', '')), int)
 
-    # download large GWAS data & save to temp
-    with tempfile.TemporaryFile() as fp:
+    # make tmp file
+    tmp = tempfile.NamedTemporaryFile()
+    assert os.path.isfile(tmp.name)
+
+    # save downloaded file to tmp
+    with open(tmp.name, 'bw') as f:
         with requests.get(file_url, stream=True, allow_redirects=True) as r:
-            shutil.copyfileobj(r.raw, fp)
+            shutil.copyfileobj(r.raw, f)
 
-        # upload file for this study
-        r = requests.post(url + "/edit/upload", data={
-            'id': uid,
-            'chr_col': 1,
-            'pos_col': 2,
-            'snp_col': 3,
-            'ea_col': 4,
-            'oa_col': 5,
-            'eaf_col': 6,
-            'beta_col': 7,
-            'se_col': 8,
-            'pval_col': 9,
-            'ncontrol_col': 10,
-            'delimiter': 'space',
-            'header': 'True',
-            'gzipped': 'True'
-        }, files={'gwas_file': fp}, headers=headers)
+    # upload file for this study
+    r = requests.post(url + "/edit/upload", data={
+        'id': uid,
+        'chr_col': 1,
+        'pos_col': 2,
+        'snp_col': 3,
+        'ea_col': 4,
+        'oa_col': 5,
+        'eaf_col': 6,
+        'beta_col': 7,
+        'se_col': 8,
+        'pval_col': 9,
+        'ncontrol_col': 10,
+        'delimiter': 'space',
+        'header': 'True',
+        'gzipped': 'True'
+    }, files={'gwas_file': tmp.name}, headers=headers)
 
-        assert r.status_code == 201
+    assert r.status_code == 201
+
+    # delete GWAS file
+    tmp.close()
+    assert not os.path.isfile(tmp.name)
