@@ -174,7 +174,7 @@ def test_gwasinfo_upload_large(url):
         'delimiter': 'space',
         'header': 'True',
         'gzipped': 'True'
-    }, files={'gwas_file': tmp.name}, headers=headers)
+    }, files={'gwas_file': open(tmp.name, 'rb')}, headers=headers)
 
     assert r.status_code == 201
 
