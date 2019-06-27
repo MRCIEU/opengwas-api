@@ -18,7 +18,11 @@ function setup {
 	fi
 	hash=$(git rev-parse HEAD)
 	echo "$hash"
-	docker build -t "$container":"$hash" .
+	if [ -d "env" ]; then
+		docker build -f ./env/Dockerfile -t "$container":"$hash" .
+	else
+		docker build -t "$container":"$hash" .
+	fi
 	cd ../mr-base-api
 }
 
