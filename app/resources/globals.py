@@ -31,12 +31,12 @@ class Globals:
         try:
             if os.environ['ENV'] == 'production':
                 app_config = app_config['production']
-                QC_WDL_PATH = "/app/resources/qc.wdl"
-                ELASTIC_WDL_PATH = "/app/resources/elastic.wdl"
+                QC_WDL_PATH = "/app/resources/workflow/qc.wdl"
+                ELASTIC_WDL_PATH = "/app/resources/workflow/elastic.wdl"
             else:
                 app_config = app_config['local']
-                QC_WDL_PATH = os.path.join(root_path, 'resources', 'qc.wdl')
-                ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'elastic.wdl')
+                QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
+                ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
         except KeyError as e:
             app_config = app_config['local']
 
