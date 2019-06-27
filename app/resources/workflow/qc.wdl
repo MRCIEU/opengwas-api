@@ -185,7 +185,7 @@ task annotate {
         gatk VariantAnnotator \
         -R ${RefGenomeFile} \
         -V ${BcfFile} \
-        -o ${BcfFileAnnoPath} \
+        -O ${BcfFileAnnoPath} \
         --dbsnp ${RefData}
     >>>
 
