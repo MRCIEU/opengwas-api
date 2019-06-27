@@ -16,11 +16,19 @@ function setup {
 		git clone $source$container.git
 		cd $container
 	fi
-	docker build -t "$container" .
+	hash=$(git rev-parse HEAD)
+	echo "$hash"
+	docker build -t "$container":"$hash" .
 	cd ../mr-base-api
 }
 
-for container in "bgc-elasticsearch" "gwas_harmonisation" "gwas_processing" "mrbase-report-module"
+for container in "bgc-elasticsearch" "gwas_harmonisation" "gwas_processing"
 do
 	setup $container
 done
+
+# non master branch
+cd ../"mrbase-report-module"
+git checkout wdl
+cd ../mr-base-api
+setup "mrbase-report-module"
