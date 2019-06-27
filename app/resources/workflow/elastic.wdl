@@ -42,7 +42,7 @@ task insert {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        bgc-elasticsearch_wdl:latest \
+        bgc-elasticsearch:c182e62734e62bc152cd9d11061b4bc583c6347a \
         python add-gwas.py \
         -m index_data \
         -f ${BcfFile} \

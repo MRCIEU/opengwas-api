@@ -92,7 +92,7 @@ task bcf {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_harmonisation_wdl:latest \
+        gwas_harmonisation:8fffad5ed91462950f152a9b28a22a1848732758 \
         python /app/main.py \
         --data ${SumStatsFile} \
         --id ${StudyId} \
@@ -210,7 +210,7 @@ task clumping {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing_wdl:latest \
+        gwas_processing:d9cefe5d1ed36e53c648fac69fe35a0d1d7afac6 \
         clump.py \
         --bcf ${BcfFile} \
         --out ${ClumpFilePath}
@@ -267,7 +267,7 @@ task report {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        mrbase-report_wdl:latest \
+        mrbase-report-module:1ef1d2e07852d5f758609dccbebbc3eef7c279ea \
         render_gwas_report.R \
         ${BcfFile} \
         --output_dir ${OutputDir} \
