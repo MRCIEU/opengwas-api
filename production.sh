@@ -9,6 +9,8 @@ docker stop mrb-neo4j || true
 docker rm mrb-neo4j || true
 docker stop mr-base-api-restpluspy3 || true
 docker rm mr-base-api-restpluspy3 || true
+docker stop mr-base-api-cromwell || true
+docker rm mr-base-api-cromwell || true
 docker network rm  mrb-net || true
 
 # get LD data
@@ -50,31 +52,28 @@ docker create \
 -e ACCESS=private \
 mr-base-api-restpluspy3:latest
 
+# build cromwell container with Docker exec
+docker build -t cromwell-docker ./app/resources/workflow
+
+# create cromwell container
+docker create \
+--name mr-base-api-cromwell \
+-e JAVA_OPTS="-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs" \
+-p 8000:8000 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v /data/cromwell-executions:/data/cromwell-executions \
+-v /data/cromwell-workflow-logs:/data/cromwell-workflow-logs \
+-v /data/ref:/data/ref \
+-v /data/bgc:/data/bgc \
+cromwell-docker \
+server
+
 # create network and attach
 docker network create mrb-net || true
-docker network connect  mrb-net  mrb-neo4j
+docker network connect mrb-net mrb-neo4j
 docker network connect mrb-net mr-base-api-restpluspy3
 
 # start
 docker start mrb-neo4j
 docker start mr-base-api-restpluspy3
-
-# kill running cromwell
-j=$(ps -aux | grep cromwell | grep java | awk '{print $2}')
-
-if [[ ! -z "$j" ]]; then
-    kill "$j"
-fi
-
-# start cromwell server (must be run natively)
-# uses port 8000 by default and not exposed
-cd /data/cromwell
-nohup java \
--Ddocker.hash-lookup.enabled=false \
--Dsystem.max-concurrent-workflows=1 \
--Dbackend.providers.Local.config.root="/data/cromwell-executions" \
--Dworkflow-options.workflow-log-dir="/data/cromwell-workflow-logs" \
--Dwebservice.port="8000" \
--DDwebservice.interface="0.0.0.0" \
--jar cromwell-40.jar \
-server &
+docker start mr-base-api-cromwell

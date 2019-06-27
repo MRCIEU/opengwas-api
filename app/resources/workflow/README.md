@@ -17,18 +17,24 @@ But we need to orchestrate when each of the modules are run. This is achieved us
 
 ## Running Cromwell in server mode
 
-Cromwell must be run natively on the host so that it can spawn docker containers. See available configuration here: https://cromwell.readthedocs.io/en/develop/Configuring/
+See available configuration here: https://cromwell.readthedocs.io/en/develop/Configuring/
 
 ```
-nohup java \
--Ddocker.hash-lookup.enabled=false \
--Dsystem.max-concurrent-workflows=1 \
--Dbackend.providers.Local.config.root="/data/cromwell-executions" \
--Dworkflow-options.workflow-log-dir="/data/cromwell-workflow-logs" \
--Dwebservice.port="8000" \
--DDwebservice.interface="0.0.0.0" \
--jar cromwell.jar \
-server &
+# build cromwell including Docker executable
+docker build -t cromwell-docker .
+
+# start server
+docker run \
+--name <name> \
+-it \
+-d \
+-e JAVA_OPTS="-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/path/to/cromwell-executions -Dworkflow-options.workflow-log-dir=/path/to/cromwell-workflow-logs" \
+-p 8000:8000 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v /path/to/cromwell-executions:/path/to/cromwell-executions \
+-v /path/to/cromwell-workflow-logs:/path/to/cromwell-workflow-logs \
+cromwell-docker \
+server
 ```
 
 This will start a web server allowing workflow execution over REST. Visit ```http:<hostname>:<port>``` to view Swagger documentation.

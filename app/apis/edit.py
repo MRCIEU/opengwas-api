@@ -266,16 +266,16 @@ class Upload(Resource):
         with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
             json.dump(j, f)
 
-        # write study id for cromwell
+        # write study id for workflow
         with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
             json.dump({"qc.StudyId": str(args['id']), "elastic.StudyId": str(args['id'])}, f)
 
-        # add to cromwell queue
+        # add to workflow queue
         r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                           files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
                                  'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
         assert r.status_code == 201
         assert r.json()['status'] == "Submitted"
-        logger.info("Submitted {} to cromwell".format(r.json()['id']))
+        logger.info("Submitted {} to workflow".format(r.json()['id']))
 
         return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201

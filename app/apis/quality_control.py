@@ -62,13 +62,13 @@ class Release(Resource):
                 study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
                 raw_folder = os.path.join(study_folder, 'raw')
 
-                # add to cromwell queue
+                # add to workflow queue
                 r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                                   files={'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
                                          'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
                 assert r.status_code == 201
                 assert r.json()['status'] == "Submitted"
-                logger.info("Submitted {} to cromwell".format(r.json()['id']))
+                logger.info("Submitted {} to workflow".format(r.json()['id']))
 
                 return {'message': 'Added to elastic import queue successful. Cromwell id :{}'.format(
                     r.json()['id'])}, 200
