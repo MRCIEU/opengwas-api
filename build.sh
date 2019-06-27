@@ -13,7 +13,7 @@ function setup {
 		cd $container
 		git pull
 	else
-		git clone $source$container.git
+		git clone --recurse-submodules $source$container.git
 		cd $container
 	fi
 	hash=$(git rev-parse HEAD)
@@ -22,13 +22,7 @@ function setup {
 	cd ../mr-base-api
 }
 
-for container in "bgc-elasticsearch" "gwas_harmonisation" "gwas_processing"
+for container in "bgc-elasticsearch" "gwas_harmonisation" "gwas_processing" "mrbase-report-module"
 do
 	setup $container
 done
-
-# non master branch
-cd ../"mrbase-report-module"
-git checkout wdl
-cd ../mr-base-api
-setup "mrbase-report-module"
