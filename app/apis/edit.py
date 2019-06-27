@@ -202,12 +202,13 @@ class Upload(Resource):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
         raw_folder = os.path.join(study_folder, 'raw')
 
-        # make folder for new dataset
-        if not os.path.exists(study_folder):
-            os.makedirs(study_folder)
-
-        if not os.path.exists(raw_folder):
-            os.makedirs(raw_folder)
+        # if data already exists on the backend then stop
+        try:
+            os.mkdir(study_folder)
+            os.mkdir(raw_folder)
+        except FileExistsError as e:
+            logger.error("Could not create study folder: {}".format(e))
+            raise e
 
         if args['gzipped'] == 'True':
             output_path = os.path.join(raw_folder, 'upload.txt.gz')
