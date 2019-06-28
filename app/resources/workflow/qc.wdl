@@ -96,7 +96,7 @@ task bcf {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_harmonisation:8fffad5ed91462950f152a9b28a22a1848732758 \
+        gwas_harmonisation:b596286b6cc206d9b7296b2b919f2020cf3158cd \
         python /app/main.py \
         --data ${SumStatsFile} \
         --id ${StudyId} \
