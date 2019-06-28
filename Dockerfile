@@ -1,4 +1,5 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.6
+ENV NGINX_MAX_UPLOAD 1g
 
 RUN echo "uwsgi_read_timeout 600s;" > /etc/nginx/conf.d/custom_timeout.conf
 
