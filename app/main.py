@@ -40,8 +40,7 @@ app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
 app.add_url_rule('/', 'index', index)
 
 app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
-# max file size in GB
-app.config['MAX_CONTENT_LENGTH'] = 5e+9
+app.config['MAX_CONTENT_LENGTH'] = 7.5e+8
 app.teardown_appcontext(Neo4j.close_db)
 api.init_app(app)
 
