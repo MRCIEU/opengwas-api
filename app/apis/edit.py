@@ -124,16 +124,11 @@ class Upload(Resource):
             if args['header'] == 'True':
                 f.readline()
 
+            n = 0
             for line in f:
-                Upload.validate_row_with_schema(line.strip().split(sep), args)
-
-    @staticmethod
-    def read_plain_text(p, sep, args):
-        with open(p, 'r') as f:
-            if args['header'] == 'True':
-                f.readline()
-
-            for line in f:
+                n += 1
+                if n > 1000:
+                    break
                 Upload.validate_row_with_schema(line.strip().split(sep), args)
 
     @staticmethod
