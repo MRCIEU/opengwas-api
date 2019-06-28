@@ -23,21 +23,21 @@ workflow qc {
         input:
             MountDir=MountDir,
             ClumpFilePath=BaseDir + "/" + StudyId + "/clump.txt",
-            BcfFile=bcf.BcfFileAnno,
-            BcfFileIdx=bcf.BcfFileAnnoIdx
+            BcfFile=bcf.BcfFile,
+            BcfFileIdx=bcf.BcfFileIdx
     }
     call ldsc {
         input:
             MountDir=MountDir,
             LdscFilePath=BaseDir + "/" + StudyId + "/ldsc.txt",
-            BcfFile=bcf.BcfFileAnno,
-            BcfFileIdx=bcf.BcfFileAnnoIdx
+            BcfFile=bcf.BcfFile,
+            BcfFileIdx=bcf.BcfFileIdx
     }
     call report {
         input:
             MountDir=MountDir,
-            BcfFile=bcf.BcfFileAnno,
-            BcfFileIdx=bcf.BcfFileAnnoIdx,
+            BcfFile=bcf.BcfFile,
+            BcfFileIdx=bcf.BcfFileIdx,
             RefData=RefData,
             RefDataIdx=RefDataIdx,
             OutputDir=BaseDir + "/" + StudyId
@@ -152,7 +152,7 @@ task ldsc {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing_wdl:latest \
+        gwas_processing:d9cefe5d1ed36e53c648fac69fe35a0d1d7afac6 \
         ldsc.py \
         --bcf ${BcfFile} \
         --out ${LdscFilePath}
