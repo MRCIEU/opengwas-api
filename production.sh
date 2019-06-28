@@ -45,7 +45,7 @@ docker create \
 -p 8084:80 \
 -v /data/bgc:/data/bgc \
 -v /data/mrb_logs:/data/mrb_logs \
--e NGINX_MAX_UPLOAD=500m \
+-e NGINX_MAX_UPLOAD=750m \
 -e UWSGI_PROCESSES=20 \
 -e UWSGI_THREADS=2 \
 -e ENV=production \
