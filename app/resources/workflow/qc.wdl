@@ -5,6 +5,7 @@ workflow qc {
     String BaseDir = "/data/bgc"
     File RefGenomeFile="/data/ref/human_g1k_v37.fasta"
     File RefGenomeFileIdx="/data/ref/human_g1k_v37.fasta.fai"
+    File RefGenomeFileDict="/data/ref/human_g1k_v37.dict"
     File RefData = "/data/ref/1kg_v3_nomult.bcf"
     File RefDataIdx = "/data/ref/1kg_v3_nomult.bcf.csi"
 
@@ -25,6 +26,7 @@ workflow qc {
             BcfFileIdx=bcf.BcfFileIdx,
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
+            RefGenomeFileDict=RefGenomeFileDict,
             RefData=RefData,
             RefDataIdx=RefDataIdx
     }
@@ -35,6 +37,7 @@ workflow qc {
             BcfFileIdx=bcf.BcfFileIdx,
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
+            RefGenomeFileDict=RefGenomeFileDict,
             RefData=RefData,
             RefDataIdx=RefDataIdx,
             BcfFileAnnoPath=BaseDir + "/" + StudyId + "/anno.bcf"
@@ -46,6 +49,7 @@ workflow qc {
             BcfFileIdx=annotate.BcfFileAnnoIdx,
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
+            RefGenomeFileDict=RefGenomeFileDict,
             RefData=RefData,
             RefDataIdx=RefDataIdx
     }
@@ -116,6 +120,7 @@ task validate_strict {
     File BcfFileIdx
     File RefGenomeFile
     File RefGenomeFileIdx
+    File RefGenomeFileDict
     File RefData
     File RefDataIdx
 
@@ -142,6 +147,7 @@ task validate_warn {
     File BcfFileIdx
     File RefGenomeFile
     File RefGenomeFileIdx
+    File RefGenomeFileDict
     File RefData
     File RefDataIdx
 
@@ -169,6 +175,7 @@ task annotate {
     File BcfFileIdx
     File RefGenomeFile
     File RefGenomeFileIdx
+    File RefGenomeFileDict
     File RefData
     File RefDataIdx
     String BcfFileAnnoPath
