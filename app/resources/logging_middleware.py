@@ -1,8 +1,6 @@
-import hashlib
 from resources.auth import get_user_email
 import logging
 
-logger = logging.getLogger('debug-log')
 logger_event = logging.getLogger('event-log')
 
 
@@ -27,11 +25,7 @@ class LoggerMiddleWare(object):
         except Exception:
             method = None
 
-        i = "path: {0}; method: {1}; user_email: {2}".format(
-            path,
-            method,
-            user_email)
-
-        logger_event.info(i)
+        logger = logging.LoggerAdapter(logger_event, dict(path=path, method=method, user=user_email))
+        logger.info(None)
 
         return self.app(environ, start_response)
