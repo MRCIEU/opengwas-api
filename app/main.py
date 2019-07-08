@@ -30,10 +30,28 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 
+def setup_event_logger(name, log_file):
+    formatter = logging.Formatter(
+        '%(asctime)s %(msecs)d %(user)s %(threadName)s %(levelname)s %(path)s %(method)s',
+        datefmt='%d-%m-%Y:%H:%M:%S'
+    )
+
+    # Create the log message rotation file handler to the logger
+    # 10000000 = 10 MB
+    handler = handlers.RotatingFileHandler(log_file, maxBytes=100000000, backupCount=100)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+
+    return logger
+
+
 print("Starting MRB API v{}".format(Globals.VERSION))
 app = flask.Flask(__name__, static_folder="static")
 
-setup_logger('event-log', Globals.LOG_FILE)
+setup_event_logger('event-log', Globals.LOG_FILE)
 setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
 
 app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
