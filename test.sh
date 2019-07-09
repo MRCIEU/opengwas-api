@@ -33,6 +33,7 @@ docker create \
 --name mr-base-api-restpluspy3-tests \
 -v /data/bgc:/data/bgc \
 -v "$tmpdir":/data/mrb_logs \
+-v /etc/timezone:/etc/timezone:ro \
 -e NGINX_MAX_UPLOAD=750m \
 -e NGINX_UWSGI_READ_TIMEOUT=300 \
 -e UWSGI_PROCESSES=20 \
