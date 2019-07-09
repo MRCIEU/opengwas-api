@@ -30,6 +30,7 @@ docker create \
 -p 27473:7473 \
 -v /data/mrb_neo4j/data:/data \
 -v /data/mrb_neo4j/logs:/logs \
+-v /etc/timezone:/etc/timezone:ro \
 -e NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
 -e NEO4J_dbms_memory_heap_max__size=10G \
 -e NEO4J_dbms_memory_heap_initial__size=5G \
@@ -45,6 +46,7 @@ docker create \
 -p 8084:80 \
 -v /data/bgc:/data/bgc \
 -v /data/mrb_logs:/data/mrb_logs \
+-v /etc/timezone:/etc/timezone:ro \
 -e NGINX_MAX_UPLOAD=750m \
 -e UWSGI_PROCESSES=20 \
 -e UWSGI_THREADS=2 \
@@ -62,6 +64,7 @@ docker create \
 -p 8000:8000 \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v /data:/data \
+-v /etc/timezone:/etc/timezone:ro \
 cromwell-docker \
 server
 
