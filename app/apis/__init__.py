@@ -10,7 +10,7 @@ from .edit import api as edit
 from resources.globals import Globals
 from .ld import api as ld
 
-api = Api(version=Globals.VERSION, title='Bristol GWAS Collection',
+api = Api(version=Globals.VERSION, title='IEU GWAS database',
           description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs/')
 
