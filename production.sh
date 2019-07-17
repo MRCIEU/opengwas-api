@@ -13,14 +13,6 @@ docker stop mr-base-api-cromwell || true
 docker rm mr-base-api-cromwell || true
 docker network rm  mrb-net || true
 
-# get LD data
-wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
-tar xzvf app/ld_files.tgz -C app/
-rm app/ld_files.tgz
-
-# build latest api image
-docker build -t mr-base-api-restpluspy3:latest .
-
 # create database container
 docker create \
 --name mrb-neo4j \
@@ -53,9 +45,6 @@ docker create \
 -e ENV=production \
 -e ACCESS=private \
 mr-base-api-restpluspy3:latest
-
-# build cromwell container with Docker exec
-docker build -t cromwell-docker ./app/resources/workflow
 
 # create cromwell container
 docker create \
