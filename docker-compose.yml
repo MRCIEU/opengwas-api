@@ -35,11 +35,13 @@ services:
       - UWSGI_THREADS=2
       - ENV=production
       - ACCESS=private
+    depends_on:
+      - mrb-neo4j
 
   mr-base-api-cromwell:
     build: ./app/resources/workflow
     environment:
-      - JAVA_OPTS="-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs"
+      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs
     ports:
     - "8000:8000"
     volumes:
@@ -47,5 +49,3 @@ services:
       - /data:/data
       - /etc/timezone:/etc/timezone:ro
     command: ["server"]
-
-
