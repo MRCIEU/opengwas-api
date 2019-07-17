@@ -24,7 +24,7 @@ services:
     image: mr-base-api-restpluspy3:latest
     restart: always
     ports:
-    - "8084:80"
+    - "8082:80"
     volumes:
     - /data/bgc:/data/bgc
     - /data/mrb_logs:/data/mrb_logs
@@ -34,7 +34,7 @@ services:
       - UWSGI_PROCESSES=20
       - UWSGI_THREADS=2
       - ENV=production
-      - ACCESS=private
+      - ACCESS=public
     depends_on:
       - mrb-neo4j
       - mr-base-api-cromwell
