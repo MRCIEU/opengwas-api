@@ -37,6 +37,7 @@ services:
       - ACCESS=private
     depends_on:
       - mrb-neo4j
+      - mr-base-api-cromwell
 
   mr-base-api-cromwell:
     build: ./app/resources/workflow
