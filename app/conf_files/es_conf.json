@@ -1,4 +1,4 @@
 {
-        "host": "ieu-db-interface.epi.bris.ac.uk",
+        "host": "132.145.65.2",
         "port":9200
 }
