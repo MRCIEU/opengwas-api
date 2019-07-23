@@ -22,3 +22,6 @@ docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v api
 docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v resources/
 docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v schemas/
 docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v queries/
+
+# take down
+docker-compose -f ./docker-compose-test.yml down
