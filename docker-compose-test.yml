@@ -1,8 +1,7 @@
 version: '3'
 services:
 
-  mrb-neo4j-test:
-    container_name: mrb-neo4j-test
+  mrb-neo4j:
     image: neo4j:3.5
     volumes:
     - /etc/timezone:/etc/timezone:ro
@@ -30,8 +29,7 @@ services:
       - mrb-neo4j-test
       - mr-base-api-cromwell-test
 
-  mr-base-api-cromwell-test:
-    container_name: mr-base-api-cromwell-test
+  mr-base-api-cromwell:
     build: ./app/resources/workflow
     environment:
       - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs
