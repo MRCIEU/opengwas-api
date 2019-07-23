@@ -105,8 +105,8 @@ git checkout restpluspy3
 ### Build images for backend processing of data
 ```bash build.sh```
 
-### deploy
+### Deploy
 ```docker-compose up -d -f ./docker-compose.yml```
 
-### test
+### Test
 ```bash test.sh```
