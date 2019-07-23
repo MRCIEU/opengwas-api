@@ -1,57 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-#### WARNING running tests will ERASE ALL DATA in the neo4j ###
-### set up a test database before proceeding ###
+# get TwoSampleMR token
+## populate first ##
+token=""
 
-read -p "This script will erase all data in Neo4j. Continue (y/n)?" CONT
-if [ "$CONT" = "y" ]; then
-  echo "Continuing";
-else
-  echo "Stopping";
-  exit;
-fi
+# get test data for graph
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from study_e" mrbase > /tmp/study_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from groups" mrbase > /tmp/groups.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from permissions_e" mrbase > /tmp/permissions_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from memberships" mrbase > /tmp/memberships.tsv
 
-if [ ! -e token.temp ]; then
-    echo "You need to provide a token.temp file to proceed"
-    exit;
-fi
+# build test stack
+docker-compose up -d -f ./docker-compose-test.yml
 
-# ensure we're up to date
-git pull
+# import data to graph
+docker exec -it mr-base-api-restpluspy3-test /bin/bash -c "cd /app/populate_db && python map_from_csv.py"
 
-# stop and rm
-docker stop mr-base-api-restpluspy3-tests || true
-docker rm mr-base-api-restpluspy3-tests || true
-
-# make tmp output for data
-tmpdir=$(mktemp -d)
-
-# run unit tests
-# obtain token.temp from TwoSampleMR
-docker create \
---name mr-base-api-restpluspy3-tests \
--v /data/bgc:/data/bgc \
--v "$tmpdir":/data/mrb_logs \
--v /etc/timezone:/etc/timezone:ro \
--e NGINX_MAX_UPLOAD=750m \
--e NGINX_UWSGI_READ_TIMEOUT=300 \
--e UWSGI_PROCESSES=20 \
--e UWSGI_THREADS=2 \
--e ENV=production \
--e ACCESS=private \
--e MRB_TOKEN=$(cat token.temp | tr -d '\n') \
-mr-base-api-restpluspy3:latest
-
-# attach to network
-docker network connect mrb-net mr-base-api-restpluspy3-tests
-
-# start container
-docker start mr-base-api-restpluspy3-tests
-sleep 15
-
-# run tests
-docker exec -it mr-base-api-restpluspy3-tests pytest -v apis/ --url http://localhost
-docker exec -it mr-base-api-restpluspy3-tests pytest -v resources/
-docker exec -it mr-base-api-restpluspy3-tests pytest -v schemas/
-docker exec -it mr-base-api-restpluspy3-tests pytest -v queries/
+# run unit API tests
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v apis/ --url http://localhost
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v resources/
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v schemas/
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v queries/

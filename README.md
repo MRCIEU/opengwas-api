@@ -34,13 +34,15 @@ pip install -r requirements.txt
 ### importing mysql data
 
 ```
-# copy data to import folder
-cp groups.tsv app/populate_db/data
-cp memberships.tsv app/import/data
-cp permissions_e.tsv app/import/data
-cp study_e.tsv app/import/data
-
 cd app/populate_db
+
+# export from MySQL
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from study_e" mrbase > ./data/study_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from groups" mrbase > ./groups.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from permissions_e" mrbase > ./data/permissions_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from memberships" mrbase > ./data/memberships.tsv
+
+# import to graph
 python map_from_csv.py
 ```
 
@@ -58,7 +60,6 @@ http://localhost:8019/gwasinfo/2
 ```
 
 ### Unit tests
-### WARNING tests will erase the database. Ensure you are using a development instance of Neo4j ###
 First need to obtain an `app/mrbase.oauth` file using the TwoSampleMR R package
 
 ```r
@@ -101,12 +102,11 @@ git fetch
 git checkout restpluspy3
 ```
 
-### deploy
-```bash production.sh```
-
-### test
-### WARNING this will erase the Neo4j database ####
-```bash test.sh```
-
 ## Build images for backend processing of data
 ```bash build.sh```
+
+### deploy
+```docker-compose up -d -f ./docker-compose.yml```
+
+### test
+```bash test.sh```
