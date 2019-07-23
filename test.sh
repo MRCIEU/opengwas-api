@@ -12,7 +12,7 @@ mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "sele
 mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from memberships" mrbase > /tmp/memberships.tsv
 
 # build test stack
-docker-compose up -d -f ./docker-compose-test.yml
+docker-compose -f ./docker-compose-test.yml up -d
 
 # import data to graph
 docker exec -it mr-base-api-restpluspy3-test /bin/bash -c "cd /app/populate_db && python map_from_csv.py"
