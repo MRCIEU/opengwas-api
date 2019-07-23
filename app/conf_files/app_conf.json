@@ -4,7 +4,7 @@
       "port": 8019
     },
     "es": {
-      "host": "ieu-db-interface.epi.bris.ac.uk",
+      "host": "localhost",
       "port": 9200
     },
     "neo4j": {
