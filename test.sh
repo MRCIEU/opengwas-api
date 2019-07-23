@@ -3,7 +3,7 @@ set -euo pipefail
 
 # get TwoSampleMR token
 ## populate first ##
-token=""
+token=$(cat ./token.temp)
 
 # get test data for graph
 mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from study_e" mrbase > /tmp/study_e.tsv
