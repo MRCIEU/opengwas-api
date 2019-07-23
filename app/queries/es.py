@@ -176,7 +176,7 @@ def elastic_query(studies, snps, pval):
         logger.debug("Running snp_lookup elastic_query")
         # need to add each index for snp_lookups
         for i in Globals.study_batches:
-            if i != Globals.mrb_batch:
+            if i != Globals.mrb_batch and i not in Globals.private_batches:
                 study_indexes.update({i: []})
     else:
         for o in studies:
@@ -279,8 +279,10 @@ def query_summary_stats(user_email, snps, outcomes):
     # else:
     #    ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='')
     ESRes = elastic_query(snps=snp_data, studies=outcomes_access, pval='')
+    logger.debug('ES queries finished')
     es_res = []
     for s in ESRes:
+        logger.debug(s)
         hits = ESRes[s]['hits']['hits']
 
         # create final file
