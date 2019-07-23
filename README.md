@@ -102,7 +102,7 @@ git fetch
 git checkout restpluspy3
 ```
 
-## Build images for backend processing of data
+### Build images for backend processing of data
 ```bash build.sh```
 
 ### deploy
