@@ -15,9 +15,9 @@ class Globals:
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
     LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
     TMP_FOLDER = os.path.join(root_path, 'tmp')
-    UPLOAD_FOLDER = os.path.join(os.sep, 'data', 'bgc')
-    LOG_FILE = os.path.join(os.sep, 'data', 'mrb_logs', 'mrbaseapi.log')
-    LOG_FILE_DEBUG = os.path.join(os.sep, 'data', 'mrb_logs', 'mrbaseapi-debug.log')
+    UPLOAD_FOLDER = os.path.join(root_path, 'data', 'bgc')
+    LOG_FILE = os.path.join(root_path, 'data', 'mrb_logs', 'mrbaseapi.log')
+    LOG_FILE_DEBUG = os.path.join(root_path, 'data', 'mrb_logs', 'mrbaseapi-debug.log')
 
     OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
@@ -63,3 +63,4 @@ class Globals:
 
     mrb_batch = 'MRB'
     study_batches = [mrb_batch, 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a']
+    private_batches=['pQTL-a','pQTL-b','eqtl-a','UKB-c']
