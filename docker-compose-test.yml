@@ -6,7 +6,6 @@ services:
     image: neo4j:3.5
     volumes:
     - /etc/timezone:/etc/timezone:ro
-    - /tmp:/app/populate_db/data:ro
     environment:
       - NEO4J_AUTH=neo4j/dT9ymYwBsrzd
       - NEO4J_dbms_memory_heap_max__size=10G
@@ -20,6 +19,7 @@ services:
     image: mr-base-api-restpluspy3:latest
     volumes:
     - /etc/timezone:/etc/timezone:ro
+    - /tmp:/app/populate_db/data:ro
     environment:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
