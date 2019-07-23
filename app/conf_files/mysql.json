@@ -1,7 +1,8 @@
 {
         "user": "mrbaseapp",
         "passwd": "M1st3rbase!",
-        "host": "ieu-db-interface.epi.bris.ac.uk",
-        "port":13306,
-        "db": "mrbase"
+        "host": "database",
+        "port":3306,
+        "db": "mrbase",
+	"protocol":"tcp"
 }
