@@ -109,4 +109,7 @@ git checkout restpluspy3
 ```docker-compose -p mr-base-api-restpluspy3 -f ./docker-compose.yml up -d```
 
 ### Test
-```bash test.sh```
+```
+docker-compose -p mr-base-api-restpluspy3-test -f ./docker-compose-test.yml up -d
+bash test.sh
+```

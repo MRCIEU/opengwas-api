@@ -10,11 +10,8 @@ mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p'M1st3rbase!' -
 mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from permissions_e" mrbase > /tmp/permissions_e.tsv
 mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from memberships" mrbase > /tmp/memberships.tsv
 
-# build test stack
-docker-compose -p mr-base-api-restpluspy3-test -f ./docker-compose-test.yml up -d
-
 # import data to graph
-docker exec -it mr-base-api-restpluspy3-test /bin/bash -c "cd /app/populate_db && python map_from_csv.py"
+docker exec -it mr-base-api-restpluspy3-test python populate_db/map_from_csv.py
 
 # run unit API tests
 docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v apis/ --url http://localhost
