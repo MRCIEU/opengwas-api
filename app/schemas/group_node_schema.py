@@ -23,7 +23,8 @@ valid_group_names = {
     "pQTL",
     "eQTLGen",
     "sclerostin",
-    "biobank_japan"
+    "biobank_japan",
+    "small_ukb-b"
 }
 
 
