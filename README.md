@@ -114,7 +114,7 @@ docker-compose -p mr-base-api-restpluspy3 -f ./docker-compose.yml up -d
 
 ### Test
 
-Note the email used to obtain must be assocaited with all groups in the graph otherwise tests will fail. See here: TODO
+Note the email used to obtain must be assocaited with all groups in the graph otherwise tests will fail, [see here](https://github.com/MRCIEU/mr-base-api/blob/3085529ee1da86184a2c7f8f6e03e2413fb0272e/app/populate_db/map_from_csv.py#L272)
 
 ```
 docker-compose -p mr-base-api-restpluspy3-test -f ./docker-compose-test.yml up -d
