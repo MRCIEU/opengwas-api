@@ -263,8 +263,8 @@ with app.app_context():
         # add remaining rels
         batch_add_rel(rels)
 
-    # create me as user
-    # add me to all GWAS groups for testing purposes
+    # create test users
+    # add test users to all GWAS groups for testing purposes
     # TODO drop statement
     groups = set()
     for it in gid_to_name:
