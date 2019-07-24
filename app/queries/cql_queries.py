@@ -26,6 +26,19 @@ def get_all_gwas_for_user(uid):
 
     return res
 
+def get_all_gwas_for_user_dic(uid):
+    group_names = get_groups_for_user(uid)
+    res = {}
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi) as gi;",
+        group_names=list(group_names)
+    )
+    for result in results:
+        res[result['gi']['id']]=result['gi']
+
+    return res
+
 
 def get_all_gwas_ids_for_user(uid):
     recs = []
