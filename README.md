@@ -111,5 +111,6 @@ git checkout restpluspy3
 ### Test
 ```
 docker-compose -p mr-base-api-restpluspy3-test -f ./docker-compose-test.yml up -d
+sleep 50
 bash test.sh
 ```
