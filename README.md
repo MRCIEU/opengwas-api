@@ -37,10 +37,10 @@ pip install -r requirements.txt
 cd app/populate_db
 
 # export from MySQL
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from study_e" mrbase > ./data/study_e.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from groups" mrbase > ./groups.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from permissions_e" mrbase > ./data/permissions_e.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from memberships" mrbase > ./data/memberships.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from study_e" mrbase | sed 's/\\n//g' > ./data/study_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from groups" mrbase | sed 's/\\n//g' > ./groups.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from permissions_e" mrbase | sed 's/\\n//g' > ./data/permissions_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from memberships" mrbase | sed 's/\\n//g' > ./data/memberships.tsv
 
 # import to graph
 python map_from_csv.py
@@ -114,7 +114,10 @@ docker-compose -p mr-base-api-restpluspy3 -f ./docker-compose.yml up -d
 
 ### Test
 
+Note the email used to obtain must be assocaited with all groups in the graph otherwise tests will fail. See here: TODO
+
 ```
 docker-compose -p mr-base-api-restpluspy3-test -f ./docker-compose-test.yml up -d
+Rscript -e "write.table(TwoSampleMR::get_mrbase_access_token(), file='token.temp', row=F, col=F, qu=F)"
 bash test.sh
 ```
