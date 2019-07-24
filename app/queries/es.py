@@ -9,7 +9,6 @@ from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
 logger = logging.getLogger('debug-log')
 
 
-# TODO not working in production
 def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
     if proxies == 0:
         logger.debug("not using LD proxies")
