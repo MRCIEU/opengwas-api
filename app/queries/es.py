@@ -4,7 +4,7 @@ from resources.globals import Globals
 import json
 import logging
 import time
-from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
+from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user, get_all_gwas_for_user_dic
 
 logger = logging.getLogger('debug-log')
 
@@ -263,7 +263,8 @@ def query_summary_stats(user_email, snps, outcomes):
     outcomes_clean = ','.join(outcomes)
     if outcomes == 'snp_lookup':
         outcomes_access = 'snp_lookup'
-        study_data = get_all_gwas_for_user(user_email)
+        study_data = get_all_gwas_for_user_dic(user_email)
+        #idlist = [x['id'] for x in study_data]
     else:
         study_data = get_permitted_studies(user_email, outcomes)
         outcomes_access = [x['id'] for x in study_data]
@@ -325,10 +326,8 @@ def query_summary_stats(user_email, snps, outcomes):
                 if s != Globals.mrb_batch:
                     study_id = s + ':' + hit['_source']['study_id']
                 # make sure only to return available studies
-                idlist = [x['id'] for x in study_data]
-                if study_id in idlist:
-                    i = idlist.index(study_id)
-                    assocDic.update(study_data[i])
+                if study_id in study_data:
+                    assocDic.update(study_data[study_id])
                     es_res.append(assocDic)
     # logger.debug(json.dumps(es_res,indent=4))
     logger.debug('Total hits returned = ' + str(len(es_res)))

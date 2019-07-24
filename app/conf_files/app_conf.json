@@ -24,7 +24,7 @@
       "port": 80
     },
     "es": {
-      "host": "132.145.65.2",
+      "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 9200
     },
     "neo4j": {
