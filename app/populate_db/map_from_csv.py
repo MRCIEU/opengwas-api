@@ -270,6 +270,9 @@ with app.app_context():
     for it in gid_to_name:
         groups.add(gid_to_name[it])
     add_new_user('ml18692@bristol.ac.uk', groups)
+    add_new_user('be15516@bristol.ac.uk', groups)
+    add_new_user('gh13047@bristol.ac.uk', groups)
+    add_new_user('eptrg@bristol.ac.uk', groups)
 
     # set all gwas as QC passed
     tx = Neo4j.get_db()
