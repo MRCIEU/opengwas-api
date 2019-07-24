@@ -46,6 +46,8 @@ def map_population(pop):
         return "European"
     elif pop.lower() == "iranian":
         return "Greater Middle Eastern (Middle Eastern, North African, or Persian)"
+    elif pop.lower() == "european (sardinian)":
+        return "European"
     elif pop.lower() == "hispanic":
         return "Hispanic or Latin American"
     elif pop.lower() == "indian":
