@@ -4,7 +4,7 @@ from resources.globals import Globals
 import json
 import logging
 import time
-from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user, get_all_gwas_for_user_dic
+from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
 
 logger = logging.getLogger('debug-log')
 
@@ -263,11 +263,12 @@ def query_summary_stats(user_email, snps, outcomes):
     outcomes_clean = ','.join(outcomes)
     if outcomes == 'snp_lookup':
         outcomes_access = 'snp_lookup'
-        study_data = get_all_gwas_for_user_dic(user_email)
+        study_data = get_all_gwas_for_user(user_email)
         #idlist = [x['id'] for x in study_data]
     else:
         study_data = get_permitted_studies(user_email, outcomes)
-        outcomes_access = [x['id'] for x in study_data]
+        #logger.debug(study_data)
+        outcomes_access = list(study_data.keys())
     end = time.time()
     t = round((end - start), 4)
     logger.debug('took: ' + str(t) + ' seconds')
@@ -282,6 +283,7 @@ def query_summary_stats(user_email, snps, outcomes):
     ESRes = elastic_query(snps=snp_data, studies=outcomes_access, pval='')
     logger.debug('ES queries finished')
     es_res = []
+    logger.debug(len(ESRes))
     for s in ESRes:
         logger.debug(s)
         hits = ESRes[s]['hits']['hits']
@@ -329,6 +331,7 @@ def query_summary_stats(user_email, snps, outcomes):
                 if study_id in study_data:
                     assocDic.update(study_data[study_id])
                     es_res.append(assocDic)
+
     # logger.debug(json.dumps(es_res,indent=4))
     logger.debug('Total hits returned = ' + str(len(es_res)))
     return es_res
