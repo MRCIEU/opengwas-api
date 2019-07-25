@@ -61,9 +61,9 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
         study_access.add(str(s))
 
     logger.debug('searching ' + outcomes_clean)
-    study_data = get_permitted_studies(user_email, outcomes.strip().split(","))
-    study_data = get_permitted_studies(user_email, id)
-    outcomes_access = [x['id'] for x in study_data]
+    #study_data = get_permitted_studies(user_email, outcomes.strip().split(","))
+    #study_data = list(get_permitted_studies(user_email, id).values())
+    outcomes_access = list(get_permitted_studies(user_email, id).keys())
     logger.debug(str(outcomes_access))
     # logger.debug(sorted(study_access))
     if len(outcomes_access) == 0:
@@ -154,10 +154,8 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                     if s != Globals.mrb_batch:
                         study_id = s + ':' + hit['_source']['study_id']
                     # make sure only to return available studies
-                    idlist = [x['id'] for x in study_data]
-                    if study_id in idlist:
-                        i = idlist.index(study_id)
-                        assocDic.update(study_data[i])
+                    if study_id in study_data:
+                        assocDic.update(study_data[study_id])
                         res.append(assocDic)
         studies = outcomes.strip().split(",")
         nsnps = len(res)
