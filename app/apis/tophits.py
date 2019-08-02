@@ -12,7 +12,8 @@ api = Namespace('tophits', description="Extract tophits from a GWAS dataset")
 
 parser1 = reqparse.RequestParser()
 parser1.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
-parser1.add_argument('pval', type=float, required=False, default=5e-8, help='P-value threshold')
+parser1.add_argument('pval', type=float, required=False, default=0.00000005,
+                     help='P-value threshold; exponents not supported through Swagger')
 parser1.add_argument('clump', type=int, required=False, default=1, help='Whether to clump (1) or not (0)')
 parser1.add_argument('r2', type=float, required=False, default=0.001, help='Clumping parameter')
 parser1.add_argument('kb', type=int, required=False, default=5000, help='Clumping parameter')
