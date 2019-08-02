@@ -4,7 +4,7 @@
       "port": 8019
     },
     "es": {
-      "host": "localhost",
+      "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 9200
     },
     "neo4j": {
@@ -24,14 +24,14 @@
       "port": 80
     },
     "es": {
-      "host": "132.145.65.2",
+      "host": "ieu-db-interface.epi.bris.ac.uk",
       "port": 9200
     },
     "neo4j": {
       "user": "neo4j",
       "passwd": "dT9ymYwBsrzd",
-      "host": "mrb-neo4j",
-      "port": 7687
+      "host": "ieu-db-interface.epi.bris.ac.uk",
+      "port": 27687
     },
     "email": {
       "CLIENT_ID": "",
