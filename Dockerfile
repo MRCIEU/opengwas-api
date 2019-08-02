@@ -7,3 +7,8 @@ COPY ./app /app
 WORKDIR /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+
+# make dirs
+RUN mkdir /data
+RUN mkdir /data/bgc
+RUN mkdir /data/mrb_logs

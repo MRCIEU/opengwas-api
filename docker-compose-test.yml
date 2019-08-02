@@ -4,7 +4,6 @@ services:
   mrb-neo4j:
     image: neo4j:3.5
     volumes:
-    - /tmp/mrb_neo4j/logs:/logs
     - /etc/timezone:/etc/timezone:ro
     environment:
       - NEO4J_AUTH=neo4j/dT9ymYwBsrzd
@@ -20,10 +19,8 @@ services:
     container_name: mr-base-api-restpluspy3-test
     image: mr-base-api-restpluspy3:latest
     volumes:
-    - /tmp/bgc:/data/bgc
-    - /tmp/mrb_logs:/data/mrb_logs
     - /etc/timezone:/etc/timezone:ro
-    - /tmp:/app/populate_db/data:ro
+    - /tmp/mrbase:/app/populate_db/data:ro
     environment:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
