@@ -8,6 +8,10 @@ token = get_mrbase_access_token()
 
 def test_phewas_get1(url):
     r = requests.get(url + "/phewas/rs234/0.0001")
+    assert r.status_code == 200 and len(r.json()['data']) > 15
+
+def test_phewas_get2(url):
+    r = requests.get(url + "/phewas/rs234/1")
     assert r.status_code == 200 and len(r.json()['data']) > 100
 
 
@@ -17,4 +21,10 @@ def test_phewas_post1(url):
     headers = {'X-API-TOKEN': token}
     payload = {'rsid': 'rs234', 'pval': 0.0001}
     r = requests.post(url + "/phewas", data=payload, headers=headers)
-    assert r.status_code == 200 and len(r.json()['data'])
+    assert r.status_code == 200 and len(r.json()['data']) > 15
+
+def test_phewas_post2(url):
+    headers = {'X-API-TOKEN': token}
+    payload = {'rsid': 'rs234', 'pval': 1}
+    r = requests.post(url + "/phewas", data=payload, headers=headers)
+    assert r.status_code == 200 and len(r.json()['data']) > 100
