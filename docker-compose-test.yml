@@ -20,7 +20,7 @@ services:
     image: mr-base-api-restpluspy3:latest
     volumes:
     - /etc/timezone:/etc/timezone:ro
-    - /tmp/mrbase:/app/populate_db/data:ro
+    - /tmp:/app/populate_db/data:ro
     environment:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
