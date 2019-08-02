@@ -20,9 +20,9 @@ function setup {
 	hash=$(git rev-parse HEAD)
 	echo "$hash"
 	if [ "$container" == "mrbase-report-module" ]; then
-		docker build -f ./env/Dockerfile -t "$container":"$hash" .
+		docker build --no-cache -f ./env/Dockerfile -t "$container":"$hash" .
 	else
-		docker build -t "$container":"$hash" .
+		docker build --no-cache -t "$container":"$hash" .
 	fi
 	cd ../mr-base-api
 }
@@ -33,10 +33,10 @@ tar xzvf app/ld_files.tgz -C app/
 rm app/ld_files.tgz
 
 # build latest api image
-docker build -t mr-base-api-restpluspy3:latest .
+docker build --no-cache -t mr-base-api-restpluspy3:latest .
 
 # build cromwell container with Docker exec
-docker build -t cromwell-docker ./app/resources/workflow
+docker build --no-cache -t cromwell-docker ./app/resources/workflow
 
 # build pipeline components
 for container in "bgc-elasticsearch" "gwas_harmonisation" "gwas_processing" "mrbase-report-module"
