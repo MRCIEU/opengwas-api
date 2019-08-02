@@ -24,7 +24,8 @@ valid_group_names = {
     "eQTLGen",
     "sclerostin",
     "biobank_japan",
-    "small_ukb-b"
+    "small_ukb-b",
+    "ncase_lt_10_ukb-b"
 }
 
 
