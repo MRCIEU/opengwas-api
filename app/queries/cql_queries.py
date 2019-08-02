@@ -12,17 +12,16 @@ import os
 
 """Return all available GWAS summary datasets"""
 
-
 def get_all_gwas_for_user(uid):
     group_names = get_groups_for_user(uid)
-    res = []
+    res = {}
     tx = Neo4j.get_db()
     results = tx.run(
         "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi) as gi;",
         group_names=list(group_names)
     )
     for result in results:
-        res.append(GwasInfo(result['gi']))
+        res[result['gi']['id']]=GwasInfo(result['gi'])
 
     return res
 
@@ -165,9 +164,10 @@ def get_permitted_studies(uid, gwas_info_ids: list):
         "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} AND s.id IN {sid} RETURN distinct(s) as s;",
         group_names=list(group_names), sid=gwas_info_ids_str
     )
-    res = []
+    res = {}
     for result in results:
-        res.append(schema.load(result['s']))
+        #res[result['gi']['id']]=result['gi']
+        res[result['s']['id']]=schema.load(result['s'])
     return res
 
 

@@ -24,7 +24,8 @@ class List(Resource):
     @api.doc(model=gwas_info_model)
     def get(self):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
-        return get_all_gwas_for_user(user_email)
+        d = list(get_all_gwas_for_user(user_email).values())
+        return d
 
 
 @api.route('')

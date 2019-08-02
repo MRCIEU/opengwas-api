@@ -79,7 +79,7 @@ class PhewasPost(Resource):
                 args['rsid'],
                 "snp_lookup"
             )
-            logger.debug('Filtering phewas',args['pval'])
+            logger.debug('Filtering phewas'+str(args['pval']))
             for d in out:
                 if float(d['p'])<args['pval']:
                     outFilter.append(d)
