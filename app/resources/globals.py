@@ -61,6 +61,5 @@ class Globals:
         [{'host': app_config['es']['host'], 'port': app_config['es']['port']}]
     )
 
-    mrb_batch = 'MRB'
-    study_batches = [mrb_batch, 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a']
+    study_batches = ['IEU-a', 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a']
     private_batches=['pQTL-a','pQTL-b','eqtl-a','UKB-c']
