@@ -22,8 +22,8 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7474"]
 
-  mr-base-api-restpluspy3:
-    image: mr-base-api-restpluspy3:latest
+  mr-base-api-v2:
+    image: mr-base-api-v2:latest
     restart: always
     ports:
     - "8082:80"
