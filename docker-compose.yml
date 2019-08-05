@@ -22,7 +22,28 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7474"]
 
-  mr-base-api-v2:
+  mr-base-api-v2-public:
+    image: mr-base-api-v2:latest
+    restart: always
+    ports:
+    - "8084:80"
+    volumes:
+    - /data/bgc:/data/bgc
+    - /data/mrb_logs:/data/mrb_logs
+    - /etc/timezone:/etc/timezone:ro
+    environment:
+      - NGINX_MAX_UPLOAD=750m
+      - UWSGI_PROCESSES=20
+      - UWSGI_THREADS=2
+      - ENV=production
+      - ACCESS=public
+    depends_on:
+      - mrb-neo4j
+      - mr-base-api-cromwell
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+  
+  mr-base-api-v2-private:
     image: mr-base-api-v2:latest
     restart: always
     ports:
@@ -36,7 +57,7 @@ services:
       - UWSGI_PROCESSES=20
       - UWSGI_THREADS=2
       - ENV=production
-      - ACCESS=public
+      - ACCESS=private
     depends_on:
       - mrb-neo4j
       - mr-base-api-cromwell
