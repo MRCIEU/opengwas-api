@@ -11,13 +11,13 @@ mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p'M1st3rbase!' -
 mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from memberships" mrbase | sed 's/\\n//g' > /tmp/memberships.tsv
 
 # import data to graph
-docker exec -it mr-base-api-restpluspy3-test python populate_db/map_from_csv.py
+docker exec -it mr-base-api-v2-test python populate_db/map_from_csv.py
 
 # run unit API tests
-docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v apis/ --url http://localhost
-docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v resources/
-docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v schemas/
-docker exec -e MRB_TOKEN="$token" -it mr-base-api-restpluspy3-test pytest -v queries/
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-v2-test pytest -v apis/ --url http://localhost
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-v2-test pytest -v resources/
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-v2-test pytest -v schemas/
+docker exec -e MRB_TOKEN="$token" -it mr-base-api-v2-test pytest -v queries/
 
 # take down
-docker-compose -p mr-base-api-restpluspy3-test -f ./docker-compose-test.yml down
+docker-compose -p mr-base-api-v2-test -f ./docker-compose-test.yml down

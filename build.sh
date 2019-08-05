@@ -33,7 +33,7 @@ tar xzvf app/ld_files.tgz -C app/
 rm app/ld_files.tgz
 
 # build latest api image
-docker build --no-cache -t mr-base-api-restpluspy3:latest .
+docker build --no-cache -t mr-base-api-v2:latest .
 
 # build cromwell container with Docker exec
 docker build --no-cache -t cromwell-docker ./app/resources/workflow
