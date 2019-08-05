@@ -152,8 +152,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                                 'name': name
                                 }
                     study_id = hit['_source']['study_id']
-                    if s != Globals.mrb_batch:
-                        study_id = s + ':' + hit['_source']['study_id']
+                    study_id = s + ':' + hit['_source']['study_id']
                     # make sure only to return available studies
                     if study_id in study_data:
                         assocDic.update(study_data[study_id])

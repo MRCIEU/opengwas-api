@@ -27,10 +27,14 @@ function setup {
 	cd ../mr-base-api
 }
 
-# get LD data
-wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
-tar xzvf app/ld_files.tgz -C app/
-rm app/ld_files.tgz
+# get LD data if not already done
+if [ ! -f app/ld_files/data_maf0.01.bed ]; then
+    wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
+    tar xzvf app/ld_files.tgz -C app/
+    rm app/ld_files.tgz
+else
+    echo 'LD data exists'
+fi
 
 # build latest api image
 docker build --no-cache -t mr-base-api-v2:latest .

@@ -168,14 +168,14 @@ def elastic_search(filterData, index_name):
 def elastic_query(studies, snps, pval):
     # separate studies by index
     # logger.debug(studies)
-    study_indexes = {Globals.mrb_batch: []}
+    study_indexes = {}
     mrbase_original = True
     # deal with snp_lookup
     if studies == 'snp_lookup':
         logger.debug("Running snp_lookup elastic_query")
         # need to add each index for snp_lookups
         for i in Globals.study_batches:
-            if i != Globals.mrb_batch and i not in Globals.private_batches:
+            if i not in Globals.private_batches:
                 study_indexes.update({i: []})
     else:
         for o in studies:
@@ -187,7 +187,7 @@ def elastic_query(studies, snps, pval):
                 else:
                     study_indexes[study_prefix] = [study_id]
             else:
-                study_indexes[Globals.mrb_batch].append(o)
+                logger.debug(o+'is not a correct batch prefix')
 
     res = {}
     for s in study_indexes:
@@ -209,12 +209,11 @@ def elastic_query(studies, snps, pval):
 
         # deal with mrbase-original complications
         run = False
-        if s == Globals.mrb_batch:
-            if studies == 'snp_lookup':
+        if studies == 'snp_lookup':
+            run = True
+        elif 'study_id' in filterSelect:
+            if len(filterSelect['study_id']) > 0:
                 run = True
-            elif 'study_id' in filterSelect:
-                if len(filterSelect['study_id']) > 0:
-                    run = True
         else:
             run = True
         if run == True:
@@ -323,9 +322,8 @@ def query_summary_stats(user_email, snps, outcomes):
                             'n': n,
                             'name': name
                             }
-                study_id = hit['_source']['study_id']
-                if s != Globals.mrb_batch:
-                    study_id = s + ':' + hit['_source']['study_id']
+                #study_id = hit['_source']['study_id']
+                study_id = s + ':' + hit['_source']['study_id']
                 # make sure only to return available studies
                 if study_id in study_data:
                     assocDic.update(study_data[study_id])
