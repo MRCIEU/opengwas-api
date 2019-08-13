@@ -12,7 +12,7 @@ workflow qc {
     call bcf {
         input:
             MountDir=MountDir,
-            BcfFilePath=BaseDir + "/" + StudyId + "/data.bcf",
+            BcfFilePath=BaseDir + "/" + StudyId + "/" + StudyId + "_data.bcf",
             SumStatsFile=BaseDir + "/" + StudyId + "/raw/upload.txt.gz",
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
