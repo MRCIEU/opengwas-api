@@ -3,9 +3,7 @@ import flask
 import pytest
 from marshmallow.exceptions import ValidationError
 
-gwas_info = {'pmid': 1234, 'year': 2013,
-             'filename': 'test.tab',
-             'path': '/test/test', 'mr': 1,
+gwas_info = {'pmid': 1234, 'year': 2013, 'mr': 1,
              'note': 'Test',
              'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
              'population': 'European',

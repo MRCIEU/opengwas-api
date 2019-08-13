@@ -7,6 +7,7 @@ from flask import request
 import requests
 from resources.globals import Globals
 import logging
+import os
 
 logger = logging.getLogger('debug-log')
 

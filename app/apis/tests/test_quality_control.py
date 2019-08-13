@@ -9,9 +9,7 @@ def test_release(url):
     headers = {'X-API-TOKEN': token}
 
     data = {
-        'pmid': 1234, 'year': 2010,
-        'filename': 'test',
-        'path': '/projects/test/test', 'mr': 1,
+        'pmid': 1234, 'year': 2010, 'mr': 1,
         'note': 'test',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',

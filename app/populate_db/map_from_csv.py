@@ -99,11 +99,6 @@ with app.app_context():
             except ValueError as e:
                 logging.warning(e)
 
-            if fields[3] != "NULL":
-                d['filename'] = str(fields[3])
-
-            if fields[4] != "NULL":
-                d['path'] = str(fields[4])
             d['mr'] = int(fields[5])
 
             if fields[6] != "NULL":

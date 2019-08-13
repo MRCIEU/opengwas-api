@@ -8,9 +8,9 @@ from queries.member_of_rel import MemberOfRel
 from queries.group_node import Group
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import time
-import os
 
 """Return all available GWAS summary datasets"""
+
 
 def get_all_gwas_for_user(uid):
     group_names = get_groups_for_user(uid)
@@ -21,7 +21,7 @@ def get_all_gwas_for_user(uid):
         group_names=list(group_names)
     )
     for result in results:
-        res[result['gi']['id']]=GwasInfo(result['gi'])
+        res[result['gi']['id']] = GwasInfo(result['gi'])
 
     return res
 
@@ -104,20 +104,6 @@ def add_group_to_user(email, group_name):
     member_of_rel.create_rel(u, g)
 
 
-def update_filename_and_path(uid, full_remote_file_path, md5):
-    if not os.path.exists(full_remote_file_path):
-        raise FileNotFoundError("The GWAS file does not exist on this server: {}".format(full_remote_file_path))
-
-    tx = Neo4j.get_db()
-    tx.run(
-        "MATCH (gi:GwasInfo {id:{uid}}) SET gi.filename={filename}, gi.path={path}, gi.md5={md5};",
-        uid=uid,
-        path=os.path.dirname(full_remote_file_path),
-        filename=os.path.basename(full_remote_file_path),
-        md5=md5
-    )
-
-
 def delete_gwas(gwasid):
     tx = Neo4j.get_db()
     tx.run(
@@ -166,8 +152,7 @@ def get_permitted_studies(uid, gwas_info_ids: list):
     )
     res = {}
     for result in results:
-        #res[result['gi']['id']]=result['gi']
-        res[result['s']['id']]=schema.load(result['s'])
+        res[result['s']['id']] = schema.load(result['s'])
     return res
 
 
