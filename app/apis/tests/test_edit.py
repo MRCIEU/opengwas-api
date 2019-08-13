@@ -9,9 +9,7 @@ token = get_mrbase_access_token()
 
 def test_gwasinfo_add_delete(url):
     payload = {
-        'pmid': 1234, 'year': 2010,
-        'filename': 'test',
-        'path': '/projects/test/test', 'mr': 1,
+        'pmid': 1234, 'year': 2010, 'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
@@ -40,9 +38,7 @@ def test_gwasinfo_add_delete(url):
 
 def test_gwasinfo_upload_plain_text(url):
     payload = {
-        'pmid': 1234, 'year': 2010,
-        'filename': 'test',
-        'path': '/projects/test/test', 'mr': 1,
+        'pmid': 1234, 'year': 2010, 'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
@@ -84,9 +80,7 @@ def test_gwasinfo_upload_plain_text(url):
 
 def test_gwasinfo_upload_gzip(url):
     payload = {
-        'pmid': 1234, 'year': 2010,
-        'filename': 'test',
-        'path': '/projects/test/test', 'mr': 1,
+        'pmid': 1234, 'year': 2010, 'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
@@ -130,9 +124,7 @@ def test_gwasinfo_upload_large(url):
     file_url = 'https://zenodo.org/record/1251813/files/bmi.giant-ukbb.meta-analysis.combined.23May2018.txt.gz?download=1'
 
     payload = {
-        'pmid': 1234, 'year': 2010,
-        'filename': 'test',
-        'path': '/projects/test/test', 'mr': 1,
+        'pmid': 1234, 'year': 2010, 'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
         'trait': 'BMI', 'category': 'Risk factor', 'subcategory': 'Anthropometric',

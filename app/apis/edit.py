@@ -17,6 +17,7 @@ from schemas.gwas_info_node_schema import valid_genome_build
 from schemas.group_node_schema import valid_group_names
 import requests
 import logging
+import os
 
 logger = logging.getLogger('debug-log')
 
@@ -35,8 +36,7 @@ class Add(Resource):
     parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
                         help='Name for the group this study should belong to.')
     GwasInfoNodeSchema.populate_parser(parser,
-                                       ignore={GwasInfo.get_uid_key(), 'build', 'filename', 'path', 'md5', 'priority',
-                                               'mr'})
+                                       ignore={GwasInfo.get_uid_key(), 'build', 'md5', 'priority', 'mr'})
 
     @api.expect(parser)
     def post(self):
@@ -237,9 +237,6 @@ class Upload(Resource):
             return {'message': 'The file format was invalid {}'.format(e)}, 400
         except IndexError as e:
             return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
-
-        # update the graph
-        update_filename_and_path(str(args['id']), output_path, Upload.md5(output_path))
 
         # write to json
         j = dict()

@@ -146,8 +146,6 @@ class GwasInfoNodeSchema(FRPMSchema):
                      description="DOI. Leave blank for unpublished studies.", validate=check_doi)
     year = fields.Int(required=False, validate=check_study_year, allow_none=True,
                       description="What year was this GWAS published?")
-    filename = fields.Str(required=False, allow_none=True, description="GWAS summary stats filename")
-    path = fields.Str(required=False, allow_none=True, description="Path to GWAS summary stats on remote server")
     mr = fields.Int(required=False, allow_none=True, validate=check_mr_is_0_or_1,
                     description="Is the study suitable for MR studies?", choices=(0, 1))
     note = fields.Str(required=False, allow_none=True,
