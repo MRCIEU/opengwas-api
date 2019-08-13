@@ -66,7 +66,7 @@ def test_add_new_gwas_info(reset_db):
 
         # check returns id
         uid = add_new_gwas(email, gwas_info)
-        assert int(uid.replace('bgc-', '')) > 0
+        assert int(uid.replace('igd-', '')) > 0
 
         # check new gwas requires qc
         todos = set()

@@ -2,7 +2,7 @@ workflow elastic {
 
     String StudyId
     String MountDir = "/data"
-    String BaseDir = "/data/bgc"
+    String BaseDir = "/data/igd"
     File BcfFile = BaseDir + "/" + StudyId + "/data.bcf"
     File BcfFileIdx = BaseDir + "/" + StudyId + "/data.bcf.csi"
     File ClumpFile=BaseDir + "/" + StudyId + "/clump.txt"

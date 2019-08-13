@@ -2,7 +2,7 @@ workflow qc {
 
     String StudyId
     String MountDir = "/data"
-    String BaseDir = "/data/bgc"
+    String BaseDir = "/data/igd"
     File RefGenomeFile="/data/ref/human_g1k_v37.fasta"
     File RefGenomeFileIdx="/data/ref/human_g1k_v37.fasta.fai"
     File RefGenomeFileDict="/data/ref/human_g1k_v37.dict"

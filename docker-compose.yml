@@ -28,7 +28,7 @@ services:
     ports:
     - "8084:80"
     volumes:
-    - /data/bgc:/data/bgc
+    - /data/igd:/data/igd
     - /data/mrb_logs:/data/mrb_logs
     - /etc/timezone:/etc/timezone:ro
     environment:
@@ -49,7 +49,7 @@ services:
     ports:
     - "8082:80"
     volumes:
-    - /data/bgc:/data/bgc
+    - /data/igd:/data/igd
     - /data/mrb_logs:/data/mrb_logs
     - /etc/timezone:/etc/timezone:ro
     environment:
