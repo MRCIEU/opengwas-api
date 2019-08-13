@@ -15,7 +15,7 @@ class Globals:
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
     LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
     TMP_FOLDER = os.path.join(root_path, 'tmp')
-    UPLOAD_FOLDER = os.path.join(os.sep, 'data', 'bgc')
+    UPLOAD_FOLDER = os.path.join(os.sep, 'data', 'igd')
     LOG_FILE = os.path.join(os.sep, 'data', 'mrb_logs', 'mrbaseapi.log')
     LOG_FILE_DEBUG = os.path.join(os.sep, 'data', 'mrb_logs', 'mrbaseapi-debug.log')
 
