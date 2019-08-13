@@ -34,7 +34,7 @@ class Add(Resource):
     parser.add_argument('group_name', type=str, required=True,
                         help='Name for the group this study should belong to.', choices=sorted(list(valid_group_names)))
     parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
-                        help='Name for the group this study should belong to.')
+                        help='Genome build used to perform the GWAS study.')
     GwasInfoNodeSchema.populate_parser(parser,
                                        ignore={GwasInfo.get_uid_key(), 'build', 'md5', 'priority', 'mr'})
 
@@ -113,8 +113,8 @@ class Upload(Resource):
                         help="Column index for control sample size; total sample size if continuous trait")
     parser.add_argument('id', type=str, required=True,
                         help="Identifier to which the summary stats belong.")
-    parser.add_argument('gwas_file', location='files', type=FileStorage, required=True,
-                        help="Path to GWAS summary stats text file for upload.")
+    parser.add_argument('gwas_file', location='files', type=FileStorage, required=False,
+                        help="Path to GWAS summary stats text file for upload. If you do not provide a file we assume the analysis is performed on HPC.")
     parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
                         choices=('True', 'False'))
 
@@ -194,6 +194,14 @@ class Upload(Resource):
         args['imp_info_col'] = Upload.__convert_index(args['imp_info_col'])
         args['ncontrol_col'] = Upload.__convert_index(args['ncontrol_col'])
 
+        # fix delim
+        if args['delimiter'] == "comma":
+            args['delimiter'] = ","
+        elif args['delimiter'] == "tab":
+            args['delimiter'] = "\t"
+        elif args['delimiter'] == "space":
+            args['delimiter'] = " "
+
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
         raw_folder = os.path.join(study_folder, 'raw')
 
@@ -205,38 +213,32 @@ class Upload(Resource):
             logger.error("Could not create study folder: {}".format(e))
             raise e
 
-        if args['gzipped'] == 'True':
-            output_path = os.path.join(raw_folder, 'upload.txt.gz')
-        else:
-            output_path = os.path.join(raw_folder, 'upload.txt')
+        if args['gwas_file'] is not None:
 
-        # save file to server
-        args['gwas_file'].save(output_path)
+            if args['gzipped'] == 'True':
+                output_path = os.path.join(raw_folder, 'upload.txt.gz')
+            else:
+                output_path = os.path.join(raw_folder, 'upload.txt')
 
-        # compress file
-        if args['gzipped'] != 'True':
-            with open(output_path, 'rb') as f_in:
-                with gzip.open(output_path + '.gz', 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            os.remove(output_path)
-            output_path += '.gz'
+            # save file to server
+            args['gwas_file'].save(output_path)
 
-        # fix delim
-        if args['delimiter'] == "comma":
-            args['delimiter'] = ","
-        elif args['delimiter'] == "tab":
-            args['delimiter'] = "\t"
-        elif args['delimiter'] == "space":
-            args['delimiter'] = " "
+            # compress file
+            if args['gzipped'] != 'True':
+                with open(output_path, 'rb') as f_in:
+                    with gzip.open(output_path + '.gz', 'wb') as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                os.remove(output_path)
+                output_path += '.gz'
 
-        try:
-            Upload.read_gzip(output_path, args['delimiter'], args)
-        except OSError:
-            return {'message': 'Could not read file. Check encoding'}, 400
-        except marshmallow.exceptions.ValidationError as e:
-            return {'message': 'The file format was invalid {}'.format(e)}, 400
-        except IndexError as e:
-            return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
+            try:
+                Upload.read_gzip(output_path, args['delimiter'], args)
+            except OSError:
+                return {'message': 'Could not read file. Check encoding'}, 400
+            except marshmallow.exceptions.ValidationError as e:
+                return {'message': 'The file format was invalid {}'.format(e)}, 400
+            except IndexError as e:
+                return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
 
         # write to json
         j = dict()
@@ -263,12 +265,16 @@ class Upload(Resource):
         with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
             json.dump({"qc.StudyId": str(args['id']), "elastic.StudyId": str(args['id'])}, f)
 
-        # add to workflow queue
-        r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
-                          files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
-                                 'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
-        assert r.status_code == 201
-        assert r.json()['status'] == "Submitted"
-        logger.info("Submitted {} to workflow".format(r.json()['id']))
+        if args['gwas_file'] is not None:
 
-        return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201
+            # add to workflow queue
+            r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
+                              files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
+                                     'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
+            assert r.status_code == 201
+            assert r.json()['status'] == "Submitted"
+            logger.info("Submitted {} to workflow".format(r.json()['id']))
+
+            return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201
+        else:
+            return {'message': 'Operation successful'}, 200
