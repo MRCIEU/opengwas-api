@@ -261,11 +261,9 @@ class Upload(Resource):
             with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
                 json.dump(j, f)
 
-        # write study id for workflow
-        with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
-            json.dump({"qc.StudyId": str(args['id']), "elastic.StudyId": str(args['id'])}, f)
-
-        if args['gwas_file'] is not None:
+            # write study id for workflow
+            with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
+                json.dump({"qc.StudyId": str(args['id']), "elastic.StudyId": str(args['id'])}, f)
 
             # add to workflow queue
             r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
