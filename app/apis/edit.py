@@ -205,15 +205,31 @@ class Upload(Resource):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
         raw_folder = os.path.join(study_folder, 'raw')
 
-        # if data already exists on the backend then stop
-        try:
-            os.mkdir(study_folder)
-            os.mkdir(raw_folder)
-        except FileExistsError as e:
-            logger.error("Could not create study folder: {}".format(e))
-            raise e
+        # create json payload
+        j = dict()
+        for k in args:
+            if args[k] is not None and k != 'gwas_file' and k != 'X-Api-Token' and k != 'gzipped':
+                j[k] = args[k]
+
+        # get build
+        g = GwasInfo.get_node(j['id'])
+        j['build'] = g['build']
+
+        # convert text to bool
+        if j['header'] == "True":
+            j['header'] = True
+        else:
+            j['header'] = False
 
         if args['gwas_file'] is not None:
+
+            # if data already exists on the backend then stop
+            try:
+                os.mkdir(study_folder)
+                os.mkdir(raw_folder)
+            except FileExistsError as e:
+                logger.error("Could not create study folder: {}".format(e))
+                raise e
 
             if args['gzipped'] == 'True':
                 output_path = os.path.join(raw_folder, 'upload.txt.gz')
@@ -240,26 +256,10 @@ class Upload(Resource):
             except IndexError as e:
                 return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
 
-        # write to json
-        j = dict()
-        for k in args:
-            if args[k] is not None and k != 'gwas_file' and k != 'X-Api-Token' and k != 'gzipped':
-                j[k] = args[k]
-
-        # get build
-        g = GwasInfo.get_node(j['id'])
-        j['build'] = g['build']
-
-        # convert text to bool
-        if j['header'] == "True":
-            j['header'] = True
-        else:
-            j['header'] = False
-
-        # write params for pipeline
-        del j['id']
-        with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
-            json.dump(j, f)
+            # write params for pipeline
+            del j['id']
+            with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
+                json.dump(j, f)
 
         # write study id for workflow
         with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
@@ -277,4 +277,4 @@ class Upload(Resource):
 
             return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201
         else:
-            return {'message': 'Operation successful'}, 200
+            return j, 200
