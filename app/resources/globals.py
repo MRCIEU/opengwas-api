@@ -7,22 +7,8 @@ from neo4j import GraphDatabase
 
 class Globals:
     VERSION = '2.0.0'
-
     root_path = os.path.dirname(os.path.dirname(__file__))
-
-    # Toggle for local vs deployed
     APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
-    PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
-    LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
-    TMP_FOLDER = os.path.join(root_path, 'tmp')
-    UPLOAD_FOLDER = os.path.join(os.sep, 'data', 'igd')
-    LOG_FILE = os.path.join(os.sep, 'data', 'mrb_logs', 'mrbaseapi.log')
-    LOG_FILE_DEBUG = os.path.join(os.sep, 'data', 'mrb_logs', 'mrbaseapi-debug.log')
-
-    OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
-    USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
-
-    CROMWELL_URL = "http://ieu-db-interface.epi.bris.ac.uk:8000"
 
     """ Set environment files to toggle between local and production & private vs public APIs """
     with open(APP_CONF) as f:
@@ -49,6 +35,18 @@ class Globals:
             app_config['access'] = 'private'
 
     print("Params: {}".format(app_config))
+
+
+    PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
+    LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
+    TMP_FOLDER = app_config['directories']['tmp']
+    UPLOAD_FOLDER = app_config['directories']['upload']
+    LOG_FILE = os.path.join(app_config['directories']['logs'], 'mrbaseapi.log')
+    LOG_FILE_DEBUG = os.path.join(app_config['directories']['logs'], 'mrbaseapi-debug.log')
+
+    OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
+    USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
+    CROMWELL_URL = "http://ieu-db-interface.epi.bris.ac.uk:8000"
 
     # reduced lifetime see here: https://github.com/neo4j/neo4j-python-driver/issues/196
     dbConnection = GraphDatabase.driver(
