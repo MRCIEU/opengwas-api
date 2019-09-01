@@ -24,8 +24,10 @@ ssh -L 9200:localhost:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ### Create environment
 ```
 cd app
-virtualenv venv
-. venv/bin/activate
+python3 -m venv .
+. venv3/bin/activate
+mkdir -p data/mrb_logs
+mkdir -p data/igd
 
 pip install -r requirements.txt
 ```
