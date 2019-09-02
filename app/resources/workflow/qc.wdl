@@ -236,6 +236,7 @@ task validate {
         --cpus="1" \
         broadinstitute/gatk:4.1.3.0 \
         ValidateVariants \
+        --validation-type-to-exclude ALLELES \
         -V ${VcfFile} \
         -R ${RefGenomeFile}
 
