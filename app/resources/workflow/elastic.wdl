@@ -3,8 +3,8 @@ workflow elastic {
     String StudyId
     String MountDir = "/data"
     String BaseDir = "/data/igd"
-    File BcfFile = BaseDir + "/" + StudyId + "/" + StudyId + "_data.bcf"
-    File BcfFileIdx = BaseDir + "/" + StudyId + "/" + StudyId + "_data.bcf.csi"
+    File BcfFile = BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
+    File BcfFileIdx = BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
     File ClumpFile=BaseDir + "/" + StudyId + "/clump.txt"
     String EsIndex = "bcftest"
     String Host = "ieu-db-interface.epi.bris.ac.uk"
