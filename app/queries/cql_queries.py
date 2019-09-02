@@ -61,12 +61,20 @@ def get_gwas_for_user(uid, gwasid):
     return schema.load(GwasInfo(result['gi']))
 
 
-def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public'])):
-    # get new id
-    gwas_info_dict['id'] = str(GwasInfo.get_next_numeric_id())
-    gwas_info_dict['priority'] = 0
+def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), gwas_id=None):
+    if gwas_id is not None:
+        try:
+            GwasInfo.get_node(str(gwas_id))
+            raise ValueError("Identifier has already been taken")
+        except LookupError:
+            # check node does not already exist
+            gwas_info_dict['id'] = str(gwas_id)
+    else:
+        # get new id
+        gwas_info_dict['id'] = str(GwasInfo.get_next_numeric_id())
 
     # populate nodes
+    gwas_info_dict['priority'] = 0
     gwas_info_node = GwasInfo(gwas_info_dict)
     added_by_rel = AddedByRel({'epoch': time.time()})
     access_to_rel = AccessToRel()
