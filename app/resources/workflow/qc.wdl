@@ -1,6 +1,8 @@
 workflow qc {
 
     String StudyId
+    Int? Cases
+    Int? Controls
     String MountDir = "/data"
     String BaseDir = "/data/igd"
     File RefGenomeFile="/data/reference_genomes/released/2019-08-30/data/2.8/b37/human_g1k_v37.fasta"
@@ -23,7 +25,9 @@ workflow qc {
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
             ParamFile=BaseDir + "/" + StudyId + "/raw/upload.json",
-            StudyId=StudyId
+            StudyId=StudyId,
+            Cases=Cases,
+            Controls=Controls
     }
     call combine_multiallelics {
         input:
@@ -86,8 +90,6 @@ workflow qc {
 
 }
 
-# TODO support fixed sample size
-
 task vcf {
 
     String MountDir
@@ -97,6 +99,8 @@ task vcf {
     File RefGenomeFileIdx
     File ParamFile
     String StudyId
+    Int? Cases
+    Int? Controls
 
     command <<<
         set -e
@@ -112,7 +116,9 @@ task vcf {
         --json ${ParamFile} \
         --ref ${RefGenomeFile} \
         --out ${VcfFilePath} \
-        --rm_chr_prefix
+        --rm_chr_prefix \
+        ${"--cohort_cases" + Cases} \
+        ${"--cohort_controls" + Controls}
     >>>
 
     output {

@@ -268,9 +268,18 @@ class Upload(Resource):
             with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
                 json.dump(j, f)
 
-            # write study id for workflow
+            # write params for workflow
+            t = {"qc.StudyId": str(args['id']), "elastic.StudyId": str(args['id'])}
+
+            # conditionally add ncase & ncontrol
+            if g.get('ncase') is not None:
+                t['qc.Cases'] = g['ncase']
+
+            if g.get('ncontrol') is not None:
+                t['qc.Controls'] = g['Controls']
+
             with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
-                json.dump({"qc.StudyId": str(args['id']), "elastic.StudyId": str(args['id'])}, f)
+                json.dump(t, f)
 
             # add to workflow queue
             r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
