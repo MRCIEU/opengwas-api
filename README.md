@@ -102,6 +102,20 @@ cd mr-base-api
 git fetch
 ```
 
+### Copy reference data from RDSF
+
+```
+# reference FASTA
+mkdir -p /data/reference_genomes
+mkdir -p /data/reference_genomes/released
+rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/broad/public/reference_genomes/released/2019-08-30 /data/reference_genomes/released
+
+# dbsnp
+mkdir -p /data/dbsnp
+mkdir -p /data/dbsnp/released
+rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/ncbi/public/dbsnp/released/2019-09-02 /data/dbsnp/released
+```
+
 ### Build images for backend processing of data
 ```
 bash build.sh
