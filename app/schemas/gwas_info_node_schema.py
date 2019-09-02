@@ -1,6 +1,7 @@
 from marshmallow import fields, ValidationError
 from schemas.frpm_schema import FRPMSchema
 import idutils
+import re
 
 valid_trait_subcategories = {
     "Anthropometric",
@@ -138,8 +139,15 @@ def check_doi(data):
         raise ValidationError("DOI is invalid: {}".format(data))
 
 
+def check_id_is_valid_filename(data):
+    if not re.match(r'^[\w-]+$', data) is not None:
+        raise ValidationError(
+            "Identifier can only contain alphanumeric, hash and underscore. {} is invalid".format(data))
+
+
 class GwasInfoNodeSchema(FRPMSchema):
-    id = fields.Str(required=True, allow_none=False, description="GWAS study identifier")
+    id = fields.Str(required=True, allow_none=False, description="GWAS study identifier",
+                    validate=check_id_is_valid_filename)
     pmid = fields.Int(required=False, allow_none=True,
                       description="Pubmed identifier. Leave blank for unpublished studies.")
     doi = fields.Str(required=False, allow_none=True,
