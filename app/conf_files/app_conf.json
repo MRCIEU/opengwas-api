@@ -4,7 +4,7 @@
       "port": 8019
     },
     "es": {
-      "host": "132.145.65.2",
+      "host": "localhost",
       "port": 9200
     },
     "neo4j": {
@@ -17,6 +17,11 @@
       "CLIENT_ID": "",
       "CLIENT_SECRET": "",
       "SHARED_MAILBOX": ""
+    },
+    "directories": {
+      "upload": "data/igd",
+      "logs": "data/mrb_logs",
+      "tmp": "tmp"
     }
   },
   "production": {
@@ -37,6 +42,11 @@
       "CLIENT_ID": "",
       "CLIENT_SECRET": "",
       "SHARED_MAILBOX": ""
+    },
+    "directories": {
+      "upload": "/data/igd",
+      "logs": "/data/mrb_logs",
+      "tmp": "tmp"
     }
   }
 }
