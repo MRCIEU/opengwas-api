@@ -1,6 +1,6 @@
 from flask_restplus import Resource, Namespace
 from queries.cql_queries import *
-from schemas.gwas_info_node_schema import GwasInfoNodeSchema
+from schemas.gwas_info_node_schema import GwasInfoNodeSchema, check_id_is_valid_filename
 from queries.gwas_info_node import GwasInfo
 from werkzeug.datastructures import FileStorage
 import marshmallow.exceptions
@@ -35,6 +35,8 @@ class Add(Resource):
                         help='Name for the group this study should belong to.', choices=sorted(list(valid_group_names)))
     parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
                         help='Genome build used to perform the GWAS study.')
+    parser.add_argument('id', type=str, required=False,
+                        help='Provide your own study identifier or leave blank for next continuous id.')
     GwasInfoNodeSchema.populate_parser(parser,
                                        ignore={GwasInfo.get_uid_key(), 'build', 'md5', 'priority', 'mr'})
 
@@ -46,10 +48,15 @@ class Add(Resource):
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
             group_name = req['group_name']
 
+            # use provided identifier if given
+            gwas_id = req['id']
+            check_id_is_valid_filename(gwas_id)
+
             req.pop('X-Api-Token')
             req.pop('group_name')
+            req.pop('id')
 
-            gwas_uid = add_new_gwas(user_uid, req, {group_name})
+            gwas_uid = add_new_gwas(user_uid, req, {group_name}, gwas_id=gwas_id)
 
             return {"id": gwas_uid}, 200
 
