@@ -25,11 +25,45 @@ class VariantGet(Resource):
         return {"total":total,"results":hits}
 
 
+parser2 = reqparse.RequestParser()
+parser2.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of variant rs IDs")
+parser2.add_argument('chrpos', required=False, type=str, action='append', default=[], help="List of variant chr:pos format on build 37 (e.g. 7:105561135)")
+
+@api.route('/rsid')
+@api.doc(
+    description="""
+Obtain information for a particular SNP or comma separated list of SNPs. Note the payload can be passed to curl via json using e.g.:
+
+```
+-X POST -d '
+{
+    'rsid': ['rs234','rs333']
+}
+'
+```
+
+"""
+)
+class VariantPost(Resource):
+    @api.expect(parser2)
+    def post(self):
+        args = parser2.parse_args()
+
+        if (len(args['rsid']) == 0):
+            abort(405)
+        try:
+            total, hits = snps(args['rsid'])
+        except Exception as e:
+            logger.error("Could not obtain variant information: {}".format(e))
+            abort(503)
+        return {"total":total,"results":hits}
+
+
 
 parser1 = reqparse.RequestParser()
-parser1.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of chromosome position")
+parser1.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
 
-@api.route('/range/<int:chr>/<int:pos>')
+@api.route('/chrpos/<int:chr>/<int:pos>')
 @api.expect(parser1)
 @api.doc(
     description="Obtain information for a particular SNP or comma separated list of SNPs",
@@ -47,6 +81,28 @@ class RangeGet(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
         return {"total":total,"results":hits}
+
+
+
+
+@api.route('/gene/<gene>')
+@api.expect(parser1)
+@api.doc(
+    description="Obtain information for a particular SNP or comma separated list of SNPs",
+    params={
+        'gene': "A gene identifier, either Ensembl or Entrez, e.g. ENSG00000123374 or 1017"
+    }
+)
+class GeneGet(Resource):
+    def get(self, gene=None):
+        args = parser1.parse_args()
+        try:
+            total, hits = gene_query(gene, args['radius'])
+        except Exception as e:
+            logger.error("Could not obtain variant information: {}".format(e))
+            abort(503)
+        return {"total":total,"results":hits}
+
 
 
 

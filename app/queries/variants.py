@@ -4,6 +4,7 @@ from resources.globals import Globals
 import json
 import logging
 import time
+import mygene
 
 logger = logging.getLogger('debug-log')
 
@@ -58,8 +59,8 @@ def range_query(chr,pos,radius=0):
 	total,hits=es_search(filterData=filterData,routing=chr)
 	return total,hits
 
-def gene(name,distance):
-	logger.info("gene {} {}",name, distance, feature="f-strings")
+def gene_query(name,radius):
+	print(name)
 	mg = mygene.MyGeneInfo()
 	m = mg.getgene(name,'name,symbol,genomic_pos,genomic_pos_hg19')
 	if m:
@@ -68,9 +69,9 @@ def gene(name,distance):
 		start = int(m['genomic_pos']['start'])
 		end = int(m['genomic_pos']['end'])
 		min=0
-		if start-distance>0:
-			min=start-distance
-		max=end+distance
+		if start-radius>0:
+			min=start-radius
+		max=end+radius
 		filterData=[
 				{"term":{"CHROM":chr}},
 				{"term":{"COMMON":"1"}},
