@@ -42,22 +42,57 @@ def snps(snp_list):
 	total,hits=es_search(filterData=filterData,routing='')
 	return total,hits
 
-def range_query(chr,pos,radius=0):
-	print(type(chr))
-	print(type(pos))
-	print(type(radius))
-	min=0
-	if pos-radius>0:
-		min=pos-radius
-	max=pos+radius
-	filterData=[
-			{"term":{"CHROM":chr}},
-			{"term":{"COMMON":"1"}},
-			{"range" : {"POS" : {"gte" : min, "lte" : max}}},
-			]
-	print(filterData)
-	total,hits=es_search(filterData=filterData,routing=chr)
-	return total,hits
+
+def chrpos_query(chrpos):
+	chrpos2 = [list(map(int, x.split(':'))) for x in chrpos]
+	chrs = list(set([x[0] for x in chrpos2]))
+
+
+	out = list()
+	total=0
+	hits=list()
+
+	for chr in chrs:
+		filterData=[
+				{"term":{"CHROM":chr}},
+				{"term":{"COMMON":"1"}},
+				{"terms" : {"POS": [x[1] for x in chrpos2 if x[0] == chr]}},
+				]
+		tot,hit=es_search(filterData=filterData,routing=chr)
+		total+=tot
+		hits+=hit
+	return {"total":total, "results":hits}
+
+def range_query(chrpos,radius=0):
+
+	if radius == 0:
+		return chrpos_query(chrpos)
+
+	chrpos2 = [list(map(int, x.split(':'))) for x in chrpos]
+	out = list()
+
+	# def minmax(pos, radius):
+	# 	min = 0
+	# 	if pos - radius > 0:
+	# 		min = pos - radius
+	# 	max=pos + radius
+	# 	return list(min, max)
+
+	# chrpos3 = [x[0] + minmax(x[1], radius) for x in chrpos2]
+
+	for i in range(len(chrpos)):
+		min=0
+		if chrpos2[i][1]-radius>0:
+			min=chrpos2[i][1]-radius
+		max=chrpos2[i][1]+radius
+		filterData=[
+				{"term":{"CHROM":chrpos2[i][0]}},
+				{"term":{"COMMON":"1"}},
+				{"range" : {"POS" : {"gte" : min, "lte" : max}}},
+				]
+		total,hits=es_search(filterData=filterData,routing=chrpos2[i][0])
+		out.append({chrpos[i]:{"total":total, "results":hits}})
+	return out
 
 def gene_query(name,radius):
 	print(name)
