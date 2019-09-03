@@ -49,6 +49,7 @@ python map_from_csv.py
 
 ### Start the API
 ```
+export FLASK_ENV=development
 python main.py
 ```
 

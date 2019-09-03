@@ -60,4 +60,6 @@ class Globals:
     )
 
     study_batches = ['IEU-a', 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a']
-    private_batches=['pQTL-a','pQTL-b','eqtl-a','UKB-c']
+    private_batches = ['pQTL-a','pQTL-b','eqtl-a','UKB-c']
+
+    variant_index = "snp-base-v0.2"
