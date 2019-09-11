@@ -37,11 +37,8 @@ pip install -r requirements.txt
 ```
 cd app/populate_db
 
-# export from MySQL
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from study_e" mrbase | sed 's/\\n//g' > ./data/study_e.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from groups" mrbase | sed 's/\\n//g' > ./groups.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from permissions_e" mrbase | sed 's/\\n//g' > ./data/permissions_e.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p -B -N -e "select * from memberships" mrbase | sed 's/\\n//g' > ./data/memberships.tsv
+# Download data from mysql
+source get_csv.sh
 
 # import to graph
 python map_from_csv.py

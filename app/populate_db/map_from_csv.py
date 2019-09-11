@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../')
+
 from queries.group_node import Group
 from queries.user_node import User
 from queries.access_to_rel import AccessToRel
@@ -77,7 +80,7 @@ with app.app_context():
     all_gwas_id = set()
 
     # populate_db gwas info
-    with open('populate_db/data/study_e.tsv') as f:
+    with open('data/study_e.tsv') as f:
         # skip first row which are NULL
         f.readline()
 
@@ -203,7 +206,7 @@ with app.app_context():
 
     # populate_db groups
     logging.info("importing groups")
-    with open('populate_db/data/groups.tsv') as f:
+    with open('data/groups.tsv') as f:
         for line in f:
             fields = line.strip().split("\t")
             g = Group(name=str(fields[1]))
@@ -214,7 +217,7 @@ with app.app_context():
 
     # populate_db users
     logging.info("importing users")
-    with open('populate_db/data/memberships.tsv') as f:
+    with open('data/memberships.tsv') as f:
         for line in f:
             fields = line.strip().split("\t")
             email = str(fields[0]).lower()
@@ -240,7 +243,7 @@ with app.app_context():
     # link gwas to group
     # TODO @be -- some studies do not exist in study table but have permissions
     logging.info("importing permissions")
-    with open('populate_db/data/permissions_e.tsv') as f:
+    with open('data/permissions_e.tsv') as f:
         rels = []
         for line in f:
             fields = line.strip().split("\t")
