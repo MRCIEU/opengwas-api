@@ -248,6 +248,7 @@ with app.app_context():
 
             # store link
             d = dict(gwas_id=fields[1], grp_id=gid_to_name[int(fields[0])])
+            d['gwas_id'] = str(fields[1]).replace(":", "-")
 
             # append to populate_db queue
             rels.append(d)

@@ -180,15 +180,15 @@ def elastic_query(studies, snps, pval):
     else:
         for o in studies:
             # logger.debug('o = '+o)
-            if re.search(':', o):
-                study_prefix, study_id = o.split(':')
+            if re.search('-', o):
+                reg = r'^([\w]+-[\w]+)-([\w]+)'
+                study_prefix, study_id = re.match(reg, o).groups()
                 if study_prefix in study_indexes:
                     study_indexes[study_prefix].append(study_id)
                 else:
                     study_indexes[study_prefix] = [study_id]
             else:
                 logger.debug(o+'is not a correct batch prefix')
-
     res = {}
     for s in study_indexes:
         logger.debug('checking ' + s + ' ...')
@@ -323,7 +323,7 @@ def query_summary_stats(user_email, snps, outcomes):
                             'name': name
                             }
                 #study_id = hit['_source']['study_id']
-                study_id = s + ':' + hit['_source']['study_id']
+                study_id = s + '-' + hit['_source']['study_id']
                 # make sure only to return available studies
                 if study_id in study_data:
                     assocDic.update(study_data[study_id])
