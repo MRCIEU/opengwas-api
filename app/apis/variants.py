@@ -133,6 +133,6 @@ class GeneGet(Resource):
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
-        return {"total":total,"results":hits}
+        return hits
 
 
