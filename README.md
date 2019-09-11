@@ -32,7 +32,38 @@ mkdir -p data/igd
 pip install -r requirements.txt
 ```
 
-### importing mysql data
+### Omporting mysql data
+
+Create a Neo4j container e.g. using:
+
+```
+version: '3'
+services:
+#neo4j
+   db:
+    image: neo4j:3.5
+    restart: always
+    container_name: mrb-neo4j-dev
+    #comment out ports to lock down neo4j
+    ports:
+     - "37474:7474"
+     - "37687:7687"
+     - "37473:7473"
+    environment:
+     - NEO4J_AUTH=neo4j/xxxxx # configure the instance with custom username/password
+     - NEO4J_dbms_memory_heap_max__size=10G # configure the heap memory
+     - NEO4J_dbms_memory_heap_initial__size=5G
+     - NEO4J_dbms_memory_pagecache_size=10G # configure the cache memory
+     - NEO4J_dbms_shell_enabled=true
+     - NEO4J_dbms_directories_import=import
+     - NEO4J_dbms_allow__upgrade=true
+     - NEO4J_dbms_security_allow__csv__import__from__file__urls=true
+    volumes:
+     - /data/mrb_neo4j_dev2/data:/data
+     - /data/mrb_neo4j_dev2/import:/var/lib/neo4j/import
+```
+
+Make sure that `conf_data/app_config.json` is configured correctly for this container. Now populate:
 
 ```
 cd app/populate_db
