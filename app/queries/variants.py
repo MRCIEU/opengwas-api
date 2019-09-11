@@ -13,7 +13,6 @@ def es_search(filterData,routing):
 	#catch queries that don't require chromosome specific searches
 	if routing=='':
 		routing = ",".join(map(str, range(1,25)))
-	print(filterData,'routing:',routing)
 
 	start=time.time()
 	res=Globals.es.search(
@@ -60,13 +59,20 @@ def chrpos_query(chrpos):
 				]
 		tot,hit=es_search(filterData=filterData,routing=chr)
 		total+=tot
-		hits+=hit
+		if tot > 0:
+			for item in hit:
+				print(item['_source']['POS'])
+				item.update({'query': str(item['_source']['CHROM'])+":"+str(item['_source']['POS'])})
+				so = item['_source']
+				item.pop('_source')
+				item.update(so)
+			hits.append(hit)
 	return {"total":total, "results":hits}
 
 def range_query(chrpos,radius=0):
 
 	if radius == 0:
-		return chrpos_query(chrpos)
+		return chrpos_query(chrpos)['results']
 
 	chrpos2 = [list(map(int, x.split(':'))) for x in chrpos]
 	out = list()
@@ -91,15 +97,20 @@ def range_query(chrpos,radius=0):
 				{"range" : {"POS" : {"gte" : min, "lte" : max}}},
 				]
 		total,hits=es_search(filterData=filterData,routing=chrpos2[i][0])
-		out.append({chrpos[i]:{"total":total, "results":hits}})
+		print(hits)
+		if total > 0:
+			for item in hits:
+				item.update({'query': chrpos[i]})
+				so = item['_source']
+				item.pop('_source')
+				item.update(so)
+			out.append(hits)
 	return out
 
 def gene_query(name,radius):
-	print(name)
 	mg = mygene.MyGeneInfo()
 	m = mg.getgene(name,'name,symbol,genomic_pos,genomic_pos_hg19')
 	if m:
-		print(m)
 		chr = m['genomic_pos_hg19']['chr']
 		start = int(m['genomic_pos']['start'])
 		end = int(m['genomic_pos']['end'])
