@@ -22,7 +22,7 @@ class VariantGet(Resource):
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
-        return {"total":total,"results":hits}
+        return hits
 
 
 parser2 = reqparse.RequestParser()
@@ -55,7 +55,7 @@ class VariantPost(Resource):
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
-        return {"total":total,"results":hits}
+        return hits
 
 
 
