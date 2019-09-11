@@ -77,7 +77,6 @@ with app.app_context():
     nodes = []
     gid_to_name = dict()
     email_to_gid = dict()
-    all_gwas_id = set()
 
     # populate_db gwas info
     with open('data/study_e.tsv') as f:
@@ -88,8 +87,7 @@ with app.app_context():
             fields = line.strip().split("\t")
             d = dict()
 
-            d['id'] = str(fields[0])
-            all_gwas_id.add(str(fields[0]))
+            d['id'] = str(fields[0]).replace(":", "-")
 
             try:
                 d['pmid'] = int(fields[1])
