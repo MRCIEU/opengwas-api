@@ -124,6 +124,12 @@ def gene_query(name,radius):
 				{"range" : {"POS" : {"gte" : min, "lte" : max}}},
 				]
 		total,hits=es_search(filterData=filterData,routing=chr)
+		if total > 0:
+			for item in hits:
+				item.update({'query': name})
+				so = item['_source']
+				item.pop('_source')
+				item.update(so)
 	else:
 		print('No match')
 		return 0,0
