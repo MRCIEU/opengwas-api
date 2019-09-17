@@ -1,8 +1,8 @@
 # Local
 
+Requires [Docker](https://docs.docker.com/install) install on host machine
 
 ### Clone repo
-
 ```
 git clone git@github.com:MRCIEU/mr-base-api.git
 cd mr-base-api
@@ -32,39 +32,16 @@ mkdir -p data/igd
 pip install -r requirements.txt
 ```
 
-### Importing mysql data
-
-Create a Neo4j container e.g. using:
-
+### Deploy local Neo4j instance using Docker
 ```
-version: '3'
-services:
-#neo4j
-   db:
-    image: neo4j:3.5
-    restart: always
-    container_name: mrb-neo4j-dev
-    #comment out ports to lock down neo4j
-    ports:
-     - "37474:7474"
-     - "37687:7687"
-     - "37473:7473"
-    environment:
-     - NEO4J_AUTH=neo4j/xxxxx # configure the instance with custom username/password
-     - NEO4J_dbms_memory_heap_max__size=10G # configure the heap memory
-     - NEO4J_dbms_memory_heap_initial__size=5G
-     - NEO4J_dbms_memory_pagecache_size=10G # configure the cache memory
-     - NEO4J_dbms_shell_enabled=true
-     - NEO4J_dbms_directories_import=import
-     - NEO4J_dbms_allow__upgrade=true
-     - NEO4J_dbms_security_allow__csv__import__from__file__urls=true
-    volumes:
-     - /data/mrb_neo4j_dev2/data:/data
-     - /data/mrb_neo4j_dev2/import:/var/lib/neo4j/import
+docker run \
+-p7474:7474 -p7687:7687 \
+--rm \
+--env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
+neo4j:3.5
 ```
 
-Make sure that `conf_data/app_config.json` is configured correctly for this container. Now populate:
-
+### Importing data from MySQL
 ```
 cd app/populate_db
 
@@ -72,7 +49,11 @@ cd app/populate_db
 bash get_csv.sh
 
 # import to graph
-python map_from_csv.py
+python map_from_csv.py \
+--study study_e.tsv \
+--groups groups.tsv \
+--permissions_e permissions_e.tsv \
+--memberships memberships.tsv
 ```
 
 ### Start the API
@@ -124,7 +105,6 @@ pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url http://apitest.mrbase.
 # Production
 
 ### Clone repo
-
 ```
 git clone git@github.com:MRCIEU/mr-base-api.git
 cd mr-base-api
@@ -132,7 +112,6 @@ git fetch
 ```
 
 ### Copy reference data from RDSF
-
 ```
 # reference FASTA
 mkdir -p /data/reference_genomes
