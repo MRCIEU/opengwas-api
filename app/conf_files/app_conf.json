@@ -35,7 +35,7 @@
     "neo4j": {
       "user": "neo4j",
       "passwd": "dT9ymYwBsrzd",
-      "host": "mrb-neo4j-dev",
+      "host": "mrb-neo4j",
       "port": 7687
     },
     "email": {
