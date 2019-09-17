@@ -8,8 +8,16 @@ import flask
 import logging
 from resources.neo4j import Neo4j
 from marshmallow import ValidationError
+import argparse
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+
+parser = argparse.ArgumentParser(description='Import CSVs from MRB MySQL')
+parser.add_argument('--study', dest='study', required=True, help='Path to study_e.csv')
+parser.add_argument('--groups', dest='groups', required=True, help='Path to groups.csv')
+parser.add_argument('--permissions_e', dest='permissions_e', required=True, help='Path to permissions_e.csv')
+parser.add_argument('--memberships', dest='memberships', required=True, help='Path to memberships.csv')
+args = parser.parse_args()
 
 
 def batch_add_nodes(nodes, label):
@@ -76,7 +84,7 @@ with app.app_context():
     email_to_gid = dict()
 
     # populate_db gwas info
-    with open('populate_db/data/study_e.tsv') as f:
+    with open(args.study) as f:
         # skip first row which are NULL
         f.readline()
 
@@ -201,7 +209,7 @@ with app.app_context():
 
     # populate_db groups
     logging.info("importing groups")
-    with open('populate_db/data/groups.tsv') as f:
+    with open(args.groups) as f:
         for line in f:
             fields = line.strip().split("\t")
             g = Group(name=str(fields[1]))
@@ -212,7 +220,7 @@ with app.app_context():
 
     # populate_db users
     logging.info("importing users")
-    with open('populate_db/data/memberships.tsv') as f:
+    with open(args.memberships) as f:
         for line in f:
             fields = line.strip().split("\t")
             email = str(fields[0]).lower()
@@ -238,7 +246,7 @@ with app.app_context():
     # link gwas to group
     # TODO @be -- some studies do not exist in study table but have permissions
     logging.info("importing permissions")
-    with open('populate_db/data/permissions_e.tsv') as f:
+    with open(args.permissions_e) as f:
         rels = []
         for line in f:
             fields = line.strip().split("\t")
