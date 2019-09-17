@@ -6,7 +6,6 @@ Requires [Docker](https://docs.docker.com/install) install on host machine
 ```
 git clone git@github.com:MRCIEU/mr-base-api.git
 cd mr-base-api
-git fetch
 ```
 
 ### Obtain LD data
