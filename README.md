@@ -32,7 +32,7 @@ mkdir -p data/igd
 pip install -r requirements.txt
 ```
 
-### Omporting mysql data
+### Importing mysql data
 
 Create a Neo4j container e.g. using:
 
@@ -69,7 +69,7 @@ Make sure that `conf_data/app_config.json` is configured correctly for this cont
 cd app/populate_db
 
 # Download data from mysql
-source get_csv.sh
+bash get_csv.sh
 
 # import to graph
 python map_from_csv.py
