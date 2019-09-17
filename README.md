@@ -142,7 +142,7 @@ rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/broad/pu
 # dbsnp
 mkdir -p /data/dbsnp
 mkdir -p /data/dbsnp/released
-rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/ncbi/public/dbsnp/released/2019-09-02 /data/dbsnp/released
+rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/ncbi/public/dbsnp/released/2019-09-11 /data/dbsnp/released
 ```
 
 ### Build images for backend processing of data
