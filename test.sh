@@ -12,10 +12,10 @@ mysql -h ieu-db-interface.epi.bris.ac.uk -P 13306 -u mrbaseapp -p'M1st3rbase!' -
 
 # import data to graph
 docker exec -it mr-base-api-v2-test python populate_db/map_from_csv.py \
---study /tmp/study_e.tsv \
---groups /tmp/groups.tsv \
---permissions_e /tmp/permissions_e.tsv \
---memberships /tmp/memberships.tsv
+--study /app/populate_db/data/study_e.tsv \
+--groups /app/populate_db/data/groups.tsv \
+--permissions_e /app/populate_db/data/permissions_e.tsv \
+--memberships /app/populate_db/data/memberships.tsv
 
 # run unit API tests
 docker exec -e MRB_TOKEN="$token" -it mr-base-api-v2-test pytest -v apis/ --url http://localhost

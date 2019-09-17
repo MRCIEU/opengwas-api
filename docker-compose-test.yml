@@ -20,7 +20,7 @@ services:
     image: mr-base-api-v2:latest
     volumes:
     - /etc/timezone:/etc/timezone:ro
-    - /tmp:/tmp:ro
+    - /tmp:/app/populate_db/data:ro
     environment:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
