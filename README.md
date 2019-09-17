@@ -42,7 +42,7 @@ neo4j:3.5
 
 ### Importing data from MySQL
 ```
-cd app/populate_db
+cd app
 
 # Download data from mysql
 bash get_csv.sh
