@@ -130,7 +130,7 @@ bash build.sh
 
 ### Deploy
 ```
-docker-compose -p mr-base-api-v2 -f ./docker-compose.yml up -d
+docker-compose -p mr-base-api-v3 -f ./docker-compose.yml up -d
 ```
 
 ### Test
@@ -138,7 +138,7 @@ docker-compose -p mr-base-api-v2 -f ./docker-compose.yml up -d
 Note the email used to obtain must be associated with all groups in the graph otherwise tests will fail, [see here](https://github.com/MRCIEU/mr-base-api/blob/3085529ee1da86184a2c7f8f6e03e2413fb0272e/app/populate_db/map_from_csv.py#L272)
 
 ```
-docker-compose -p mr-base-api-v2-test -f ./docker-compose-test.yml up -d
+docker-compose -p mr-base-api-v3-test -f ./docker-compose-test.yml up -d
 Rscript -e "write.table(TwoSampleMR::get_mrbase_access_token(), file='token.temp', row=F, col=F, qu=F)"
 bash test.sh
 ```
