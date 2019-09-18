@@ -37,7 +37,7 @@ else
 fi
 
 # build latest api image
-docker build --no-cache -t mr-base-api-v2:latest .
+docker build --no-cache -t mr-base-api-v3:latest .
 
 # build cromwell container with Docker exec
 docker build --no-cache -t cromwell-docker ./app/resources/workflow
