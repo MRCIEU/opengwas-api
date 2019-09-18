@@ -15,9 +15,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7474"]
 
-  mr-base-api-v2-test:
-    container_name: mr-base-api-v2-test
-    image: mr-base-api-v2:latest
+  mr-base-api-v3-test:
+    container_name: mr-base-api-v3-test
+    image: mr-base-api-v3:latest
     volumes:
     - /etc/timezone:/etc/timezone:ro
     - /tmp:/app/populate_db/data:ro
