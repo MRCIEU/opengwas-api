@@ -6,7 +6,7 @@ from neo4j import GraphDatabase
 
 
 class Globals:
-    VERSION = '2.0.0'
+    VERSION = '3.0.0'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
 
