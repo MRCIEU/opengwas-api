@@ -13,7 +13,7 @@ services:
     - /data/mrb_neo4j/logs:/logs
     - /etc/timezone:/etc/timezone:ro
     environment:
-      - NEO4J_AUTH=neo4j/dT9ymYwBsrzd
+      - NEO4J_AUTH=neo4j/agD22EEbF9gamvMW
       - NEO4J_dbms_memory_heap_max__size=10G
       - NEO4J_dbms_memory_heap_initial__size=5G
       - NEO4J_dbms_memory_pagecache_size=10G
