@@ -100,13 +100,6 @@ cd mr-base-api
 git fetch
 ```
 
-### Obtain LD data
-```
-wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
-tar xzvf app/ld_files.tgz -C app/
-rm app/ld_files.tgz
-```
-
 ### Build images for backend processing of data
 ```
 bash build.sh
