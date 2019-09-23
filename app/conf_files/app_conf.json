@@ -22,6 +22,10 @@
       "upload": "data/igd",
       "logs": "data/mrb_logs",
       "tmp": "tmp"
+    },
+    "cromwell": {
+      "host": "ieu-db-interface.epi.bris.ac.uk",
+      "port": 8000
     }
   },
   "production": {
@@ -47,6 +51,10 @@
       "upload": "/data/igd",
       "logs": "/data/mrb_logs",
       "tmp": "tmp"
+    },
+    "cromwell": {
+      "host": "mr-base-api-cromwell",
+      "port": 8000
     }
   }
 }

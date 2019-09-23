@@ -36,7 +36,6 @@ class Globals:
 
     print("Params: {}".format(app_config))
 
-
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
     LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
     TMP_FOLDER = app_config['directories']['tmp']
@@ -46,7 +45,7 @@ class Globals:
 
     OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
-    CROMWELL_URL = "http://ieu-db-interface.epi.bris.ac.uk:8000"
+    CROMWELL_URL = 'http' + app_config['cromwell']['host'] + ":" + str(app_config['cromwell']['port'])
 
     # reduced lifetime see here: https://github.com/neo4j/neo4j-python-driver/issues/196
     dbConnection = GraphDatabase.driver(
@@ -60,6 +59,6 @@ class Globals:
     )
 
     study_batches = ['IEU-a', 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a']
-    private_batches = ['pQTL-a','pQTL-b','eqtl-a','UKB-c']
+    private_batches = ['pQTL-a', 'pQTL-b', 'eqtl-a', 'UKB-c']
 
     variant_index = "snp-base-v0.2"
