@@ -25,7 +25,7 @@
     },
     "cromwell": {
       "host": "ieu-db-interface.epi.bris.ac.uk",
-      "port": 8000
+      "port": 8001
     }
   },
   "production": {
