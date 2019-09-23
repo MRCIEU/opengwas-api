@@ -12,3 +12,4 @@ RUN pip install -r requirements.txt
 RUN mkdir /data
 RUN mkdir /data/igd
 RUN mkdir /data/mrb_logs
+RUN mkdir /data/tmp
