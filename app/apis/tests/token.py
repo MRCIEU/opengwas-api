@@ -10,5 +10,5 @@ def get_mrbase_access_token():
             shell=True)
         with open('token.temp', 'r') as tokenfile:
             token = tokenfile.read().replace('\n', '')
-        os.remove('token.temp')
+        # os.remove('token.temp')
         return token
