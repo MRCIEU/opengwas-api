@@ -50,7 +50,7 @@
     "directories": {
       "upload": "/data/igd",
       "logs": "/data/mrb_logs",
-      "tmp": "tmp"
+      "tmp": "/tmp"
     },
     "cromwell": {
       "host": "mr-base-api-cromwell",
