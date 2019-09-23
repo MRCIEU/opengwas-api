@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 ### Deploy local Neo4j instance using Docker
 ```
-docker run \
+docker run -d \
 -p7474:7474 -p7687:7687 \
 --rm \
 --env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \

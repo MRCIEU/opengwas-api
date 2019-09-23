@@ -3,7 +3,6 @@ from apis.tests.token import get_mrbase_access_token
 
 token = get_mrbase_access_token()
 
-
 # Should return json entries for each study
 def test_gwasinfo1(url):
     payload = {'id': ['IEU-a-2', 'IEU-a-7']}

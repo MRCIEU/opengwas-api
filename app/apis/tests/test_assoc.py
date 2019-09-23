@@ -22,7 +22,7 @@ def test_assoc_get3(url):
 
 
 def test_assoc_get4(url):
-    r = requests.get(url + "/associations/IEU-a-2,IEU-a-987,7/rs234")
+    r = requests.get(url + "/associations/IEU-a-2,IEU-a-987,IEU-a-7/rs234")
     assert r.status_code == 200 and len(r.json()) == 2
 
 
