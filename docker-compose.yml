@@ -5,12 +5,12 @@ services:
     image: neo4j:3.5
     restart: always
     ports:
-    - "27474:7474"
-    - "27687:7687"
-    - "27473:7473"
+    - "37474:7474"
+    - "37687:7687"
+    - "37473:7473"
     volumes:
-    - /data/mrb_neo4j/data:/data
-    - /data/mrb_neo4j/logs:/logs
+    - /data/mrb_neo4j_v3/data:/data
+    - /data/mrb_neo4j_v3/logs:/logs
     - /etc/timezone:/etc/timezone:ro
     environment:
       - NEO4J_AUTH=neo4j/dT9ymYwBsrzd
@@ -26,10 +26,10 @@ services:
     image: mr-base-api-v3:latest
     restart: always
     ports:
-    - "8084:80"
+    - "8094:80"
     volumes:
     - /data/igd:/data/igd
-    - /data/mrb_logs:/data/mrb_logs
+    - /data/mrb_logs_pub:/data/mrb_logs
     - /etc/timezone:/etc/timezone:ro
     environment:
       - NGINX_MAX_UPLOAD=750m
@@ -47,10 +47,10 @@ services:
     image: mr-base-api-v3:latest
     restart: always
     ports:
-    - "8082:80"
+    - "8092:80"
     volumes:
     - /data/igd:/data/igd
-    - /data/mrb_logs:/data/mrb_logs
+    - /data/mrb_logs_priv:/data/mrb_logs
     - /etc/timezone:/etc/timezone:ro
     environment:
       - NGINX_MAX_UPLOAD=750m
