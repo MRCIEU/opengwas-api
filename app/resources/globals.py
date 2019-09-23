@@ -45,7 +45,7 @@ class Globals:
 
     OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
-    CROMWELL_URL = 'http' + app_config['cromwell']['host'] + ":" + str(app_config['cromwell']['port'])
+    CROMWELL_URL = 'http://' + app_config['cromwell']['host'] + ":" + str(app_config['cromwell']['port'])
 
     # reduced lifetime see here: https://github.com/neo4j/neo4j-python-driver/issues/196
     dbConnection = GraphDatabase.driver(
