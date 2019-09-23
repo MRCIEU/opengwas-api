@@ -5,7 +5,7 @@ token = get_mrbase_access_token()
 
 
 def test_tophits_post1(url):
-    payload = {'id': [2, 987], 'clump': 0}
+    payload = {'id': ['IEU-a-2', 'IEU-a-987'], 'clump': 0}
     r = requests.post(url + "/tophits", data=payload)
     print(r.json())
     assert r.status_code == 200
@@ -15,7 +15,7 @@ def test_tophits_post1(url):
 
 def test_tophits_post2(url):
     headers = {'X-API-TOKEN': token}
-    payload = {'id': [2, 987], 'clump': 0}
+    payload = {'id': ['IEU-a-2', 'IEU-a-987'], 'clump': 0}
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     assert r.status_code == 200
     assert len(r.json()) > 3000
@@ -23,7 +23,7 @@ def test_tophits_post2(url):
 
 
 def test_tophits_post3(url):
-    payload = {'id': [2, 987], 'clump': 1}
+    payload = {'id': ['IEU-a-2', 'IEU-a-987'], 'clump': 1}
     r = requests.post(url + "/tophits", data=payload)
     assert r.status_code == 200
     assert len(r.json()) < 80
@@ -32,7 +32,7 @@ def test_tophits_post3(url):
 
 def test_tophits_post4(url):
     headers = {'X-API-TOKEN': token}
-    payload = {'id': [2, 987], 'clump': 1}
+    payload = {'id': ['IEU-a-2', 'IEU-a-987'], 'clump': 1}
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     assert r.status_code == 200
     assert len(r.json()) > 80
