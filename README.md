@@ -49,10 +49,10 @@ bash get_csv.sh
 
 # import to graph
 python map_from_csv.py \
---study study_e.tsv \
---groups groups.tsv \
---permissions_e permissions_e.tsv \
---memberships memberships.tsv
+--study data/study_e.tsv \
+--groups data/groups.tsv \
+--permissions_e data/permissions_e.tsv \
+--memberships data/memberships.tsv
 ```
 
 ### Start the API
@@ -65,8 +65,8 @@ python main.py
 ```
 http://localhost:8019/
 http://localhost:8019/status
-http://localhost:8019/assoc/2/rs234
-http://localhost:8019/gwasinfo/2
+http://localhost:8019/assoc/IEU-a-2/rs234
+http://localhost:8019/gwasinfo/IEU-a-2
 ```
 
 ### Unit tests
