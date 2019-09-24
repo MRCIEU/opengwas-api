@@ -16,6 +16,6 @@ class GwasInfo(UniqueNode):
         result = results.single()
 
         if result['uid'] is None:
-            return "IEU-b-"
+            return "IEU-b-1"
         else:
             return "IEU-b-" + str(result['uid'])
