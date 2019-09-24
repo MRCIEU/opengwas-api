@@ -78,6 +78,12 @@ TwoSampleMR::get_mrbase_access_token()
 
 This is an interactive process that requires logging in with a browser. To run the tests, from `/app` directory
 
+Set MRB token
+
+```
+export MRB_TOKEN=XXXXX
+```
+
 ```
 pytest -v
 ```
