@@ -23,7 +23,7 @@ def test_gwasinfo_add_delete(url):
     # add record
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     uid = str(r.json()['id'])
-    assert r.status_code == 200 and isinstance(int(uid.replace('igd-', '')), int)
+    assert r.status_code == 200 and isinstance(int(uid.replace('IEU-b-', '')), int)
 
     # delete record
     payload = {'id': uid}
@@ -53,7 +53,7 @@ def test_gwasinfo_upload_plain_text(url):
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
-    assert isinstance(int(uid.replace('igd-', '')), int)
+    assert isinstance(int(uid.replace('IEU-b-', '')), int)
 
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
 
@@ -95,7 +95,7 @@ def test_gwasinfo_upload_gzip(url):
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
-    assert isinstance(int(uid.replace('igd-', '')), int)
+    assert isinstance(int(uid.replace('IEU-b-', '')), int)
 
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt.gz')
 
@@ -139,7 +139,7 @@ def test_gwasinfo_upload_large(url):
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
-    assert isinstance(int(uid.replace('igd-', '')), int)
+    assert isinstance(int(uid.replace('IEU-b-', '')), int)
 
     # make tmp file
     tmp = tempfile.NamedTemporaryFile()
