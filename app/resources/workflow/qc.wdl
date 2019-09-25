@@ -159,7 +159,7 @@ task combine_multiallelics {
         halllab/bcftools:v1.9 \
         bcftools index \
         -t \
-        -o ${VcfFileOutPath}
+        ${VcfFileOutPath}
 
     >>>
 
