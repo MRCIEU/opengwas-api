@@ -154,6 +154,20 @@ task combine_multiallelics {
 
     >>>
 
+        command <<<
+        set -e
+
+        docker run \
+        --rm \
+        -v ${MountDir}:${MountDir} \
+        --cpus="1" \
+        halllab/bcftools:v1.9 \
+        bcftools index \
+        -t \
+        -o ${VcfFileOutPath}
+
+    >>>
+
     output {
         File VcfFile = "${VcfFileOutPath}"
         File VcfFileIdx = "${VcfFileOutPath}.tbi"
