@@ -272,7 +272,7 @@ task validate {
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
         broadinstitute/gatk:4.1.3.0 \
-        ValidateVariants \
+        gatk ValidateVariants \
         --validation-type-to-exclude ALLELES \
         -V ${VcfFileIn} \
         -R ${RefGenomeFile}
