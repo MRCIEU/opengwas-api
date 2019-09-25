@@ -152,11 +152,6 @@ task combine_multiallelics {
         -o ${VcfFileOutPath} \
         ${VcfFileIn}
 
-    >>>
-
-        command <<<
-        set -e
-
         docker run \
         --rm \
         -v ${MountDir}:${MountDir} \
