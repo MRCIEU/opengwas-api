@@ -195,6 +195,15 @@ task annotate_dbsnp {
         -O z \
         ${VcfFileIn}
 
+        docker run \
+        --rm \
+        -v ${MountDir}:${MountDir} \
+        --cpus="1" \
+        halllab/bcftools:v1.9 \
+        bcftools index \
+        -t \
+        ${VcfFileOutPath}
+
     >>>
 
     output {
