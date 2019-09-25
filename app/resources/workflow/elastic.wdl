@@ -1,20 +1,24 @@
 workflow elastic {
 
+    # TODO update dynamically when ready to deploy
+    String EsIndex = "bcftest"
+
+    # TODO check which host we are using
+    String Host = "ieu-db-interface.epi.bris.ac.uk"
+    String Port = 9200
+
     String StudyId
     String MountDir = "/data"
     String BaseDir = "/data/igd"
-    File BcfFile = BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
-    File BcfFileIdx = BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
+    File VcfFile=BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
+    File VcfFileIdx=BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz.tbi"
     File ClumpFile=BaseDir + "/" + StudyId + "/clump.txt"
-    String EsIndex = "bcftest"
-    String Host = "ieu-db-interface.epi.bris.ac.uk"
-    String Port = 9200
 
     call insert {
         input:
             MountDir=MountDir,
-            BcfFile=BcfFile,
-            BcfFileIdx=BcfFileIdx,
+            VcfFile=VcfFile,
+            VcfFileIdx=VcfFileIdx,
             StudyId=StudyId,
             ClumpFile=ClumpFile,
             EsIndex=EsIndex,
@@ -27,8 +31,8 @@ workflow elastic {
 task insert {
 
     String MountDir
-    File BcfFile
-    File BcfFileIdx
+    File VcfFile
+    File VcfFileIdx
     String StudyId
     File ClumpFile
     String EsIndex
@@ -42,10 +46,10 @@ task insert {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        bgc-elasticsearch:c182e62734e62bc152cd9d11061b4bc583c6347a \
+        bgc-elasticsearch:3358ebb02f274f32a38ba30716446b013fe4a1e7 \
         python add-gwas.py \
         -m index_data \
-        -f ${BcfFile} \
+        -f ${VcfFile} \
         -g ${StudyId} \
         -i ${EsIndex} \
         -h ${Host} \
