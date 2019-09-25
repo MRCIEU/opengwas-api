@@ -8,8 +8,8 @@ workflow qc {
     File RefGenomeFile="/data/reference_genomes/released/2019-08-30/data/2.8/b37/human_g1k_v37.fasta"
     File RefGenomeFileIdx="/data/reference_genomes/released/2019-08-30/data/2.8/b37/human_g1k_v37.fasta.fai"
     File RefGenomeFileDict="/data/reference_genomes/released/2019-08-30/data/2.8/b37/human_g1k_v37.dict"
-    File DbSnpVcfFile="/data/dbsnp/released/2019-09-02/dbsnp.v153.b37.vcf.gz"
-    File DbSnpVcfFileIdx="/data/dbsnp/released/2019-09-02/dbsnp.v153.b37.vcf.gz.tbi"
+    File DbSnpVcfFile="/data/dbsnp/released/2019-09-11/data/dbsnp.v153.b37.vcf.gz"
+    File DbSnpVcfFileIdx="/data/dbsnp/released/2019-09-11/data/dbsnp.v153.b37.vcf.gz.tbi"
     File AfVcfFile="/data/1kg/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz"
     File AfVcfFileIdx="/data/1kg/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz.tbi"
 
@@ -20,7 +20,7 @@ workflow qc {
     call vcf {
         input:
             MountDir=MountDir,
-            VcfFilePath=BaseDir + "/" + StudyId + "/" + StudyId + "_harm.vcf.gz",
+            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_harm.vcf.gz",
             SumStatsFile=BaseDir + "/" + StudyId + "/raw/upload.txt.gz",
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
@@ -34,15 +34,15 @@ workflow qc {
             MountDir=MountDir,
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
-            VcfFile=vcf.VcfFile,
-            VcfFileIdx=vcf.VcfFileIdx,
+            VcfFileIn=vcf.VcfFile,
+            VcfFileInIdx=vcf.VcfFileIdx,
             VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_norm.vcf.gz"
     }
     call annotate_dbsnp {
         input:
             MountDir=MountDir,
-            VcfFile=combine_multiallelics.VcfFile,
-            VcfFileIdx=combine_multiallelics.VcfFileIdx,
+            VcfFileIn=combine_multiallelics.VcfFile,
+            VcfFileInIdx=combine_multiallelics.VcfFileIdx,
             DbSnpVcfFile=DbSnpVcfFile,
             DbSnpVcfFileIdx=DbSnpVcfFileIdx,
             VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_dbsnp.vcf.gz"
@@ -50,17 +50,17 @@ workflow qc {
     call annotate_af {
         input:
             MountDir=MountDir,
-            VcfFile=annotate_dbsnp.VcfFile,
-            VcfFileIdx=annotate_dbsnp.VcfFile,
+            VcfFileIn=annotate_dbsnp.VcfFile,
+            VcfFileInIdx=annotate_dbsnp.VcfFileIdx,
             AfVcfFile=AfVcfFile,
             AfVcfFileIdx=AfVcfFileIdx,
-            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_1kg.vcf.gz"
+            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
     }
     call validate {
         input:
             MountDir=MountDir,
-            VcfFile=annotate_af.VcfFile,
-            VcfFileIdx=annotate_af.VcfFile,
+            VcfFileIn=annotate_af.VcfFile,
+            VcfFileInIdx=annotate_af.VcfFileIdx,
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx
     }
@@ -68,21 +68,21 @@ workflow qc {
         input:
             MountDir=MountDir,
             ClumpFilePath=BaseDir + "/" + StudyId + "/clump.txt",
-            VcfFile=annotate_af.VcfFile,
-            VcfFileIdx=annotate_af.VcfFileIdx
+            VcfFileIn=annotate_af.VcfFile,
+            VcfFileInIdx=annotate_af.VcfFileIdx
     }
     call ldsc {
         input:
             MountDir=MountDir,
             LdscFilePath=BaseDir + "/" + StudyId + "/ldsc.txt",
-            VcfFile=annotate_af.VcfFile,
-            VcfFileIdx=annotate_af.VcfFileIdx
+            VcfFileIn=annotate_af.VcfFile,
+            VcfFileInIdx=annotate_af.VcfFileIdx
     }
     call report {
         input:
             MountDir=MountDir,
-            VcfFile=annotate_af.VcfFile,
-            VcfFileIdx=annotate_af.VcfFileIdx,
+            VcfFileIn=annotate_af.VcfFile,
+            VcfFileInIdx=annotate_af.VcfFileIdx,
             RefData=RefData,
             RefDataIdx=RefDataIdx,
             OutputDir=BaseDir + "/" + StudyId
@@ -93,7 +93,7 @@ workflow qc {
 task vcf {
 
     String MountDir
-    String VcfFilePath
+    String VcfFileOutPath
     File SumStatsFile
     File RefGenomeFile
     File RefGenomeFileIdx
@@ -109,21 +109,21 @@ task vcf {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_harmonisation:05de97b2879619b81884eb6739c0fa4861be951d \
+        gwas_harmonisation:cc1a8274cbd6f9c67f0d83b176102f933f7b03ed \
         python /app/main.py \
         --data ${SumStatsFile} \
         --id ${StudyId} \
         --json ${ParamFile} \
         --ref ${RefGenomeFile} \
-        --out ${VcfFilePath} \
+        --out ${VcfFileOutPath} \
         --rm_chr_prefix \
         ${"--cohort_cases" + Cases} \
         ${"--cohort_controls" + Controls}
     >>>
 
     output {
-        File VcfFile = "${VcfFilePath}"
-        File VcfFileIdx = "${VcfFilePath}.tbi"
+        File VcfFile = "${VcfFileOutPath}"
+        File VcfFileIdx = "${VcfFileOutPath}.tbi"
     }
 
 }
@@ -131,11 +131,11 @@ task vcf {
 task combine_multiallelics {
 
     String MountDir
-    File VcfFile
-    File VcfFileIdx
+    File VcfFileIn
+    File VcfFileInIdx
     File RefGenomeFile
     File RefGenomeFileIdx
-    String VcfFileNormPath
+    String VcfFileOutPath
 
     command <<<
         set -e
@@ -149,12 +149,14 @@ task combine_multiallelics {
         -f ${RefGenomeFile} \
         -m +any \
         -O z \
-        -o ${VcfFileNormPath}
+        -o ${VcfFileOutPath} \
+        ${VcfFileIn}
+
     >>>
 
     output {
-        File VcfFileNorm = "${VcfFileNormPath}"
-        File VcfFileNormIdx = "${VcfFileNormPath}.tbi"
+        File VcfFile = "${VcfFileOutPath}"
+        File VcfFileIdx = "${VcfFileOutPath}.tbi"
     }
 
 }
@@ -162,11 +164,11 @@ task combine_multiallelics {
 task annotate_dbsnp {
 
     String MountDir
-    File VcfFile
-    File VcfFileIdx
+    File VcfFileIn
+    File VcfFileInIdx
     File DbSnpVcfFile
     File DbSnpVcfFileIdx
-    String VcfFileAnnoPath
+    String VcfFileOutPath
 
 
     command <<<
@@ -179,15 +181,16 @@ task annotate_dbsnp {
         halllab/bcftools:v1.9 \
         bcftools annotate \
         -a ${DbSnpVcfFile} \
-        -c ID ${VcfFile} \
-        -o ${VcfFileAnnoPath} \
-        -O z
+        -c ID \
+        -o ${VcfFileOutPath} \
+        -O z \
+        ${VcfFileIn}
 
     >>>
 
     output {
-        File VcfFileAnnoPath = "${VcfFileAnnoPath}"
-        File VcfFileAnnoPathIdx = "${VcfFileAnnoPath}.tbi"
+        File VcfFile = "${VcfFileOutPath}"
+        File VcfFileIdx = "${VcfFileOutPath}.tbi"
     }
 
 }
@@ -195,11 +198,11 @@ task annotate_dbsnp {
 task annotate_af {
 
     String MountDir
-    File VcfFile
-    File VcfFileIdx
-    File PopFreqVcfFile
-    File PopFreqVcfFileIdx
-    String VcfFileAnnoPath
+    File VcfFileIn
+    File VcfFileInIdx
+    File AfVcfFile
+    File AfVcfFileIdx
+    String VcfFileOutPath
 
 
     command <<<
@@ -211,16 +214,17 @@ task annotate_af {
         --cpus="1" \
         halllab/bcftools:v1.9 \
         bcftools annotate \
-        -a ${PopFreqVcfFile} \
-        -c ID ${VcfFile} \
-        -o ${VcfFileAnnoPath} \
-        -O z
+        -a ${AfVcfFile} \
+        -c AF,EAS_AF,EUR_AF,AFR_AF,AMR_AF,SAS_AF \
+        -o ${VcfFileOutPath} \
+        -O z \
+        ${VcfFileIn}
 
     >>>
 
     output {
-        File VcfFileAnnoPath = "${VcfFileAnnoPath}"
-        File VcfFileAnnoPathIdx = "${VcfFileAnnoPath}.tbi"
+        File VcfFile = "${VcfFileOutPath}"
+        File VcfFileIdx = "${VcfFileOutPath}.tbi"
     }
 
 }
@@ -228,8 +232,8 @@ task annotate_af {
 task validate {
 
     String MountDir
-    File VcfFile
-    File VcfFileIdx
+    File VcfFileIn
+    File VcfFileInIdx
     File RefGenomeFile
     File RefGenomeFileIdx
 
@@ -243,7 +247,7 @@ task validate {
         broadinstitute/gatk:4.1.3.0 \
         ValidateVariants \
         --validation-type-to-exclude ALLELES \
-        -V ${VcfFile} \
+        -V ${VcfFileIn} \
         -R ${RefGenomeFile}
 
     >>>
@@ -254,8 +258,8 @@ task clumping {
 
     String MountDir
     String ClumpFilePath
-    File VcfFile
-    File VcfFileIdx
+    File VcfFileIn
+    File VcfFileInIdx
 
     command <<<
         set -e
@@ -264,9 +268,9 @@ task clumping {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:f6444c2339a8e6a88013d1ac559004450bf862be \
+        gwas_processing:24636a3f7938cf495d7a6a163e7afc2d78838f6f \
         clump.py \
-        --bcf ${VcfFile} \
+        --bcf ${VcfFileIn} \
         --out ${ClumpFilePath}
     >>>
 
@@ -280,8 +284,8 @@ task ldsc {
 
     String MountDir
     String LdscFilePath
-    File VcfFile
-    File VcfFileIdx
+    File VcfFileIn
+    File VcfFileInIdx
 
     command <<<
         set -e
@@ -290,9 +294,9 @@ task ldsc {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:f6444c2339a8e6a88013d1ac559004450bf862be \
+        gwas_processing:24636a3f7938cf495d7a6a163e7afc2d78838f6f \
         ldsc.py \
-        --bcf ${VcfFile} \
+        --bcf ${VcfFileIn} \
         --out ${LdscFilePath}
     >>>
 
@@ -309,8 +313,8 @@ task report {
 
     String MountDir
     String OutputDir
-    File VcfFile
-    File VcfFileIdx
+    File VcfFileIn
+    File VcfFileInIdx
     File RefData
     File RefDataIdx
 
@@ -321,9 +325,9 @@ task report {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        mrbase-report-module:1ef1d2e07852d5f758609dccbebbc3eef7c279ea \
+        mrbase-report-module:177aa4b3170d984c704384cc47309162edc4fbe9 \
         render_gwas_report.R \
-        ${VcfFile} \
+        ${VcfFileIn} \
         --output_dir ${OutputDir} \
         --n_cores 1
     >>>
