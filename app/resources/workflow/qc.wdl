@@ -353,7 +353,7 @@ task report {
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
         mrbase-report-module:177aa4b3170d984c704384cc47309162edc4fbe9 \
-        render_gwas_report.R \
+        Rscript render_gwas_report.R \
         ${VcfFileIn} \
         --output_dir ${OutputDir} \
         --n_cores 1
