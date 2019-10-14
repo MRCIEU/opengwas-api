@@ -68,7 +68,7 @@ services:
     build: ./app/resources/workflow
     restart: always
     environment:
-      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs
+      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=12 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs
     ports:
     - "8001:8000"
     volumes:

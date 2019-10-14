@@ -22,7 +22,7 @@ def test_release(url):
     r = requests.post(url + "/edit/add", data=data, headers=headers)
     assert r.status_code == 200
     uid = str(r.json()['id'])
-    assert isinstance(int(uid.replace('igd-', '')), int)
+    assert isinstance(int(uid.replace('IEU-b-', '')), int)
 
     # define gwas summary stats file
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
