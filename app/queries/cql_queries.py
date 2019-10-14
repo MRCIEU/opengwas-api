@@ -42,17 +42,24 @@ def get_all_gwas_ids_for_user(uid):
     return recs
 
 
-def get_gwas_for_user(uid, gwasid):
+def get_gwas_for_user(uid, gwasid, datapass=True):
     group_names = get_groups_for_user(uid)
     schema = GwasInfoNodeSchema()
 
     tx = Neo4j.get_db()
 
-    results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi);",
-        group_names=list(group_names),
-        gwasid=gwasid
-    )
+    if datapass:
+        results = tx.run(
+            "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi);",
+            group_names=list(group_names),
+            gwasid=gwasid
+        )
+    else:
+        results = tx.run(
+            "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}}) WHERE g.name IN {group_names} RETURN distinct(gi);",
+            group_names=list(group_names),
+            gwasid=gwasid
+        )
 
     result = results.single()
     if result is None:
