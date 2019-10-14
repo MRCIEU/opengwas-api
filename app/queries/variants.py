@@ -43,19 +43,15 @@ def snps(snp_list):
 
 
 def chrpos_query(chrpos):
-	chrpos2 = [list(map(int, x.split(':'))) for x in chrpos]
-	chrs = list(set([x[0] for x in chrpos2]))
-
-
+	chrs = list(set([x['chr'] for x in chrpos]))
 	out = list()
 	total=0
 	hits=list()
-
 	for chr in chrs:
 		filterData=[
 				{"term":{"CHROM":chr}},
 				{"term":{"COMMON":"1"}},
-				{"terms" : {"POS": [x[1] for x in chrpos2 if x[0] == chr]}},
+				{"terms" : {"POS": [x['start'] for x in chrpos if x['chr'] == chr]}},
 				]
 		tot,hit=es_search(filterData=filterData,routing=chr)
 		total+=tot
@@ -69,38 +65,42 @@ def chrpos_query(chrpos):
 			hits.append(hit)
 	return {"total":total, "results":hits}
 
+
+def parse_chrpos(chrpos, radius):
+	out = list()
+	chrpos2 = [list(map(str, x.split(':'))) for x in chrpos]
+	for i in range(len(chrpos)):
+		temp = chrpos2[i][1].split("-")
+		if len(temp) is 2:
+			out.append({"chr": int(chrpos2[i][0].replace("chr", "")), "start": max(0, int(temp[0])-radius),"end": int(temp[1])+radius, "type": 'range', 'orig': chrpos[i]})
+		elif len(temp) is 1:
+			out.append({"chr": int(chrpos2[i][0].replace("chr", "")), "start": max(0, int(temp[0])-radius), "end": int(temp[0])+radius, "type": 'position', 'orig': chrpos[i]})
+		else:
+			raise Exception('Malformed chrpos')
+	return out
+
+
 def range_query(chrpos,radius=0):
 
-	if radius == 0:
+	chrpos = parse_chrpos(chrpos, radius)
+	if radius == 0 and all(x['type'] == 'position' for x in chrpos):
 		return chrpos_query(chrpos)['results']
 
-	chrpos2 = [list(map(int, x.split(':'))) for x in chrpos]
+	print(chrpos)
+
 	out = list()
 
-	# def minmax(pos, radius):
-	# 	min = 0
-	# 	if pos - radius > 0:
-	# 		min = pos - radius
-	# 	max=pos + radius
-	# 	return list(min, max)
-
-	# chrpos3 = [x[0] + minmax(x[1], radius) for x in chrpos2]
-
 	for i in range(len(chrpos)):
-		min=0
-		if chrpos2[i][1]-radius>0:
-			min=chrpos2[i][1]-radius
-		max=chrpos2[i][1]+radius
 		filterData=[
-				{"term":{"CHROM":chrpos2[i][0]}},
+				{"term":{"CHROM":chrpos[i]['chr']}},
 				{"term":{"COMMON":"1"}},
-				{"range" : {"POS" : {"gte" : min, "lte" : max}}},
+				{"range" : {"POS" : {"gte" : chrpos[i]['start'], "lte" : chrpos[i]['end']}}},
 				]
-		total,hits=es_search(filterData=filterData,routing=chrpos2[i][0])
+		total,hits=es_search(filterData=filterData,routing=chrpos[i]['chr'])
 		print(hits)
 		if total > 0:
 			for item in hits:
-				item.update({'query': chrpos[i]})
+				item.update({'query': chrpos[i]['orig']})
 				so = item['_source']
 				item.pop('_source')
 				item.update(so)

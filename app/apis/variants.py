@@ -67,7 +67,7 @@ parser1.add_argument('radius', type=int, required=False, default=0, help="Range 
 @api.doc(
     description="Obtain information for a particular variant or comma separated list of variants",
     params={
-        'chrpos': 'Comma separated B37 coordinates e.g. 7:105561135,10:44865737'
+        'chrpos': 'Comma separated B37 coordinates or coordinate ranges e.g. 7:105561135-105563135,10:44865737'
     }
 )
 class ChrposGet(Resource):
@@ -94,7 +94,7 @@ Obtain information for a particular variant or comma separated list of variants.
 ```
 -X POST -d '
 {
-    'chrpos': ['7:105561135','10:44865737']
+    'chrpos': ['7:105561135-105563135','10:44865737']
 }
 '
 ```
