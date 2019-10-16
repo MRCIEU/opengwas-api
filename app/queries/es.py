@@ -239,33 +239,30 @@ def elastic_query(studies, snps, pval):
 
 
 def query_summary_stats(user_email, snps, outcomes):
-    #### es
-    # logger.debug('in query_summary_stats: '+str(snps)+' : '+str(outcomes))
     # get available studies
     logger.debug('requested studies: ' + str(len(outcomes)))
     logger.debug('len snplist = ' + str(len(snps)))
 
     # get study and snp data
-    # snp_data = {}
     snp_data = snps
-    # if snps!='':
-    # snp_data = snp_info(snpList,'rsid_to_id')
-    # logger.debug(snp_data)
-
-    # logger.debug(sorted(study_access))
     logger.debug('searching ' + str(outcomes.count(',') + 1) + ' outcomes')
     logger.debug('creating outcomes list and study_data dictionary')
     start = time.time()
     outcomes_access = []
-    # outcomes_clean = outcomes.replace("'", "")
     outcomes_clean = ','.join(outcomes)
     if outcomes == 'snp_lookup':
         outcomes_access = 'snp_lookup'
         study_data = get_all_gwas_for_user(user_email)
-        #idlist = [x['id'] for x in study_data]
+        outcomes_access = list(study_data.keys())
+
+        ###### WARNING
+        ###### ADDING THIS BECAUSE TIMES OUT OTHERWISE
+        outcomes_access = outcomes_access[0:200]
+        ######
+        ######
+
     else:
         study_data = get_permitted_studies(user_email, outcomes)
-        #logger.debug(study_data)
         outcomes_access = list(study_data.keys())
     end = time.time()
     t = round((end - start), 4)
@@ -274,10 +271,6 @@ def query_summary_stats(user_email, snps, outcomes):
     logger.debug('len outcomes_access = ' + str(len(outcomes_access)))
     if len(outcomes_access) == 0 and outcomes != 'snp_lookup':
         return json.dumps([])
-    # if outcomes == 'snp_lookup':
-    #    ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='1e-5')
-    # else:
-    #    ESRes = elastic_query(snps=snp_data,studies=outcomes_access,pval='')
     ESRes = elastic_query(snps=snp_data, studies=outcomes_access, pval='')
     logger.debug('ES queries finished')
     es_res = []

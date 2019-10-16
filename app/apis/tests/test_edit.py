@@ -35,6 +35,11 @@ def test_gwasinfo_add_delete(url):
     r = requests.post(url + "/gwasinfo", data=payload)
     assert r.status_code == 200 and len(r.json()) == 0
 
+    # check not deleted everything else
+    payload = {'id': ["IEU-a-2"]}
+    r = requests.post(url + "/gwasinfo", data=payload)
+    assert r.status_code == 200 and len(r.json()) == 1
+
 
 def test_gwasinfo_upload_plain_text(url):
     payload = {

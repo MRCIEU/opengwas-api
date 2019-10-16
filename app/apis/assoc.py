@@ -49,7 +49,7 @@ parser2.add_argument(
     help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
 
 
-@api.route('/')
+@api.route('')
 @api.doc(
     description="""
 Get specific SNP associations for specifc GWAS datasets. Note the payload can be passed to curl via json using:
