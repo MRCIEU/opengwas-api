@@ -42,40 +42,40 @@ def test_assoc_get6(url):
 # Should return json entries for each study
 def test_assoc_post1(url):
     payload = {'id': ['IEU-a-2', 'IEU-a-7', 'IEU-a-987'], 'rsid': ['rs234', 'rs123']}
-    r = requests.post(url + "/associations/", data=payload)
+    r = requests.post(url + "/associations", data=payload)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
 def test_assoc_post2(url):
     headers = {'X-API-TOKEN': token}
     payload = {'id': ['IEU-a-2', 'IEU-a-7', 'IEU-a-987'], 'rsid': ['rs234', 'rs123']}
-    r = requests.post(url + "/associations/", data=payload, headers=headers)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 6
 
 
 def test_assoc_post3(url):
     headers = {'X-API-TOKEN': token}
     payload = {'id': ['IEU-a-1', 'IEU-a-2'], 'rsid': ['rs6689306']}
-    r = requests.post(url + "/associations/", data=payload, headers=headers)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 0
 
 
 def test_assoc_post4(url):
     headers = {'X-API-TOKEN': token}
     payload = {'id': ['IEU-a-1', 'IEU-a-2'], 'rsid': ['rs6689306'], 'proxies': 1}
-    r = requests.post(url + "/associations/", data=payload, headers=headers)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
 def test_assoc_post5(url):
     headers = {'X-API-TOKEN': token}
     payload = {'id': ['IEU-a-1', 'IEU-a-2'], 'rsid': ['rs234', 'rs123', 'rs6689306']}
-    r = requests.post(url + "/associations/", data=payload, headers=headers)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
 def test_assoc_post6(url):
     headers = {'X-API-TOKEN': token}
     payload = {'id': ['IEU-a-1', 'IEU-a-2'], 'rsid': ['rs234', 'rs123', 'rs6689306'], 'proxies': 1}
-    r = requests.post(url + "/associations/", data=payload, headers=headers)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 6
