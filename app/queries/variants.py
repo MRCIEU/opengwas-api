@@ -57,7 +57,6 @@ def chrpos_query(chrpos):
 		total+=tot
 		if tot > 0:
 			for item in hit:
-				print(item['_source']['POS'])
 				item.update({'query': str(item['_source']['CHROM'])+":"+str(item['_source']['POS'])})
 				so = item['_source']
 				item.pop('_source')
@@ -86,8 +85,6 @@ def range_query(chrpos,radius=0):
 	if radius == 0 and all(x['type'] == 'position' for x in chrpos):
 		return chrpos_query(chrpos)['results']
 
-	print(chrpos)
-
 	out = list()
 
 	for i in range(len(chrpos)):
@@ -97,7 +94,6 @@ def range_query(chrpos,radius=0):
 				{"range" : {"POS" : {"gte" : chrpos[i]['start'], "lte" : chrpos[i]['end']}}},
 				]
 		total,hits=es_search(filterData=filterData,routing=chrpos[i]['chr'])
-		print(hits)
 		if total > 0:
 			for item in hits:
 				item.update({'query': chrpos[i]['orig']})
