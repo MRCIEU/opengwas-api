@@ -38,6 +38,7 @@ docker run -d \
 -p7474:7474 -p7687:7687 \
 --rm \
 --env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
+--env NEO4J_dbms_memory_heap_max__size=2G \
 neo4j:3.5
 ```
 
@@ -86,7 +87,7 @@ export MRB_TOKEN=XXXXX
 ```
 
 ```
-rm data/mrb_logs/*
+rm -f data/mrb_logs/*
 rm -rf data/igd/*
 pytest -v
 ```
