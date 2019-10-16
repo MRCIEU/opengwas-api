@@ -27,6 +27,7 @@ services:
       - UWSGI_THREADS=2
       - ENV=production
       - ACCESS=private
+      - FLASK_ENV=development
     depends_on:
       - mrb-neo4j
       - mr-base-api-cromwell
