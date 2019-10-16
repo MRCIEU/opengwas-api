@@ -257,7 +257,7 @@ def query_summary_stats(user_email, snps, outcomes):
 
         ###### WARNING
         ###### ADDING THIS BECAUSE TIMES OUT OTHERWISE
-        outcomes_access = outcomes_access[0:200]
+        #outcomes_access = outcomes_access[0:200]
         ######
         ######
 
