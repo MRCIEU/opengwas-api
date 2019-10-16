@@ -27,6 +27,7 @@ python3 -m venv venv3
 . venv3/bin/activate
 mkdir -p data/mrb_logs
 mkdir -p data/igd
+mkdir -p tmp
 
 pip install -r requirements.txt
 ```
@@ -85,6 +86,8 @@ export MRB_TOKEN=XXXXX
 ```
 
 ```
+rm data/mrb_logs/*
+rm -rf data/igd/*
 pytest -v
 ```
 
