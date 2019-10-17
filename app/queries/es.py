@@ -149,6 +149,7 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
 
 def elastic_search(filterData, index_name):
     res = Globals.es.search(
+        ignore_unavailable=True,
         request_timeout=120,
         index=index_name,
         # doc_type="assoc",
