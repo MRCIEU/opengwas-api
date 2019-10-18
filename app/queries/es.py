@@ -253,14 +253,6 @@ def query_summary_stats(user_email, snps, outcomes):
     if outcomes == 'snp_lookup':
         outcomes_access = 'snp_lookup'
         study_data = get_all_gwas_for_user(user_email)
-        outcomes_access = list(study_data.keys())
-
-        ###### WARNING
-        ###### ADDING THIS BECAUSE TIMES OUT OTHERWISE
-        outcomes_access = outcomes_access[0:200]
-        ######
-        ######
-
     else:
         study_data = get_permitted_studies(user_email, outcomes)
         outcomes_access = list(study_data.keys())
@@ -318,6 +310,7 @@ def query_summary_stats(user_email, snps, outcomes):
                 #study_id = hit['_source']['study_id']
                 study_id = s + '-' + hit['_source']['study_id']
                 # make sure only to return available studies
+                outcomes_access = list(study_data.keys())
                 if study_id in study_data:
                     assocDic.update(study_data[study_id])
                     es_res.append(assocDic)

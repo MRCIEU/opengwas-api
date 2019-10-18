@@ -52,7 +52,7 @@ class Globals:
         [{'host': app_config['es']['host'], 'port': app_config['es']['port']}]
     )
 
-    study_batches = ['IEU-a', 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a', 'ubm-a']
+    study_batches = ['IEU-a', 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a']
     private_batches = ['pQTL-a', 'pQTL-b', 'eqtl-a', 'UKB-c']
 
     variant_index = "snp-base-v0.2"
