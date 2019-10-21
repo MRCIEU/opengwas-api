@@ -22,17 +22,21 @@ def test_gwasinfo_add_delete(url):
 
     # add record
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
+    print(r.json())
     uid = str(r.json()['id'])
     assert r.status_code == 200 and isinstance(int(uid.replace('IEU-b-', '')), int)
 
+    # check present
+    r = requests.get(url + "/edit/check/" + uid, headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 1
+
     # delete record
-    payload = {'id': uid}
-    r = requests.delete(url + "/edit/delete", data=payload, headers=headers)
+    r = requests.delete(url + "/edit/delete/" + uid, headers=headers)
     assert r.status_code == 200
 
     # check deleted
     payload = {'id': [uid]}
-    r = requests.post(url + "/gwasinfo", data=payload)
+    r = requests.get(url + "/edit/check/" + uid, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 0
 
     # check not deleted everything else
