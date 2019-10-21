@@ -26,7 +26,7 @@ services:
     image: mr-base-api-v3:latest
     restart: always
     ports:
-    - "8094:80"
+    - "8084:80"
     volumes:
     - /data/igd:/data/igd
     - /data/mrb_logs_pub:/data/mrb_logs
@@ -47,7 +47,7 @@ services:
     image: mr-base-api-v3:latest
     restart: always
     ports:
-    - "8092:80"
+    - "8082:80"
     volumes:
     - /data/igd:/data/igd
     - /data/mrb_logs_priv:/data/mrb_logs
