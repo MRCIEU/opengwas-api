@@ -92,17 +92,16 @@ class GetId(Resource):
 
 
 
-@api.route('/delete')
+@api.route('/delete/<gwas_info_id>')
 @api.doc(description="Delete gwas metadata")
 class Delete(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
         help='You must be authenticated to delete GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
-    parser.add_argument('id', type=str, required=True, help="Identifier to which the summary stats belong.")
 
     @api.expect(parser)
-    def delete(self):
+    def delete(self, gwas_info_id):
         args = self.parser.parse_args()
         user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
@@ -111,7 +110,7 @@ class Delete(Resource):
         except PermissionError as e:
             return {"message": str(e)}, 403
 
-        delete_gwas(user_uid)
+        delete_gwas(gwas_info_id)
 
         return {"message": "successfully deleted."}, 200
 
