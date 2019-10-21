@@ -52,7 +52,8 @@ class Globals:
         [{'host': app_config['es']['host'], 'port': app_config['es']['port']}]
     )
 
-    study_batches = ['IEU-a', 'UKB-a', 'UKB-b', 'UKB-c', 'pQTL-a', 'eqtl-a']
-    private_batches = ['pQTL-a', 'pQTL-b', 'eqtl-a', 'UKB-c']
+    all_batches = list(set(['-'.join(b['n.id'].split('-',2)[:2]) for b in dbConnection.session().run("match (n:GwasInfo) return n.id").data()]))
+
+    public_batches = list(set(['-'.join(b['n.id'].split('-',2)[:2]) for b in dbConnection.session().run("match (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) return n.id").data()]))
 
     variant_index = "snp-base-v0.2"

@@ -175,9 +175,8 @@ def elastic_query(studies, snps, pval):
     if studies == 'snp_lookup':
         logger.debug("Running snp_lookup elastic_query")
         # need to add each index for snp_lookups
-        for i in Globals.study_batches:
-            if i not in Globals.private_batches:
-                study_indexes.update({i: []})
+        for i in Globals.public_batches:
+            study_indexes.update({i: []})
     else:
         for o in studies:
             # logger.debug('o = '+o)
