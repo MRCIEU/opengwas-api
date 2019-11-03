@@ -10,7 +10,7 @@ cd mr-base-api
 
 ### Obtain LD data
 ```
-wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
+curl -o app/ld_files.tgz -L "https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0"
 tar xzvf app/ld_files.tgz -C app/
 rm app/ld_files.tgz
 ```
