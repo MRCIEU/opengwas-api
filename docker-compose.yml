@@ -31,6 +31,7 @@ services:
     - /data/igd:/data/igd
     - /data/mrb_logs_pub:/data/mrb_logs
     - /etc/timezone:/etc/timezone:ro
+    - /data/ref/ld_files:/data/ld_files
     environment:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
@@ -52,6 +53,7 @@ services:
     - /data/igd:/data/igd
     - /data/mrb_logs_priv:/data/mrb_logs
     - /etc/timezone:/etc/timezone:ro
+    - /data/ref/ld_files:/data/ld_files
     environment:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
@@ -72,9 +74,10 @@ services:
     ports:
     - "8001:8000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /data:/data
-      - /etc/timezone:/etc/timezone:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /data:/data
+    - /etc/timezone:/etc/timezone:ro
+    - /data/ref/ld_files:/data/ld_files
     command: ["server"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000"]
