@@ -38,7 +38,7 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
         logger.debug("matching clumps to original query")
         out = []
         for x in words:
-            if x is not '':
+            if x != '':
                 out.append([y for y in rsid if y == x.split()[2]][0])
         logger.debug("done match")
         end = time.time()
