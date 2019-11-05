@@ -131,6 +131,11 @@ rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/broad/pu
 mkdir -p /data/dbsnp
 mkdir -p /data/dbsnp/released
 rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/ncbi/public/dbsnp/released/2019-09-11 /data/dbsnp/released
+
+# ld files
+curl -o ld_files.tgz -L "https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0"
+tar xzvf ld_files.tgz
+mv ld_files /data/ref/ld_files
 ```
 
 ### Build images for backend processing of data

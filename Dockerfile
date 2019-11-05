@@ -13,3 +13,5 @@ RUN mkdir /data
 RUN mkdir /data/igd
 RUN mkdir /data/mrb_logs
 RUN mkdir /data/tmp
+RUN mkdir /ld_files
+
