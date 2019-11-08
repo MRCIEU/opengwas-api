@@ -214,7 +214,7 @@ with app.app_context():
             fields = line.strip().split("\t")
             g = Group(name=str(fields[1]))
             g.create_node()
-
+            print(line)
             # gid = name
             gid_to_name[int(fields[0])] = fields[1]
 

@@ -23,7 +23,7 @@ ssh -L 9200:localhost:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ### Create environment
 ```
 cd app
-python3 -m venv venv3
+python3.8 -m venv venv3
 . venv3/bin/activate
 mkdir -p data/mrb_logs
 mkdir -p data/igd
@@ -38,7 +38,7 @@ docker run -d \
 -p7474:7474 -p7687:7687 \
 --rm \
 --env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
---env NEO4J_dbms_memory_heap_max__size=2G \
+--env NEO4J_dbms_memory_heap_max__size=10G \
 neo4j:3.5
 ```
 
