@@ -30,7 +30,10 @@ def check_all():
         'ElasticSearch status': check_elastic(),
         'LD reference panel': check_ld_ref(),
         'PLINK executable': check_plink(),
-        'Cromwell': cromwell_status
+        'Cromwell': cromwell_status,
+        'Total associations': count_elastic_records(),
+        'Total complete datasets': count_neo4j_datasets()
+        # 'API queries this month': count_elastic_calls()
     }
     return out
 
