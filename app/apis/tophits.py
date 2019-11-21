@@ -14,12 +14,13 @@ parser1 = reqparse.RequestParser()
 parser1.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
 parser1.add_argument('pval', type=float, required=False, default=0.00000005,
                      help='P-value threshold; exponents not supported through Swagger')
+parser1.add_argument('preclumped', type=int, required=False, default=1, help='Whether to use pre-clumped tophits')
 parser1.add_argument('clump', type=int, required=False, default=1, help='Whether to clump (1) or not (0)')
 parser1.add_argument('r2', type=float, required=False, default=0.001, help='Clumping parameter')
 parser1.add_argument('kb', type=int, required=False, default=5000, help='Clumping parameter')
 parser1.add_argument(
     'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [ieugwasr](https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication) package using the `get_access_token()` function.')
 
 
 @api.route('')
@@ -42,14 +43,14 @@ class Tophits(Resource):
 
         user_email = get_user_email(request.headers.get('X-Api-Token'))
         try:
-            out = extract_instruments(user_email, args['id'], args['clump'], args['pval'], args['r2'], args['kb'])
+            out = extract_instruments(user_email, args['id'], args['preclumped'], args['clump'], args['pval'], args['r2'], args['kb'])
         except Exception as e:
             logger.error("Could not obtain tophits: {}".format(e))
             abort(503)
         return out
 
 
-def extract_instruments(user_email, id, clump, pval, r2, kb):
+def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb):
     ### elastic query
 
     # fix outcomes
@@ -71,7 +72,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
         logger.debug('No outcomes left after permissions check')
         return json.dumps([], ensure_ascii=False)
     else:
-        ESRes = elastic_query(snps='', studies=outcomes_access, pval=pval)
+        ESRes = elastic_query(snps='', studies=outcomes_access, pval=pval, tophits=preclumped)
         # logger.debug(ESRes)
         snpDic = {}
         # create lookup for snp names
@@ -144,15 +145,15 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
                 if p != '':
                     assocDic = {'effect_allele': effect_allele,
                                 'other_allele': other_allele,
-                                'effect_allelel_freq': effect_allele_freq,
+                                'effect_allele_freq': effect_allele_freq,
                                 'beta': beta,
                                 'se': se,
                                 'p': p,
                                 'n': n,
                                 'name': name
                                 }
-                    study_id = hit['_source']['study_id']
-                    study_id = s + '-' + hit['_source']['study_id']
+                    study_id = hit['_source']['gwas_id']
+                    study_id = s + '-' + hit['_source']['gwas_id']
                     # make sure only to return available studies
                     if study_id in study_data:
                         assocDic.update(study_data[study_id])
@@ -160,7 +161,7 @@ def extract_instruments(user_email, id, clump, pval, r2, kb):
         studies = outcomes.strip().split(",")
         nsnps = len(res)
 
-        if clump == 1 and numRecords != 0:
+        if not preclumped and clump == 1 and numRecords != 0:
             found_outcomes = set([x.get('id') for x in res])
             all_out = []
             for outcome in found_outcomes:

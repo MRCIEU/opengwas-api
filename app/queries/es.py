@@ -166,7 +166,7 @@ def elastic_search(filterData, index_name):
 
 
 # studies and snps are lists
-def elastic_query(studies, snps, pval):
+def elastic_query(studies, snps, pval, tophits=False):
     # separate studies by index
     # logger.debug(studies)
     study_indexes = {}
@@ -194,7 +194,7 @@ def elastic_query(studies, snps, pval):
         logger.debug('checking ' + s + ' ...')
         filterSelect = {}
         if type(studies) is list:
-            filterSelect['study_id'] = study_indexes[s]
+            filterSelect['gwas_id'] = study_indexes[s]
         if snps != '':
             filterSelect['snp_id'] = snps
         if pval != '':
@@ -202,7 +202,7 @@ def elastic_query(studies, snps, pval):
 
         filterData = []
         for f in filterSelect:
-            if f in ['study_id', 'snp_id']:
+            if f in ['gwas_id', 'snp_id']:
                 filterData.append({"terms": {f: filterSelect[f]}})
             else:
                 filterData.append({"range": {"p": {"lt": filterSelect[f]}}})
@@ -211,8 +211,8 @@ def elastic_query(studies, snps, pval):
         run = False
         if studies == 'snp_lookup':
             run = True
-        elif 'study_id' in filterSelect:
-            if len(filterSelect['study_id']) > 0:
+        elif 'gwas_id' in filterSelect:
+            if len(filterSelect['gwas_id']) > 0:
                 run = True
         else:
             run = True
@@ -221,7 +221,12 @@ def elastic_query(studies, snps, pval):
                 len(snps)) + ' pval: ' + str(pval))
             # logger.debug(filterData)
             start = time.time()
-            e = elastic_search(filterData, s)
+            if tophits:
+                print("looking in tophits index")
+                e = elastic_search(filterData, s+"-tophits")
+            else:
+                print("looking in complete index")
+                e = elastic_search(filterData, s)
             res.update({s: e})
             # res.update({'index_name':s})
             end = time.time()
@@ -307,8 +312,8 @@ def query_summary_stats(user_email, snps, outcomes):
                             'n': n,
                             'name': name
                             }
-                #study_id = hit['_source']['study_id']
-                study_id = s + '-' + hit['_source']['study_id']
+                #study_id = hit['_source']['gwas_id']
+                study_id = s + '-' + hit['_source']['gwas_id']
                 # make sure only to return available studies
                 outcomes_access = list(study_data.keys())
                 if study_id in study_data:

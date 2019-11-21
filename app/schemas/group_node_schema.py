@@ -9,7 +9,7 @@ valid_group_names = {
     "immunobase_users",
     "SpiroMetaplusCHARGE",
     "Onco_TRICL_lung_cancer",
-    "Ahola_Olli_Cytokines",
+    "Ahola-Olli_Cytokines",
     "BCAC",
     "Thompson_JIA",
     "EmmaLA",
@@ -25,7 +25,10 @@ valid_group_names = {
     "sclerostin",
     "biobank_japan",
     "small_ukb-b",
-    "ncase_lt_10_ukb-b"
+    "ncase_lt_10_ukb-b",
+    "CHDI",
+    "internal",
+    "Sclerostin_genetics_consortium"
 }
 
 

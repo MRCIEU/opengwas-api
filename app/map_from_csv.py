@@ -60,10 +60,16 @@ def map_population(pop):
         return "Hispanic or Latin American"
     elif pop.lower() == "indian":
         return "South Asian"
+    elif pop.lower() == "south asian":
+        return "South Asian"
+    elif pop.lower() == "asian unspecified":
+        return "Asian unspecified"
     elif pop.lower() == "mixed":
         return "Mixed"
     elif pop.lower() == "na":
         return "NA"
+    elif pop.lower() == "sub-saharan african":
+        return "Sub-Saharan African"
     else:
         raise ValueError("Unknown pop :{}".format(pop))
 
@@ -83,13 +89,17 @@ with app.app_context():
     gid_to_name = dict()
     email_to_gid = dict()
 
+    i=0
     # populate_db gwas info
     with open(args.study) as f:
         # skip first row which are NULL
-        f.readline()
+        # f.readline()
 
         for line in f:
+            i+=1
+            print(str(i))
             fields = line.strip().split("\t")
+            print(fields)
             d = dict()
 
             d['id'] = str(fields[0]).replace(":", "-")
@@ -174,6 +184,9 @@ with app.app_context():
 
             if fields[20] != "NULL":
                 d['consortium'] = str(fields[20])
+
+            if fields[21] != "NULL":
+                d['access'] = str(fields[21])
 
             if d['category'] == "Cytokines":
                 d['category'] = "Immune system"

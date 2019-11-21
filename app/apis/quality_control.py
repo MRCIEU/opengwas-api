@@ -8,6 +8,7 @@ import requests
 from resources.globals import Globals
 import logging
 import os
+from resources.globals import Globals
 
 logger = logging.getLogger('debug-log')
 
@@ -21,7 +22,7 @@ class List(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=False, default='null',
-        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
@@ -35,7 +36,7 @@ class Release(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
-        help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
 
     parser.add_argument('id', type=str, required=True, help='Identifier for the gwas info.')
     parser.add_argument('comments', type=str, required=False, help='Comments.')
@@ -84,7 +85,7 @@ class Delete(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
-        help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
     parser.add_argument('id', type=str, required=True, help='Identifier for the gwas info.')
 
     @api.expect(parser)
