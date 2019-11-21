@@ -32,7 +32,7 @@ class Globals:
     print("Params: {}".format(app_config))
 
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
-    LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs')
+    LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs_ref')
     TMP_FOLDER = app_config['directories']['tmp']
     UPLOAD_FOLDER = app_config['directories']['upload']
     LOG_FILE = os.path.join(app_config['directories']['logs'], 'mrbaseapi.log')

@@ -10,21 +10,22 @@ cd mr-base-api
 
 ### Obtain LD data
 ```
-curl -o app/ld_files.tgz -L "https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0"
-tar xzvf app/ld_files.tgz -C app/
+mkdir -p app/ld_files
+curl -o app/ld_files.tgz -L "http://fileserve.mrcieu.ac.uk/ld/data_maf0.01_rs_ref.tgz"
+tar xzvf app/ld_files.tgz -C app/ld_files/
 rm app/ld_files.tgz
 ```
 
 ### Create tunnel (need to be on VPN)
 ```
-ssh -L 9200:localhost:9200 <username>@ieu-db-interface.epi.bris.ac.uk
+ssh -L 9200:140.238.83.192:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ```
 
 ### Create environment
 ```
 cd app
 python3.8 -m venv venv3
-. venv3/bin/activate
+    . venv3/bin/activate
 mkdir -p data/mrb_logs
 mkdir -p data/igd
 mkdir -p tmp
@@ -39,48 +40,28 @@ docker run -d \
 --rm \
 --env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
 --env NEO4J_dbms_memory_heap_max__size=4G \
---name neo4j_mrbase \
-neo4j:3.5
-```
-
-```
-docker run -d \
--p7475:7474 -p7688:7687 \
---rm \
---env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
---env NEO4J_dbms_memory_heap_max__size=4G \
---name neo4j_mrbase_igd \
+--name neo4j_igd \
 neo4j:3.5
 ```
 
 ### Importing data from MySQL
-```
-cd app
+The meta data is
 
-# Download data from mysql
-bash get_csv.sh
-
-# import to graph
-python map_from_csv.py \
---study data/study_e.tsv \
---groups data/groups.tsv \
---permissions_e data/permissions_e.tsv \
---memberships data/memberships.tsv
-```
-
+1. Stored as json files with the associated vcf files.
+2. Collated into relational tsv files using the [igd-metadata](https://ieugit-scmv-d0.epi.bris.ac.uk/gh13047/igd-metadata) repository.
+3. Uploaded to the neo4j database with `map_from_csv.py`
 
 ```
 cd app
+git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-metadata.git
 
 # import to graph
 python map_from_csv.py \
---study ~/repo/igd-metadata/data/study.tsv \
---groups ~/repo/igd-metadata/data/groups.tsv \
---permissions_e ~/repo/igd-metadata/data/permissions.tsv \
---memberships ~/repo/igd-metadata/data/memberships.tsv
+--study igd-metadata/data/study.tsv \
+--groups igd-metadata/data/groups.tsv \
+--permissions_e igd-metadata/data/permissions.tsv \
+--memberships igd-metadata/data/memberships.tsv | less
 ```
-
-
 
 ### Start the API
 ```
@@ -92,8 +73,8 @@ python main.py
 ```
 http://localhost:8019/
 http://localhost:8019/status
-http://localhost:8019/assoc/IEU-a-2/rs234
-http://localhost:8019/gwasinfo/IEU-a-2
+http://localhost:8019/assoc/ieu-a-2/rs234
+http://localhost:8019/gwasinfo/ieu-a-2
 ```
 
 ### Unit tests
@@ -158,9 +139,10 @@ mkdir -p /data/dbsnp/released
 rsync -av bluecrystalp3.acrc.bris.ac.uk:/projects/MRC-IEU/research/data/ncbi/public/dbsnp/released/2019-09-11 /data/dbsnp/released
 
 # ld files
-curl -o ld_files.tgz -L "https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0"
-tar xzvf ld_files.tgz
-mv ld_files /data/ref/ld_files
+mkdir -p /data/ref/ld_files
+curl -o ld_files.tgz -L "http://fileserve.mrcieu.ac.uk/ld/data_maf0.01_rs_ref.tgz"
+tar xzvf ld_files.tgz -C /data/ref/ld_files
+rm ld_files.tgz
 ```
 
 ### Build images for backend processing of data
