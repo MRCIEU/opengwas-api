@@ -18,6 +18,7 @@ from schemas.group_node_schema import valid_group_names
 import requests
 import logging
 import os
+from resources.globals import Globals
 
 logger = logging.getLogger('debug-log')
 
@@ -31,7 +32,7 @@ class Add(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
-        help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
     parser.add_argument('group_name', type=str, required=True,
                         help='Name for the group this study should belong to.', choices=sorted(list(valid_group_names)))
     parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
@@ -72,7 +73,7 @@ class GetId(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=False, default='null',
-        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
@@ -98,7 +99,7 @@ class Delete(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
-        help='You must be authenticated to delete GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     def delete(self, gwas_info_id):
@@ -121,7 +122,7 @@ class Upload(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
-        help='You must be authenticated to submit new GWAS data. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
     parser.add_argument('chr_col', type=int, required=True, help="Column index for chromosome")
     parser.add_argument('pos_col', type=int, required=True, help="Column index for base position")
     parser.add_argument('ea_col', type=int, required=True, help="Column index for effect allele")

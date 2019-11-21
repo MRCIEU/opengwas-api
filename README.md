@@ -43,6 +43,16 @@ docker run -d \
 neo4j:3.5
 ```
 
+```
+docker run -d \
+-p7475:7474 -p7688:7687 \
+--rm \
+--env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
+--env NEO4J_dbms_memory_heap_max__size=4G \
+--name neo4j_mrbase_igd \
+neo4j:3.5
+```
+
 ### Importing data from MySQL
 ```
 cd app
@@ -57,6 +67,20 @@ python map_from_csv.py \
 --permissions_e data/permissions_e.tsv \
 --memberships data/memberships.tsv
 ```
+
+
+```
+cd app
+
+# import to graph
+python map_from_csv.py \
+--study ~/repo/igd-metadata/data/study.tsv \
+--groups ~/repo/igd-metadata/data/groups.tsv \
+--permissions_e ~/repo/igd-metadata/data/permissions.tsv \
+--memberships ~/repo/igd-metadata/data/memberships.tsv
+```
+
+
 
 ### Start the API
 ```

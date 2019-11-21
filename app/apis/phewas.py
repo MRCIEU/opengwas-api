@@ -2,13 +2,14 @@ from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
 from resources.auth import get_user_email
 from flask import request
+from resources.globals import Globals
 
 api = Namespace('phewas', description="Perform PheWAS of specified SNPs across all available GWAS datasets")
 
 parser1 = api.parser()
 parser1.add_argument(
     'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    help=Globals.AUTHTEXT)
 
 
 @api.route('/<rsid>/<pval>')
@@ -48,7 +49,7 @@ parser2.add_argument('rsid', required=False, type=str, action='append', default=
 parser2.add_argument('pval', type=float, required=False, default=1e-05, help='P-value threshold')
 parser2.add_argument(
     'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    help=Globals.AUTHTEXT)
 
 
 @api.route('')

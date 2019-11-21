@@ -54,16 +54,16 @@ valid_trait_subcategories = {
     "NA"
 }
 
-valid_trait_descriptions = {'Continuous', 'Binary', 'Ordinal'}
+valid_trait_descriptions = {'Continuous', 'Binary', 'Ordinal', 'Categorical Ordered'}
 valid_categories = {'Immune system', 'NA', 'Risk factor', 'Continuous', 'Metabolites', 'Disease', 'Binary',
-                    'Catagorial Ordered'}
+                    'Categorical Ordered'}
 valid_populations = {
     "Aboriginal Australian", "African American or Afro-Caribbean", "African unspecified", "Asian unspecified",
     "Central Asian", "East Asian", "European", "Greater Middle Eastern (Middle Eastern, North African, or Persian)",
     "Hispanic or Latin American", "Native American", "Not reported", "Oceanian", "Other", "Other admixed ancestry",
     "South Asian", "South East Asian", "Sub-Saharan African", "Mixed", "NA"
 }
-valid_sex = {'Males and Females', 'Males', 'Females'}
+valid_sex = {'Males and Females', 'Males', 'Females', 'NA'}
 valid_study_designs = {
     "Meta-analysis of case-control studies",
     "Meta-analysis of cohort/cross-sectional studies",
@@ -114,7 +114,7 @@ def check_sex_is_valid(data):
 
 
 def check_access_is_valid(data):
-    valid = {'public', 'Public'}
+    # valid = {'public', 'Public'}
     if data not in valid:
         raise ValidationError("Access must be one of: {}".format(valid))
 
@@ -204,6 +204,7 @@ class GwasInfoNodeSchema(FRPMSchema):
                                   choices=sorted(list(valid_imputation_panels)))
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
                        description="Select the genome build for your study", choices=sorted(list(valid_genome_build)))
+    access = fields.Str(required=True, allow_none=True, description="Group access name e.g. 'public'")
     md5 = fields.Str(required=False, allow_none=True)
     qc_prior_to_upload = fields.Str(required=False, allow_none=True,
                                     description="Detail any QC or filtering steps taken prior to data upload")

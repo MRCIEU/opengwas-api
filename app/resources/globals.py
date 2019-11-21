@@ -9,6 +9,7 @@ class Globals:
     VERSION = '3.0.0'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
+    AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [ieugwasr](https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication) package using the `get_access_token()` function.'
 
     """ Set environment files to toggle between local and production & private vs public APIs """
     with open(APP_CONF) as f:

@@ -5,6 +5,7 @@ from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 from werkzeug.exceptions import BadRequest
 from resources.auth import get_user_email
 import logging
+from resources.globals import Globals
 
 logger = logging.getLogger('debug-log')
 
@@ -18,7 +19,7 @@ class Info(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=False, default='null',
-        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
@@ -53,7 +54,7 @@ class GetId(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=False, default='null',
-        help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model)

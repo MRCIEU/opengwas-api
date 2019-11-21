@@ -2,13 +2,14 @@ from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.es import *
 from resources.auth import get_user_email
 from flask import request
+from resources.globals import Globals
 
 api = Namespace('associations', description="Retrieve GWAS associations")
 
 parser1 = api.parser()
 parser1.add_argument(
     'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    help=Globals.AUTHTEXT)
 
 
 @api.route('/<id>/<rsid>')
@@ -46,7 +47,7 @@ parser2.add_argument('maf_threshold', type=float, required=False, default=0.3,
                      help="Maximum MAF allowed for a palindromic variant")
 parser2.add_argument(
     'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [TwoSampleMR R](https://mrcieu.github.io/TwoSampleMR/#authentication) package using the `get_mrbase_access_token()` function.')
+    help=Globals.AUTHTEXT)
 
 
 @api.route('')
