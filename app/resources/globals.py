@@ -16,10 +16,12 @@ class Globals:
         app_config = json.load(f)
 
         if os.environ.get('ENV') == 'production':
+            print("Production")
             app_config = app_config['production']
             QC_WDL_PATH = "/app/resources/workflow/qc.wdl"
             ELASTIC_WDL_PATH = "/app/resources/workflow/elastic.wdl"
         else:
+            print("Local")
             app_config = app_config['local']
             QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
             ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
