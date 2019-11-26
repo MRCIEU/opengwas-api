@@ -17,6 +17,7 @@ parser.add_argument('--study', dest='study', required=True, help='Path to study_
 parser.add_argument('--groups', dest='groups', required=True, help='Path to groups.csv')
 parser.add_argument('--permissions_e', dest='permissions_e', required=True, help='Path to permissions_e.csv')
 parser.add_argument('--memberships', dest='memberships', required=True, help='Path to memberships.csv')
+parser.add_argument('--batches', dest='batches', required=False, help='Path to batches.csv')
 args = parser.parse_args()
 
 
@@ -231,6 +232,21 @@ with app.app_context():
             # gid = name
             gid_to_name[int(fields[0])] = fields[1]
 
+
+    # populate_db batches
+    if args.batches is not None:
+        logging.info("importing batches")
+
+        batches = []
+        with open(args.batches) as f:
+            for line in f:
+                fields = line.strip().split("\t")
+                d = {"id": fields[0], "description": fields[1], "link":  fields[2], "count": fields[3]}
+                batches.append(d)
+
+        batch_add_nodes(batches, "Batches")
+
+
     # populate_db users
     logging.info("importing users")
     with open(args.memberships) as f:
@@ -271,7 +287,7 @@ with app.app_context():
             # append to populate_db queue
             rels.append(d)
 
-            if len(rels) > 5000:
+            if len(rels) > 500:
                 batch_add_rel(rels)
                 rels = []
 

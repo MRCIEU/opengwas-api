@@ -25,7 +25,7 @@ ssh -L 9200:140.238.83.192:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ```
 cd app
 python3.8 -m venv venv3
-    . venv3/bin/activate
+. venv3/bin/activate
 mkdir -p data/mrb_logs
 mkdir -p data/igd
 mkdir -p tmp
@@ -60,7 +60,8 @@ python map_from_csv.py \
 --study igd-metadata/data/study.tsv \
 --groups igd-metadata/data/groups.tsv \
 --permissions_e igd-metadata/data/permissions.tsv \
---memberships igd-metadata/data/memberships.tsv | less
+--memberships igd-metadata/data/memberships.tsv \
+--batches igd-metadata/data/batches.tsv
 ```
 
 ### Start the API

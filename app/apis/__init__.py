@@ -10,6 +10,7 @@ from .edit import api as edit
 from resources.globals import Globals
 from .ld import api as ld
 from .variants import api as variants
+from .batches import api as batches
 
 api = Api(version=Globals.VERSION, title='IEU GWAS database',
           description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full',
@@ -23,6 +24,7 @@ api.add_namespace(tophits)
 api.add_namespace(ld)
 api.add_namespace(gwasinfo)
 api.add_namespace(variants)
+api.add_namespace(batches)
 
 # private
 if Globals.app_config['access'] == 'private':

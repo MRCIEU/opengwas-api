@@ -11,7 +11,7 @@
       "user": "neo4j",
       "passwd": "dT9ymYwBsrzd",
       "host": "localhost",
-      "port": 7688
+      "port": 7687
     },
     "email": {
       "CLIENT_ID": "",
