@@ -113,7 +113,10 @@
 
                 <p class="lead text-left">
                   <a class="btn btn-warning btn-lg" href="/docs/" role="button"><span class="glyphicon glyphicon-star"></span>Documentation</a>
-                    <a class="btn btn-secondary btn-lg" href="https://github.com/mrcieu/mr-base-api/wiki" role="button">GWAS home page</a>
+                  {% if status['Access'] == 'private' %}
+                  <a class="btn btn-warning btn-lg" href="https://github.com/mrcieu/mr-base-api/wiki" role="button">Upload instructions</a>
+                  {% endif %}
+                  <a class="btn btn-secondary btn-lg" href="https://gwas.mrcieu.ac.uk" role="button">GWAS home page</a>
                 </p>
               </div>
             </div>
