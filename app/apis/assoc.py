@@ -15,10 +15,10 @@ parser1.add_argument(
 @api.route('/<id>/<rsid>')
 @api.expect(parser1)
 @api.doc(
-    description="Get specific SNP associations for specifc GWAS datasets",
+    description="Get specific rsid associations for specifc GWAS datasets",
     params={
         'id': 'An ID or comma-separated list of GWAS dataset IDs',
-        'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs'
+        'rsid': 'Comma-separated list of rs IDs or chr:position to query from the GWAS IDs. hg19/build37 chr:position can be single position or a range e.g rs1605,10:44865737,7:105561135-105563135'
     }
 )
 class AssocGet(Resource):
@@ -53,16 +53,7 @@ parser2.add_argument(
 @api.route('')
 @api.doc(
     description="""
-Get specific SNP associations for specifc GWAS datasets. Note the payload can be passed to curl via json using:
-
-```
--X POST -d '
-{
-    'id': ['2','1001']
-}
-'
-```
-
+Get specific SNP associations for specifc GWAS datasets.
 """
 )
 class AssocPost(Resource):

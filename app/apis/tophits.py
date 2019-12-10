@@ -51,28 +51,21 @@ class Tophits(Resource):
 
 
 def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb):
-    ### elastic query
 
     # fix outcomes
     outcomes = ",".join(["'" + x + "'" for x in id])
     outcomes_clean = outcomes.replace("'", "")
 
-    # get available studies
-    study_access = set()
-    for s in get_all_gwas_ids_for_user(user_email):
-        study_access.add(str(s))
-
     logger.debug('searching ' + outcomes_clean)
-    #study_data = get_permitted_studies(user_email, outcomes.strip().split(","))
-    #study_data = list(get_permitted_studies(user_email, id).values())
+    # study_data = get_permitted_studies(user_e mail, outcomes.strip().split(","))
+    # study_data = list(get_permitted_studies(user_email, id).values())
     outcomes_access = list(get_permitted_studies(user_email, id).keys())
     logger.debug(str(outcomes_access))
-    # logger.debug(sorted(study_access))
     if len(outcomes_access) == 0:
         logger.debug('No outcomes left after permissions check')
         return json.dumps([], ensure_ascii=False)
     else:
-        ESRes = elastic_query(snps='', studies=outcomes_access, pval=pval, tophits=preclumped)
+        ESRes = elastic_query_pval(studies=outcomes_access, pval=pval, tophits=preclumped)
         # logger.debug(ESRes)
         snpDic = {}
         # create lookup for snp names
