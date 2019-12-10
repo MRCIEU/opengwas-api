@@ -5,6 +5,7 @@ import json
 import logging
 import time
 from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
+from queries.variants import parse_chrpos
 
 logger = logging.getLogger('debug-log')
 
@@ -165,32 +166,190 @@ def elastic_search(filterData, index_name):
     return res
 
 
-# studies and snps are lists
+def match_study_to_index(studies):
+    study_indexes = {}
+    for o in studies:
+        # logger.debug('o = '+o)
+        if re.search('-', o):
+            reg = r'^([\w]+-[\w]+)-([\w]+)'
+            study_prefix, study_id = re.match(reg, o).groups()
+            if study_prefix in study_indexes:
+                study_indexes[study_prefix].append(study_id)
+            else:
+                study_indexes[study_prefix] = [study_id]
+        else:
+            logger.debug(o+'is not a correct batch prefix')
+    return study_indexes
+
+
+def elastic_query_phewas(rsid, pval):
+    study_indexes = Globals.public_batches
+    res = {}
+    for s in study_indexes:
+        logger.debug('checking ' + s + ' ...')
+        filterData = []
+        filterData.append({"terms": {'snp_id': rsid}})
+        filterData.append({"range": {"p": {"lt": pval}}})
+        logger.debug('running ES: index: ' + s + ' pval: ' + str(pval))
+        start = time.time()
+        e = elastic_search(filterData, s)
+        res.update({s: e})
+        end = time.time()
+        t = round((end - start), 4)
+        numRecords = res[s]['hits']['total']
+        logger.debug("Time taken: " + str(t) + " seconds")
+        logger.debug('ES returned ' + str(numRecords) + ' records')
+    return res
+
+
+def elastic_query_chrpos(studies, chrpos, radius=0):
+    study_indexes = match_study_to_index(studies)
+    chrpos = parse_chrpos(chrpos, radius)
+    chrpos_r = [x for x in chrpos if x['start'] != x['end']]
+    chrpos_p = [x for x in chrpos if x['start'] == x['end']]
+    if len(chrpos_p) > 0:
+        chr_p = [x['chr'] for x in chrpos_p]
+    res = {}
+    for s in study_indexes:
+        if len(chrpos_p) > 0:
+            for c in chr_p:
+                filterData = []
+                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+                filterData.append({"terms": {'chr': c}})
+                pos = [x['position'] for x in chrpos_p if x['chr'] == c]
+                filterData.append({"terms": {'position': pos}})
+                start = time.time()
+                e = elastic_search(filterData, s)
+                res.update({s: e})
+                end = time.time()
+                t = round((end - start), 4)
+                numRecords = res[s]['hits']['total']
+                logger.debug("Time taken: " + str(t) + " seconds")
+                logger.debug('ES returned ' + str(numRecords) + ' records')
+        if len(chrpos_r) > 0:
+            for cpr in chrpos_r:
+                filterData = []
+                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+                filterData.append({"terms": {'chr': cpr['chr']}})
+                filterData.append({"range": {"position": {"gte": cpr['start'], "lte": cpr['end']}}})
+                start = time.time()
+                e = elastic_search(filterData, s)
+                e.update({'query': cpr['orig']})
+                res.update({s: e})
+                end = time.time()
+                t = round((end - start), 4)
+                numRecords = res[s]['hits']['total']
+                logger.debug("Time taken: " + str(t) + " seconds")
+                logger.debug('ES returned ' + str(numRecords) + ' records')
+    return res
+
+
+def organise_variants(variants, radius=0):
+    rsreg = r'^(rs)'
+    cpreg = r'^(\\d+){1}:(\\d+){1}(-(\\d+){1})?'
+    return out = {
+        'rsid': [x for x in variants if re.match(rsreg, x)],
+        'chrpos': parse_chrpos([x for x in variants if re.match(cpreg, x)], radius)
+    }
+
+
+def elastic_query_rsid(studies, variants, radius=0):
+    study_indexes = match_study_to_index(studies)
+    variants = organise_variants(variants, radius)
+    if len(variants[chrpos] > 0):
+        chrpos_r = [x for x in chrpos if x['start'] != x['end']]
+        chrpos_p = [x for x in chrpos if x['start'] == x['end']]
+        if len(chrpos_p) > 0:
+            chr_p = [x['chr'] for x in chrpos_p]
+
+    res = {}
+    for s in study_indexes:
+        if len(variants[rsid] > 0):
+            rsid = variants[rsid]
+            logger.debug('checking ' + s + ' ...')
+            filterData = []
+            filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+            filterData.append({"terms": {'snp_id': rsid}})
+            logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' rsid: ' + str(
+                len(rsid)))
+            start = time.time()
+            e = elastic_search(filterData, s)
+            res.update({s: e})
+            end = time.time()
+            t = round((end - start), 4)
+            numRecords = res[s]['hits']['total']
+            logger.debug("Time taken: " + str(t) + " seconds")
+            logger.debug('ES returned ' + str(numRecords) + ' records')
+        if len(chrpos_p) > 0:
+            for c in chr_p:
+                filterData = []
+                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+                filterData.append({"terms": {'chr': c}})
+                pos = [x['position'] for x in chrpos_p if x['chr'] == c]
+                filterData.append({"terms": {'position': pos}})
+                start = time.time()
+                e = elastic_search(filterData, s)
+                res.update({s: e})
+                end = time.time()
+                t = round((end - start), 4)
+                numRecords = res[s]['hits']['total']
+                logger.debug("Time taken: " + str(t) + " seconds")
+                logger.debug('ES returned ' + str(numRecords) + ' records')
+        if len(chrpos_r) > 0:
+            for cpr in chrpos_r:
+                filterData = []
+                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+                filterData.append({"terms": {'chr': cpr['chr']}})
+                filterData.append({"range": {"position": {"gte": cpr['start'], "lte": cpr['end']}}})
+                start = time.time()
+                e = elastic_search(filterData, s)
+                e.update({'query': cpr['orig']})
+                res.update({s: e})
+                end = time.time()
+                t = round((end - start), 4)
+                numRecords = res[s]['hits']['total']
+                logger.debug("Time taken: " + str(t) + " seconds")
+                logger.debug('ES returned ' + str(numRecords) + ' records')
+    return res
+
+
+def elastic_query_pval(studies, pval, tophits=False):
+    study_indexes = match_study_to_index(studies)
+    res = {}
+    for s in study_indexes:
+        logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + str(' pval: ' + str(pval)))
+        filterData = []
+        filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+        start = time.time()
+        if tophits:
+            print("looking in tophits index")
+            s = s+"-tophits"
+        else:
+            filterData.append({"range": {"p": {"lt": pval}}})
+        e = elastic_search(filterData, s)
+        res.update({s: e})
+        end = time.time()
+        t = round((end - start), 4)
+        numRecords = res[s]['hits']['total']
+        logger.debug("Time taken: " + str(t) + " seconds")
+        logger.debug('ES returned ' + str(numRecords) + ' records')
+    return res
+
+
 def elastic_query(studies, snps, pval, tophits=False):
     # separate studies by index
     # logger.debug(studies)
     study_indexes = {}
-    mrbase_original = True
-    # deal with snp_lookup
     if studies == 'snp_lookup':
         logger.debug("Running snp_lookup elastic_query")
         # need to add each index for snp_lookups
         for i in Globals.public_batches:
             study_indexes.update({i: []})
     else:
-        for o in studies:
-            # logger.debug('o = '+o)
-            if re.search('-', o):
-                reg = r'^([\w]+-[\w]+)-([\w]+)'
-                study_prefix, study_id = re.match(reg, o).groups()
-                if study_prefix in study_indexes:
-                    study_indexes[study_prefix].append(study_id)
-                else:
-                    study_indexes[study_prefix] = [study_id]
-            else:
-                logger.debug(o+'is not a correct batch prefix')
+        study_indexes = match_study_to_index(studies)
     res = {}
     for s in study_indexes:
+        print(s)
         logger.debug('checking ' + s + ' ...')
         filterSelect = {}
         if type(studies) is list:
@@ -268,7 +427,11 @@ def query_summary_stats(user_email, snps, outcomes):
     logger.debug('len outcomes_access = ' + str(len(outcomes_access)))
     if len(outcomes_access) == 0 and outcomes != 'snp_lookup':
         return json.dumps([])
-    ESRes = elastic_query(snps=snp_data, studies=outcomes_access, pval='')
+    if outcomes == "snp_lookup":
+        # ESRes = elastic_query(snps=snp_data, studies=outcomes_access, pval='')
+        ESRes = elastic_query_phewas(rsid=snp_data, pval=1)
+    else:
+        ESRes = elastic_query_rsid(rsid=snp_data, studies=outcomes_access)
     logger.debug('ES queries finished')
     es_res = []
     logger.debug(len(ESRes))
@@ -300,6 +463,8 @@ def query_summary_stats(user_email, snps, outcomes):
             other_allele = hit['_source']['other_allele']
             # name = snp_data[int(hit['_source']['snp_id'])]
             name = hit['_source']['snp_id']
+            chr = hit['_source']['chr']
+            position = hit['_source']['position']
             # logger.debug(hit)
             # don't want data with no pval
             if p != '':
@@ -310,7 +475,9 @@ def query_summary_stats(user_email, snps, outcomes):
                             'se': se,
                             'p': p,
                             'n': n,
-                            'name': name
+                            'name': name,
+                            'chr': chr,
+                            'position': position
                             }
                 #study_id = hit['_source']['gwas_id']
                 study_id = s + '-' + hit['_source']['gwas_id']
