@@ -323,30 +323,9 @@ def elastic_query_rsid(studies, rsid):
     return res
 
 
-def elastic_query_pval(studies, pval, tophits=0):
-    study_indexes = match_study_to_index(studies)
-    res = []
-    for s in study_indexes:
-        if len(rsid) > 0:
-            logger.debug('checking ' + s + ' ...')
-            filterData = []
-            filterData.append({"terms": {'gwas_id': study_indexes[s]}})
-            filterData.append({"terms": {'snp_id': rsid}})
-            logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' rsid: ' + str(
-                len(rsid)))
-            start = time.time()
-            e = elastic_search(filterData, s)
-            r = organise_payload(e, s)
-            res += r
-            end = time.time()
-            t = round((end - start), 4)
-            logger.debug("Time taken: " + str(t) + " seconds")
-            logger.debug('ES returned ' + str(len(r)) + ' records')
-    return res
-
 def elastic_query_pval(studies, pval, tophits=False):
     study_indexes = match_study_to_index(studies)
-    res = {}
+    res = []
     for s in study_indexes:
         logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + str(' pval: ' + str(pval)))
         filterData = []
@@ -354,16 +333,16 @@ def elastic_query_pval(studies, pval, tophits=False):
         start = time.time()
         if tophits:
             print("looking in tophits index")
-            s = s+"-tophits"
+            s = s + "-tophits"
         else:
             filterData.append({"range": {"p": {"lt": pval}}})
         e = elastic_search(filterData, s)
-        res.update({s: e})
+        e = organise_payload(e, s)
+        res += e
         end = time.time()
         t = round((end - start), 4)
-        numRecords = res[s]['hits']['total']
         logger.debug("Time taken: " + str(t) + " seconds")
-        logger.debug('ES returned ' + str(numRecords) + ' records')
+        logger.debug('ES returned ' + str(len(e)) + ' records')
     return res
 
 
