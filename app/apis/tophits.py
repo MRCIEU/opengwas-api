@@ -7,11 +7,9 @@ from flask import request
 import logging
 
 logger = logging.getLogger('debug-log')
-
-api = Namespace('tophits', description="Extract tophits from a GWAS dataset")
-
+api = Namespace('tophits', description="Extract top hits based on p-value threshold from a GWAS dataset")
 parser1 = reqparse.RequestParser()
-parser1.add_argument('id', required=False, type=str, action='append', default=[], help="list of MR-Base GWAS study IDs")
+parser1.add_argument('id', required=False, type=str, action='append', default=[], help="list of GWAS study IDs")
 parser1.add_argument('pval', type=float, required=False, default=0.00000005,
                      help='P-value threshold; exponents not supported through Swagger')
 parser1.add_argument('preclumped', type=int, required=False, default=1, help='Whether to use pre-clumped tophits')
@@ -25,22 +23,11 @@ parser1.add_argument(
 
 @api.route('')
 @api.doc(
-    description="""
-Extract tophits from a GWAS dataset. Note the payload can be passed to curl via json using:
-
-```
--X POST -d '
-{
-    'parameters':'etc'
-}
-'
-```
-""")
+    description="Extract top hits based on p-value threshold from a GWAS dataset.")
 class Tophits(Resource):
     @api.expect(parser1)
     def post(self):
         args = parser1.parse_args()
-
         user_email = get_user_email(request.headers.get('X-Api-Token'))
         try:
             out = extract_instruments(user_email, args['id'], args['preclumped'], args['clump'], args['pval'], args['r2'], args['kb'])
@@ -51,119 +38,25 @@ class Tophits(Resource):
 
 
 def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb):
-
-    # fix outcomes
     outcomes = ",".join(["'" + x + "'" for x in id])
     outcomes_clean = outcomes.replace("'", "")
-
     logger.debug('searching ' + outcomes_clean)
-    # study_data = get_permitted_studies(user_e mail, outcomes.strip().split(","))
-    # study_data = list(get_permitted_studies(user_email, id).values())
     outcomes_access = list(get_permitted_studies(user_email, id).keys())
     logger.debug(str(outcomes_access))
     if len(outcomes_access) == 0:
         logger.debug('No outcomes left after permissions check')
         return json.dumps([], ensure_ascii=False)
-    else:
-        ESRes = elastic_query_pval(studies=outcomes_access, pval=pval, tophits=preclumped)
-        # logger.debug(ESRes)
-        snpDic = {}
-        # create lookup for snp names
-        for s in ESRes:
-            hits = ESRes[s]['hits']['hits']
-            for hit in hits:
-                snpDic[hit['_source']['snp_id']] = ''
 
-        # get study and snp data
-        # study_data = study_info([outcomes])[outcomes]
-        study_data = get_permitted_studies(user_email, id)
-        # snp_data = snp_info(snpDic.keys(),'id_to_rsid')
-        snp_data = snpDic.keys()
+    res = elastic_query_pval(studies=outcomes_access, pval=pval, tophits=preclumped)
 
-        # create final file
-        numRecords = 0
-        res = []
-        for s in ESRes:
-            hits = ESRes[s]['hits']['hits']
-            numRecords += int(ESRes[s]['hits']['total'])
-            for hit in hits:
-                other_allele = effect_allele = effect_allele_freq = beta = se = p = n = ''
-                try:
-                    if int(hit['_source']['effect_allele_freq']) < 999:
-                        effect_allele_freq = hit['_source']['effect_allele_freq']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger.debug("Could not obtain effect allele frequency for hit: {}".format(e))
-
-                try:
-                    if hit['_source']['beta'] < 999:
-                        # beta = "%4.3f" % float(hit['_source']['beta'])
-                        beta = hit['_source']['beta']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger.debug("Could not obtain effect size for hit: {}".format(e))
-
-                try:
-                    if hit['_source']['se'] < 999:
-                        # se = "%03.02e" % float(hit['_source']['se'])
-                        se = hit['_source']['se']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger.debug("Could not obtain SE for hit: {}".format(e))
-
-                try:
-                    if hit['_source']['p'] < 999:
-                        # p = "%03.02e" % float(hit['_source']['p'])
-                        p = hit['_source']['p']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger.debug("Could not obtain P-val for hit: {}".format(e))
-
-                try:
-                    if 'n' in hit['_source']:
-                        n = hit['_source']['n']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger.debug("Could not obtain N for hit: {}".format(e))
-
-                try:
-                    if 'effect_allele' in hit['_source']:
-                        effect_allele = hit['_source']['effect_allele']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger.debug("Could not obtain effect_allele for hit: {}".format(e))
-
-                try:
-                    if 'other_allele' in hit['_source']:
-                        other_allele = hit['_source']['other_allele']
-                except (ValueError, TypeError, IndexError) as e:
-                    logger.debug("Could not obtain other_allele for hit: {}".format(e))
-
-                name = hit['_source']['snp_id']
-                # don't want data with no pval
-                if p != '':
-                    assocDic = {'effect_allele': effect_allele,
-                                'other_allele': other_allele,
-                                'effect_allele_freq': effect_allele_freq,
-                                'beta': beta,
-                                'se': se,
-                                'p': p,
-                                'n': n,
-                                'name': name
-                                }
-                    study_id = hit['_source']['gwas_id']
-                    study_id = s + '-' + hit['_source']['gwas_id']
-                    # make sure only to return available studies
-                    if study_id in study_data:
-                        assocDic.update(study_data[study_id])
-                        res.append(assocDic)
-        studies = outcomes.strip().split(",")
-        nsnps = len(res)
-
-        if not preclumped and clump == 1 and numRecords != 0:
-            found_outcomes = set([x.get('id') for x in res])
-            all_out = []
-            for outcome in found_outcomes:
-                logger.debug("clumping results for " + str(outcome))
-                rsid = [x.get('name') for x in res if x.get('id') == outcome]
-                p = [x.get('p') for x in res if x.get('id') == outcome]
-                out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb)
-                all_out = all_out + [x for x in res if x.get('id') == outcome and x.get('name') in out]
-
-            return all_out
-
-        return res
+    if not preclumped and clump == 1 and len(res) > 0:
+        found_outcomes = set([x.get('gwas_id') for x in res])
+        res_clumped = []
+        for outcome in found_outcomes:
+            logger.debug("clumping results for " + str(outcome))
+            rsid = [x.get('snp_id') for x in res if x.get('gwas_id') == outcome]
+            p = [x.get('p') for x in res if x.get('gwas_id') == outcome]
+            out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb)
+            res_clumped = res_clumped + [x for x in res if x.get('gwas_id') == outcome and x.get('snp_id') in out]
+        return res_clumped
+    return res
