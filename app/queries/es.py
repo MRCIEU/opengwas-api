@@ -10,35 +10,70 @@ from queries.variants import parse_chrpos
 logger = logging.getLogger('debug-log')
 
 
-def get_assoc(user_email, rsid, id, proxies, r2, align_alleles, palindromes, maf_threshold):
-    if proxies == 0:
+def organise_variants(variants):
+    rsreg = r'^rs\d+$'
+    crreg = r'^\d+:\d+$'
+    cpreg = r'^\d+:\d+-\d+$'
+    out = {
+        'rsid': [x for x in variants if re.match(rsreg, x)],
+        'chrpos': parse_chrpos([x for x in variants if re.match(crreg, x)]),
+        'cprange': parse_chrpos([x for x in variants if re.match(cpreg, x)])
+    }
+    return out
+
+
+def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes, maf_threshold):
+    variants = organise_variants(variants)
+    study_data = get_permitted_studies(user_email, id)
+    id_access = list(study_data.keys())
+
+    rsid = variants['rsid']
+    chrpos = variants['chrpos']
+    cprange = variants['cprange']
+
+    allres = []
+    if len(rsid) > 0:
+        if proxies == 0:
+            logger.debug("not using LD proxies")
+            try:
+                allres += elastic_query_rsid(rsid=rsid, studies=id_access)
+            except Exception as e:
+                logging.error("Could not obtain summary stats: {}".format(e))
+                flask.abort(503, e)
+        else:
+            logger.debug("using LD proxies")
+            try:
+                proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
+                proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
+                proxy_query = elastic_query_rsid(rsid=proxies, studies=id_access)
+                res = []
+                # Need to fix this
+                if proxy_query != '[]':
+                    res = extract_proxies_from_query(id, rsid, proxy_dat, proxy_query, maf_threshold, align_alleles)
+                allres += res
+            except Exception as e:
+                logging.error("Could not obtain summary stats: {}".format(e))
+                flask.abort(503, e)
+
+    if len(chrpos) > 0:
         logger.debug("not using LD proxies")
-
         try:
-            return query_summary_stats(user_email, rsid, id)
+            res = elastic_query_chrpos(chrpos=chrpos, studies=id_access)
+            allres += res
         except Exception as e:
             logging.error("Could not obtain summary stats: {}".format(e))
             flask.abort(503, e)
 
-    else:
-        logger.debug("using LD proxies")
-
+    if len(cprange) > 0:
+        logger.debug("not using LD proxies")
         try:
-            proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
-            proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
-
-            proxy_query = query_summary_stats(user_email, proxies, id)
-
-            res = []
-
-            if proxy_query != '[]':
-                res = extract_proxies_from_query(id, rsid, proxy_dat, proxy_query, maf_threshold, align_alleles)
-
-            return res
-
+            res = elastic_query_cprange(cprange=cprange, studies=id_access)
+            allres += res
         except Exception as e:
             logging.error("Could not obtain summary stats: {}".format(e))
             flask.abort(503, e)
+
+    return allres
 
 
 def get_proxies_es(snps, rsq, palindromes, maf_threshold):
@@ -182,9 +217,9 @@ def match_study_to_index(studies):
     return study_indexes
 
 
-def elastic_query_phewas(rsid, pval):
+def elastic_query_phewas(variant, pval):
     study_indexes = Globals.public_batches
-    res = {}
+    res = []
     for s in study_indexes:
         logger.debug('checking ' + s + ' ...')
         filterData = []
@@ -193,79 +228,78 @@ def elastic_query_phewas(rsid, pval):
         logger.debug('running ES: index: ' + s + ' pval: ' + str(pval))
         start = time.time()
         e = elastic_search(filterData, s)
-        res.update({s: e})
+        r = organise_payload(e, s)
+        res += r
         end = time.time()
         t = round((end - start), 4)
-        numRecords = res[s]['hits']['total']
         logger.debug("Time taken: " + str(t) + " seconds")
-        logger.debug('ES returned ' + str(numRecords) + ' records')
+        logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
 
 
-def elastic_query_chrpos(studies, chrpos, radius=0):
+def organise_payload(res, index):
+    x = [o['_source'] for o in res['hits']['hits']]
+    for i in range(len(x)):
+        x[i]['gwas_id'] = index + '-' + x[i]['gwas_id']
+    return x
+
+
+def elastic_query_chrpos(studies, chrpos):
     study_indexes = match_study_to_index(studies)
-    chrpos = parse_chrpos(chrpos, radius)
-    chrpos_r = [x for x in chrpos if x['start'] != x['end']]
-    chrpos_p = [x for x in chrpos if x['start'] == x['end']]
-    if len(chrpos_p) > 0:
-        chr_p = [x['chr'] for x in chrpos_p]
-    res = {}
+    res = []
     for s in study_indexes:
-        if len(chrpos_p) > 0:
-            for c in chr_p:
+        if len(chrpos) > 0:
+            chrom = [x['chr'] for x in chrpos]
+            for c in chrom:
+                pos = [x['start'] for x in chrpos if x['chr'] == c]
+                logger.debug('checking ' + s + ' ...')
                 filterData = []
                 filterData.append({"terms": {'gwas_id': study_indexes[s]}})
-                filterData.append({"terms": {'chr': c}})
-                pos = [x['position'] for x in chrpos_p if x['chr'] == c]
+                filterData.append({"terms": {'chr': [c]}})
                 filterData.append({"terms": {'position': pos}})
+                logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' chrpos: ' + str(
+                    len(chrpos)) + 'chr: ' + str(c))
                 start = time.time()
                 e = elastic_search(filterData, s)
-                res.update({s: e})
+                r = organise_payload(e, s)
+                res += r
                 end = time.time()
                 t = round((end - start), 4)
-                numRecords = res[s]['hits']['total']
                 logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(numRecords) + ' records')
-        if len(chrpos_r) > 0:
-            for cpr in chrpos_r:
-                filterData = []
-                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
-                filterData.append({"terms": {'chr': cpr['chr']}})
-                filterData.append({"range": {"position": {"gte": cpr['start'], "lte": cpr['end']}}})
-                start = time.time()
-                e = elastic_search(filterData, s)
-                e.update({'query': cpr['orig']})
-                res.update({s: e})
-                end = time.time()
-                t = round((end - start), 4)
-                numRecords = res[s]['hits']['total']
-                logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(numRecords) + ' records')
+                logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
 
 
-def organise_variants(variants, radius=0):
-    rsreg = r'^(rs)'
-    cpreg = r'^(\\d+){1}:(\\d+){1}(-(\\d+){1})?'
-    return out = {
-        'rsid': [x for x in variants if re.match(rsreg, x)],
-        'chrpos': parse_chrpos([x for x in variants if re.match(cpreg, x)], radius)
-    }
-
-
-def elastic_query_rsid(studies, variants, radius=0):
+def elastic_query_cprange(studies, cprange):
     study_indexes = match_study_to_index(studies)
-    variants = organise_variants(variants, radius)
-    if len(variants[chrpos] > 0):
-        chrpos_r = [x for x in chrpos if x['start'] != x['end']]
-        chrpos_p = [x for x in chrpos if x['start'] == x['end']]
-        if len(chrpos_p) > 0:
-            chr_p = [x['chr'] for x in chrpos_p]
-
-    res = {}
+    res = []
     for s in study_indexes:
-        if len(variants[rsid] > 0):
-            rsid = variants[rsid]
+        if len(cprange) > 0:
+            for c in cprange:
+                pos1 = [x['start'] for x in cprange]
+                pos2 = [x['end'] for x in cprange]
+                logger.debug('checking ' + s + ' ...')
+                filterData = []
+                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+                filterData.append({"terms": {'chr': [c['chr']]}})
+                filterData.append({"range": {'position': {'gte': c['start'], 'lte': c['end']}}})
+                logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' chrpos: ' + str(len(cprange)) + 'chr: ' + str(c))
+                start = time.time()
+                e = elastic_search(filterData, s)
+                r = organise_payload(e, s)
+                res += r
+                end = time.time()
+                t = round((end - start), 4)
+                logger.debug("Time taken: " + str(t) + " seconds")
+                logger.debug('ES returned ' + str(len(r)) + ' records')
+    return res
+
+
+def elastic_query_rsid(studies, rsid):
+    study_indexes = match_study_to_index(studies)
+    res = []
+    for s in study_indexes:
+        if len(rsid) > 0:
             logger.debug('checking ' + s + ' ...')
             filterData = []
             filterData.append({"terms": {'gwas_id': study_indexes[s]}})
@@ -274,44 +308,35 @@ def elastic_query_rsid(studies, variants, radius=0):
                 len(rsid)))
             start = time.time()
             e = elastic_search(filterData, s)
-            res.update({s: e})
+            r = organise_payload(e, s)
+            res += r
             end = time.time()
             t = round((end - start), 4)
-            numRecords = res[s]['hits']['total']
             logger.debug("Time taken: " + str(t) + " seconds")
-            logger.debug('ES returned ' + str(numRecords) + ' records')
-        if len(chrpos_p) > 0:
-            for c in chr_p:
-                filterData = []
-                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
-                filterData.append({"terms": {'chr': c}})
-                pos = [x['position'] for x in chrpos_p if x['chr'] == c]
-                filterData.append({"terms": {'position': pos}})
-                start = time.time()
-                e = elastic_search(filterData, s)
-                res.update({s: e})
-                end = time.time()
-                t = round((end - start), 4)
-                numRecords = res[s]['hits']['total']
-                logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(numRecords) + ' records')
-        if len(chrpos_r) > 0:
-            for cpr in chrpos_r:
-                filterData = []
-                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
-                filterData.append({"terms": {'chr': cpr['chr']}})
-                filterData.append({"range": {"position": {"gte": cpr['start'], "lte": cpr['end']}}})
-                start = time.time()
-                e = elastic_search(filterData, s)
-                e.update({'query': cpr['orig']})
-                res.update({s: e})
-                end = time.time()
-                t = round((end - start), 4)
-                numRecords = res[s]['hits']['total']
-                logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(numRecords) + ' records')
+            logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
 
+
+def elastic_query_pval(studies, pval):
+    study_indexes = match_study_to_index(studies)
+    res = []
+    for s in study_indexes:
+        if len(rsid) > 0:
+            logger.debug('checking ' + s + ' ...')
+            filterData = []
+            filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+            filterData.append({"terms": {'snp_id': rsid}})
+            logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' rsid: ' + str(
+                len(rsid)))
+            start = time.time()
+            e = elastic_search(filterData, s)
+            r = organise_payload(e, s)
+            res += r
+            end = time.time()
+            t = round((end - start), 4)
+            logger.debug("Time taken: " + str(t) + " seconds")
+            logger.debug('ES returned ' + str(len(r)) + ' records')
+    return res
 
 def elastic_query_pval(studies, pval, tophits=False):
     study_indexes = match_study_to_index(studies)
@@ -431,7 +456,7 @@ def query_summary_stats(user_email, snps, outcomes):
         # ESRes = elastic_query(snps=snp_data, studies=outcomes_access, pval='')
         ESRes = elastic_query_phewas(rsid=snp_data, pval=1)
     else:
-        ESRes = elastic_query_rsid(rsid=snp_data, studies=outcomes_access)
+        ESRes = elastic_query_rsid(variants=snp_data, studies=outcomes_access)
     logger.debug('ES queries finished')
     es_res = []
     logger.debug(len(ESRes))
@@ -494,11 +519,11 @@ def query_summary_stats(user_email, snps, outcomes):
 
 # logger.debug(json.dumps(es_res[0],indent=4))
 
-def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles):
+def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_threshold, align_alleles, proxies_only=False):
     logger.debug("entering extract_proxies_from_query")
     start = time.time()
     matched_proxies = []
-    proxy_query_copy = [a.get('name') for a in proxy_query]
+    proxy_query_copy = [a.get('snp_id') for a in proxy_query]
     for i in range(len(outcomes)):
         logger.debug("matching proxies to query snps for " + str(outcomes[i]))
         for j in range(len(snps)):
@@ -510,14 +535,14 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                     # logger.info(flag)
                     break
                 for l in range(len(proxy_query)):
-                    if (proxy_query[l].get('name') == proxy_dat[j][k].get('proxies')) and (
-                            str(proxy_query[l].get('id')) == outcomes[i]):
-                        # logger.info(proxy_query[l].get('name'))
+                    if (proxy_query[l].get('snp_id') == proxy_dat[j][k].get('proxies')) and (
+                            str(proxy_query[l].get('gwas_id')) == outcomes[i]):
+                        # logger.info(proxy_query[l].get('snp_id'))
                         y = dict(proxy_query[l])
                         y['target_snp'] = snps[j]
-                        y['proxy_snp'] = proxy_query[l].get('name')
+                        y['proxy_snp'] = proxy_query[l].get('snp_id')
                         # logger.info(y['target_snp']+' : '+y['proxy_snp'])
-                        if (snps[j] == proxy_query[l].get('name')):
+                        if (snps[j] == proxy_query[l].get('snp_id') and not proxies_only):
                             y['proxy'] = False
                             y['target_a1'] = None
                             y['target_a2'] = None
@@ -537,7 +562,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                     y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                     y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
                                     y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-                                    y['name'] = snps[j]
+                                    y['snp_id'] = snps[j]
                                     matched_proxies.append(y.copy())
                                     flag = 1
                                     # print "straight", i, j, k, l
@@ -550,7 +575,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                     y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                     y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
                                     y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-                                    y['name'] = snps[j]
+                                    y['snp_id'] = snps[j]
                                     matched_proxies.append(y.copy())
                                     flag = 1
                                     # print "switch", i, j, k, l
@@ -563,7 +588,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                 y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                 y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
                                 y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-                                y['name'] = snps[j]
+                                y['snp_id'] = snps[j]
                                 matched_proxies.append(dict(y))
                                 flag = 1
                                 # print "unaligned", i, j, k, l

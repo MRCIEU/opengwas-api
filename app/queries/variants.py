@@ -62,10 +62,10 @@ def chrpos_query(chrpos):
                 item.pop('_source')
                 item.update(so)
             hits.append(hit)
-    return {"total":total, "results":hits}
+    return {"total": total, "results": hits}
 
 
-def parse_chrpos(chrpos, radius):
+def parse_chrpos(chrpos, radius=0):
     out = list()
     chrpos2 = [list(map(str, x.split(':'))) for x in chrpos]
     for i in range(len(chrpos)):
