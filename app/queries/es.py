@@ -217,15 +217,14 @@ def match_study_to_index(studies):
     return study_indexes
 
 
-def elastic_query_phewas(rsid, pval, user_email):
+def elastic_query_phewas(rsid, user_email):
     study_indexes = Globals.public_batches
     res = []
     for s in study_indexes:
         logger.debug('checking ' + s + ' ...')
         filterData = []
         filterData.append({"terms": {'snp_id': rsid}})
-        filterData.append({"range": {"p": {"lt": pval}}})
-        logger.debug('running ES: index: ' + s + ' pval: ' + str(pval))
+        logger.debug('running ES: index: ' + s)
         start = time.time()
         e = elastic_search(filterData, s)
         r = organise_payload(e, s)
