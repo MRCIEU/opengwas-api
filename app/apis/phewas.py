@@ -17,7 +17,7 @@ parser1.add_argument(
 @api.doc(
     description="Perform PheWAS of specified variants across all available GWAS datasets",
     params={
-        'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs',
+        'variant': 'Comma-separated list of rs IDs to query from the GWAS IDs',
         'pval': 'P-value threshold. Default = 1e-3'
     }
 )
@@ -29,10 +29,10 @@ class PhewasGet(Resource):
             user_email = get_user_email(request.headers.get('X-Api-Token'))
             out = elastic_query_phewas(
                 variant.split(','),
-                pval,
                 user_email
             )
-            logger.debug('Size after filtering: '+str(len(outFilter)))
+            out = [x for x in out if x['p'] < float(pval)]
+            logger.debug('Size after filtering: '+str(len(out)))
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
@@ -59,9 +59,9 @@ class PhewasPost(Resource):
             user_email = get_user_email(request.headers.get('X-Api-Token'))
             out = elastic_query_phewas(
                 args['variant'],
-                args['pval'],
                 user_email
             )
+            out = [x for x in out if x['p'] < args['pval']]
             logger.debug('Size after filtering: '+str(len(out)))
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
