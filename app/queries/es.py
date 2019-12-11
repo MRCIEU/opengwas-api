@@ -217,7 +217,7 @@ def match_study_to_index(studies):
     return study_indexes
 
 
-def elastic_query_phewas(variant, pval):
+def elastic_query_phewas(rsid, pval, user_email):
     study_indexes = Globals.public_batches
     res = []
     for s in study_indexes:
@@ -234,6 +234,13 @@ def elastic_query_phewas(variant, pval):
         t = round((end - start), 4)
         logger.debug("Time taken: " + str(t) + " seconds")
         logger.debug('ES returned ' + str(len(r)) + ' records')
+
+    # REMOVE DISALLOWED STUDIES
+    foundids = [x['gwas_id'] for x in res]
+    study_data = get_permitted_studies(user_email, foundids)
+    id_access = list(study_data.keys())
+    res = [x for x in res if x['gwas_id'] in id_access]
+
     return res
 
 
@@ -317,7 +324,7 @@ def elastic_query_rsid(studies, rsid):
     return res
 
 
-def elastic_query_pval(studies, pval):
+def elastic_query_pval(studies, pval, tophits=0):
     study_indexes = match_study_to_index(studies)
     res = []
     for s in study_indexes:
