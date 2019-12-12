@@ -17,7 +17,7 @@ parser1.add_argument(
 @api.doc(
     description="Perform PheWAS of specified variants across all available GWAS datasets",
     params={
-        'variant': 'Comma-separated list of rs IDs to query from the GWAS IDs',
+        'variant': 'Comma-separated list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1605,10:44865737,7:105561135-105563135',
         'pval': 'P-value threshold. Default = 1e-3'
     }
 )
@@ -27,12 +27,7 @@ class PhewasGet(Resource):
             abort(404)
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))
-            out = elastic_query_phewas(
-                variant.split(','),
-                user_email
-            )
-            out = [x for x in out if x['p'] < float(pval)]
-            logger.debug('Size after filtering: '+str(len(out)))
+            out = run_phewas(user_email=user_email, variants=variant.split(','), pval=float(pval))
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
@@ -40,7 +35,7 @@ class PhewasGet(Resource):
 
 
 parser2 = reqparse.RequestParser()
-parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="List of rs IDs")
+parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1605,10:44865737,7:105561135-105563135")
 parser2.add_argument('pval', type=float, required=False, default=1e-05, help='P-value threshold')
 parser2.add_argument(
     'X-Api-Token', location='headers', required=False, default='null',
@@ -57,13 +52,46 @@ class PhewasPost(Resource):
         args = parser2.parse_args()
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))
-            out = elastic_query_phewas(
-                args['variant'],
-                user_email
-            )
-            out = [x for x in out if x['p'] < args['pval']]
-            logger.debug('Size after filtering: '+str(len(out)))
+            out = run_phewas(user_email=user_email, variants=args['variant'], pval=args['pval'])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
         return out
+
+
+def run_phewas(user_email, variants, pval):
+    variants = organise_variants(variants)
+
+    rsid = variants['rsid']
+    chrpos = variants['chrpos']
+    cprange = variants['cprange']
+
+    allres = []
+    if len(rsid) > 0:
+        try:
+            res = elastic_query_phewas_rsid(rsid=rsid, user_email=user_email)
+            allres += res
+        except Exception as e:
+            logging.error("Could not obtain summary stats: {}".format(e))
+            flask.abort(503, e)
+
+    if len(chrpos) > 0:
+        try:
+            res = elastic_query_phewas_chrpos(chrpos=chrpos, user_email=user_email)
+            allres += res
+        except Exception as e:
+            logging.error("Could not obtain summary stats: {}".format(e))
+            flask.abort(503, e)
+
+    if len(cprange) > 0:
+        try:
+            res = elastic_query_phewas_cprange(cprange=cprange, user_email=user_email)
+            allres += res
+        except Exception as e:
+            logging.error("Could not obtain summary stats: {}".format(e))
+            flask.abort(503, e)
+
+    logger.debug('Size before filtering: '+str(len(allres)))
+    allres = [x for x in allres if x['p'] < float(pval)]
+    logger.debug('Size after filtering: '+str(len(allres)))
+    return allres
