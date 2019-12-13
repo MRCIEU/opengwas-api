@@ -27,7 +27,7 @@ class Info(Resource):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
         return get_all_gwas_for_user(user_email)
 
-    parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of IDs")
+    parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
@@ -48,7 +48,7 @@ class Info(Resource):
             return recs
 
 
-@api.route('/<gwas_info_id>')
+@api.route('/<id>')
 @api.doc(description="Get metadata about specified GWAS summary datasets")
 class GetId(Resource):
     parser = api.parser()
@@ -58,16 +58,16 @@ class GetId(Resource):
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
-    def get(self, gwas_info_id):
+    def get(self, id):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
 
         try:
             recs = []
-            for uid in gwas_info_id.split(','):
+            for uid in id.split(','):
                 try:
                     recs.append(get_gwas_for_user(user_email, str(uid)))
                 except LookupError:
                     continue
             return recs
         except LookupError:
-            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(gwas_info_id))
+            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))

@@ -48,15 +48,17 @@ def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb):
         return json.dumps([], ensure_ascii=False)
 
     res = elastic_query_pval(studies=outcomes_access, pval=pval, tophits=preclumped)
+    for i in range(len(res)):
+        res[i]['id'] = res[i]['id'].replace('tophits-', '')
 
     if not preclumped and clump == 1 and len(res) > 0:
-        found_outcomes = set([x.get('gwas_id') for x in res])
+        found_outcomes = set([x.get('id') for x in res])
         res_clumped = []
         for outcome in found_outcomes:
             logger.debug("clumping results for " + str(outcome))
-            rsid = [x.get('snp_id') for x in res if x.get('gwas_id') == outcome]
-            p = [x.get('p') for x in res if x.get('gwas_id') == outcome]
+            rsid = [x.get('rsid') for x in res if x.get('id') == outcome]
+            p = [x.get('p') for x in res if x.get('id') == outcome]
             out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb)
-            res_clumped = res_clumped + [x for x in res if x.get('gwas_id') == outcome and x.get('snp_id') in out]
+            res_clumped = res_clumped + [x for x in res if x.get('id') == outcome and x.get('rsid') in out]
         return res_clumped
     return res

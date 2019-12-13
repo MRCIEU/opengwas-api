@@ -9,6 +9,7 @@ import logging
 from resources.neo4j import Neo4j
 from marshmallow import ValidationError
 import argparse
+import time
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
@@ -22,6 +23,7 @@ args = parser.parse_args()
 
 
 def batch_add_nodes(nodes, label):
+    time.sleep(1)
     logging.info("importing: {} n={}".format(label, len(nodes)))
     tx = Neo4j.get_db()
     tx.run("UNWIND $props AS map "
@@ -30,6 +32,7 @@ def batch_add_nodes(nodes, label):
 
 
 def batch_add_rel(records):
+    time.sleep(1)
     logging.info("importing: n={}".format(len(records)))
     tx = Neo4j.get_db()
     tx.run("UNWIND $props AS map "
@@ -302,7 +305,7 @@ with app.app_context():
         groups.add(gid_to_name[it])
     add_new_user('ml18692@bristol.ac.uk', groups)
     add_new_user('be15516@bristol.ac.uk', groups)
-    add_new_user('gh13047@bristol.ac.uk', groups)
+    add_new_user('explodecomputer@gmail.com', groups)
     add_new_user('eptrg@bristol.ac.uk', groups)
 
     # set all gwas as QC passed
