@@ -18,7 +18,7 @@ parser1.add_argument(
     description="Get specific variant associations for specifc GWAS datasets",
     params={
         'id': 'An ID or comma-separated list of GWAS dataset IDs',
-        'variant': 'Comma-separated list of rs IDs or chr:position to query from the GWAS IDs. hg19/build37 chr:position can be single position or a range e.g rs1605,10:44865737,7:105561135-105563135'
+        'variant': 'Comma-separated list of rs IDs or chr:position to query from the GWAS IDs. hg19/build37 chr:position can be single position or a range e.g rs1205,10:44865737,7:105561135-105563135'
     }
 )
 class AssocGet(Resource):
@@ -37,7 +37,7 @@ class AssocGet(Resource):
 
 
 parser2 = reqparse.RequestParser()
-parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="List of variants as rsid or chr:pos or chr:pos1-pos2 where positions are in hg19/b37 e.g. ['rs1205', '10:44865737', '7:105561135-105563135']")
+parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="List of variants as rsid or chr:pos or chr:pos1-pos2 where positions are in hg19/b37 e.g. ['rs1205', '7:105561135', '7:105561135-105563135']")
 parser2.add_argument('id', required=False, type=str, action='append', default=[], help="list of GWAS study IDs")
 parser2.add_argument('proxies', type=int, required=False, default=0, help="Whether to look for proxies (1) or not (0). Note that proxies won't be looked for range queries")
 parser2.add_argument('r2', type=float, required=False, default=0.8, help="Minimum LD r2 for a proxy")

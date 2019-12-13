@@ -25,7 +25,8 @@ def organise_variants(variants):
 def organise_payload(res, index):
     x = [o['_source'] for o in res['hits']['hits']]
     for i in range(len(x)):
-        x[i]['gwas_id'] = index + '-' + x[i]['gwas_id']
+        x[i]['id'] = index + '-' + x[i].pop('gwas_id')
+        x[i]['rsid'] = x[i].pop('snp_id')
     return x
 
 
@@ -134,10 +135,10 @@ def elastic_query_phewas_rsid(rsid, user_email):
         logger.debug("Time taken: " + str(t) + " seconds")
         logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
-    foundids = [x['gwas_id'] for x in res]
+    foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
-    res = [x for x in res if x['gwas_id'] in id_access]
+    res = [x for x in res if x['id'] in id_access]
     return res
 
 
@@ -163,10 +164,10 @@ def elastic_query_phewas_chrpos(chrpos, user_email):
                 logger.debug("Time taken: " + str(t) + " seconds")
                 logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
-    foundids = [x['gwas_id'] for x in res]
+    foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
-    res = [x for x in res if x['gwas_id'] in id_access]
+    res = [x for x in res if x['id'] in id_access]
     return res
 
 
@@ -190,10 +191,10 @@ def elastic_query_phewas_cprange(cprange, user_email):
                 logger.debug("Time taken: " + str(t) + " seconds")
                 logger.debug('ES returned ' + str(len(e)) + ' records')
     # REMOVE DISALLOWED STUDIES
-    foundids = [x['gwas_id'] for x in res]
+    foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
-    res = [x for x in res if x['gwas_id'] in id_access]
+    res = [x for x in res if x['id'] in id_access]
     return res
 
 
@@ -404,7 +405,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
     logger.debug("entering extract_proxies_from_query")
     start = time.time()
     matched_proxies = []
-    proxy_query_copy = [a.get('snp_id') for a in proxy_query]
+    proxy_query_copy = [a.get('rsid') for a in proxy_query]
     for i in range(len(outcomes)):
         logger.debug("matching proxies to query snps for " + str(outcomes[i]))
         for j in range(len(snps)):
@@ -416,14 +417,14 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                     # logger.info(flag)
                     break
                 for l in range(len(proxy_query)):
-                    if (proxy_query[l].get('snp_id') == proxy_dat[j][k].get('proxies')) and (
-                            str(proxy_query[l].get('gwas_id')) == outcomes[i]):
-                        # logger.info(proxy_query[l].get('snp_id'))
+                    if (proxy_query[l].get('rsid') == proxy_dat[j][k].get('proxies')) and (
+                            str(proxy_query[l].get('id')) == outcomes[i]):
+                        # logger.info(proxy_query[l].get('rsid'))
                         y = dict(proxy_query[l])
                         y['target_snp'] = snps[j]
-                        y['proxy_snp'] = proxy_query[l].get('snp_id')
+                        y['proxy_snp'] = proxy_query[l].get('rsid')
                         # logger.info(y['target_snp']+' : '+y['proxy_snp'])
-                        if (snps[j] == proxy_query[l].get('snp_id') and not proxies_only):
+                        if (snps[j] == proxy_query[l].get('rsid') and not proxies_only):
                             y['proxy'] = False
                             y['target_a1'] = None
                             y['target_a2'] = None
@@ -443,7 +444,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                     y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                     y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
                                     y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-                                    y['snp_id'] = snps[j]
+                                    y['rsid'] = snps[j]
                                     matched_proxies.append(y.copy())
                                     flag = 1
                                     # print "straight", i, j, k, l
@@ -456,7 +457,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                     y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                     y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
                                     y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-                                    y['snp_id'] = snps[j]
+                                    y['rsid'] = snps[j]
                                     matched_proxies.append(y.copy())
                                     flag = 1
                                     # print "switch", i, j, k, l
@@ -469,7 +470,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                 y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                 y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
                                 y['proxy_a2'] = proxy_dat[j][k].get('pallele2')
-                                y['snp_id'] = snps[j]
+                                y['rsid'] = snps[j]
                                 matched_proxies.append(dict(y))
                                 flag = 1
                                 # print "unaligned", i, j, k, l
