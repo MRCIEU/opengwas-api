@@ -27,7 +27,15 @@ def organise_payload(res, index):
     for i in range(len(x)):
         x[i]['id'] = index + '-' + x[i].pop('gwas_id')
         x[i]['rsid'] = x[i].pop('snp_id')
+        x[i]['ea'] = x[i].pop('effect_allele')
+        x[i]['nea'] = x[i].pop('other_allele')
+        x[i]['eaf'] = x[i].pop('effect_allele_freq')
     return x
+
+def add_trait_to_result(res, study_data):
+    for i in range(len(res)):
+        res[i]['trait'] = study_data[res[i]['id']]['trait']
+    return res
 
 
 def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes, maf_threshold):
@@ -81,6 +89,7 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
             logging.error("Could not obtain summary stats: {}".format(e))
             flask.abort(503, e)
 
+    allres = add_trait_to_result(allres, study_data)
     return allres
 
 
@@ -139,6 +148,7 @@ def elastic_query_phewas_rsid(rsid, user_email):
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
     res = [x for x in res if x['id'] in id_access]
+    res = add_trait_to_result(res, study_data)
     return res
 
 
@@ -168,6 +178,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email):
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
     res = [x for x in res if x['id'] in id_access]
+    res = add_trait_to_result(res, study_data)
     return res
 
 
@@ -195,6 +206,7 @@ def elastic_query_phewas_cprange(cprange, user_email):
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
     res = [x for x in res if x['id'] in id_access]
+    res = add_trait_to_result(res, study_data)
     return res
 
 
