@@ -17,7 +17,7 @@ parser1.add_argument(
 @api.doc(
     description="Perform PheWAS of specified variants across all available GWAS datasets",
     params={
-        'variant': 'Comma-separated list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1605,10:44865737,7:105561135-105563135',
+        'variant': 'Comma-separated list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135',
         'pval': 'P-value threshold. Default = 1e-3'
     }
 )
@@ -35,7 +35,7 @@ class PhewasGet(Resource):
 
 
 parser2 = reqparse.RequestParser()
-parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1605,10:44865737,7:105561135-105563135")
+parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135")
 parser2.add_argument('pval', type=float, required=False, default=1e-05, help='P-value threshold')
 parser2.add_argument(
     'X-Api-Token', location='headers', required=False, default='null',

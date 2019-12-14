@@ -41,7 +41,8 @@ def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb):
     outcomes = ",".join(["'" + x + "'" for x in id])
     outcomes_clean = outcomes.replace("'", "")
     logger.debug('searching ' + outcomes_clean)
-    outcomes_access = list(get_permitted_studies(user_email, id).keys())
+    study_data = get_permitted_studies(user_email, id)
+    outcomes_access = list(study_data.keys())
     logger.debug(str(outcomes_access))
     if len(outcomes_access) == 0:
         logger.debug('No outcomes left after permissions check')
@@ -61,4 +62,5 @@ def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb):
             out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb)
             res_clumped = res_clumped + [x for x in res if x.get('id') == outcome and x.get('rsid') in out]
         return res_clumped
+    res = add_trait_to_result(res, study_data)
     return res
