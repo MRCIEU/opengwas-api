@@ -157,7 +157,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email):
     res = []
     for s in study_indexes:
         if len(chrpos) > 0:
-            chrom = [x['chr'] for x in chrpos]
+            chrom = list(set([x['chr'] for x in chrpos]))
             for c in chrom:
                 pos = [x['start'] for x in chrpos if x['chr'] == c]
                 logger.debug('checking ' + s + ' ...')
@@ -215,7 +215,7 @@ def elastic_query_chrpos(studies, chrpos):
     res = []
     for s in study_indexes:
         if len(chrpos) > 0:
-            chrom = [x['chr'] for x in chrpos]
+            chrom = list(set([x['chr'] for x in chrpos]))
             for c in chrom:
                 pos = [x['start'] for x in chrpos if x['chr'] == c]
                 logger.debug('checking ' + s + ' ...')
