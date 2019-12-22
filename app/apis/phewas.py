@@ -69,7 +69,7 @@ def run_phewas(user_email, variants, pval):
     allres = []
     if len(rsid) > 0:
         try:
-            res = elastic_query_phewas_rsid(rsid=rsid, user_email=user_email)
+            res = elastic_query_phewas_rsid(rsid=rsid, user_email=user_email, pval=pval)
             allres += res
         except Exception as e:
             logging.error("Could not obtain summary stats: {}".format(e))
@@ -77,7 +77,7 @@ def run_phewas(user_email, variants, pval):
 
     if len(chrpos) > 0:
         try:
-            res = elastic_query_phewas_chrpos(chrpos=chrpos, user_email=user_email)
+            res = elastic_query_phewas_chrpos(chrpos=chrpos, user_email=user_email, pval=pval)
             allres += res
         except Exception as e:
             logging.error("Could not obtain summary stats: {}".format(e))
@@ -85,13 +85,13 @@ def run_phewas(user_email, variants, pval):
 
     if len(cprange) > 0:
         try:
-            res = elastic_query_phewas_cprange(cprange=cprange, user_email=user_email)
+            res = elastic_query_phewas_cprange(cprange=cprange, user_email=user_email, pval=pval)
             allres += res
         except Exception as e:
             logging.error("Could not obtain summary stats: {}".format(e))
             flask.abort(503, e)
 
     logger.debug('Size before filtering: '+str(len(allres)))
-    allres = [x for x in allres if x['p'] < float(pval)]
+    # allres = [x for x in allres if x['p'] < float(pval)]
     logger.debug('Size after filtering: '+str(len(allres)))
     return allres

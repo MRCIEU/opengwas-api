@@ -127,13 +127,15 @@ def match_study_to_index(studies):
     return study_indexes
 
 
-def elastic_query_phewas_rsid(rsid, user_email):
+def elastic_query_phewas_rsid(rsid, user_email, pval):
     study_indexes = Globals.public_batches
     res = []
     for s in study_indexes:
+        print(s)
         logger.debug('checking ' + s + ' ...')
         filterData = []
         filterData.append({"terms": {'snp_id': rsid}})
+        filterData.append({"range": {"p": {"lt": pval}}})
         logger.debug('running ES: index: ' + s)
         start = time.time()
         e = elastic_search(filterData, s)
@@ -152,10 +154,11 @@ def elastic_query_phewas_rsid(rsid, user_email):
     return res
 
 
-def elastic_query_phewas_chrpos(chrpos, user_email):
+def elastic_query_phewas_chrpos(chrpos, user_email, pval):
     study_indexes = Globals.public_batches
     res = []
     for s in study_indexes:
+        print(s)
         if len(chrpos) > 0:
             chrom = list(set([x['chr'] for x in chrpos]))
             for c in chrom:
@@ -164,6 +167,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email):
                 filterData = []
                 filterData.append({"terms": {'chr': [c]}})
                 filterData.append({"terms": {'position': pos}})
+                filterData.append({"range": {"p": {"lt": pval}}})
                 logger.debug('running ES: index: ' + s)
                 start = time.time()
                 e = elastic_search(filterData, s)
@@ -182,16 +186,18 @@ def elastic_query_phewas_chrpos(chrpos, user_email):
     return res
 
 
-def elastic_query_phewas_cprange(cprange, user_email):
+def elastic_query_phewas_cprange(cprange, user_email, pval):
     study_indexes = Globals.public_batches
     res = []
     for s in study_indexes:
+        print(s)
         if len(cprange) > 0:
             for c in cprange:
                 logger.debug('checking ' + s + ' ...')
                 filterData = []
                 filterData.append({"terms": {'chr': [c['chr']]}})
                 filterData.append({"range": {'position': {'gte': c['start'], 'lte': c['end']}}})
+                filterData.append({"range": {"p": {"lt": pval}}})
                 logger.debug('running ES: index: ' + s)
                 start = time.time()
                 e = elastic_search(filterData, s)
