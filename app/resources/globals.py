@@ -39,6 +39,7 @@ class Globals:
     UPLOAD_FOLDER = app_config['directories']['upload']
     LOG_FILE = os.path.join(app_config['directories']['logs'], 'mrbaseapi.log')
     LOG_FILE_DEBUG = os.path.join(app_config['directories']['logs'], 'mrbaseapi-debug.log')
+    STATIC_GWASINFO = os.path.join(app_config['directories']['upload'], 'gwasinfo.json')
 
     OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
