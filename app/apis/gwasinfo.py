@@ -1,11 +1,13 @@
 from flask_restplus import Resource, Namespace
-from flask import request
+from flask import request, send_file
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 from werkzeug.exceptions import BadRequest
 from resources.auth import get_user_email
 import logging
 from resources.globals import Globals
+import os
+import json
 
 logger = logging.getLogger('debug-log')
 
@@ -25,7 +27,13 @@ class Info(Resource):
     @api.doc(model=gwas_info_model)
     def get(self):
         user_email = get_user_email(request.headers.get('X-Api-Token'))
-        return get_all_gwas_for_user(user_email)
+        if user_email is None and os.path.exists(Globals.STATIC_GWASINFO):
+            # with open(Globals.STATIC_GWASINFO, "r") as f:
+            #     a = json.load(f)
+            # return a
+            return send_file(Globals.STATIC_GWASINFO)
+        else:
+            return get_all_gwas_for_user(user_email)
 
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
 

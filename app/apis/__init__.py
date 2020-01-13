@@ -2,6 +2,7 @@ from flask_restplus import Api
 
 from .status import api as status
 from .gwasinfo import api as gwasinfo
+from .gicache import api as gicache
 from .assoc import api as assoc
 from .phewas import api as phewas
 from .tophits import api as tophits
@@ -30,3 +31,4 @@ api.add_namespace(batches)
 if Globals.app_config['access'] == 'private':
     api.add_namespace(quality_control)
     api.add_namespace(edit)
+    api.add_namespace(gicache)
