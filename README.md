@@ -192,3 +192,24 @@ python map_from_csv.py \
 --permissions_e /tmp/permissions_e.tsv \
 --memberships /tmp/memberships.tsv
 ```
+
+Alternatively (this is the latest method), import the data via the [igd-metadata](https://ieugit-scmv-d0.epi.bris.ac.uk/gh13047/igd-metadata) gitlab repo
+
+```
+cd app
+git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-metadata.git
+
+# copy CSV files into production container
+docker cp igd-metadata/data/study_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/groups.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/permissions_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/memberships.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+
+# import data to graph
+docker exec -it mr-base-api_mr-base-api-v3-private_1 \
+python map_from_csv.py \
+--study /tmp/study_e.tsv \
+--groups /tmp/data/groups.tsv \
+--permissions_e /tmp/permissions_e.tsv \
+--memberships /tmp/memberships.tsv
+```
