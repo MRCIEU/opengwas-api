@@ -166,3 +166,29 @@ docker-compose -p mr-base-api-v3-test -f ./docker-compose-test.yml up -d
 Rscript -e "write.table(TwoSampleMR::get_mrbase_access_token(), file='token.temp', row=F, col=F, qu=F)"
 bash test.sh
 ```
+
+### Rebuild Neo4j database
+
+**Caution this will erase the current Neo4j database and rebuild from MySQL CSV files. This is not part of routine deployment.**
+
+```
+# dump MySQL data to CSV
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from study_e" mrbase | sed 's/\\n//g' > study_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from groups" mrbase | sed 's/\\n//g' > groups.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from permissions_e" mrbase | sed 's/\\n//g' > permissions_e.tsv
+mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from memberships" mrbase | sed 's/\\n//g' > memberships.tsv
+
+# copy CSV files into production container
+docker cp study_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp groups.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp permissions_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp memberships.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+
+# import data to graph
+docker exec -it mr-base-api_mr-base-api-v3-private_1 \
+python map_from_csv.py \
+--study /tmp/study_e.tsv \
+--groups /tmp/data/groups.tsv \
+--permissions_e /tmp/permissions_e.tsv \
+--memberships /tmp/memberships.tsv
+```
