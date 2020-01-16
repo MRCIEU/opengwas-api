@@ -1,10 +1,14 @@
-# Local
+# API for IEU GWAS database
+
+Recently moved from https://github.com/MRCIEU/mr-base-api
+
+## Local development
 
 Requires [Docker](https://docs.docker.com/install) install on host machine
 
 ### Clone repo
 ```
-git clone git@github.com:MRCIEU/mr-base-api.git
+git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-api.git
 cd mr-base-api
 ```
 
@@ -119,11 +123,11 @@ pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url http://apitest.mrbase.
 ```
 
 
-# Production
+## Production
 
 ### Clone repo
 ```
-git clone git@github.com:MRCIEU/mr-base-api.git
+git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-api.git
 cd mr-base-api
 git fetch
 ```
