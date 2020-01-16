@@ -1,0 +1,60 @@
+{
+  "local": {
+    "flask": {
+      "port": 8019
+    },
+    "es": {
+      "host": "localhost",
+      "port": 9200
+    },
+    "neo4j": {
+      "user": "neo4j",
+      "passwd": "dT9ymYwBsrzd",
+      "host": "localhost",
+      "port": 7687
+    },
+    "email": {
+      "CLIENT_ID": "",
+      "CLIENT_SECRET": "",
+      "SHARED_MAILBOX": ""
+    },
+    "directories": {
+      "upload": "data/igd",
+      "logs": "data/mrb_logs",
+      "tmp": "tmp"
+    },
+    "cromwell": {
+      "host": "ieu-db-interface.epi.bris.ac.uk",
+      "port": 8001
+    }
+  },
+  "production": {
+    "flask": {
+      "port": 80
+    },
+    "es": {
+      "host": "140.238.83.192",
+      "port": 9200
+    },
+    "neo4j": {
+      "user": "neo4j",
+      "passwd": "dT9ymYwBsrzd",
+      "host": "mrb-neo4j",
+      "port": 7687
+    },
+    "email": {
+      "CLIENT_ID": "",
+      "CLIENT_SECRET": "",
+      "SHARED_MAILBOX": ""
+    },
+    "directories": {
+      "upload": "/data/igd",
+      "logs": "/data/mrb_logs",
+      "tmp": "/data/tmp"
+    },
+    "cromwell": {
+      "host": "mr-base-api-cromwell",
+      "port": 8000
+    }
+  }
+}

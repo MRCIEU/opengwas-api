@@ -1,29 +1,83 @@
-version: '2'
+version: '3'
 services:
- #elasticsearch interface
-   db:
-    image: elasticsearch:6.2.4
+
+  mrb-neo4j:
+    image: neo4j:3.5
     restart: always
-    #comment out ports to lock down neo4j
     ports:
-     - "19200:9200"
-     - "19300:9300"
+    - "37474:7474"
+    - "37687:7687"
+    - "37473:7473"
+    volumes:
+    - /data/mrb_neo4j_v3/data:/data
+    - /data/mrb_neo4j_v3/logs:/logs
+    - /etc/timezone:/etc/timezone:ro
     environment:
-     - node.data=false
-     - cluster.name=mr-base
-     #- xpack.security.enabled=false
-     - ELASTIC_PASSWORD=mrbase
-     - node.master=false
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
- #api
-   api:
-     build: .
-     restart: always
-     ports:
-       - "8000:80"
-     depends_on:
-       - db
-     tty: true
+      - NEO4J_AUTH=neo4j/dT9ymYwBsrzd
+      - NEO4J_dbms_memory_heap_max__size=10G
+      - NEO4J_dbms_memory_heap_initial__size=5G
+      - NEO4J_dbms_memory_pagecache_size=10G
+      - NEO4J_dbms_shell_enabled=true
+      - NEO4J_dbms_allow__upgrade=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+
+  mr-base-api-v3-public:
+    image: mr-base-api-v3:latest
+    restart: always
+    ports:
+    - "8084:80"
+    volumes:
+    - /data/igd:/data/igd
+    - /data/mrb_logs_pub:/data/mrb_logs
+    - /etc/timezone:/etc/timezone:ro
+    - /data/ref/ld_files:/app/ld_files
+    environment:
+      - NGINX_MAX_UPLOAD=750m
+      - UWSGI_PROCESSES=20
+      - UWSGI_THREADS=2
+      - ENV=production
+      - ACCESS=public
+    depends_on:
+      - mrb-neo4j
+      - mr-base-api-cromwell
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+  
+  mr-base-api-v3-private:
+    image: mr-base-api-v3:latest
+    restart: always
+    ports:
+    - "8082:80"
+    volumes:
+    - /data/igd:/data/igd
+    - /data/mrb_logs_priv:/data/mrb_logs
+    - /etc/timezone:/etc/timezone:ro
+    - /data/ref/ld_files:/app/ld_files
+    environment:
+      - NGINX_MAX_UPLOAD=750m
+      - UWSGI_PROCESSES=20
+      - UWSGI_THREADS=2
+      - ENV=production
+      - ACCESS=private
+    depends_on:
+      - mrb-neo4j
+      - mr-base-api-cromwell
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+
+  mr-base-api-cromwell:
+    build: ./app/resources/workflow
+    restart: always
+    environment:
+      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=12 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs
+    ports:
+    - "8001:8000"
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /data:/data
+    - /etc/timezone:/etc/timezone:ro
+    - /data/ref/ld_files:/data/ld_files
+    command: ["server"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]

@@ -1,8 +1,0 @@
-{
-        "user": "mrbaseapp",
-        "passwd": "M1st3rbase!",
-        "host": "database",
-        "port":3306,
-        "db": "mrbase",
-	"protocol":"tcp"
-}

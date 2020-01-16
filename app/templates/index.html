@@ -1,0 +1,193 @@
+<!doctype html>
+<head>
+  <title>IEU GWAS database API</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="{{ url_for('static', filename='img/favicon/apple-icon-57x57.png') }}">
+    <link rel="apple-touch-icon" sizes="60x60" href="{{ url_for('static', filename='img/favicon/apple-icon-60x60.png') }}">
+    <link rel="apple-touch-icon" sizes="72x72" href="{{ url_for('static', filename='img/favicon/apple-icon-72x72.png') }}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='img/favicon/apple-icon-76x76.png') }}">
+    <link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='img/favicon/apple-icon-114x114.png') }}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='img/favicon/apple-icon-120x120.png') }}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='img/favicon/apple-icon-144x144.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='img/favicon/apple-icon-152x152.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/favicon/apple-icon-180x180.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192"  href="{{ url_for('static', filename='img/favicon/android-icon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='img/favicon/favicon-96x96.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='img/favicon/manifest.json') }}">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.css"
+      media="screen"
+      charset="utf-8"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script>
+
+</head>
+
+
+<body data-spy="scroll" data-target="#toc" style="background-color: #EEE2DC;">
+
+
+<header>
+  <nav class="navbar"></nav>
+</header>
+
+
+<main>
+
+  <div class="container">
+
+        <h1 style="margin: 50px 20px 50px 20px;"><img src="{{ url_for('static', filename='img/logo/igd-neg.svg') }}" height="90px"> ieu gwas database <span class="badge badge-info">api</span></h1>
+
+    <div class="row">
+
+      <div class="col-md-3">
+        <nav id="toc" data-toggle="toc"  class="sticky-top"></nav>
+      </div>
+
+
+      <div class="col-md-9">
+
+
+
+        <section id="heading">
+            <h3>Status</h3>
+          <div class="jumbotron" style=" background-color: #EEE2DC; border-left: 2px black solid; border-radius: 0px; padding: 20px;">
+            <div class="row">
+              <div class="col-md-6">
+
+               <ul class="list-group" style="list-style: none;">
+                  <li class=" "><span class="badge badge-success">{{ status['API version'] }}</span> Version</li>
+                  <li class=" "><span class="badge badge-success">{{ status['Access'] }}</span> Access level</li>
+                </ul>
+                <p>
+                  {% if elastic_counts %}
+                  <span class="badge badge-success">{{ "{:,}".format(elastic_counts) }}</span> genetic associations<br/>
+                  {% endif %}
+                  {% if neo4j_counts %}
+                  <span class="badge badge-success">{{ "{:,}".format(neo4j_counts) }}</span> GWAS summary datasets.
+                  {% endif %}
+                </p>
+
+              </div>
+
+              <div class="col-md-6">
+
+                <ul class="list-group" style="list-style: none;">
+                  <li class=" "><span class="badge badge-success">{{ status['Neo4j status'] }}</span> Neo4j status</li>
+                  <li class=" "><span class="badge badge-success">{{ status['ElasticSearch status'] }}</span> ElasticSearch status</li>
+                  <li class=" "><span class="badge badge-success">{{ status['LD reference panel'] }}</span> LD reference panel</li>
+                  <li class=" "><span class="badge badge-success">{{ status['PLINK executable'] }}</span> PLINK executable</li>
+                  <li class=" "><span class="badge badge-success">{{ status['Cromwell'] }}</span> Cromwell</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+            <div class="row">
+              <div class="col-md-12">
+
+                <p class="lead text-left">
+                  <a class="btn btn-warning btn-lg" href="http://gwas-api.mrcieu.ac.uk/docs/" role="button"><span class="glyphicon glyphicon-star"></span>Documentation</a>
+                  {% if status['Access'] == 'private' %}
+                  <a class="btn btn-warning btn-lg" href="https://github.com/mrcieu/mr-base-api/wiki" role="button">Upload instructions</a>
+                  {% endif %}
+                  <a class="btn btn-secondary btn-lg" href="https://gwas.mrcieu.ac.uk" role="button">GWAS home page</a>
+                </p>
+              </div>
+            </div>
+        </section>
+        <hr class='my-4'>
+
+        <section id="usage">
+          <h3>Overview</h3>
+          <p>This is a <abbr title="Representational state transfer application programming interface">REST</abbr>ful <abbr title="Application programming interface">API</abbr> for programmatic access to the <abbr title="MRC Integrative Epidemiology Unit">IEU</abbr> <abbr title="Genome wide association study">GWAS</abbr> database. The API is designed to support the following operations:</p> 
+
+            <ul>
+                <li>Make available study information about all the GWAS datasets in the database</li>
+                <li>Obtain the top hits from a GWAS, with optional automatic clumping.</li>
+                <li>Find any set of variant-trait associations based on rsid or chromosome:position.</li>
+                <li>Automatically find <abbr title="linkage disequilibrium">LD</abbr> proxies if a variant is missing from a GWAS database.</li>
+                <li>Calculate LD matrices across a set of variants.</li>
+                <li>Phenome-wide association study (PheWAS) - Perform fast lookups of a particular variant across all datasets.</li>
+                <li>Get <a href="https://www.ncbi.nlm.nih.gov/snp/" target="_blank">dbSNP</a> information and annotations on a set of variants.</li>
+            </ul>
+
+          <p>The API can be used directly in applications, or accessed through convenient packages in R and python. More information on those below. The <a href="https://github.com/MRCIEU/TwoSampleMR">TwoSampleMR</a> R package, and <a href="http://www.mrbase.org/">MR-Base</a> web apps both use this API in order to automatically perform Mendelian randomization for causal inference. The <a href="https://mrcieu.github.io/gwasglue/">gwasglue</a> R package aims to extend the use of these data to further types of statistical methods. The <a href="http://ldsc.broadinstitute.org/ldhub/">LD Hub</a> platform also uses the data underlying this database.</p>
+
+        </section>
+        <hr class='my-4'>
+
+
+        <section id="authenticatione">
+
+          <h3>Authentication</h3>
+          <p>The <a href="http://gwas-api.mrcieu.ac.uk/docs/">documentation</a> provides a list of endpoints, the parameters they require, descriptions of the data that is returned, and an interactive way to try out each of the endpoints.</p>
+          <p>The database of GWAS summary data mostly contains public data, however there are some 'private' datasets, which can only be accessed by authorised users. Authentication is managed using <a href="https://developers.google.com/identity/protocols/OAuth2WebServer">Google OAuth 2.0</a>. In order to authenticate, you will need to generate a 'token' for each session in which private access is required.</p>
+          <p>The simplest way to obtain an authentication token is to use a browser to authenticate with your gmail account at <a href="https://accounts.google.com/o/oauth2/auth?client_id=906514199468-m9thhcept50gu26ng494376iipt125d6.apps.googleusercontent.com&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/userinfo.email&response_type=code">this link</a>.</p>
+          <p>The access token can also be obtained using the <code>ieugwasr::get_access_token()</code> function, more information about that <a href="https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication">here</a>.
+
+          </p>
+        </section>
+        <hr class='my-4'>
+
+        <section id="tools">
+          <h3>Related tools</h3>
+          <p>For ease of use we have developed two packages which are solely designed to create easy interfaces to the API endpoints:</p>
+          <ul>
+            <li>The ieugwasr R package <a href="https://mrcieu.github.io/ieugwasr">[link]</a></li>
+            <li>The ieugwaspy python package <a href="https://github.com/mrcieu/ieugwaspy">[link]</a></li>
+          </ul>
+          <p>The following packages also connect to these data:</p>
+          <ul>
+            <li>The TwoSampleMR R package automatically performs Mendelian randomization on the data accessed through the API <a href="https://github.com/mrcieu/TwoSampleMR">[link]</a></li> 
+            <li>The gwasglue R packages connects the data to several other analytical tools related to e.g. colocalisation, fine mapping, etc <a href="https://mrcieu.github.io/gwasglue/">[link]</a></li>
+            <li>The <a href="https://gwas.mrcieu.ac.uk">https://gwas.mrcieu.ac.uk</a> page provides an interactive way to browse through the available datasets.</li>
+            <li>The MR-Base web app uses the underlying data for basic interactive <a href="http://www.mrbase.org">[link]</a></li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+
+        <hr class='my-4'>
+
+
+<footer>
+
+</footer>
+
+
+</body>
+
+</html>
+
