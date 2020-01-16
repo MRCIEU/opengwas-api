@@ -1,0 +1,45 @@
+version: '3'
+services:
+
+  mrb-neo4j:
+    image: neo4j:3.5
+    volumes:
+    - /etc/timezone:/etc/timezone:ro
+    environment:
+      - NEO4J_AUTH=neo4j/dT9ymYwBsrzd
+      - NEO4J_dbms_memory_heap_max__size=10G
+      - NEO4J_dbms_memory_heap_initial__size=5G
+      - NEO4J_dbms_memory_pagecache_size=10G
+      - NEO4J_dbms_shell_enabled=true
+      - NEO4J_dbms_allow__upgrade=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+
+  mr-base-api-v3-test:
+    container_name: mr-base-api-v3-test
+    image: mr-base-api-v3:latest
+    volumes:
+    - /etc/timezone:/etc/timezone:ro
+    - /tmp:/app/populate_db/data:ro
+    environment:
+      - NGINX_MAX_UPLOAD=750m
+      - UWSGI_PROCESSES=20
+      - UWSGI_THREADS=2
+      - ENV=production
+      - ACCESS=private
+      - FLASK_ENV=development
+    depends_on:
+      - mrb-neo4j
+      - mr-base-api-cromwell
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+
+  mr-base-api-cromwell:
+    build: ./app/resources/workflow
+    environment:
+      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+    command: ["server"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
