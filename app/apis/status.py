@@ -4,6 +4,7 @@ from resources.neo4j import Neo4j
 from resources.cromwell import Cromwell
 import requests
 import os
+import json
 
 api = Namespace('status', description="Status of API and linked resources")
 
@@ -32,7 +33,8 @@ def check_all():
         'PLINK executable': check_plink(),
         'Cromwell': cromwell_status,
         'Total associations': count_elastic_records(),
-        'Total complete datasets': count_neo4j_datasets()
+        'Total complete datasets': count_neo4j_datasets(),
+        'Total public datasets': count_cache_datasets()
         # 'API queries this month': count_elastic_calls()
     }
     return out
@@ -61,7 +63,6 @@ def count_elastic_records():
     except Exception as e:
         return None
 
-
 # TODO: This doesn't work
 # curl -XPOST 'localhost:9200/logstash*/_search' -H 'Content-Type: application/json' -d '{"_source":"/var/www/api/mr-base-api/app/logs/mrbaseapi.log","size":0, "query": { "bool": {"filter": { "range": { "@timestamp": {"gte": "now-30d", "lte": "now"}}}}}, "aggs" : {"api-calls" : {"date_histogram" : {"field" : "@timestamp","interval" : "day"}}}}' | jq '.aggregations."api-calls".buckets'
 def count_elastic_calls(epoch='30d'):
@@ -83,6 +84,13 @@ def count_neo4j_datasets():
     except Exception as e:
         return None
 
+def count_cache_datasets():
+    try:
+        with open(Globals.STATIC_GWASINFO, 'r') as f:
+            gi = json.load(f)
+        return (len(gi))
+    except Exception as e:
+        return None
 
 def check_elastic():
     url = 'http://' + Globals.app_config['es']['host'] + ':' + str(
