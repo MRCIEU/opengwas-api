@@ -92,6 +92,25 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
     allres = add_trait_to_result(allres, study_data)
     return allres
 
+def phewas_elastic_search(filterData, index_name, pval):
+    res = Globals.es.search(
+    ignore_unavailable=True,
+    request_timeout=120,
+    index=index_name,
+    # doc_type="assoc",
+    body={
+        # "from":from_val,
+        "size": 100000,
+        "query": {
+            "bool": {
+                "filter": filterData
+            }
+        },
+        "post_filter": { 
+            "range": {"p":{"lt": pval }}
+        }
+    })
+    return res
 
 def elastic_search(filterData, index_name):
     res = Globals.es.search(
@@ -106,7 +125,7 @@ def elastic_search(filterData, index_name):
                 "bool": {
                     "filter": filterData
                 }
-            }
+            },
         })
     return res
 
@@ -135,10 +154,11 @@ def elastic_query_phewas_rsid(rsid, user_email, pval):
         logger.debug('checking ' + s + ' ...')
         filterData = []
         filterData.append({"terms": {'snp_id': rsid}})
-        filterData.append({"range": {"p": {"lt": pval}}})
+        #filterData.append({"range": {"p": {"lt": pval}}})
+        postData={ "range": {"p":{"lt": pval }}}
         logger.debug('running ES: index: ' + s)
         start = time.time()
-        e = elastic_search(filterData, s)
+        e = phewas_elastic_search(filterData, s, pval)
         r = organise_payload(e, s)
         res += r
         end = time.time()
@@ -167,10 +187,10 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval):
                 filterData = []
                 filterData.append({"terms": {'chr': [c]}})
                 filterData.append({"terms": {'position': pos}})
-                filterData.append({"range": {"p": {"lt": pval}}})
+                #filterData.append({"range": {"p": {"lt": pval}}})
                 logger.debug('running ES: index: ' + s)
                 start = time.time()
-                e = elastic_search(filterData, s)
+                e = phewas_elastic_search(filterData, s, pval)
                 r = organise_payload(e, s)
                 res += r
                 end = time.time()
@@ -197,10 +217,10 @@ def elastic_query_phewas_cprange(cprange, user_email, pval):
                 filterData = []
                 filterData.append({"terms": {'chr': [c['chr']]}})
                 filterData.append({"range": {'position': {'gte': c['start'], 'lte': c['end']}}})
-                filterData.append({"range": {"p": {"lt": pval}}})
+                #filterData.append({"range": {"p": {"lt": pval}}})
                 logger.debug('running ES: index: ' + s)
                 start = time.time()
-                e = elastic_search(filterData, s)
+                e = phewas_elastic_search(filterData, s, pval)
                 e = organise_payload(e, s)
                 res += e
                 end = time.time()

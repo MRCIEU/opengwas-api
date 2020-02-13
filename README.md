@@ -9,7 +9,7 @@ Requires [Docker](https://docs.docker.com/install) install on host machine
 ### Clone repo
 ```
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-api.git
-cd mr-base-api
+cd igd-api
 ```
 
 ### Obtain LD data
@@ -22,7 +22,7 @@ rm app/ld_files.tgz
 
 ### Create tunnel (need to be on VPN)
 ```
-ssh -L 9200:140.238.83.192:9200 <username>@ieu-db-interface.epi.bris.ac.uk
+ssh -f -N -L 9200:140.238.83.192:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ```
 
 ### Create environment

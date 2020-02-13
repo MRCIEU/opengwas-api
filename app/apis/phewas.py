@@ -92,6 +92,6 @@ def run_phewas(user_email, variants, pval):
             flask.abort(503, e)
 
     logger.debug('Size before filtering: '+str(len(allres)))
-    # allres = [x for x in allres if x['p'] < float(pval)]
+    #allres = [x for x in allres if x['p'] < float(pval)]
     logger.debug('Size after filtering: '+str(len(allres)))
     return allres
