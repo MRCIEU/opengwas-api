@@ -159,6 +159,7 @@ def elastic_query_phewas_rsid(rsid, user_email, pval):
         logger.debug('running ES: index: ' + s)
         start = time.time()
         e = phewas_elastic_search(filterData, s, pval)
+        #e = elastic_search(filterData, s)
         r = organise_payload(e, s)
         res += r
         end = time.time()
