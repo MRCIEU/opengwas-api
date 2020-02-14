@@ -16,7 +16,7 @@ def index():
     return flask.render_template('index.html', status=status, elastic_counts=elastic_counts, neo4j_counts=neo4j_counts)
 
 
-def setup_logger(name, log_file, level=logging.INFO):
+def setup_logger(name, log_file, level=logging.INFO, disabled=False):
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
     # Create the log message rotation file handler to the logger
@@ -27,6 +27,7 @@ def setup_logger(name, log_file, level=logging.INFO):
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.addHandler(handler)
+    logger.disabled = disabled
 
     return logger
 
@@ -53,7 +54,7 @@ print("Starting MRB API v{}".format(Globals.VERSION))
 app = flask.Flask(__name__, static_folder="static")
 
 setup_event_logger('event-log', Globals.LOG_FILE)
-setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG)
+setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=False)
 
 app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
 app.add_url_rule('/', 'index', index)
