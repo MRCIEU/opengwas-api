@@ -92,24 +92,26 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
     allres = add_trait_to_result(allres, study_data)
     return allres
 
+
 def phewas_elastic_search(filterData, index_name, pval):
     res = Globals.es.search(
-    ignore_unavailable=True,
-    request_timeout=120,
-    index=index_name,
-    # doc_type="assoc",
-    body={
-        # "from":from_val,
-        "size": 100000,
-        "query": {
-            "bool": {
-                "filter": filterData
+        ignore_unavailable=True,
+        request_timeout=120,
+        index=index_name,
+        # doc_type="assoc",
+        body={
+            # "from":from_val,
+            "size": 100000,
+            "query": {
+                "bool": {
+                    "filter": filterData
+                }
+            },
+            "post_filter": {
+                "range": {"p": {"lt": pval}}
             }
-        },
-        "post_filter": { 
-            "range": {"p":{"lt": pval }}
         }
-    })
+    )
     return res
 
 def elastic_search(filterData, index_name):

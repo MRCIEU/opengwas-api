@@ -33,7 +33,7 @@ def test_assoc_get5(url):
 def test_assoc_get6(url):
     headers = {'X-API-TOKEN': token}
     r = requests.get(url + "/associations/ieu-a-2,ieu-a-987,ieu-a-7/rs234,rs123", headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 6
+    assert r.status_code == 200 and len(r.json()) >= 6
 
 
 ## POST
@@ -49,7 +49,7 @@ def test_assoc_post2(url):
     headers = {'X-API-TOKEN': token}
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-987'], 'variant': ['rs234', 'rs123']}
     r = requests.post(url + "/associations", data=payload, headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 6
+    assert r.status_code == 200 and len(r.json()) >= 6
 
 
 def test_assoc_post3(url):
