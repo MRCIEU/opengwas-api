@@ -210,16 +210,18 @@ cd app
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-metadata.git
 
 # copy CSV files into production container
-docker cp igd-metadata/data/study_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/study.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
 docker cp igd-metadata/data/groups.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp igd-metadata/data/permissions_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/permissions.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
 docker cp igd-metadata/data/memberships.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/batches.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
 
 # import data to graph
 docker exec -it mr-base-api_mr-base-api-v3-private_1 \
 python map_from_csv.py \
---study /tmp/study_e.tsv \
---groups /tmp/data/groups.tsv \
---permissions_e /tmp/permissions_e.tsv \
---memberships /tmp/memberships.tsv
+--study /tmp/study.tsv \
+--groups /tmp/groups.tsv \
+--permissions_e /tmp/permissions.tsv \
+--memberships /tmp/memberships.tsv \
+--batches /tmp/batches.tsv
 ```
