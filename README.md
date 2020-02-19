@@ -224,4 +224,9 @@ python map_from_csv.py \
 --permissions_e /tmp/permissions.tsv \
 --memberships /tmp/memberships.tsv \
 --batches /tmp/batches.tsv
+
+# Update the cache
+curl http://ieu-db-interface.epi.bris.ac.uk:8082/gicache
 ```
+
+
