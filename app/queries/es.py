@@ -474,13 +474,13 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                             matched_proxies.append(y.copy())
                             flag = 1
                         else:
-                            if align_alleles == "1":
+                            if align_alleles == 1:
                                 al = proxy_alleles(proxy_query[l], proxy_dat[j][k], maf_threshold)
                                 logger.debug(al)
                                 if al == "straight":
                                     y['proxy'] = True
-                                    y['effect_allele'] = proxy_dat[j][k].get('tallele1')
-                                    y['other_allele'] = proxy_dat[j][k].get('tallele2')
+                                    y['ea'] = proxy_dat[j][k].get('tallele1')
+                                    y['nea'] = proxy_dat[j][k].get('tallele2')
                                     y['target_a1'] = proxy_dat[j][k].get('tallele1')
                                     y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                     y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
@@ -488,12 +488,12 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                     y['rsid'] = snps[j]
                                     matched_proxies.append(y.copy())
                                     flag = 1
-                                    # print "straight", i, j, k, l
+                                    logger.debug("straight" + " " + str(i) + " " + str(j) + " " + str(k) + " " + str(l))
                                     break
                                 if al == "switch":
                                     y['proxy'] = True
-                                    y['effect_allele'] = proxy_dat[j][k].get('tallele2')
-                                    y['other_allele'] = proxy_dat[j][k].get('tallele1')
+                                    y['ea'] = proxy_dat[j][k].get('tallele2')
+                                    y['nea'] = proxy_dat[j][k].get('tallele1')
                                     y['target_a1'] = proxy_dat[j][k].get('tallele1')
                                     y['target_a2'] = proxy_dat[j][k].get('tallele2')
                                     y['proxy_a1'] = proxy_dat[j][k].get('pallele1')
@@ -501,7 +501,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                     y['rsid'] = snps[j]
                                     matched_proxies.append(y.copy())
                                     flag = 1
-                                    # print "switch", i, j, k, l
+                                    logger.debug("switch" + " " + str(i) + " " + str(j) + " " + str(k) + " " + str(l))
                                     break
                                 if al == "skip":
                                     logger.debug("skip")
@@ -514,7 +514,7 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
                                 y['rsid'] = snps[j]
                                 matched_proxies.append(dict(y))
                                 flag = 1
-                                # print "unaligned", i, j, k, l
+                                logger.debug("unaligned" + " " + str(i) + " " + str(j) + " " + str(k) + " " + str(l))
                                 break
     end = time.time()
     t = round((end - start), 4)
@@ -549,8 +549,8 @@ def allele_check(x):
 
 
 def proxy_alleles(pq, pd, maf_threshold):
-    mallele1 = allele_check(pq.get('effect_allele'))
-    mallele2 = allele_check(pq.get('other_allele'))
+    mallele1 = allele_check(pq.get('ea'))
+    mallele2 = allele_check(pq.get('nea'))
     tallele1 = pd.get('tallele1')
     tallele2 = pd.get('tallele2')
     pallele1 = pd.get('pallele1')
@@ -558,7 +558,7 @@ def proxy_alleles(pq, pd, maf_threshold):
     if mallele1 is None:
         return "no allele"
     pal = pd.get('pal')
-    eaf = pq.get('effect_allele_freq')
+    eaf = pq.get('eaf')
     if pal == "0":
         if (mallele1 == pallele1 and mallele2 == pallele2) or (
                 mallele1 == flip(pallele1) and mallele2 == flip(pallele2)):
