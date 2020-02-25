@@ -52,6 +52,12 @@ def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb):
     for i in range(len(res)):
         res[i]['id'] = res[i]['id'].replace('tophits-', '')
 
+    # Sometimes there are tophits that are not significant
+    # This is because tophits are pre-selected based on rsid
+    # rsids can be multi-allelic so one form of the variant might be significant
+    # while the other is not
+    res = [x for x in res if x['p'] < pval]
+
     if not preclumped and clump == 1 and len(res) > 0:
         found_outcomes = set([x.get('id') for x in res])
         res_clumped = []
