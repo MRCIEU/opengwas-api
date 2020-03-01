@@ -105,11 +105,11 @@ def range_query(chrpos, radius=0):
 
 def gene_query(name,radius):
     mg = mygene.MyGeneInfo()
-    m = mg.getgene(name,'name,symbol,genomic_pos,genomic_pos_hg19')
+    m = mg.getgene(name,'name,symbol,genomic_pos_hg19')
     if m:
         chr = m['genomic_pos_hg19']['chr']
-        start = int(m['genomic_pos']['start'])
-        end = int(m['genomic_pos']['end'])
+        start = int(m['genomic_pos_hg19']['start'])
+        end = int(m['genomic_pos_hg19']['end'])
         min=0
         if start-radius>0:
             min=start-radius
