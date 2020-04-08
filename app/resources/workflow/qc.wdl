@@ -78,15 +78,15 @@ workflow qc {
             VcfFileIn=annotate_af.VcfFile,
             VcfFileInIdx=annotate_af.VcfFileIdx
     }
-    call report {
-        input:
-            MountDir=MountDir,
-            VcfFileIn=annotate_af.VcfFile,
-            VcfFileInIdx=annotate_af.VcfFileIdx,
-            RefData=RefData,
-            RefDataIdx=RefDataIdx,
-            OutputDir=BaseDir + "/" + StudyId
-    }
+    #call report {
+    #    input:
+    #        MountDir=MountDir,
+    #        VcfFileIn=annotate_af.VcfFile,
+    #        VcfFileInIdx=annotate_af.VcfFileIdx,
+    #        RefData=RefData,
+    #        RefDataIdx=RefDataIdx,
+    #        OutputDir=BaseDir + "/" + StudyId
+    #}
 
 }
 

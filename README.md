@@ -2,18 +2,20 @@
 
 Recently moved from https://github.com/MRCIEU/mr-base-api
 
+## Clone repo
+
+```sh
+git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-api.git
+```
+
 ## Local development
 
 Requires [Docker](https://docs.docker.com/install) install on host machine
 
-### Clone repo
-```
-git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-api.git
-cd igd-api
-```
-
 ### Obtain LD data
-```
+
+```sh
+cd igd-api
 mkdir -p app/ld_files
 curl -o app/ld_files.tgz -L "http://fileserve.mrcieu.ac.uk/ld/data_maf0.01_rs_ref.tgz"
 tar xzvf app/ld_files.tgz -C app/ld_files/
@@ -21,12 +23,14 @@ rm app/ld_files.tgz
 ```
 
 ### Create tunnel (need to be on VPN)
-```
+
+```sh
 ssh -f -N -L 9200:140.238.83.192:9200 <username>@ieu-db-interface.epi.bris.ac.uk
 ```
 
 ### Create environment
-```
+
+```sh
 cd app
 python3.8 -m venv venv3
 . venv3/bin/activate
@@ -38,7 +42,8 @@ pip install -r requirements.txt
 ```
 
 ### Deploy local Neo4j instance using Docker
-```
+
+```sh
 docker run -d \
 -p7474:7474 -p7687:7687 \
 --env NEO4J_AUTH=neo4j/dT9ymYwBsrzd \
@@ -49,14 +54,15 @@ neo4j:3.5.6
 
 (Note: using neo4j:3.5.6 because it is stable and doesn't keep crashing Docker on mac)
 
-### Importing data from MySQL
+### Importing metadata from TSV
+
 The meta data is
 
 1. Stored as json files with the associated vcf files.
 2. Collated into relational tsv files using the [igd-metadata](https://ieugit-scmv-d0.epi.bris.ac.uk/gh13047/igd-metadata) repository.
 3. Uploaded to the neo4j database with `map_from_csv.py`
 
-```
+```sh
 cd app
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-metadata.git
 
@@ -70,20 +76,23 @@ python map_from_csv.py \
 ```
 
 ### Start the API
-```
+
+```sh
 export FLASK_ENV=development
 python main.py
 ```
 
 ### Check it
-```
-http://localhost:8019/
-http://localhost:8019/status
-http://localhost:8019/assoc/ieu-a-2/rs234
-http://localhost:8019/gwasinfo/ieu-a-2
-```
 
-### Unit tests
+<http://localhost:8019/>
+<http://localhost:8019/status>
+<http://localhost:8019/assoc/ieu-a-2/rs234>
+<http://localhost:8019/gwasinfo/ieu-a-2>
+
+### Local unit tests
+
+For testing prior to deployment [run the tests in a container](#Production-unit-tests). These instructions are for adhoc testing.
+
 First need to obtain an `app/mrbase.oauth` file using the TwoSampleMR R or ieugwasr package
 
 ```r
@@ -100,11 +109,11 @@ This is an interactive process that requires logging in with a browser. To run t
 
 Set MRB token
 
-```
+```sh
 export MRB_TOKEN=XXXXX
 ```
 
-```
+```sh
 rm -f data/mrb_logs/*
 rm -rf data/igd/*
 pytest -v
@@ -112,34 +121,27 @@ pytest -v
 
 We can run specific groups of tests only
 
-```
+```sh
 pytest -v apis/tests/test_assoc.py
 ```
 
 Or specific tests only
 
-```
+```sh
 pytest -v apis/tests/test_assoc.py::test_assoc_get1
 ```
 
 By default it will run tests for local API located at `http://localhost:8019` (defined here `apis/tests/conftest.py`. However we can run for other deployed APIs e.g.
 
+```sh
+pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url https://gwas-api.mrcieu.ac.uk
 ```
-pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url http://apitest.mrbase.org
-```
-
 
 ## Production
 
-### Clone repo
-```
-git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-api.git
-cd mr-base-api
-git fetch
-```
-
 ### Copy reference data from RDSF
-```
+
+```sh
 # reference FASTA
 mkdir -p /data/reference_genomes
 mkdir -p /data/reference_genomes/released
@@ -158,22 +160,25 @@ rm ld_files.tgz
 ```
 
 ### Build images for backend processing of data
-```
+
+```sh
+cd igd-api
 bash build.sh
 ```
 
 ### Deploy
-```
+
+```sh
 docker-compose -p mr-base-api-v3 -f ./docker-compose.yml up -d
 ```
 
-### Test
+### Production unit tests
 
-Note the email used to obtain must be associated with all groups in the graph otherwise tests will fail, [see here](https://github.com/MRCIEU/mr-base-api/blob/3085529ee1da86184a2c7f8f6e03e2413fb0272e/app/populate_db/map_from_csv.py#L272)
+Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](./app/populate_db/map_from_csv.py#L306)
 
-```
+```sh
 docker-compose -p mr-base-api-v3-test -f ./docker-compose-test.yml up -d
-Rscript -e "write.table(TwoSampleMR::get_mrbase_access_token(), file='token.temp', row=F, col=F, qu=F)"
+Rscript -e "write.table(ieugwasr::get_access_token(), file='token.temp', row=F, col=F, qu=F)"
 bash test.sh
 ```
 
@@ -181,31 +186,9 @@ bash test.sh
 
 **Caution this will erase the current Neo4j database and rebuild from MySQL CSV files. This is not part of routine deployment.**
 
-```
-# dump MySQL data to CSV
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from study_e" mrbase | sed 's/\\n//g' > study_e.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from groups" mrbase | sed 's/\\n//g' > groups.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from permissions_e" mrbase | sed 's/\\n//g' > permissions_e.tsv
-mysql -h ieu-db-interface.epi.bris.ac.uk -P 23306 -u mrbaseapp -p'M1st3rbase!' -B -N -e "select * from memberships" mrbase | sed 's/\\n//g' > memberships.tsv
+Import the data via the [igd-metadata](https://ieugit-scmv-d0.epi.bris.ac.uk/gh13047/igd-metadata) gitlab repo
 
-# copy CSV files into production container
-docker cp study_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp groups.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp permissions_e.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp memberships.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-
-# import data to graph
-docker exec -it mr-base-api_mr-base-api-v3-private_1 \
-python map_from_csv.py \
---study /tmp/study_e.tsv \
---groups /tmp/data/groups.tsv \
---permissions_e /tmp/permissions_e.tsv \
---memberships /tmp/memberships.tsv
-```
-
-Alternatively (this is the latest method), import the data via the [igd-metadata](https://ieugit-scmv-d0.epi.bris.ac.uk/gh13047/igd-metadata) gitlab repo
-
-```
+```sh
 cd app
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-metadata.git
 
@@ -228,5 +211,3 @@ python map_from_csv.py \
 # Update the cache
 curl http://ieu-db-interface.epi.bris.ac.uk:8082/gicache
 ```
-
-

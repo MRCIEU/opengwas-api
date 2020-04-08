@@ -27,15 +27,6 @@ function setup {
 	cd ../mr-base-api
 }
 
-# get LD data if not already done
-if [ ! -f app/ld_files/data_maf0.01.bed ]; then
-    wget -O app/ld_files.tgz https://www.dropbox.com/s/yuo7htp80hizigy/ld_files.tgz?dl=0
-    tar xzvf app/ld_files.tgz -C app/
-    rm app/ld_files.tgz
-else
-    echo 'LD data exists'
-fi
-
 # build latest api image
 docker build --no-cache -t mr-base-api-v3:latest .
 
@@ -43,7 +34,7 @@ docker build --no-cache -t mr-base-api-v3:latest .
 docker build --no-cache -t cromwell-docker ./app/resources/workflow
 
 # build pipeline components
-for container in "bgc-elasticsearch" "gwas2vcf" "gwas_processing" "mrbase-report-module"
+for container in "igd-elasticsearch" "gwas2vcf" "gwas_processing" "mrbase-report-module"
 do
 	setup $container
 done
