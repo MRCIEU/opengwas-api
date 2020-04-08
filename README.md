@@ -86,7 +86,7 @@ python main.py
 
 - <http://localhost:8019/>
 - <http://localhost:8019/status>
-- <http://localhost:8019/assoc/ieu-a-2/rs234>
+- <http://localhost:8019/associations/ieu-a-2/rs234>
 - <http://localhost:8019/gwasinfo/ieu-a-2>
 
 ### Local unit tests
