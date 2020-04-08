@@ -175,7 +175,7 @@ docker-compose -p mr-base-api-v3 -f ./docker-compose.yml up -d
 
 ### Production unit tests
 
-Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](./app/populate_db/map_from_csv.py#L306)
+Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
 ```sh
 docker-compose -p mr-base-api-v3-test -f ./docker-compose-test.yml up -d
@@ -185,7 +185,7 @@ bash test.sh
 
 ### Rebuild Neo4j database
 
-**Caution this will erase the current Neo4j database and rebuild from MySQL CSV files. This is not part of routine deployment.**
+**Caution this will erase the current Neo4j database and rebuild from TSV files. This is NOT part of routine deployment.**
 
 Import the data via the [igd-metadata](https://ieugit-scmv-d0.epi.bris.ac.uk/gh13047/igd-metadata) gitlab repo
 
