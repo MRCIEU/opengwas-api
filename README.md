@@ -167,12 +167,6 @@ docker-compose -p mr-base-api-v3 -f ./docker-compose.yml up -d
 
 Create an access token [using these instructions](#Generate-access-token).
 
-Set token as env variable
-
-```sh
-export MRB_TOKEN=XXXXX
-```
-
 Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
 ```sh
