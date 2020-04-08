@@ -19,4 +19,5 @@ populate_db/data
 app/*.tsv
 app/data/mrb_logs
 app/data/igd
-
+app/igd-metadata
+ieugwasr_oauth
