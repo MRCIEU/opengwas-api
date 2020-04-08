@@ -104,12 +104,6 @@ Create an access token [using these instructions](#Generate-access-token).
 
 Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
-Set token as env variable
-
-```sh
-export MRB_TOKEN=XXXXX
-```
-
 ```sh
 rm -f data/mrb_logs/*
 rm -rf data/igd/*
@@ -182,8 +176,9 @@ export MRB_TOKEN=XXXXX
 Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
 ```sh
+# build test stack
 docker-compose -p mr-base-api-v3-test -f ./docker-compose-test.yml up -d
-Rscript -e "write.table(ieugwasr::get_access_token(), file='token.temp', row=F, col=F, qu=F)"
+# import metadata in test Neo4J and run tests
 bash test.sh
 ```
 
@@ -223,10 +218,13 @@ First need to obtain an `app/ieugwasr_oauth` file using the [ieugwasr](https://g
 
 ```sh
 cd app
+Rscript -e "write.table(ieugwasr::get_access_token(), file='token.temp', row=F, col=F, qu=F)"
 ```
 
-```r
-ieugwasr::get_access_token()
+Set token as env variable
+
+```sh
+export MRB_TOKEN=$(cat ./token.temp)
 ```
 
 This is an interactive process that requires logging in with a browser.
