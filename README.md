@@ -159,7 +159,7 @@ rm ld_files.tgz
 
 ### Production unit tests
 
-Create an access token [using these instructions](#Generate-access-token).
+Create an access token [using these instructions](#Generate-access-token) and copy the ```token.temp``` file into the ```app``` folder
 
 Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
