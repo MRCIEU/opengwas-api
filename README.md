@@ -1,6 +1,6 @@
 # API for IEU GWAS database
 
-Recently moved from https://github.com/MRCIEU/mr-base-api
+Recently moved from <https://github.com/MRCIEU/mr-base-api>
 
 ## Clone repo
 
@@ -93,20 +93,16 @@ python main.py
 
 For testing prior to deployment [run the tests in a container](#Production-unit-tests). These instructions are for adhoc testing.
 
-Use same Python3 env as the API
+Use the same Python3 env as the API
 
 ```sh
 cd app
 . venv3/bin/activate
 ```
 
-First need to obtain an `app/ieugwasr_oauth` file using the [ieugwasr](https://github.com/MRCIEU/ieugwasr) R-package
+Create an access token [using these instructions](#Generate-access-token).
 
-```r
-ieugwasr::get_access_token()
-```
-
-This is an interactive process that requires logging in with a browser. To run the tests, from `/app` directory
+Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
 Set token as env variable
 
@@ -175,6 +171,14 @@ docker-compose -p mr-base-api-v3 -f ./docker-compose.yml up -d
 
 ### Production unit tests
 
+Create an access token [using these instructions](#Generate-access-token).
+
+Set token as env variable
+
+```sh
+export MRB_TOKEN=XXXXX
+```
+
 Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
 ```sh
@@ -212,3 +216,17 @@ python map_from_csv.py \
 # Update the cache
 curl http://ieu-db-interface.epi.bris.ac.uk:8082/gicache
 ```
+
+## Generate access token
+
+First need to obtain an `app/ieugwasr_oauth` file using the [ieugwasr](https://github.com/MRCIEU/ieugwasr) R-package
+
+```sh
+cd app
+```
+
+```r
+ieugwasr::get_access_token()
+```
+
+This is an interactive process that requires logging in with a browser.
