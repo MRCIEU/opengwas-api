@@ -93,16 +93,10 @@ python main.py
 
 For testing prior to deployment [run the tests in a container](#Production-unit-tests). These instructions are for adhoc testing.
 
-First need to obtain an `app/mrbase.oauth` file using the TwoSampleMR R or ieugwasr package
+First need to obtain an `app/ieugwasr_oauth` file using the [ieugwasr](https://github.com/MRCIEU/ieugwasr) R-package
 
 ```r
-TwoSampleMR::get_mrbase_access_token()
-```
-
-ieugwasr
-
-```r
-get_access_token()
+ieugwasr::get_access_token()
 ```
 
 This is an interactive process that requires logging in with a browser. To run the tests, from `/app` directory
