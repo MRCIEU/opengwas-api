@@ -157,12 +157,6 @@ tar xzvf ld_files.tgz -C /data/ref/ld_files
 rm ld_files.tgz
 ```
 
-### Deploy
-
-```sh
-docker-compose -p mr-base-api-v3 -f ./docker-compose.yml up -d
-```
-
 ### Production unit tests
 
 Create an access token [using these instructions](#Generate-access-token).
@@ -172,8 +166,14 @@ Note the email used to obtain the token must be associated with all groups in th
 ```sh
 # build test stack
 docker-compose -p mr-base-api-v3-test -f ./docker-compose-test.yml up -d
-# import metadata in test Neo4J and run tests
+# import metadata in test Neo4J instance and run tests
 bash test.sh
+```
+
+### Deploy
+
+```sh
+docker-compose -p mr-base-api-v3 -f ./docker-compose.yml up -d
 ```
 
 ### Rebuild Neo4j database
@@ -215,12 +215,6 @@ cd app
 Rscript -e "write.table(ieugwasr::get_access_token(), file='token.temp', row=F, col=F, qu=F)"
 ```
 
-Set token as env variable
-
-```sh
-export MRB_TOKEN=$(cat ./token.temp)
-```
-
 This is an interactive process that requires logging in with a browser.
 
-The token is valid for 30 minutes and will require recreating after that period.
+The token is valid for 10 minutes and will require recreating after that period.
