@@ -78,15 +78,15 @@ workflow qc {
             VcfFileIn=annotate_af.VcfFile,
             VcfFileInIdx=annotate_af.VcfFileIdx
     }
-    call report {
-        input:
-            MountDir=MountDir,
-            VcfFileIn=annotate_af.VcfFile,
-            VcfFileInIdx=annotate_af.VcfFileIdx,
-            RefData=RefData,
-            RefDataIdx=RefDataIdx,
-            OutputDir=BaseDir + "/" + StudyId
-    }
+    #call report {
+    #    input:
+    #        MountDir=MountDir,
+    #        VcfFileIn=annotate_af.VcfFile,
+    #        VcfFileInIdx=annotate_af.VcfFileIdx,
+    #        RefData=RefData,
+    #        RefDataIdx=RefDataIdx,
+    #        OutputDir=BaseDir + "/" + StudyId
+    #}
 
 }
 
@@ -109,7 +109,7 @@ task vcf {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_harmonisation:cc1a8274cbd6f9c67f0d83b176102f933f7b03ed \
+        gwas2vcf:66fb44438fb5b42dc88830e5f7497e26231684da \
         python /app/main.py \
         --data ${SumStatsFile} \
         --id ${StudyId} \
@@ -295,7 +295,7 @@ task clumping {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:24636a3f7938cf495d7a6a163e7afc2d78838f6f \
+        gwas_processing:305e3e5133a19b87ab0031488e01588f76ee1be0 \
         clump.py \
         --bcf ${VcfFileIn} \
         --out ${ClumpFilePath}
@@ -321,7 +321,7 @@ task ldsc {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:24636a3f7938cf495d7a6a163e7afc2d78838f6f \
+        gwas_processing:305e3e5133a19b87ab0031488e01588f76ee1be0 \
         ldsc.py \
         --bcf ${VcfFileIn} \
         --out ${LdscFilePath}

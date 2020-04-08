@@ -21,6 +21,7 @@ services:
     volumes:
     - /etc/timezone:/etc/timezone:ro
     - /tmp:/app/populate_db/data:ro
+    - /data/ref/ld_files:/app/ld_files:ro
     environment:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
