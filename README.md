@@ -140,6 +140,13 @@ pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url https://gwas-api.mrcie
 
 ## Production
 
+### Build images for backend processing of data
+
+```sh
+cd igd-api
+bash build.sh
+```
+
 ### Copy reference data from RDSF
 
 ```sh
@@ -158,13 +165,6 @@ mkdir -p /data/ref/ld_files
 curl -o ld_files.tgz -L "http://fileserve.mrcieu.ac.uk/ld/data_maf0.01_rs_ref.tgz"
 tar xzvf ld_files.tgz -C /data/ref/ld_files
 rm ld_files.tgz
-```
-
-### Build images for backend processing of data
-
-```sh
-cd igd-api
-bash build.sh
 ```
 
 ### Deploy
