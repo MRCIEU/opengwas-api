@@ -93,6 +93,13 @@ python main.py
 
 For testing prior to deployment [run the tests in a container](#Production-unit-tests). These instructions are for adhoc testing.
 
+Use same Python3 env as the API
+
+```sh
+cd app
+. venv3/bin/activate
+```
+
 First need to obtain an `app/ieugwasr_oauth` file using the [ieugwasr](https://github.com/MRCIEU/ieugwasr) R-package
 
 ```r
