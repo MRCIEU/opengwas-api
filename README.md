@@ -222,3 +222,5 @@ export MRB_TOKEN=$(cat ./token.temp)
 ```
 
 This is an interactive process that requires logging in with a browser.
+
+The token is valid for 30 minutes and will require recreating after that period.
