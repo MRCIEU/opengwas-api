@@ -24,7 +24,7 @@ function setup {
 	else
 		docker build --no-cache -t "$container":"$hash" .
 	fi
-	cd ../mr-base-api
+	cd ../igd-api
 }
 
 # build latest api image
