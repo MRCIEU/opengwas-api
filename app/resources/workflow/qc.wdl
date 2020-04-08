@@ -295,7 +295,7 @@ task clumping {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:24636a3f7938cf495d7a6a163e7afc2d78838f6f \
+        gwas_processing:305e3e5133a19b87ab0031488e01588f76ee1be0 \
         clump.py \
         --bcf ${VcfFileIn} \
         --out ${ClumpFilePath}
@@ -321,7 +321,7 @@ task ldsc {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:24636a3f7938cf495d7a6a163e7afc2d78838f6f \
+        gwas_processing:305e3e5133a19b87ab0031488e01588f76ee1be0 \
         ldsc.py \
         --bcf ${VcfFileIn} \
         --out ${LdscFilePath}
