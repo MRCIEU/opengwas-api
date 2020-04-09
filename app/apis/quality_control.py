@@ -77,6 +77,8 @@ class Release(Resource):
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/delete')
@@ -104,3 +106,5 @@ class Delete(Resource):
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))

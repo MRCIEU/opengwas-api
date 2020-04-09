@@ -66,7 +66,8 @@ class Add(Resource):
             raise BadRequest("Could not validate payload: {}".format(e))
         except ValueError as e:
             raise BadRequest("Could not add study: {}".format(e))
-
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/check/<gwas_info_id>')
@@ -80,9 +81,8 @@ class GetId(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
     def get(self, gwas_info_id):
-        user_email = get_user_email(request.headers.get('X-Api-Token'))
-
         try:
+            user_email = get_user_email(request.headers.get('X-Api-Token'))
             recs = []
             for uid in gwas_info_id.split(','):
                 try:
@@ -92,7 +92,8 @@ class GetId(Resource):
             return recs
         except LookupError:
             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(gwas_info_id))
-
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/delete/<gwas_info_id>')
@@ -106,12 +107,14 @@ class Delete(Resource):
     @api.expect(parser)
     def delete(self, gwas_info_id):
         args = self.parser.parse_args()
-        user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
         try:
+            user_uid = get_user_email(request.headers.get('X-Api-Token'))
             check_user_is_admin(user_uid)
         except PermissionError as e:
             return {"message": str(e)}, 403
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
 
         delete_gwas(gwas_info_id)
 
