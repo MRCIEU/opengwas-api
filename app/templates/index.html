@@ -112,7 +112,7 @@
               <div class="col-md-12">
 
                 <p class="lead text-left">
-                  <a class="btn btn-warning btn-lg" href="http://gwas-api.mrcieu.ac.uk/docs/" role="button"><span class="glyphicon glyphicon-star"></span>Documentation</a>
+                  <a class="btn btn-warning btn-lg" href="docs/" target="_blank" role="button"><span class="glyphicon glyphicon-star"></span>Documentation</a>
                   {% if status['Access'] == 'private' %}
                   <a class="btn btn-warning btn-lg" href="https://github.com/mrcieu/mr-base-api/wiki" role="button">Upload instructions</a>
                   {% endif %}
@@ -146,7 +146,7 @@
         <section id="authenticatione">
 
           <h3>Authentication</h3>
-          <p>The <a href="http://gwas-api.mrcieu.ac.uk/docs/">documentation</a> provides a list of endpoints, the parameters they require, descriptions of the data that is returned, and an interactive way to try out each of the endpoints.</p>
+          <p>The <a href="docs/" target="_blank">documentation</a> provides a list of endpoints, the parameters they require, descriptions of the data that is returned, and an interactive way to try out each of the endpoints.</p>
           <p>The database of GWAS summary data mostly contains public data, however there are some 'private' datasets, which can only be accessed by authorised users. Authentication is managed using <a href="https://developers.google.com/identity/protocols/OAuth2WebServer">Google OAuth 2.0</a>. In order to authenticate, you will need to generate a 'token' for each session in which private access is required.</p>
           <p>The simplest way to obtain an authentication token is to use a browser to authenticate with your gmail account at <a href="https://accounts.google.com/o/oauth2/auth?client_id=906514199468-m9thhcept50gu26ng494376iipt125d6.apps.googleusercontent.com&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/userinfo.email&response_type=code">this link</a>.</p>
           <p>The access token can also be obtained using the <code>ieugwasr::get_access_token()</code> function, more information about that <a href="https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication">here</a>.
