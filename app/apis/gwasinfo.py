@@ -8,6 +8,7 @@ import logging
 from resources.globals import Globals
 import os
 import json
+import requests
 
 logger = logging.getLogger('debug-log')
 
@@ -26,14 +27,17 @@ class Info(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
     def get(self):
-        user_email = get_user_email(request.headers.get('X-Api-Token'))
-        if user_email is None and os.path.exists(Globals.STATIC_GWASINFO):
-            # with open(Globals.STATIC_GWASINFO, "r") as f:
-            #     a = json.load(f)
-            # return a
-            return send_file(Globals.STATIC_GWASINFO)
-        else:
-            return get_all_gwas_for_user(user_email)
+        try:
+            user_email = get_user_email(request.headers.get('X-Api-Token'))
+            if user_email is None and os.path.exists(Globals.STATIC_GWASINFO):
+                # with open(Globals.STATIC_GWASINFO, "r") as f:
+                #     a = json.load(f)
+                # return a
+                return send_file(Globals.STATIC_GWASINFO)
+            else:
+                return get_all_gwas_for_user(user_email)
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
 
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
 
@@ -41,19 +45,23 @@ class Info(Resource):
     @api.doc(model=gwas_info_model)
     def post(self):
         args = self.parser.parse_args()
-        user_email = get_user_email(request.headers.get('X-Api-Token'))
 
-        if 'id' not in args or args['id'] is None or len(args['id']) == 0:
-            return get_all_gwas_for_user(user_email)
-        else:
-            recs = []
-            for gwas_info_id in args['id']:
-                try:
-                    recs.append(get_gwas_for_user(user_email, str(gwas_info_id)))
-                except LookupError as e:
-                    logger.warning("Could not locate study: {}".format(e))
-                    continue
-            return recs
+        try:
+            user_email = get_user_email(request.headers.get('X-Api-Token'))
+
+            if 'id' not in args or args['id'] is None or len(args['id']) == 0:
+                return get_all_gwas_for_user(user_email)
+            else:
+                recs = []
+                for gwas_info_id in args['id']:
+                    try:
+                        recs.append(get_gwas_for_user(user_email, str(gwas_info_id)))
+                    except LookupError as e:
+                        logger.warning("Could not locate study: {}".format(e))
+                        continue
+                return recs
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/<id>')
@@ -67,9 +75,9 @@ class GetId(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model)
     def get(self, id):
-        user_email = get_user_email(request.headers.get('X-Api-Token'))
 
         try:
+            user_email = get_user_email(request.headers.get('X-Api-Token'))
             recs = []
             for uid in id.split(','):
                 try:
@@ -79,3 +87,5 @@ class GetId(Resource):
             return recs
         except LookupError:
             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
