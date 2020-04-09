@@ -62,7 +62,8 @@ workflow qc {
             VcfFileIn=annotate_af.VcfFile,
             VcfFileInIdx=annotate_af.VcfFileIdx,
             RefGenomeFile=RefGenomeFile,
-            RefGenomeFileIdx=RefGenomeFileIdx
+            RefGenomeFileIdx=RefGenomeFileIdx,
+            RefGenomeFileDict=RefGenomeFileDict
     }
     call clumping {
         input:
@@ -263,6 +264,7 @@ task validate {
     File VcfFileInIdx
     File RefGenomeFile
     File RefGenomeFileIdx
+    File RefGenomeFileDict
 
     command <<<
         set -e
