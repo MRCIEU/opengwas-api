@@ -9,7 +9,7 @@ class Globals:
     VERSION = '3.3.2'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
-    AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. See the [homepage](http://127.0.0.1:5000/#authentication) for details on how to authenticate.'
+    AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. See the [homepage](https://gwas-api.mrcieu.ac.uk/#authentication) for details on how to authenticate.'
 
     """ Set environment files to toggle between local and production & private vs public APIs """
     with open(APP_CONF) as f:
