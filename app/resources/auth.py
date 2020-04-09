@@ -12,10 +12,8 @@ def get_user_email(token):
             return None
     except AttributeError:
         return None
-    print(token)
     url = OAUTH2_URL + str(token)
     res = requests.get(url)
-    print(url)
     if res.status_code == 400:
         raise requests.exceptions.HTTPError("Token has expired or is invalid.")
 
