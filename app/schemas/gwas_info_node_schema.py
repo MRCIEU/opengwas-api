@@ -113,12 +113,6 @@ def check_sex_is_valid(data):
         raise ValidationError("Sex must be one of: {}".format(valid_sex))
 
 
-def check_access_is_valid(data):
-    # valid = {'public', 'Public'}
-    if data not in valid:
-        raise ValidationError("Access must be one of: {}".format(valid))
-
-
 def check_study_design_is_valid(data):
     if data not in valid_study_designs:
         raise ValidationError("Study design must be one of: {}".format(valid_study_designs))
@@ -204,7 +198,6 @@ class GwasInfoNodeSchema(FRPMSchema):
                                   choices=sorted(list(valid_imputation_panels)))
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
                        description="Select the genome build for your study", choices=sorted(list(valid_genome_build)))
-    access = fields.Str(required=True, allow_none=True, description="Group access name e.g. 'public'")
     md5 = fields.Str(required=False, allow_none=True)
     qc_prior_to_upload = fields.Str(required=False, allow_none=True,
                                     description="Detail any QC or filtering steps taken prior to data upload")
