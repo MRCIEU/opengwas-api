@@ -26,8 +26,7 @@ def test_gwasinfo_add_delete(url):
         'sd': 8.4548, 
         'priority': 15, 
         'author': 'Randall JC', 
-        'consortium': 'GIANT', 
-        'access': 'public'
+        'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}
 
@@ -75,8 +74,7 @@ def test_gwasinfo_upload_plain_text(url):
         'sd': 8.4548, 
         'priority': 15, 
         'author': 'Randall JC', 
-        'consortium': 'GIANT', 
-        'access': 'public'
+        'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}
 
@@ -129,8 +127,7 @@ def test_gwasinfo_upload_gzip(url):
         'sd': 8.4548, 
         'priority': 15, 
         'author': 'Randall JC', 
-        'consortium': 'GIANT', 
-        'access': 'public'
+        'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}
 
@@ -184,8 +181,7 @@ def test_gwasinfo_upload_large(url):
         'sd': 8.4548, 
         'priority': 15, 
         'author': 'Randall JC', 
-        'consortium': 'GIANT', 
-        'access': 'public'
+        'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}
 

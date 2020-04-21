@@ -15,7 +15,7 @@ def test_release(url):
         'population': 'European',
         'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796,
         'unit': 'SD (cm)', 'group_name': "developer", "build": 'HG19/GRCh37',
-        'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'
+        'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT'
     }
 
     # make new metadata
