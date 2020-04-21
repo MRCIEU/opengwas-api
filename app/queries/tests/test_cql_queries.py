@@ -8,7 +8,7 @@ gwas_info = {'pmid': 1234, 'year': 2013, 'mr': 1,
              'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
              'population': 'European',
              'sex': 'Males', 'ncase': None, 'ncontrol': None, 'sample_size': 60586, 'nsnp': 2725796, 'unit': 'SD (cm)',
-             'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT', 'access': 'public'}
+             'sd': 8.4548, 'priority': 15, 'author': 'Randall JC', 'consortium': 'GIANT'}
 email = "test@test.co.uk"
 group_name = 'public'
 
