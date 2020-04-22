@@ -16,6 +16,9 @@ docker exec -it mr-base-api-v3-test python map_from_csv.py \
 --memberships /app/populate_db/data/memberships.tsv \
 --batches /app/populate_db/data/batches.tsv
 
+# restart API so that batches are populated from the graph on start (tests fail otherwise!)
+docker restart mr-base-api-v3-test
+
 # run unit API tests
 cd ..
 MRB_TOKEN=$(cat ./token.temp)
