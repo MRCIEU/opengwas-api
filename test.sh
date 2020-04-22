@@ -17,6 +17,7 @@ docker exec -it mr-base-api-v3-test python map_from_csv.py \
 --batches /app/populate_db/data/batches.tsv
 
 # run unit API tests
+cd ..
 MRB_TOKEN=$(cat ./token.temp)
 docker exec -e MRB_TOKEN="$MRB_TOKEN" -it mr-base-api-v3-test pytest -v apis/ --url http://localhost
 docker exec -e MRB_TOKEN="$MRB_TOKEN" -it mr-base-api-v3-test pytest -v resources/
