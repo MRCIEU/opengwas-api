@@ -155,9 +155,9 @@ class GwasInfoNodeSchema(FRPMSchema):
                       description="Is there any other information you would like to provide us about your GWAS?")
     trait = fields.Str(required=True, allow_none=False,
                        description="Avoid acronyms; don't include other information in the trait name (e.g. don't include array name, whether restricted to males or females or whether adjusted or unadjusted for covariates)")
-    trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True,
-                                   choices=sorted(list(valid_trait_descriptions)),
-                                   description="Describe the distribution of your phenotype")
+    #trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True,
+    #                               choices=sorted(list(valid_trait_descriptions)),
+    #                               description="Describe the distribution of your phenotype")
     category = fields.Str(required=True, validate=check_category_is_valid, allow_none=False,
                           description="Is your phenotype a binary disease phenotype or a non-disease phenotype",
                           choices=sorted(list(valid_categories)))
