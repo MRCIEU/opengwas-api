@@ -118,8 +118,8 @@ task vcf {
         --ref ${RefGenomeFile} \
         --out ${VcfFileOutPath} \
         --rm_chr_prefix \
-        ${"--cohort_cases" + Cases} \
-        ${"--cohort_controls" + Controls}
+        ${"--cohort_cases " + Cases} \
+        ${"--cohort_controls " + Controls}
     >>>
 
     output {
