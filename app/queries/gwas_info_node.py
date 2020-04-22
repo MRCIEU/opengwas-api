@@ -11,11 +11,11 @@ class GwasInfo(UniqueNode):
     def get_next_numeric_id(cls):
         tx = Neo4j.get_db()
         results = tx.run(
-            "MATCH (n:" + cls.get_node_label() + ") WHERE n." + cls._UID_KEY + " =~ 'IEU-b-[0-9]*' RETURN max(toInteger(substring(n." + cls._UID_KEY + ", 6))) + 1 as uid;"
+            "MATCH (n:" + cls.get_node_label() + ") WHERE n." + cls._UID_KEY + " =~ 'ieu-b-[0-9]*' RETURN max(toInteger(substring(n." + cls._UID_KEY + ", 6))) + 1 as uid;"
         )
         result = results.single()
 
         if result['uid'] is None:
-            return "IEU-b-1"
+            return "ieu-b-1"
         else:
-            return "IEU-b-" + str(result['uid'])
+            return "ieu-b-" + str(result['uid'])
