@@ -309,7 +309,7 @@ class Upload(Resource):
                 t['qc.Cases'] = g['ncase']
 
             if g.get('ncontrol') is not None:
-                t['qc.Controls'] = g['Controls']
+                t['qc.Controls'] = g['ncontrol']
 
             with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
                 json.dump(t, f)
