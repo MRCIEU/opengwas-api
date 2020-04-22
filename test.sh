@@ -18,6 +18,7 @@ docker exec -it mr-base-api-v3-test python map_from_csv.py \
 
 # restart API so that batches are populated from the graph on start (tests fail otherwise!)
 docker restart mr-base-api-v3-test
+sleep 10
 
 # run unit API tests
 cd ..
