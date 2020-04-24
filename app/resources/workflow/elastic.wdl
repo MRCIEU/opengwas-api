@@ -36,7 +36,7 @@ task get_index_from_study {
     >>>
     
     output {
-        string index_name = stdout()
+        String index_name = stdout()
     }
 }
 
