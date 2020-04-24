@@ -36,7 +36,8 @@ task get_index_from_study {
     >>>
     
     output {
-        String index_name = stdout()
+        Array[String] values = read_lines(stdout())
+        String index_name = values[0]
     }
 }
 
