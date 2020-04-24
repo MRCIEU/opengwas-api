@@ -65,7 +65,7 @@ task insert {
         -f ${VcfFile} \
         -g ${StudyId} \
         -i ${EsIndex} \
-        -h ${Host} \
+        -e ${Host} \
         -p ${Port} \
         -t ${ClumpFile}
     >>>
