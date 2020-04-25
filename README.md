@@ -187,11 +187,11 @@ cd app
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:gh13047/igd-metadata.git
 
 # copy CSV files into production container
-docker cp igd-metadata/data/study.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp igd-metadata/data/groups.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp igd-metadata/data/permissions.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp igd-metadata/data/memberships.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
-docker cp igd-metadata/data/batches.tsv mr-base-api_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/study.tsv mr-base-api-v3_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/groups.tsv mr-base-api-v3_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/permissions.tsv mr-base-api-v3_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/memberships.tsv mr-base-api-v3_mr-base-api-v3-private_1:/tmp
+docker cp igd-metadata/data/batches.tsv mr-base-api-v3_mr-base-api-v3-private_1:/tmp
 
 # import data to graph
 docker exec -it mr-base-api_mr-base-api-v3-private_1 \
