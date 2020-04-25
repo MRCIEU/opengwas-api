@@ -219,6 +219,8 @@ class Upload(Resource):
     def post(self):
         args = self.parser.parse_args()
 
+        user_email = get_user_email(request.headers.get('X-Api-Token'))
+
         # convert to 0-based indexing
         args['chr_col'] = Upload.__convert_index(args['chr_col'])
         args['pos_col'] = Upload.__convert_index(args['pos_col'])
@@ -295,6 +297,11 @@ class Upload(Resource):
                 return {'message': 'The file format was invalid {}'.format(e)}, 400
             except IndexError as e:
                 return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
+
+            # write metadata to json
+            gi = get_gwas_for_user(user_email, str(j['id']), datapass=False)
+            with open(os.path.join(study_folder, str(j['id']) + '.json'), 'w') as f:
+                json.dump(gi, f)
 
             # write params for pipeline
             del j['id']
