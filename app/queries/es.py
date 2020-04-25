@@ -148,20 +148,21 @@ def match_study_to_index(studies):
     return study_indexes
 
 
-def elastic_query_phewas_rsid(rsid, user_email, pval):
+def elastic_query_phewas_rsid(rsid, user_email, pval, index_list=[]):
     study_indexes = Globals.public_batches
+    if len(index_list) > 0:
+        study_indexes = [x for x in study_indexes if x in index_list]
     res = []
     for s in study_indexes:
-        print(s)
         logger.debug('checking ' + s + ' ...')
         filterData = []
         filterData.append({"terms": {'snp_id': rsid}})
-        #filterData.append({"range": {"p": {"lt": pval}}})
-        postData={ "range": {"p":{"lt": pval }}}
+        # filterData.append({"range": {"p": {"lt": pval}}})
+        postData = {"range": {"p": {"lt": pval}}}
         logger.debug('running ES: index: ' + s)
         start = time.time()
         e = phewas_elastic_search(filterData, s, pval)
-        #e = elastic_search(filterData, s)
+        # e = elastic_search(filterData, s)
         r = organise_payload(e, s)
         res += r
         end = time.time()
@@ -177,8 +178,10 @@ def elastic_query_phewas_rsid(rsid, user_email, pval):
     return res
 
 
-def elastic_query_phewas_chrpos(chrpos, user_email, pval):
+def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
     study_indexes = Globals.public_batches
+    if len(index_list) > 0:
+        study_indexes = [x for x in study_indexes if x in index_list]
     res = []
     for s in study_indexes:
         print(s)
@@ -209,8 +212,10 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval):
     return res
 
 
-def elastic_query_phewas_cprange(cprange, user_email, pval):
+def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
     study_indexes = Globals.public_batches
+    if len(index_list) > 0:
+        study_indexes = [x for x in study_indexes if x in index_list]
     res = []
     for s in study_indexes:
         print(s)
