@@ -130,6 +130,13 @@ pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url https://gwas-api.mrcie
 
 ## Production
 
+### Checkout specific release
+
+```
+git fetch && git fetch --tags
+git checkout 3.3.4
+```
+
 ### Build images for backend processing of data
 
 ```sh
@@ -201,6 +208,10 @@ python map_from_csv.py \
 --permissions_e /tmp/permissions.tsv \
 --memberships /tmp/memberships.tsv \
 --batches /tmp/batches.tsv
+
+# Restart container to updates batches from the new database
+docker restart mr-base-api-v3_mr-base-api-v3-private_1
+docker restart mr-base-api-v3_mr-base-api-v3-public_1
 
 # Update the cache
 curl http://ieu-db-interface.epi.bris.ac.uk:8082/gicache
