@@ -2,9 +2,10 @@
 
 Recently moved from <https://github.com/MRCIEU/mr-base-api>
 
-Development documentation available on the Wiki (sensitive)
+## Documentation
 
-Public documentation for the upload pipeline available [here](https://ieugit-scmv-d0.epi.bris.ac.uk/ml18692/igd-upload-docs)
+- Development documentation available on the project Wiki (sensitive)
+- Usage documentation for the upload pipeline available from [igd-upload-docs](https://ieugit-scmv-d0.epi.bris.ac.uk/ml18692/igd-upload-docs/-/blob/master/README.md)
 
 ## Clone repo
 
