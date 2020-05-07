@@ -245,7 +245,6 @@ class Upload(Resource):
             args['delimiter'] = " "
 
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
-        raw_folder = os.path.join(study_folder, 'raw')
 
         # create json payload
         j = dict()
@@ -268,15 +267,14 @@ class Upload(Resource):
             # if data already exists on the backend then stop
             try:
                 os.mkdir(study_folder)
-                os.mkdir(raw_folder)
             except FileExistsError as e:
                 logger.error("Could not create study folder: {}".format(e))
                 raise e
 
             if args['gzipped'] == 'True':
-                output_path = os.path.join(raw_folder, 'upload.txt.gz')
+                output_path = os.path.join(study_folder, 'upload.txt.gz')
             else:
-                output_path = os.path.join(raw_folder, 'upload.txt')
+                output_path = os.path.join(study_folder, 'upload.txt')
 
             # save file to server
             args['gwas_file'].save(output_path)
@@ -305,7 +303,7 @@ class Upload(Resource):
 
             # write params for pipeline
             del j['id']
-            with open(os.path.join(raw_folder, 'upload.json'), 'w') as f:
+            with open(os.path.join(study_folder, str(j['id']) + '_data.json'), 'w') as f:
                 json.dump(j, f)
 
             # write params for workflow
@@ -318,13 +316,13 @@ class Upload(Resource):
             if g.get('ncontrol') is not None:
                 t['qc.Controls'] = g['ncontrol']
 
-            with open(os.path.join(raw_folder, 'wdl.json'), 'w') as f:
+            with open(os.path.join(study_folder, str(j['id']) + '_wdl.json'), 'w') as f:
                 json.dump(t, f)
 
             # add to workflow queue
             r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                               files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
-                                     'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
+                                     'workflowInputs': open(os.path.join(study_folder, str(j['id']) + '_wdl.json'), 'rb')})
             assert r.status_code == 201
             assert r.json()['status'] == "Submitted"
             logger.info("Submitted {} to workflow".format(r.json()['id']))
