@@ -79,15 +79,15 @@ workflow qc {
             VcfFileIn=annotate_af.VcfFile,
             VcfFileInIdx=annotate_af.VcfFileIdx
     }
-    #call report {
-    #    input:
-    #        MountDir=MountDir,
-    #        VcfFileIn=annotate_af.VcfFile,
-    #        VcfFileInIdx=annotate_af.VcfFileIdx,
-    #        RefData=RefData,
-    #        RefDataIdx=RefDataIdx,
-    #        OutputDir=BaseDir + "/" + StudyId
-    #}
+    call report {
+        input:
+            MountDir=MountDir,
+            VcfFileIn=annotate_af.VcfFile,
+            VcfFileInIdx=annotate_af.VcfFileIdx,
+            RefData=RefData,
+            RefDataIdx=RefDataIdx,
+            OutputDir=BaseDir + "/" + StudyId
+    }
 
 }
 
@@ -354,7 +354,7 @@ task report {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        mrbase-report-module:177aa4b3170d984c704384cc47309162edc4fbe9 \
+        mrbase-report-module:0675b0846bc3be6997dd77c6cd194d2311f7090f \
         Rscript render_gwas_report.R \
         ${VcfFileIn} \
         --output_dir ${OutputDir} \
