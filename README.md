@@ -139,7 +139,7 @@ pytest -v apis/tests/test_assoc.py::test_assoc_get1 --url https://gwas-api.mrcie
 
 ```
 git fetch && git fetch --tags
-git checkout 3.3.4
+git checkout <version>
 ```
 
 ### Build images for backend processing of data
