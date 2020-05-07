@@ -5,8 +5,8 @@ workflow elastic {
     String StudyId
     String MountDir = "/data"
     String BaseDir = "/data/igd"
-    File VcfFile=BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
-    File VcfFileIdx=BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz.tbi"
+    File VcfFile=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz"
+    File VcfFileIdx=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz.tbi"
     File ClumpFile=BaseDir + "/" + StudyId + "/clump.txt"
     
     call get_index_from_study {

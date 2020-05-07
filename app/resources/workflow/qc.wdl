@@ -12,78 +12,43 @@ workflow qc {
     File DbSnpVcfFileIdx="/data/dbsnp/released/2019-09-11/data/dbsnp.v153.b37.vcf.gz.tbi"
     File AfVcfFile="/data/1kg/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz"
     File AfVcfFileIdx="/data/1kg/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz.tbi"
-
-    # TODO remove
     File RefData = "/data/ref/1kg_v3_nomult.bcf"
     File RefDataIdx = "/data/ref/1kg_v3_nomult.bcf.csi"
 
+    # TODO update with new gwas2vcf + args
     call vcf {
         input:
             MountDir=MountDir,
-            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_harm.vcf.gz",
-            SumStatsFile=BaseDir + "/" + StudyId + "/raw/upload.txt.gz",
+            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz",
+            SumStatsFile=BaseDir + "/" + StudyId + "/upload.txt.gz",
             RefGenomeFile=RefGenomeFile,
             RefGenomeFileIdx=RefGenomeFileIdx,
-            ParamFile=BaseDir + "/" + StudyId + "/raw/upload.json",
+            ParamFile=BaseDir + "/" + StudyId + "/" + StudyId + "_data.json",
+            DbSnpVcfFile=DbSnpVcfFile,
+            DbSnpVcfFileIdx=DbSnpVcfFileIdx,
             StudyId=StudyId,
             Cases=Cases,
             Controls=Controls
-    }
-    call combine_multiallelics {
-        input:
-            MountDir=MountDir,
-            RefGenomeFile=RefGenomeFile,
-            RefGenomeFileIdx=RefGenomeFileIdx,
-            VcfFileIn=vcf.VcfFile,
-            VcfFileInIdx=vcf.VcfFileIdx,
-            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_norm.vcf.gz"
-    }
-    call annotate_dbsnp {
-        input:
-            MountDir=MountDir,
-            VcfFileIn=combine_multiallelics.VcfFile,
-            VcfFileInIdx=combine_multiallelics.VcfFileIdx,
-            DbSnpVcfFile=DbSnpVcfFile,
-            DbSnpVcfFileIdx=DbSnpVcfFileIdx,
-            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_dbsnp.vcf.gz"
-    }
-    call annotate_af {
-        input:
-            MountDir=MountDir,
-            VcfFileIn=annotate_dbsnp.VcfFile,
-            VcfFileInIdx=annotate_dbsnp.VcfFileIdx,
-            AfVcfFile=AfVcfFile,
-            AfVcfFileIdx=AfVcfFileIdx,
-            VcfFileOutPath=BaseDir + "/" + StudyId + "/" + StudyId + "_data.vcf.gz"
-    }
-    call validate {
-        input:
-            MountDir=MountDir,
-            VcfFileIn=annotate_af.VcfFile,
-            VcfFileInIdx=annotate_af.VcfFileIdx,
-            RefGenomeFile=RefGenomeFile,
-            RefGenomeFileIdx=RefGenomeFileIdx,
-            RefGenomeFileDict=RefGenomeFileDict
     }
     call clumping {
         input:
             MountDir=MountDir,
             ClumpFilePath=BaseDir + "/" + StudyId + "/clump.txt",
-            VcfFileIn=annotate_af.VcfFile,
-            VcfFileInIdx=annotate_af.VcfFileIdx
+            VcfFileIn=vcf.VcfFile,
+            VcfFileInIdx=vcf.VcfFileIdx
     }
     call ldsc {
         input:
             MountDir=MountDir,
             LdscFilePath=BaseDir + "/" + StudyId + "/ldsc.txt",
-            VcfFileIn=annotate_af.VcfFile,
-            VcfFileInIdx=annotate_af.VcfFileIdx
+            VcfFileIn=vcf.VcfFile,
+            VcfFileInIdx=vcf.VcfFileIdx
     }
     call report {
         input:
             MountDir=MountDir,
-            VcfFileIn=annotate_af.VcfFile,
-            VcfFileInIdx=annotate_af.VcfFileIdx,
+            VcfFileIn=vcf.VcfFile,
+            VcfFileInIdx=vcf.VcfFileIdx,
             RefData=RefData,
             RefDataIdx=RefDataIdx,
             OutputDir=BaseDir + "/" + StudyId
@@ -98,6 +63,8 @@ task vcf {
     File SumStatsFile
     File RefGenomeFile
     File RefGenomeFileIdx
+    File DbSnpVcfFile
+    File DbSnpVcfFileIdx
     File ParamFile
     String StudyId
     Int? Cases
@@ -126,160 +93,6 @@ task vcf {
         File VcfFile = "${VcfFileOutPath}"
         File VcfFileIdx = "${VcfFileOutPath}.tbi"
     }
-
-}
-
-task combine_multiallelics {
-
-    String MountDir
-    File VcfFileIn
-    File VcfFileInIdx
-    File RefGenomeFile
-    File RefGenomeFileIdx
-    String VcfFileOutPath
-
-    command <<<
-        set -e
-
-        docker run \
-        --rm \
-        -v ${MountDir}:${MountDir} \
-        --cpus="1" \
-        halllab/bcftools:v1.9 \
-        bcftools norm \
-        -f ${RefGenomeFile} \
-        -m +any \
-        -O z \
-        -o ${VcfFileOutPath} \
-        ${VcfFileIn}
-
-        docker run \
-        --rm \
-        -v ${MountDir}:${MountDir} \
-        --cpus="1" \
-        halllab/bcftools:v1.9 \
-        bcftools index \
-        -t \
-        ${VcfFileOutPath}
-
-    >>>
-
-    output {
-        File VcfFile = "${VcfFileOutPath}"
-        File VcfFileIdx = "${VcfFileOutPath}.tbi"
-    }
-
-}
-
-task annotate_dbsnp {
-
-    String MountDir
-    File VcfFileIn
-    File VcfFileInIdx
-    File DbSnpVcfFile
-    File DbSnpVcfFileIdx
-    String VcfFileOutPath
-
-
-    command <<<
-        set -e
-
-        docker run \
-        --rm \
-        -v ${MountDir}:${MountDir} \
-        --cpus="1" \
-        halllab/bcftools:v1.9 \
-        bcftools annotate \
-        -a ${DbSnpVcfFile} \
-        -c ID \
-        -o ${VcfFileOutPath} \
-        -O z \
-        ${VcfFileIn}
-
-        docker run \
-        --rm \
-        -v ${MountDir}:${MountDir} \
-        --cpus="1" \
-        halllab/bcftools:v1.9 \
-        bcftools index \
-        -t \
-        ${VcfFileOutPath}
-
-    >>>
-
-    output {
-        File VcfFile = "${VcfFileOutPath}"
-        File VcfFileIdx = "${VcfFileOutPath}.tbi"
-    }
-
-}
-
-task annotate_af {
-
-    String MountDir
-    File VcfFileIn
-    File VcfFileInIdx
-    File AfVcfFile
-    File AfVcfFileIdx
-    String VcfFileOutPath
-
-
-    command <<<
-        set -e
-
-        docker run \
-        --rm \
-        -v ${MountDir}:${MountDir} \
-        --cpus="1" \
-        halllab/bcftools:v1.9 \
-        bcftools annotate \
-        -a ${AfVcfFile} \
-        -c AF,EAS_AF,EUR_AF,AFR_AF,AMR_AF,SAS_AF \
-        -o ${VcfFileOutPath} \
-        -O z \
-        ${VcfFileIn}
-
-        docker run \
-        --rm \
-        -v ${MountDir}:${MountDir} \
-        --cpus="1" \
-        halllab/bcftools:v1.9 \
-        bcftools index \
-        -t \
-        ${VcfFileOutPath}
-
-    >>>
-
-    output {
-        File VcfFile = "${VcfFileOutPath}"
-        File VcfFileIdx = "${VcfFileOutPath}.tbi"
-    }
-
-}
-
-task validate {
-
-    String MountDir
-    File VcfFileIn
-    File VcfFileInIdx
-    File RefGenomeFile
-    File RefGenomeFileIdx
-    File RefGenomeFileDict
-
-    command <<<
-        set -e
-
-        docker run \
-        --rm \
-        -v ${MountDir}:${MountDir} \
-        --cpus="1" \
-        broadinstitute/gatk:4.1.3.0 \
-        gatk ValidateVariants \
-        --validation-type-to-exclude ALLELES \
-        -V ${VcfFileIn} \
-        -R ${RefGenomeFile}
-
-    >>>
 
 }
 
