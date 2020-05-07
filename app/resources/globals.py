@@ -6,7 +6,7 @@ from neo4j import GraphDatabase
 
 
 class Globals:
-    VERSION = '3.3.4'
+    VERSION = '3.3.5'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
     AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. See the [homepage](https://gwas-api.mrcieu.ac.uk/#authentication) for details on how to authenticate.'
@@ -34,7 +34,11 @@ class Globals:
     print("Params: {}".format(app_config))
 
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
-    LD_REF = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs_ref')
+    LD_POPULATIONS = ['EUR', 'SAS', 'EAS', 'AFR', 'AMR']
+    LD_REF = {}
+    for pop in LD_POPULATIONS:
+        LD_REF[pop] = os.path.join(root_path, 'ld_files', pop)
+
     TMP_FOLDER = app_config['directories']['tmp']
     UPLOAD_FOLDER = app_config['directories']['upload']
     LOG_FILE = os.path.join(app_config['directories']['logs'], 'mrbaseapi.log')

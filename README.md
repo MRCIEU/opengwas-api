@@ -27,6 +27,14 @@ tar xzvf app/ld_files.tgz -C app/ld_files/
 rm app/ld_files.tgz
 ```
 
+And also obtain new multi-population LD files
+
+```
+curl -o app/1kg.v3.tgz -L "http://fileserve.mrcieu.ac.uk/ld/1kg.v3.tgz"
+tar xzvf app/1kg.v3.tgz -C app/ld_files/
+rm app/1kg.v3.tgz
+```
+
 ### Create tunnel (need to be on VPN)
 
 ```sh
@@ -167,6 +175,9 @@ mkdir -p /data/ref/ld_files
 curl -o ld_files.tgz -L "http://fileserve.mrcieu.ac.uk/ld/data_maf0.01_rs_ref.tgz"
 tar xzvf ld_files.tgz -C /data/ref/ld_files
 rm ld_files.tgz
+curl -o 1kg.v3.tgz -L "http://fileserve.mrcieu.ac.uk/ld/1kg.v3.tgz"
+tar xzvf 1kg.v3.tgz -C /data/ref/ld_files
+rm 1kg.v3.tgz
 ```
 
 ### Production unit tests

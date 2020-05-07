@@ -9,20 +9,14 @@ parser.add_argument('pval', type=float, required=False, action='append', default
 parser.add_argument('pthresh', type=float, required=False, default=5e-8)
 parser.add_argument('r2', type=float, required=False, default=0.001)
 parser.add_argument('kb', type=int, required=False, default=5000)
+parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
 
 
 @api.route('/clump')
 @api.doc(
     description="""
-Perform clumping a specified set of rs IDs. Note the payload can be passed to curl via json using:
-
-```
--X POST -d '
-{
-    'parameters': 'etc'
-}
-'
-```
+Perform clumping a specified set of rs IDs. 
+Uses 1000 genomes reference data filtered to within-population MAF > 0.01 and only retaining SNPs.
 """)
 class Clump(Resource):
 
@@ -38,7 +32,7 @@ class Clump(Resource):
 
         try:
             out = plink_clumping_rs(Globals.TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'],
-                                    args['r2'], args['kb'])
+                                    args['r2'], args['kb'], args['pop'])
         except Exception as e:
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
@@ -48,25 +42,19 @@ class Clump(Resource):
 @api.route('/matrix')
 @api.doc(
     description="""
-For a list of SNPs get the LD R values. These are presented relative to a specified reference allele. Note the payload can be passed to curl via json using:
-
-```
--X POST -d '
-{
-    'parameters': 'etc'
-}
-'
-```
+For a list of SNPs get the LD R values. These are presented relative to a specified reference allele.
+Uses 1000 genomes reference data filtered to within-population MAF > 0.01 and only retaining SNPs.
 """)
 class LdMatrix(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('rsid', required=False, type=str, action='append', default=[])
-
+    parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
+    
     @api.expect(parser)
     def post(self):
         args = parser.parse_args()
         try:
-            out = plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'])
+            out = plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'], args['pop'])
         except Exception as e:
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)

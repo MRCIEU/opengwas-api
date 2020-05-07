@@ -41,8 +41,8 @@ def check_all():
 
 
 def check_ld_ref():
-    if (os.path.isfile(Globals.LD_REF + ".bed") and os.path.isfile(Globals.LD_REF + ".bim") and os.path.isfile(
-            Globals.LD_REF + ".fam")):
+    if (os.path.isfile(Globals.LD_REF['EUR'] + ".bed") and os.path.isfile(Globals.LD_REF['EUR'] + ".bim") and os.path.isfile(
+            Globals.LD_REF['EUR'] + ".fam")):
         return "Available"
     else:
         return 'Unavailable'
