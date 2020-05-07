@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger('debug-log')
 
-def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
+def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb, pop="EUR"):
     try:
         start = time.time()
         filename = os.path.join(upload_folder, str(uuid.uuid4()))
@@ -24,7 +24,7 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
                   " --clump-p2 {4} " \
                   " --clump-r2 {5} " \
                   " --clump-kb {6} " \
-                  " --out {7}".format(Globals.PLINK, Globals.LD_REF, filename, p1, p2, r2, kb, filename)
+                  " --out {7}".format(Globals.PLINK, Globals.LD_REF[pop], filename, p1, p2, r2, kb, filename)
 
         logger.debug(command)
         os.system(command)
@@ -50,7 +50,7 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb):
     return out
 
 
-def plink_ldsquare_rs(upload_folder, snps):
+def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
     try:
         out = {}
         fn = str(uuid.uuid4())
@@ -72,7 +72,7 @@ def plink_ldsquare_rs(upload_folder, snps):
               "--bfile {1} " \
               " --extract {2} " \
               " --make-just-bim " \
-              " --out {3}".format(Globals.PLINK, Globals.LD_REF, filename, filename)
+              " --out {3}".format(Globals.PLINK, Globals.LD_REF[pop], filename, filename)
         logger.debug(cmd)
         os.system(cmd)
         cmd = "cut -d ' ' -f 1 " + filenameb + " > " + filenamek
@@ -86,7 +86,7 @@ def plink_ldsquare_rs(upload_folder, snps):
                   "--bfile {1} " \
                   " --extract {2} " \
                   " --r square " \
-                  " --out {3}".format(Globals.PLINK, Globals.LD_REF, filenamek, filename)
+                  " --out {3}".format(Globals.PLINK, Globals.LD_REF[pop], filenamek, filename)
 
         logger.debug(command)
         os.system(command)
