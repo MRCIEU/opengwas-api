@@ -104,7 +104,7 @@ python main.py
 
 ### Local unit tests
 
-For testing prior to deployment [run the tests in a container](#Production-unit-tests). These instructions are for adhoc testing.
+For testing prior to deployment [run the tests in a container](#production-unit-tests). These instructions are for adhoc testing.
 
 Use the same Python3 env as the API
 
@@ -113,7 +113,7 @@ cd app
 . venv3/bin/activate
 ```
 
-Create an access token [using these instructions](#Generate-access-token).
+Create an access token [using these instructions](#generate-access-token).
 
 Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
@@ -182,7 +182,7 @@ rm 1kg.v3.tgz
 
 ### Production unit tests
 
-Create an access token [using these instructions](#Generate-access-token) and copy the ```token.temp``` file into the ```app``` folder
+Create an access token [using these instructions](#generate-access-token) and copy the ```token.temp``` file into the ```app``` folder
 
 Note the email used to obtain the token must be associated with all groups in the graph otherwise tests will fail, [see here](app/map_from_csv.py#L306)
 
