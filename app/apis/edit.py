@@ -5,7 +5,6 @@ from queries.gwas_info_node import GwasInfo
 from werkzeug.datastructures import FileStorage
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
-from resources.globals import Globals
 import hashlib
 import gzip
 from schemas.gwas_row_schema import GwasRowSchema
@@ -122,7 +121,7 @@ class Delete(Resource):
 
 
 @api.route('/upload')
-@api.doc(description="Upload GWAS summary stats file to MR Base")
+@api.doc(description="Upload GWAS summary stats file to the IEU GWAS database")
 class Upload(Resource):
     parser = api.parser()
     parser.add_argument(
@@ -297,13 +296,13 @@ class Upload(Resource):
                 return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
 
             # write metadata to json
-            gi = get_gwas_for_user(user_email, str(j['id']), datapass=False)
-            with open(os.path.join(study_folder, str(j['id']) + '.json'), 'w') as f:
+            gi = get_gwas_for_user(user_email, str(args['id']), datapass=False)
+            with open(os.path.join(study_folder, str(args['id']) + '.json'), 'w') as f:
                 json.dump(gi, f)
 
             # write params for pipeline
             del j['id']
-            with open(os.path.join(study_folder, str(j['id']) + '_data.json'), 'w') as f:
+            with open(os.path.join(study_folder, str(args['id']) + '_data.json'), 'w') as f:
                 json.dump(j, f)
 
             # write params for workflow
@@ -316,13 +315,13 @@ class Upload(Resource):
             if g.get('ncontrol') is not None:
                 t['qc.Controls'] = g['ncontrol']
 
-            with open(os.path.join(study_folder, str(j['id']) + '_wdl.json'), 'w') as f:
+            with open(os.path.join(study_folder, str(args['id']) + '_wdl.json'), 'w') as f:
                 json.dump(t, f)
 
             # add to workflow queue
             r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                               files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
-                                     'workflowInputs': open(os.path.join(study_folder, str(j['id']) + '_wdl.json'), 'rb')})
+                                     'workflowInputs': open(os.path.join(study_folder, str(args['id']) + '_wdl.json'), 'rb')})
             assert r.status_code == 201
             assert r.json()['status'] == "Submitted"
             logger.info("Submitted {} to workflow".format(r.json()['id']))
