@@ -28,4 +28,4 @@ docker exec -e MRB_TOKEN="$MRB_TOKEN" -it mr-base-api-v3-test pytest -v schemas/
 docker exec -e MRB_TOKEN="$MRB_TOKEN" -it mr-base-api-v3-test pytest -v queries/
 
 # take down
-docker-compose -p mr-base-api-v3-test -f ./docker-compose-test.yml down
+docker-compose -p mr-base-api-v3-test -f ../docker-compose-test.yml down
