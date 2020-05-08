@@ -21,7 +21,6 @@ docker restart mr-base-api-v3-test
 sleep 10
 
 # run unit API tests
-cd ..
 MRB_TOKEN=$(cat ./token.temp)
 docker exec -e MRB_TOKEN="$MRB_TOKEN" -it mr-base-api-v3-test pytest -v apis/ --url http://localhost
 docker exec -e MRB_TOKEN="$MRB_TOKEN" -it mr-base-api-v3-test pytest -v resources/
