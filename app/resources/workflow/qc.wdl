@@ -15,7 +15,6 @@ workflow qc {
     File RefData = "/data/ref/1kg_v3_nomult.bcf"
     File RefDataIdx = "/data/ref/1kg_v3_nomult.bcf.csi"
 
-    # TODO update with new gwas2vcf + args
     call vcf {
         input:
             MountDir=MountDir,
@@ -77,12 +76,13 @@ task vcf {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas2vcf:66fb44438fb5b42dc88830e5f7497e26231684da \
+        gwas2vcf:6390587a4a17ff3d5e1fef16f9068c12e0f65886 \
         python /app/main.py \
         --data ${SumStatsFile} \
         --id ${StudyId} \
         --json ${ParamFile} \
         --ref ${RefGenomeFile} \
+        --dbsnp ${DbSnpVcfFile} \
         --out ${VcfFileOutPath} \
         --rm_chr_prefix \
         ${"--cohort_cases " + Cases} \
