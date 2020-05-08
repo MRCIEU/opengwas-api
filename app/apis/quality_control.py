@@ -5,7 +5,6 @@ from werkzeug.exceptions import BadRequest
 from resources.auth import get_user_email
 from flask import request
 import requests
-from resources.globals import Globals
 import logging
 import os
 from resources.globals import Globals
@@ -62,12 +61,11 @@ class Release(Resource):
             if req['passed_qc'] == "True":
                 # find WDL params
                 study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
-                raw_folder = os.path.join(study_folder, 'raw')
 
                 # add to workflow queue
                 r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                                   files={'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
-                                         'workflowInputs': open(os.path.join(raw_folder, 'wdl.json'), 'rb')})
+                                         'workflowInputs': open(os.path.join(study_folder, req['id'] + '_wdl.json'), 'rb')})
                 assert r.status_code == 201
                 assert r.json()['status'] == "Submitted"
                 logger.info("Submitted {} to workflow".format(r.json()['id']))
