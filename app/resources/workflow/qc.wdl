@@ -50,7 +50,9 @@ workflow qc {
             VcfFileInIdx=vcf.VcfFileIdx,
             RefData=RefData,
             RefDataIdx=RefDataIdx,
-            StudyId=StudyId
+            StudyId=StudyId,
+            LdscFileIn=ldsc.LdscFile,
+            ClumpFileIn=clumping.ClumpFile
     }
 
 }
@@ -159,6 +161,8 @@ task report {
     File RefData
     File RefDataIdx
     String StudyId
+    File LdscFileIn
+    File ClumpFileIn
 
     command <<<
         set -e
