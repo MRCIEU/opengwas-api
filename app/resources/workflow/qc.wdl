@@ -52,7 +52,8 @@ workflow qc {
             RefDataIdx=RefDataIdx,
             StudyId=StudyId,
             LdscFileIn=ldsc.LdscFile,
-            ClumpFileIn=clumping.ClumpFile
+            ClumpFileIn=clumping.ClumpFile,
+            MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json"
     }
 
 }
@@ -163,6 +164,7 @@ task report {
     String StudyId
     File LdscFileIn
     File ClumpFileIn
+    File MetaJsonIn
 
     command <<<
         set -e
