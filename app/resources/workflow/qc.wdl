@@ -183,10 +183,4 @@ task report {
         ${VcfFileIn}
     >>>
 
-    output {
-        File ReportFile = "${StudyId}_report.html"
-        File MetaJsonFile = "metadata.json"
-        File QcMetricsJsonFile = "qc_metrics.json"
-    }
-
 }
