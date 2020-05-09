@@ -181,6 +181,9 @@ task report {
         --refdata ${RefData} \
         --output_dir ${OutDirPath} \
         ${VcfFileIn}
+
+        # delete output folder
+        rm -rf ${OutDirPath}/intermediate
     >>>
 
 }
