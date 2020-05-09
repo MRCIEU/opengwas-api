@@ -50,7 +50,7 @@ workflow qc {
             VcfFileInIdx=vcf.VcfFileIdx,
             RefData=RefData,
             RefDataIdx=RefDataIdx,
-            OutputDir=BaseDir + "/" + StudyId
+            StudyId=StudyId
     }
 
 }
@@ -154,11 +154,11 @@ task ldsc {
 task report {
 
     String MountDir
-    String OutputDir
     File VcfFileIn
     File VcfFileInIdx
     File RefData
     File RefDataIdx
+    String StudyId
 
     command <<<
         set -e
@@ -167,17 +167,17 @@ task report {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        mrbase-report-module:0675b0846bc3be6997dd77c6cd194d2311f7090f \
+        mrbase-report-module:bfab182995cbf58207df86f1c4b547503381444b \
         Rscript render_gwas_report.R \
-        ${VcfFileIn} \
-        --output_dir ${OutputDir} \
-        --n_cores 1
+        --n_cores 1 \
+        --refdata ${RefData} \
+        ${VcfFileIn}
     >>>
 
     output {
-        File ReportFile = "${OutputDir}/report.html"
-        File MetaJsonFile = "${OutputDir}/metadata.json"
-        File QcMetricsJsonFile = "${OutputDir}/qc_metrics.json"
+        File ReportFile = "${StudyId}_report.html"
+        File MetaJsonFile = "metadata.json"
+        File QcMetricsJsonFile = "qc_metrics.json"
     }
 
 }
