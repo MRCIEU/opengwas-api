@@ -53,7 +53,8 @@ workflow qc {
             StudyId=StudyId,
             LdscFileIn=ldsc.LdscFile,
             ClumpFileIn=clumping.ClumpFile,
-            MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json"
+            MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json",
+            OutDirPath=BaseDir + "/" + StudyId
     }
 
 }
@@ -165,6 +166,7 @@ task report {
     File LdscFileIn
     File ClumpFileIn
     File MetaJsonIn
+    String OutDirPath
 
     command <<<
         set -e
@@ -177,6 +179,7 @@ task report {
         Rscript render_gwas_report.R \
         --n_cores 1 \
         --refdata ${RefData} \
+        --output_dir ${OutDirPath} \
         ${VcfFileIn}
     >>>
 
