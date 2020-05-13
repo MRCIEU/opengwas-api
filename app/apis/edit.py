@@ -159,6 +159,7 @@ class Upload(Resource):
 
     @staticmethod
     def read_gzip(p, sep, args):
+        conv = lambda i : i or None
         with gzip.open(p, 'rt', encoding='utf-8') as f:
             if args['header'] == 'True':
                 f.readline()
@@ -168,7 +169,8 @@ class Upload(Resource):
                 n += 1
                 if n > 1000:
                     break
-                Upload.validate_row_with_schema(line.strip().split(sep), args)
+                line_split = [conv(i) for i in line.strip().split(sep)]
+                Upload.validate_row_with_schema(line_split, args)
 
     @staticmethod
     def md5(fname):

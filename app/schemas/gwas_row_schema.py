@@ -2,7 +2,7 @@ from marshmallow import fields, ValidationError
 from schemas.frpm_schema import FRPMSchema
 import re
 
-valid_alleles = {'a', 't', 'c', 'g', 'i', 'd'}
+valid_alleles = {'a', 't', 'c', 'g', 'i', 'd', 'A', 'T', 'C', 'G', 'I', 'D'}
 dbsnp_reg = re.compile('^rs[0-9]*')
 
 
