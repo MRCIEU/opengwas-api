@@ -1,6 +1,8 @@
 import requests
 from apis.tests.token import get_mrbase_access_token
 import os
+from pathlib import Path
+from resources.globals import Globals
 
 token = get_mrbase_access_token()
 
@@ -57,10 +59,18 @@ def test_release(url):
     r = requests.delete(url + "/quality_control/delete", data=payload, headers={'X-API-TOKEN': 'null'})
     assert r.status_code == 403
 
+    # check html report
+    html_report = uid + "_report.html"
+    study_folder = os.path.join(Globals.UPLOAD_FOLDER, uid)
+    Path(os.path.join(study_folder, html_report)).touch()
+    r = requests.get(url + "/quality_control/report/" + uid)
+    assert r.status_code == 200
+
     # delete quality control
     payload = {'id': uid}
     r = requests.delete(url + "/quality_control/delete", data=payload, headers=headers)
     assert r.status_code == 200
+
 
     # check deleted
     r = requests.get(url + "/quality_control/list")
@@ -69,3 +79,5 @@ def test_release(url):
     for res in r.json():
         todos.add(res['id'])
     assert uid in todos
+
+
