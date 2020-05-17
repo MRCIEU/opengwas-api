@@ -3,9 +3,10 @@ from queries.cql_queries import *
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 from resources.auth import get_user_email
-from flask import request
+from flask import request, send_from_directory
 import requests
 import logging
+import shutil
 import os
 from resources.globals import Globals
 
@@ -27,6 +28,29 @@ class List(Resource):
     @api.doc(model=gwas_info_model)
     def get(self):
         return get_todo_quality_control()
+
+
+@api.route('/report/<id>')
+@api.doc(description="View html report on QC process for specified ID")
+class GetId(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=False, default='null',
+        help=Globals.AUTHTEXT)
+
+    @api.expect(parser)
+    def get(self, id):
+        # user_email = get_user_email(request.headers.get('X-Api-Token'))
+        # try:
+        #     check_user_is_admin(user_email)
+        # except PermissionError as e:
+        #     return {"message": str(e)}, 403
+        study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
+        htmlfile = id + "_report.html"
+        try:
+            return send_from_directory(study_folder, htmlfile)
+        except LookupError:
+            raise BadRequest("GWAS ID {} does not have a html report file.".format(id))
 
 
 @api.route('/release')
@@ -101,6 +125,9 @@ class Delete(Resource):
                 return {"message": str(e)}, 403
 
             delete_quality_control(req['id'])
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
+            if os.path.isdir(study_folder):
+                shutil.rmtree(study_folder)
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
