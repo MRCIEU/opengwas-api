@@ -121,7 +121,7 @@ class Delete(Resource):
 
 
 @api.route('/upload')
-@api.doc(description="Upload GWAS summary stats file to the IEU GWAS database")
+@api.doc(description="Upload GWAS summary stats file to the IEU OpenGWAS database")
 class Upload(Resource):
     parser = api.parser()
     parser.add_argument(
