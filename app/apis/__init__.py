@@ -13,7 +13,7 @@ from .ld import api as ld
 from .variants import api as variants
 from .batches import api as batches
 
-api = Api(version=Globals.VERSION, title='IEU GWAS database',
+api = Api(version=Globals.VERSION, title='IEU OpenGWAS database',
           description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs/')
 
