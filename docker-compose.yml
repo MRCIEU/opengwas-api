@@ -34,7 +34,7 @@ services:
     - /data/ref/ld_files:/app/ld_files
     environment:
       - NGINX_MAX_UPLOAD=750m
-      - UWSGI_PROCESSES=10
+      - UWSGI_PROCESSES=20
       - UWSGI_THREADS=2
       - ENV=production
       - ACCESS=public
