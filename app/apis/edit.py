@@ -116,6 +116,9 @@ class Delete(Resource):
             raise BadRequest("Could not authenticate: {}".format(e))
 
         delete_gwas(gwas_info_id)
+        study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_info_id)
+        if os.path.isdir(study_folder):
+            shutil.rmtree(study_folder)
 
         return {"message": "successfully deleted."}, 200
 

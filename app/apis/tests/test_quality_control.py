@@ -55,8 +55,7 @@ def test_release(url):
     assert r.status_code == 200
 
     # delete quality control (permission denied)
-    payload = {'id': uid}
-    r = requests.delete(url + "/quality_control/delete", data=payload, headers={'X-API-TOKEN': 'null'})
+    r = requests.delete(url + "/quality_control/delete/" + uid, headers={'X-API-TOKEN': 'null'})
     assert r.status_code == 403
 
     # check html report
@@ -67,17 +66,14 @@ def test_release(url):
     assert r.status_code == 200
 
     # delete quality control
-    payload = {'id': uid}
-    r = requests.delete(url + "/quality_control/delete", data=payload, headers=headers)
+    r = requests.delete(url + "/quality_control/delete/" + uid, headers=headers)
     assert r.status_code == 200
 
-
     # check deleted
+
     r = requests.get(url + "/quality_control/list")
     assert r.status_code == 200
     todos = set()
     for res in r.json():
         todos.add(res['id'])
     assert uid in todos
-
-

@@ -6,7 +6,6 @@ from resources.auth import get_user_email
 from flask import request, send_from_directory
 import requests
 import logging
-import shutil
 import os
 from resources.globals import Globals
 
@@ -102,8 +101,27 @@ class Release(Resource):
         except requests.exceptions.HTTPError as e:
             raise BadRequest("Could not authenticate: {}".format(e))
 
+@api.route('/check/<id>')
+@api.doc(description="View files generated for a dataset")
+class GetId(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=False, default='null',
+        help=Globals.AUTHTEXT)
 
-@api.route('/delete')
+    @api.expect(parser)
+    def get(self, id):
+        study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
+        if os.path.isdir(study_folder):
+            d = os.listdir(study_folder)
+            return d
+        else:
+            return []
+
+
+
+
+@api.route('/delete/<id>')
 @api.doc(description="Delete data from quality control process")
 class Delete(Resource):
     parser = api.parser()
@@ -113,10 +131,9 @@ class Delete(Resource):
     parser.add_argument('id', type=str, required=True, help='Identifier for the gwas info.')
 
     @api.expect(parser)
-    def delete(self):
+    def delete(self, id):
 
         try:
-            req = self.parser.parse_args()
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
             try:
@@ -124,10 +141,7 @@ class Delete(Resource):
             except PermissionError as e:
                 return {"message": str(e)}, 403
 
-            delete_quality_control(req['id'])
-            study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
-            if os.path.isdir(study_folder):
-                shutil.rmtree(study_folder)
+            delete_quality_control(id)
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
