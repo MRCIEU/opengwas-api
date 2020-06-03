@@ -25,10 +25,10 @@ api.add_namespace(assoc)
 api.add_namespace(tophits)
 api.add_namespace(phewas)
 api.add_namespace(variants)
+api.add_namespace(ld)
 
 # private
 if Globals.app_config['access'] == 'private':
-    api.add_namespace(ld)
     api.add_namespace(quality_control)
     api.add_namespace(edit)
     api.add_namespace(gicache)
