@@ -1,34 +1,22 @@
 <!doctype html>
 <head>
-  <title>IEU GWAS database API</title>
+  <title>IEU OpenGWAS API</title>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <link rel="apple-touch-icon" sizes="57x57" href="{{ url_for('static', filename='img/favicon/apple-icon-57x57.png') }}">
-    <link rel="apple-touch-icon" sizes="60x60" href="{{ url_for('static', filename='img/favicon/apple-icon-60x60.png') }}">
-    <link rel="apple-touch-icon" sizes="72x72" href="{{ url_for('static', filename='img/favicon/apple-icon-72x72.png') }}">
-    <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='img/favicon/apple-icon-76x76.png') }}">
-    <link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='img/favicon/apple-icon-114x114.png') }}">
-    <link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='img/favicon/apple-icon-120x120.png') }}">
-    <link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='img/favicon/apple-icon-144x144.png') }}">
-    <link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='img/favicon/apple-icon-152x152.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/favicon/apple-icon-180x180.png') }}">
-    <link rel="icon" type="image/png" sizes="192x192"  href="{{ url_for('static', filename='img/favicon/android-icon-192x192.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='img/favicon/favicon-96x96.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon/favicon-16x16.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='img/favicon/manifest.json') }}">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/opengwas/favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/opengwas/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/opengwas/favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='img/opengwas/favicon/site.webmanifest') }}">
+    <link rel="mask-icon" href="{{ url_for('static', filename='img/opengwas/favicon/safari-pinned-tab.svg') }}" color="#5bbad5">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/opengwas/favicon/favicon.ico') }}">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-config" content="{{ url_for('static', filename='img/opengwas/favicon/browserconfig.xml') }}">
     <meta name="theme-color" content="#ffffff">
 
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-      crossorigin="anonymous"
-    />
+    <!--bootstrap darkly theme-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.darkly.min.css') }}">
     <link
       rel="stylesheet"
       href="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.css"
@@ -50,7 +38,7 @@
 </head>
 
 
-<body data-spy="scroll" data-target="#toc" style="background-color: #EEE2DC;">
+<body data-spy="scroll" data-target="#toc">
 
 
 <header>
@@ -60,10 +48,17 @@
 
 <main>
 
+
   <div class="container">
 
-        <h1 style="margin: 50px 20px 50px 20px;">IEU OpenGWAS database <span class="badge badge-info">api</span></h1>
+        <!-- <h1 style="margin: 50px 20px 50px 20px;">IEU OpenGWAS database <span class="badge badge-info">api</span></h1> -->
 
+    <div class="row">
+      <div class="col-md-3"></div>
+      <div class="col-md-9 text-right">
+        <img src="{{ url_for('static', filename='img/opengwas/text-white.png')}}" height="100" style="margin-bottom: 30px;">
+      </div>
+    </div>
     <div class="row">
 
       <div class="col-md-3">
@@ -76,8 +71,9 @@
 
 
         <section id="heading">
-            <h3>Status</h3>
-          <div class="jumbotron" style=" background-color: #EEE2DC; border-left: 2px black solid; border-radius: 0px; padding: 20px;">
+            
+<h3><span class="badge badge-info">API</span> status</h3>
+          <div class="jumbotron" style="padding: 20px;">
             <div class="row">
               <div class="col-md-6">
 
