@@ -76,12 +76,12 @@ class Add(Resource):
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
         help=Globals.AUTHTEXT)
+    parser.add_argument('id', type=str, required=True,
+                        help='ID to be edited')
     parser.add_argument('group_name', type=str, required=True,
                         help='Name for the group this study should belong to.', choices=sorted(list(valid_group_names)))
     parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
                         help='Genome build used to perform the GWAS study.')
-    parser.add_argument('id', type=str, required=False,
-                        help='Provide your own study identifier or leave blank for next continuous id.')
     GwasInfoNodeSchema.populate_parser(parser,
                                        ignore={GwasInfo.get_uid_key(), 'build', 'priority', 'mr'})
 
@@ -101,7 +101,20 @@ class Add(Resource):
             req.pop('group_name')
             req.pop('id')
 
-            gwas_uid = add_new_gwas(user_uid, req, {group_name}, gwas_id=gwas_id)
+            gwas_uid = edit_existing_gwas(gwas_id, user_uid, req, {group_name})
+
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
+
+            try:
+                os.makedirs(study_folder, exist_ok=True)
+            except FileExistsError as e:
+                logger.error("Could not create study folder: {}".format(e))
+                raise e
+
+            # write metadata to json
+            gi = get_gwas_for_user(user_uid, gwas_id, datapass=False)
+            with open(os.path.join(study_folder, str(gwas_id) + '.json'), 'w') as f:
+                json.dump(gi, f)
 
             return {"id": gwas_uid}, 200
 

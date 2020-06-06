@@ -98,6 +98,36 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), 
     return gwas_info_dict['id']
 
 
+def edit_existing_gwas(gwas_id, user_email, gwas_info_dict, group_names=frozenset(['public'])):
+    try:
+        GwasInfo.get_node(str(gwas_id))
+    except LookupError:
+        raise ValueError("Identifier does not exist")
+
+    gwas_info_dict['id'] = str(gwas_id)
+
+    # populate nodes
+    gwas_info_dict['priority'] = 0
+    gwas_info_node = GwasInfo(gwas_info_dict)
+    added_by_rel = AddedByRel({'epoch': time.time()})
+    access_to_rel = AccessToRel()
+
+    # delete existing node
+    delete_gwas(str(gwas_id))
+
+    # add updated node
+    gwas_info_node.create_node()
+    added_by_rel.create_rel(gwas_info_node, User.get_node(user_email))
+
+    # add grps
+    for group_name in group_names:
+        group_node = Group.get_node(group_name)
+        access_to_rel.create_rel(group_node, gwas_info_node)
+
+    return gwas_info_dict['id']
+
+
+
 def add_new_user(email, group_names=frozenset(['public']), admin=False):
     uid = email.strip().lower()
     member_of_rel = MemberOfRel()
