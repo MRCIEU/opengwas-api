@@ -144,7 +144,7 @@ def check_id_is_valid_filename(data):
 
 
 class GwasInfoNodeSchema(FRPMSchema):
-    id = fields.Str(required=True, allow_none=False, 
+    id = fields.Str(required=True, allow_none=False,
         description="GWAS study identifier",
         validate=check_id_is_valid_filename)
     pmid = fields.Int(required=False, allow_none=True,
@@ -154,7 +154,7 @@ class GwasInfoNodeSchema(FRPMSchema):
         validate=check_doi)
     year = fields.Int(required=False, validate=check_study_year, allow_none=True,
         description="What year was this GWAS published?")
-    mr = fields.Int(required=False, allow_none=True, 
+    mr = fields.Int(required=False, allow_none=True,
         validate=check_mr_is_0_or_1,
         description="Is the study suitable for MR studies?", choices=(0, 1))
     note = fields.Str(required=False, allow_none=True,
