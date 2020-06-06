@@ -18,6 +18,7 @@ import requests
 import logging
 import os
 from resources.globals import Globals
+import time
 
 logger = logging.getLogger('debug-log')
 
@@ -58,6 +59,18 @@ class Add(Resource):
             req.pop('id')
 
             gwas_uid = add_new_gwas(user_uid, req, {group_name}, gwas_id=gwas_id)
+
+            # write metadata to json
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
+            try:
+                os.makedirs(study_folder, exist_ok=True)
+            except FileExistsError as e:
+                logger.error("Could not create study folder: {}".format(e))
+                raise e
+
+            gi = get_gwas_for_user(user_uid, gwas_id, datapass=False)
+            with open(os.path.join(study_folder, str(gwas_id) + '.json'), 'w') as f:
+                json.dump(gi, f)
 
             return {"id": gwas_uid}, 200
 
@@ -103,15 +116,14 @@ class Add(Resource):
 
             gwas_uid = edit_existing_gwas(gwas_id, user_uid, req, {group_name})
 
+            # write metadata to json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
-
             try:
                 os.makedirs(study_folder, exist_ok=True)
             except FileExistsError as e:
                 logger.error("Could not create study folder: {}".format(e))
                 raise e
 
-            # write metadata to json
             gi = get_gwas_for_user(user_uid, gwas_id, datapass=False)
             with open(os.path.join(study_folder, str(gwas_id) + '.json'), 'w') as f:
                 json.dump(gi, f)
@@ -124,7 +136,6 @@ class Add(Resource):
             raise BadRequest("Could not add study: {}".format(e))
         except requests.exceptions.HTTPError as e:
             raise BadRequest("Could not authenticate: {}".format(e))
-
 
 
 @api.route('/check/<gwas_info_id>')
@@ -368,10 +379,10 @@ class Upload(Resource):
             except IndexError as e:
                 return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
 
-            # write metadata to json
-            gi = get_gwas_for_user(user_email, str(args['id']), datapass=False)
-            with open(os.path.join(study_folder, str(args['id']) + '.json'), 'w') as f:
-                json.dump(gi, f)
+            # write analyst data to json
+            an = {"upload_uid": user_email, "upload_epoch": time.time()}
+            with open(os.path.join(study_folder, str(args['id']) + '_analyst.json'), 'w') as f:
+                json.dump(an, f)
 
             # write params for pipeline
             del j['id']

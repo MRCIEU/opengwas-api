@@ -8,6 +8,8 @@ import requests
 import logging
 import os
 from resources.globals import Globals
+import json
+import time
 
 logger = logging.getLogger('debug-log')
 
@@ -80,11 +82,20 @@ class Release(Resource):
             gwas_info_id = req['id']
             add_quality_control(user_uid, gwas_info_id, req['passed_qc'] == "True", comment=req['comments'])
 
+            # update json
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
+            with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'r') as f:
+                j = json.load(f)
+            j['release_uid'] = user_uid
+            j['release_epoch'] = time.time()
+            j['release_comments'] = req['comments']
+            j['passed_qc'] = req['passed_qc']
+            with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'w') as f:
+                json.dump(j, f)
+
             # insert new data to elastic
             if req['passed_qc'] == "True":
                 # find WDL params
-                study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
-
                 # add to workflow queue
                 r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                                   files={'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
