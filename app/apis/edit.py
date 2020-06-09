@@ -61,15 +61,15 @@ class Add(Resource):
             gwas_uid = add_new_gwas(user_uid, req, {group_name}, gwas_id=gwas_id)
 
             # write metadata to json
-            study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
             try:
                 os.makedirs(study_folder, exist_ok=True)
             except FileExistsError as e:
                 logger.error("Could not create study folder: {}".format(e))
                 raise e
 
-            gi = get_gwas_for_user(user_uid, gwas_id, datapass=False)
-            with open(os.path.join(study_folder, str(gwas_id) + '.json'), 'w') as f:
+            gi = get_gwas_for_user(user_uid, gwas_uid, datapass=False)
+            with open(os.path.join(study_folder, gwas_uid + '.json'), 'w') as f:
                 json.dump(gi, f)
 
             return {"id": gwas_uid}, 200
