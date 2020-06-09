@@ -18,6 +18,7 @@ import requests
 import logging
 import os
 from resources.globals import Globals
+import time
 
 logger = logging.getLogger('debug-log')
 
@@ -39,7 +40,7 @@ class Add(Resource):
     parser.add_argument('id', type=str, required=False,
                         help='Provide your own study identifier or leave blank for next continuous id.')
     GwasInfoNodeSchema.populate_parser(parser,
-                                       ignore={GwasInfo.get_uid_key(), 'build', 'md5', 'priority', 'mr'})
+                                       ignore={GwasInfo.get_uid_key(), 'build', 'priority', 'mr'})
 
     @api.expect(parser)
     def post(self):
@@ -58,6 +59,74 @@ class Add(Resource):
             req.pop('id')
 
             gwas_uid = add_new_gwas(user_uid, req, {group_name}, gwas_id=gwas_id)
+
+            # write metadata to json
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
+            try:
+                os.makedirs(study_folder, exist_ok=True)
+            except FileExistsError as e:
+                logger.error("Could not create study folder: {}".format(e))
+                raise e
+
+            gi = get_gwas_for_user(user_uid, gwas_id, datapass=False)
+            with open(os.path.join(study_folder, str(gwas_id) + '.json'), 'w') as f:
+                json.dump(gi, f)
+
+            return {"id": gwas_uid}, 200
+
+        except marshmallow.exceptions.ValidationError as e:
+            raise BadRequest("Could not validate payload: {}".format(e))
+        except ValueError as e:
+            raise BadRequest("Could not add study: {}".format(e))
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
+
+
+@api.route('/edit')
+@api.doc(description="Edit existing GWAS metadata")
+class Add(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=True,
+        help=Globals.AUTHTEXT)
+    parser.add_argument('id', type=str, required=True,
+                        help='ID to be edited')
+    parser.add_argument('group_name', type=str, required=True,
+                        help='Name for the group this study should belong to.', choices=sorted(list(valid_group_names)))
+    parser.add_argument('build', type=str, choices=tuple(valid_genome_build), required=True,
+                        help='Genome build used to perform the GWAS study.')
+    GwasInfoNodeSchema.populate_parser(parser,
+                                       ignore={GwasInfo.get_uid_key(), 'build', 'priority', 'mr'})
+
+    @api.expect(parser)
+    def post(self):
+
+        try:
+            req = self.parser.parse_args()
+            user_uid = get_user_email(request.headers.get('X-Api-Token'))
+            group_name = req['group_name']
+
+            # use provided identifier if given
+            gwas_id = req['id']
+            check_id_is_valid_filename(gwas_id)
+
+            req.pop('X-Api-Token')
+            req.pop('group_name')
+            req.pop('id')
+
+            gwas_uid = edit_existing_gwas(gwas_id, user_uid, req, {group_name})
+
+            # write metadata to json
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
+            try:
+                os.makedirs(study_folder, exist_ok=True)
+            except FileExistsError as e:
+                logger.error("Could not create study folder: {}".format(e))
+                raise e
+
+            gi = get_gwas_for_user(user_uid, gwas_id, datapass=False)
+            with open(os.path.join(study_folder, str(gwas_id) + '.json'), 'w') as f:
+                json.dump(gi, f)
 
             return {"id": gwas_uid}, 200
 
@@ -159,6 +228,8 @@ class Upload(Resource):
                         help="Path to GWAS summary stats text file for upload. If you do not provide a file we assume the analysis is performed on HPC.")
     parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
                         choices=('True', 'False'))
+    parser.add_argument('md5', type=str, required=False,
+                        help="MD5 checksum of upload file")
 
     @staticmethod
     def read_gzip(p, sep, args):
@@ -268,9 +339,8 @@ class Upload(Resource):
 
         if args['gwas_file'] is not None:
 
-            # if data already exists on the backend then stop
             try:
-                os.mkdir(study_folder)
+                os.makedirs(study_folder, exist_ok=True)
             except FileExistsError as e:
                 logger.error("Could not create study folder: {}".format(e))
                 raise e
@@ -282,6 +352,15 @@ class Upload(Resource):
 
             # save file to server
             args['gwas_file'].save(output_path)
+
+            # check md5 sum
+            if(args['md5'] is not None):
+                filechecksum = Upload.md5(output_path)
+                try:
+                    assert filechecksum == args['md5']
+                except AssertionError as error:
+                    logger.error("md5 doesn't match, upload: {}, stated: {}".format(filechecksum, args['md5']))
+                    raise(e)
 
             # compress file
             if args['gzipped'] != 'True':
@@ -300,10 +379,10 @@ class Upload(Resource):
             except IndexError as e:
                 return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
 
-            # write metadata to json
-            gi = get_gwas_for_user(user_email, str(args['id']), datapass=False)
-            with open(os.path.join(study_folder, str(args['id']) + '.json'), 'w') as f:
-                json.dump(gi, f)
+            # write analyst data to json
+            an = {"upload_uid": user_email, "upload_epoch": time.time()}
+            with open(os.path.join(study_folder, str(args['id']) + '_analyst.json'), 'w') as f:
+                json.dump(an, f)
 
             # write params for pipeline
             del j['id']
