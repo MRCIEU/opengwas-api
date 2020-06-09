@@ -40,6 +40,16 @@ def test_gwasinfo_add_delete(url):
     r = requests.get(url + "/edit/check/" + uid, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
+    # edit metadata
+    payload['pmid'] = '12345'
+    payload['id'] = uid
+    r = requests.post(url + "/edit/edit", data=payload, headers=headers)
+    assert r.status_code == 200
+
+    # check metadata
+    r = requests.get(url + "/edit/check/" + uid, headers=headers)
+    assert r.status_code == 200
+
     # delete record
     r = requests.delete(url + "/edit/delete/" + uid, headers=headers)
     assert r.status_code == 200
