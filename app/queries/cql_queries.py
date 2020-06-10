@@ -81,7 +81,6 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), 
         gwas_info_dict['id'] = str(GwasInfo.get_next_numeric_id())
 
     # populate nodes
-    gwas_info_dict['priority'] = 0
     gwas_info_node = GwasInfo(gwas_info_dict)
     added_by_rel = AddedByRel({'epoch': time.time()})
     access_to_rel = AccessToRel()
@@ -98,7 +97,7 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), 
     return gwas_info_dict['id']
 
 
-def edit_existing_gwas(gwas_id, user_email, gwas_info_dict, group_names=frozenset(['public'])):
+def edit_existing_gwas(gwas_id, gwas_info_dict):
     try:
         GwasInfo.get_node(str(gwas_id))
     except LookupError:
@@ -107,25 +106,18 @@ def edit_existing_gwas(gwas_id, user_email, gwas_info_dict, group_names=frozense
     gwas_info_dict['id'] = str(gwas_id)
 
     # populate nodes
-    gwas_info_dict['priority'] = 0
+    # gwas_info_dict['priority'] = 0
     gwas_info_node = GwasInfo(gwas_info_dict)
-    added_by_rel = AddedByRel({'epoch': time.time()})
-    access_to_rel = AccessToRel()
+    gwas_info_node.edit_node()
 
-    # delete existing node
-    delete_gwas(str(gwas_id))
-
-    # add updated node
-    gwas_info_node.create_node()
-    added_by_rel.create_rel(gwas_info_node, User.get_node(user_email))
-
-    # add grps
-    for group_name in group_names:
-        group_node = Group.get_node(group_name)
+    # update grps
+    if gwas_info_dict['group_name'] is not None:
+        delete_groups(gwas_id)
+        group_node = Group.get_node(gwas_info_dict['group_name'])
+        access_to_rel = AccessToRel()
         access_to_rel.create_rel(group_node, gwas_info_node)
 
     return gwas_info_dict['id']
-
 
 
 def add_new_user(email, group_names=frozenset(['public']), admin=False):
@@ -158,6 +150,14 @@ def delete_gwas(gwasid):
         gwasid=gwasid
     )
 
+
+def delete_groups(gwasid):
+    tx = Neo4j.get_db()
+    tx.run(
+        "MATCH (gi:GwasInfo {id:{gwasid}})-[rel]-(g:Group) "
+        "DELETE rel;",
+        gwasid=gwasid
+    )
 
 """ Returns list of group identifiers for a given user email (will accept None) """
 
