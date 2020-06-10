@@ -35,6 +35,17 @@ class UniqueNode(dict):
             uid=self.get(self._UID_KEY),
             params=d
         )
+    
+    def edit_node(self):
+        schema = self._SCHEMA()
+        d = schema.load(self)
+        tx = Neo4j.get_db()
+        tx.run(
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":{uid}}) SET n = {params};",
+            uid=self.get(self._UID_KEY),
+            params=d
+        )
+
 
     @classmethod
     def delete_node(cls, uid):
