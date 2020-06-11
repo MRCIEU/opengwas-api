@@ -38,7 +38,7 @@ rm app/1kg.v3.tgz
 ### Create tunnel (need to be on VPN)
 
 ```sh
-ssh -f -N -L 9200:140.238.83.192:9200 <username>@ieu-db-interface.epi.bris.ac.uk
+do
 ```
 
 ### Create environment
