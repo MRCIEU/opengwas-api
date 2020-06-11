@@ -110,30 +110,3 @@ def test_get_permitted_studies(reset_db):
         add_quality_control(email, uid, True)
 
         assert len(get_permitted_studies(email, [uid])) == 1
-
-
-def test_get_groups_for_all_studies(reset_db):
-    app = flask.Flask(__name__)
-    with app.app_context():
-        second_grp = "developer"
-
-        # add groups
-        g = Group(name=group_name)
-        g.create_node()
-        g = Group(name=second_grp)
-        g.create_node()
-
-        # add user
-        add_new_user(email)
-
-        # add GWAS & associate with two groups
-        uid = add_new_gwas(email, gwas_info, group_names=[group_name, second_grp])
-
-        # pass QC so that it appears in the output
-        add_quality_control(email, uid, True)
-
-        # get list of all groups in the DB
-        res = get_groups_for_all_studies()
-        assert uid in res
-        assert len(res[uid]) == 2
-        assert res[uid].sort() == [group_name, second_grp].sort()

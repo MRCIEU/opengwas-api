@@ -154,7 +154,7 @@ class GetId(Resource):
             recs = []
             for uid in gwas_info_id.split(','):
                 try:
-                    recs.append(get_gwas_for_user(user_email, str(uid), datapass=False))
+                    recs.append(get_gwas_for_user(user_email, str(uid),datapass=False))
                 except LookupError:
                     continue
             return recs
@@ -233,7 +233,7 @@ class Upload(Resource):
 
     @staticmethod
     def read_gzip(p, sep, args):
-        conv = lambda i: i or None
+        conv = lambda i : i or None
         with gzip.open(p, 'rt', encoding='utf-8') as f:
             if args['header'] == 'True':
                 f.readline()
@@ -354,13 +354,13 @@ class Upload(Resource):
             args['gwas_file'].save(output_path)
 
             # check md5 sum
-            if (args['md5'] is not None):
+            if(args['md5'] is not None):
                 filechecksum = Upload.md5(output_path)
                 try:
                     assert filechecksum == args['md5']
                 except AssertionError as error:
                     logger.error("md5 doesn't match, upload: {}, stated: {}".format(filechecksum, args['md5']))
-                    raise (e)
+                    raise(e)
 
             # compress file
             if args['gzipped'] != 'True':
@@ -402,18 +402,10 @@ class Upload(Resource):
             with open(os.path.join(study_folder, str(args['id']) + '_wdl.json'), 'w') as f:
                 json.dump(t, f)
 
-            with open(os.path.join(study_folder, str(args['id']) + '_labels.json'), 'w') as f:
-                json.dump({"gwas_id": args['id']}, f)
-
             # add to workflow queue
             r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
-                              files={
-                                  'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
-                                  'workflowInputs': open(os.path.join(study_folder, str(args['id']) + '_wdl.json'),
-                                                         'rb'),
-                                  'labels': open(os.path.join(study_folder, str(args['id']) + '_labels.json'),
-                                                 'rb')
-                              })
+                              files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
+                                     'workflowInputs': open(os.path.join(study_folder, str(args['id']) + '_wdl.json'), 'rb')})
             assert r.status_code == 201
             assert r.json()['status'] == "Submitted"
             logger.info("Submitted {} to workflow".format(r.json()['id']))

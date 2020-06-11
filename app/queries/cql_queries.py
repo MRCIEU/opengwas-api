@@ -13,7 +13,6 @@ import time
 
 
 def get_all_gwas_for_user(uid):
-    all_groups = get_groups_for_all_studies()
     group_names = get_groups_for_user(uid)
     res = {}
     tx = Neo4j.get_db()
@@ -22,11 +21,7 @@ def get_all_gwas_for_user(uid):
         group_names=list(group_names)
     )
     for result in results:
-        # append list of groups to each gwasinfo node
-        gi = GwasInfo(result['gi'])
-        if gi['id'] in all_groups:
-            gi['groups'] = all_groups[gi['id']]
-        res[result['gi']['id']] = gi
+        res[result['gi']['id']] = GwasInfo(result['gi'])
 
     return res
 
@@ -48,7 +43,6 @@ def get_all_gwas_ids_for_user(uid):
 
 
 def get_gwas_for_user(uid, gwasid, datapass=True):
-    all_groups = get_groups_for_all_studies()
     group_names = get_groups_for_user(uid)
     schema = GwasInfoNodeSchema()
 
@@ -71,12 +65,7 @@ def get_gwas_for_user(uid, gwasid, datapass=True):
     if result is None:
         raise LookupError("GwasInfo ID {} does not exist or you do not have the required access".format(gwasid))
 
-    # append list of groups to output
-    gi = schema.load(GwasInfo(result['gi']))
-    if gi['id'] in all_groups:
-        gi['groups'] = all_groups[gi['id']]
-
-    return gi
+    return schema.load(GwasInfo(result['gi']))
 
 
 def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), gwas_id=None):
@@ -109,7 +98,6 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), 
     return gwas_info_dict['id']
 
 
-# TODO add edit function to parent class
 def edit_existing_gwas(gwas_id, user_email, gwas_info_dict, group_names=frozenset(['public'])):
     try:
         GwasInfo.get_node(str(gwas_id))
@@ -137,6 +125,7 @@ def edit_existing_gwas(gwas_id, user_email, gwas_info_dict, group_names=frozense
         access_to_rel.create_rel(group_node, gwas_info_node)
 
     return gwas_info_dict['id']
+
 
 
 def add_new_user(email, group_names=frozenset(['public']), admin=False):
@@ -248,24 +237,5 @@ def get_todo_quality_control():
     )
     for result in results:
         res.append(GwasInfo(result['gi']))
-
-    return res
-
-
-def get_groups_for_all_studies():
-    res = {}
-
-    # get group names for studies
-    tx = Neo4j.get_db()
-    results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo) "
-        "RETURN DISTINCT gi.id as id, g.name as group_name;"
-    )
-
-    # bank array of group_names for each study
-    for result in results:
-        if result['id'] not in res:
-            res[result['id']] = []
-        res[result['id']].append(result['group_name'])
 
     return res
