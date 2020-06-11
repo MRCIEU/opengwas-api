@@ -1,5 +1,6 @@
 from marshmallow import fields, ValidationError
 from schemas.frpm_schema import FRPMSchema
+from schemas.group_node_schema import valid_group_names
 import idutils
 import re
 
@@ -110,6 +111,9 @@ def check_population_is_valid(data):
     if data not in valid_populations:
         raise ValidationError("Population must be one of: {}".format(valid_populations))
 
+def check_group_name_is_valid(data):
+    if data not in valid_group_names:
+        raise ValidationError("Group name must be one of: {}".format(valid_group_names))
 
 def check_sex_is_valid(data):
     if data not in valid_sex:
@@ -212,3 +216,7 @@ class GwasInfoNodeSchema(FRPMSchema):
         choices=list(valid_coverage))
     qc_prior_to_upload = fields.Str(required=False, allow_none=True,
                                     description="Detail any QC or filtering steps taken prior to data upload")
+    group_name = fields.Str(required=False, allow_none=True,
+                    validate=check_group_name_is_valid,
+                    description="Name for the group this study should belong to.", 
+                    choices=sorted(list(valid_group_names)))
