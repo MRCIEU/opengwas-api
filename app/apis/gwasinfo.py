@@ -7,7 +7,6 @@ from resources.auth import get_user_email
 import logging
 from resources.globals import Globals
 import os
-import json
 import requests
 
 logger = logging.getLogger('debug-log')
