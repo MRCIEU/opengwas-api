@@ -189,8 +189,20 @@ with app.app_context():
             if fields[20] != "NULL":
                 d['consortium'] = str(fields[20])
 
-            #if fields[21] != "NULL":
-            #    d['access'] = str(fields[21])
+            if fields[21] != "NULL":
+               d['group_name'] = str(fields[21])
+
+            if fields[22] != "NULL":
+               d['ontology'] = str(fields[22])
+
+            # if fields[23] != "NULL":
+            #    d['study_design'] = str(fields[23])
+
+            # if fields[24] != "NULL":
+            #    d['coverage'] = str(fields[24])
+
+            if fields[25] != "NULL":
+               d['build'] = str(fields[25])
 
             if d['category'] == "Cytokines":
                 d['category'] = "Immune system"
