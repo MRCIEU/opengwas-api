@@ -80,7 +80,7 @@ task vcf {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas2vcf:6390587a4a17ff3d5e1fef16f9068c12e0f65886 \
+        gwas2vcf:1afa2e7e1f37f6677cf0550785e4e0fe8703209a \
         python /app/main.py \
         --data ${SumStatsFile} \
         --id ${StudyId} \
