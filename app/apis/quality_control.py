@@ -104,6 +104,9 @@ class Release(Resource):
                 assert r.json()['status'] == "Submitted"
                 logger.info("Submitted {} to workflow".format(r.json()['id']))
 
+                # update GI cache
+                requests.get(Globals.CROMWELL_URL + "/gicache")
+
                 return {'message': 'Added to elastic import queue successful. Cromwell id :{}'.format(
                     r.json()['id'])}, 200
 
