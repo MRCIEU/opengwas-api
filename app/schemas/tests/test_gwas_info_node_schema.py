@@ -11,6 +11,19 @@ def test_schema():
     schema = GwasInfoNodeSchema()
     schema.load(d)
 
+    assert "consortium" in schema.load(d)
+    assert "author" in schema.load(d)
+
+    # check consortium is filled with NA which is not essential but required for downstream apps
+    d2 = d
+    del d2["consortium"]
+    assert schema.load(d2)["consortium"] == "NA"
+
+    # check author is filled with NA which is not essential but required for downstream apps
+    d2 = d
+    del d2["author"]
+    assert schema.load(d2)["author"] == "NA"
+
 
 def test_populate_parser():
     api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")
