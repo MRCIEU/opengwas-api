@@ -1,9 +1,6 @@
 from flask_restplus import Resource, Namespace
-from flask import request
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
-from werkzeug.exceptions import BadRequest
-from resources.auth import get_user_email
 import logging
 import json
 from resources.globals import Globals
