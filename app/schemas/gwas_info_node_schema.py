@@ -195,9 +195,9 @@ class GwasInfoNodeSchema(FRPMSchema):
     sd = fields.Float(required=False, allow_none=True,
         description="What is the standard deviation of the sample mean of the phenotype?")
     priority = fields.Int(required=True, allow_none=False)
-    author = fields.Str(required=False, allow_none=True,
+    author = fields.Str(required=False, allow_none=True,missing="NA",
         description="Provide the last name of the first author of your study")
-    consortium = fields.Str(required=False, allow_none=True,
+    consortium = fields.Str(required=False, allow_none=True, missing="NA",
         description="What is the name of your study or consortium (if applicable)?")
     study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True,
         description="Which best describes the design of your study",
