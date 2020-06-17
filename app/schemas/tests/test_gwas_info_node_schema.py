@@ -24,6 +24,14 @@ def test_schema():
     del d2["author"]
     assert schema.load(d2)["author"] == "NA"
 
+    # check year is filled with NA which is not essential but required for downstream apps
+    d2 = d
+    del d2["year"]
+    assert schema.load(d2)["year"] is None
+    d2 = d
+    d2["year"] = None
+    assert schema.load(d2)["year"] is None
+
 
 def test_populate_parser():
     api = Namespace('gwasinfo', description="Get information about available GWAS summary datasets")

@@ -156,7 +156,7 @@ class GwasInfoNodeSchema(FRPMSchema):
     doi = fields.Str(required=False, allow_none=True,
         description="DOI. Leave blank for unpublished studies.",
         validate=check_doi)
-    year = fields.Int(required=False, validate=check_study_year, allow_none=True,
+    year = fields.Int(required=False, validate=check_study_year, allow_none=True,missing=None,
         description="What year was this GWAS published?")
     mr = fields.Int(required=False, allow_none=True,
         validate=check_mr_is_0_or_1,
