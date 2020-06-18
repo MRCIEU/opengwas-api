@@ -115,6 +115,9 @@ def test_get_permitted_studies(reset_db):
 def test_admin(reset_db):
     app = flask.Flask(__name__)
     with app.app_context():
+        # create public node
+        g = Group(name=group_name)
+        g.create_node()
         # create non-admin user
         add_new_user(email)
         with pytest.raises(PermissionError):
