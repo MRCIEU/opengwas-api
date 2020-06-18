@@ -249,6 +249,9 @@ class Upload(Resource):
                 line_split = [conv(i) for i in line.strip().split(sep)]
                 Upload.validate_row_with_schema(line_split, args)
 
+            if n == 0:
+                raise ValueError("File had 0 rows")
+
     @staticmethod
     def md5(fname):
         hash_md5 = hashlib.md5()
@@ -381,6 +384,8 @@ class Upload(Resource):
                 return {'message': 'The file format was invalid {}'.format(e)}, 400
             except IndexError as e:
                 return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
+            except ValueError as e:
+                return {'message': 'Check file upload: {}'.format(e)}, 400
 
             # write metadata to json
             gi = get_gwas_for_user(user_email, str(j['id']), datapass=False)
