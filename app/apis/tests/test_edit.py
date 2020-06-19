@@ -122,7 +122,7 @@ def test_gwasinfo_upload_plain_text(url):
 
     # poll for successful job completion
     while True:
-        r = requests.get(url + "/edit/status/{}".format(job_id))
+        r = requests.get(url + "/edit/status/" + job_id)
         r.raise_for_status()
         assert r.json()["status"] != "Failed"
         if r.json()["status"] == "Succeeded":

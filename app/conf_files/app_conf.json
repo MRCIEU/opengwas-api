@@ -22,10 +22,6 @@
       "upload": "data/igd",
       "logs": "data/mrb_logs",
       "tmp": "tmp"
-    },
-    "cromwell": {
-      "host": "ieu-db-interface.epi.bris.ac.uk",
-      "port": 8001
     }
   },
   "production": {
