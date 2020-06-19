@@ -118,16 +118,16 @@ def test_gwasinfo_upload_plain_text(url):
     assert r.status_code == 201
 
     # obtain cromwell ID from output
-    job_id = r.json()["job_id"]
+    #job_id = r.json()["job_id"]
 
     # poll for successful job completion
-    while True:
-        r = requests.get(url + "/edit/status/" + job_id)
-        r.raise_for_status()
-        assert r.json()["status"] != "Failed"
-        if r.json()["status"] == "Succeeded":
-            break
-        time.sleep(5)
+    #while True:
+    #    r = requests.get(url + "/edit/status/" + job_id)
+    #    r.raise_for_status()
+    #    assert r.json()["status"] != "Failed"
+    #    if r.json()["status"] == "Succeeded":
+    #        break
+    #    time.sleep(5)
 
 
 def test_gwasinfo_upload_gzip(url):
