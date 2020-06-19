@@ -43,19 +43,19 @@ workflow qc {
             VcfFileIn=vcf.VcfFile,
             VcfFileInIdx=vcf.VcfFileIdx
     }
-    call report {
-        input:
-            MountDir=MountDir,
-            VcfFileIn=vcf.VcfFile,
-            VcfFileInIdx=vcf.VcfFileIdx,
-            RefData=RefData,
-            RefDataIdx=RefDataIdx,
-            StudyId=StudyId,
-            LdscFileIn=ldsc.LdscFile,
-            ClumpFileIn=clumping.ClumpFile,
-            MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json",
-            OutDirPath=BaseDir + "/" + StudyId
-    }
+    #call report {
+    #    input:
+    #        MountDir=MountDir,
+    #        VcfFileIn=vcf.VcfFile,
+    #        VcfFileInIdx=vcf.VcfFileIdx,
+    #        RefData=RefData,
+    #        RefDataIdx=RefDataIdx,
+    #        StudyId=StudyId,
+    #        LdscFileIn=ldsc.LdscFile,
+    #        ClumpFileIn=clumping.ClumpFile,
+    #        MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json",
+    #        OutDirPath=BaseDir + "/" + StudyId
+    #}
 
 }
 
