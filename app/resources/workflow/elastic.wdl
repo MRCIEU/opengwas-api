@@ -19,7 +19,7 @@ workflow elastic {
             VcfFile=VcfFile,
             VcfFileIdx=VcfFileIdx,
             StudyId=StudyId,
-            EsIndex=get_index_from_study.index_name,
+            EsIndex="ieu-b-1",
             ClumpFile=ClumpFile,
             Host=Host,
             Port=Port
