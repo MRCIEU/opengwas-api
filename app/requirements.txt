@@ -10,8 +10,6 @@ elasticsearch==6.3.1
 Flask==1.0.2
 flask-restplus==0.12.1
 idna==2.8
-IDUtils==1.1.2
-isbnid-fork==0.5.2
 itsdangerous==1.1.0
 Jinja2==2.10.1
 jsonschema==3.0.1

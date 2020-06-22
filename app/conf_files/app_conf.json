@@ -22,6 +22,10 @@
       "upload": "data/igd",
       "logs": "data/mrb_logs",
       "tmp": "tmp"
+    },
+    "cromwell": {
+      "host": "localhost",
+      "port": 8000
     }
   },
   "production": {

@@ -67,6 +67,18 @@ neo4j:3.5.6
 
 (Note: using neo4j:3.5.6 because it is stable and doesn't keep crashing Docker on mac)
 
+### Deploy local Cromwell instance using Docker
+
+```sh
+docker build -t cromwell-docker ./resources/workflow
+docker run -d \
+-p8000:8000 \
+--env JAVA_OPTS="-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs" \
+--name cromwell_igd \
+cromwell-docker:latest \
+server
+```
+
 ### Importing metadata from TSV
 
 The meta data is
