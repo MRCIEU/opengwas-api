@@ -41,11 +41,6 @@ class GetId(Resource):
 
     @api.expect(parser)
     def get(self, id):
-        # user_email = get_user_email(request.headers.get('X-Api-Token'))
-        # try:
-        #     check_user_is_admin(user_email)
-        # except PermissionError as e:
-        #     return {"message": str(e)}, 403
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
         htmlfile = id + "_report.html"
         try:
@@ -74,7 +69,7 @@ class Release(Resource):
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
             try:
-                check_user_is_admin(user_uid)
+                check_user_is_developer(user_uid)
             except PermissionError as e:
                 return {"message": str(e)}, 403
 
@@ -151,7 +146,7 @@ class Delete(Resource):
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
             try:
-                check_user_is_admin(user_uid)
+                check_user_is_developer(user_uid)
             except PermissionError as e:
                 return {"message": str(e)}, 403
 

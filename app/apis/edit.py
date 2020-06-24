@@ -169,7 +169,7 @@ class Delete(Resource):
 
         try:
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
-            check_user_is_admin(user_uid)
+            check_user_is_developer(user_uid)
         except PermissionError as e:
             return {"message": str(e)}, 403
         except requests.exceptions.HTTPError as e:
