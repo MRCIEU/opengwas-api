@@ -110,3 +110,21 @@ def test_get_permitted_studies(reset_db):
         add_quality_control(email, uid, True)
 
         assert len(get_permitted_studies(email, [uid])) == 1
+
+
+def test_admin(reset_db):
+    app = flask.Flask(__name__)
+    with app.app_context():
+        # create public node
+        g = Group(name=group_name)
+        g.create_node()
+        # create non-admin user
+        add_new_user(email)
+        with pytest.raises(PermissionError):
+            # check failed operation when attempting admin func
+            check_user_is_admin(email)
+        # delete and re-create with admin credentials
+        User.delete_node(email)
+        add_new_user(email, admin=True)
+        # should not fail
+        check_user_is_admin(email)

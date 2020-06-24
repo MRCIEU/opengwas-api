@@ -3,29 +3,30 @@ from apis.tests.token import get_mrbase_access_token
 import os
 import shutil
 import tempfile
+import time
 
 token = get_mrbase_access_token()
 
 
 def test_gwasinfo_add_delete(url):
     payload = {
-        'pmid': 1234, 
-        'year': 2010, 
+        'pmid': 1234,
+        'year': 2010,
         'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
-        'sex': 'Males', 
-        'ncase': None, 
-        'ncontrol': None, 
-        'sample_size': 60586, 
+        'sex': 'Males',
+        'ncase': None,
+        'ncontrol': None,
+        'sample_size': 60586,
         'nsnp': 2725796,
-        'unit': 'SD (cm)', 
+        'unit': 'SD (cm)',
         'group_name': "public",
-        'sd': 8.4548, 
-        'priority': 15, 
-        'author': 'Randall JC', 
+        'sd': 8.4548,
+        'priority': 15,
+        'author': 'Randall JC',
         'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}
@@ -74,16 +75,16 @@ def test_gwasinfo_upload_plain_text(url):
         'build': 'HG19/GRCh37',
         'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
-        'sex': 'Males', 
-        'ncase': None, 
-        'ncontrol': None, 
-        'sample_size': 60586, 
+        'sex': 'Males',
+        'ncase': None,
+        'ncontrol': None,
+        'sample_size': 60586,
         'nsnp': 2725796,
-        'unit': 'SD (cm)', 
+        'unit': 'SD (cm)',
         'group_name': "public",
-        'sd': 8.4548, 
-        'priority': 15, 
-        'author': 'Randall JC', 
+        'sd': 8.4548,
+        'priority': 15,
+        'author': 'Randall JC',
         'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}
@@ -116,27 +117,39 @@ def test_gwasinfo_upload_plain_text(url):
 
     assert r.status_code == 201
 
+    # obtain cromwell ID from output
+    #job_id = r.json()["job_id"]
+
+    # poll for successful job completion
+    #while True:
+    #    r = requests.get(url + "/edit/status/" + job_id)
+    #    r.raise_for_status()
+    #    assert r.json()["status"] != "Failed"
+    #    if r.json()["status"] == "Succeeded":
+    #        break
+    #    time.sleep(5)
+
 
 def test_gwasinfo_upload_gzip(url):
     payload = {
-        'pmid': 1234, 
-        'year': 2010, 
+        'pmid': 1234,
+        'year': 2010,
         'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
-        'trait': 'Hip circumference', 
+        'trait': 'Hip circumference',
         'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
-        'sex': 'Males', 
-        'ncase': None, 
-        'ncontrol': None, 
-        'sample_size': 60586, 
+        'sex': 'Males',
+        'ncase': None,
+        'ncontrol': None,
+        'sample_size': 60586,
         'nsnp': 2725796,
-        'unit': 'SD (cm)', 
+        'unit': 'SD (cm)',
         'group_name': "public",
-        'sd': 8.4548, 
-        'priority': 15, 
-        'author': 'Randall JC', 
+        'sd': 8.4548,
+        'priority': 15,
+        'author': 'Randall JC',
         'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}
@@ -174,23 +187,23 @@ def test_gwasinfo_upload_large(url):
     file_url = 'https://zenodo.org/record/1251813/files/bmi.giant-ukbb.meta-analysis.combined.23May2018.txt.gz?download=1'
 
     payload = {
-        'pmid': 1234, 
-        'year': 2010, 
+        'pmid': 1234,
+        'year': 2010,
         'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
         'trait': 'BMI', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
         'population': 'European',
-        'sex': 'Males', 
-        'ncase': None, 
-        'ncontrol': None, 
-        'sample_size': 60586, 
+        'sex': 'Males',
+        'ncase': None,
+        'ncontrol': None,
+        'sample_size': 60586,
         'nsnp': 2725796,
-        'unit': 'SD (cm)', 
+        'unit': 'SD (cm)',
         'group_name': "public",
-        'sd': 8.4548, 
-        'priority': 15, 
-        'author': 'Randall JC', 
+        'sd': 8.4548,
+        'priority': 15,
+        'author': 'Randall JC',
         'consortium': 'GIANT'
     }
     headers = {'X-API-TOKEN': token}

@@ -159,6 +159,7 @@ def delete_groups(gwasid):
         gwasid=gwasid
     )
 
+
 """ Returns list of group identifiers for a given user email (will accept None) """
 
 
@@ -225,7 +226,7 @@ def check_user_is_admin(uid):
         raise PermissionError("The token must resolve to a valid user")
     if 'admin' not in u:
         raise PermissionError("You must be an admin to complete this function")
-    if not ['admin']:
+    if u['admin'] is not True:
         raise PermissionError("You must be an admin to complete this function")
 
 

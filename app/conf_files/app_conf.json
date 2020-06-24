@@ -24,8 +24,8 @@
       "tmp": "tmp"
     },
     "cromwell": {
-      "host": "ieu-db-interface.epi.bris.ac.uk",
-      "port": 8001
+      "host": "localhost",
+      "port": 8000
     }
   },
   "production": {

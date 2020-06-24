@@ -12,8 +12,6 @@ import json
 import shutil
 from resources.auth import get_user_email
 from flask import request
-from schemas.gwas_info_node_schema import valid_genome_build
-from schemas.group_node_schema import valid_group_names
 import requests
 import logging
 import os
@@ -155,6 +153,20 @@ class GetId(Resource):
             raise BadRequest("Could not authenticate: {}".format(e))
 
 
+@api.route('/status/<job_id>')
+@api.doc(description="Check on the progress of the GWAS upload job")
+class JobStatus(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=False, default='null',
+        help=Globals.AUTHTEXT)
+
+    @api.expect(parser)
+    def get(self, job_id):
+        r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/{}/status".format(job_id))
+        return r.json(), r.status_code
+
+
 @api.route('/delete/<gwas_info_id>')
 @api.doc(description="Delete gwas metadata")
 class Delete(Resource):
@@ -236,6 +248,9 @@ class Upload(Resource):
                     break
                 line_split = [conv(i) for i in line.strip().split(sep)]
                 Upload.validate_row_with_schema(line_split, args)
+
+            if n == 0:
+                raise ValueError("File had 0 rows")
 
     @staticmethod
     def md5(fname):
@@ -369,6 +384,8 @@ class Upload(Resource):
                 return {'message': 'The file format was invalid {}'.format(e)}, 400
             except IndexError as e:
                 return {'message': 'Check column numbers and separator: {}'.format(e)}, 400
+            except ValueError as e:
+                return {'message': 'Check file upload: {}'.format(e)}, 400
 
             # write metadata to json
             gi = get_gwas_for_user(user_email, str(j['id']), datapass=False)
@@ -379,6 +396,10 @@ class Upload(Resource):
             an = {"upload_uid": user_email, "upload_epoch": time.time()}
             with open(os.path.join(study_folder, str(args['id']) + '_analyst.json'), 'w') as f:
                 json.dump(an, f)
+
+            # add cromwell label
+            with open(os.path.join(study_folder, str(args['id']) + '_labels.json'), 'w') as f:
+                json.dump({"gwas_id": args['id']}, f)
 
             # write params for pipeline
             del j['id']
@@ -401,12 +422,14 @@ class Upload(Resource):
             # add to workflow queue
             r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                               files={'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
+                                     'labels': open(os.path.join(study_folder, str(args['id']) + '_labels.json'),
+                                                    'rb'),
                                      'workflowInputs': open(os.path.join(study_folder, str(args['id']) + '_wdl.json'),
                                                             'rb')})
             assert r.status_code == 201
             assert r.json()['status'] == "Submitted"
             logger.info("Submitted {} to workflow".format(r.json()['id']))
 
-            return {'message': 'Upload successful. Cromwell id :{}'.format(r.json()['id'])}, 201
+            return {'message': 'Upload successful', 'job_id': r.json()['id']}, 201
         else:
             return j, 200
