@@ -229,6 +229,15 @@ def check_user_is_admin(uid):
         raise PermissionError("You must be an admin to complete this function")
 
 
+def check_user_is_developer(uid):
+    try:
+        u = get_groups_for_user(uid)
+    except LookupError:
+        raise PermissionError("The token must resolve to a valid user")
+    if 'developer' not in u:
+        raise PermissionError("You must be a developer to complete this function")
+
+
 def get_todo_quality_control():
     res = []
     tx = Neo4j.get_db()
