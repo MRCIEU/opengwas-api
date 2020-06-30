@@ -73,9 +73,21 @@ class Release(Resource):
             except PermissionError as e:
                 return {"message": str(e)}, 403
 
+            # check first stage workflow completed successfully
+            payload = {'label': 'gwas_id:' + req['id']}
+            r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=payload)
+            assert r.status_code == 200
+            first_stage_passed = False
+            for result in r.json()["results"]:
+                if result["name"] == "qc":
+                    if result["status"] == "Succeeded":
+                        first_stage_passed = True
+                        break
+            if req['passed_qc'] == "True" and not first_stage_passed:
+                raise ValueError("Cannot release data; the qc workflow failed!")
+
             # update graph
-            gwas_info_id = req['id']
-            add_quality_control(user_uid, gwas_info_id, req['passed_qc'] == "True", comment=req['comments'])
+            add_quality_control(user_uid, req['id'], req['passed_qc'] == "True", comment=req['comments'])
 
             # update json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
@@ -94,21 +106,25 @@ class Release(Resource):
                 # add to workflow queue
                 r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
                                   files={'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
-                                         'workflowInputs': open(os.path.join(study_folder, req['id'] + '_wdl.json'), 'rb')})
+                                         'labels': open(os.path.join(study_folder, str(req['id']) + '_labels.json'),
+                                                        'rb'),
+                                         'workflowInputs': open(os.path.join(study_folder, req['id'] + '_wdl.json'),
+                                                                'rb')})
                 assert r.status_code == 201
                 assert r.json()['status'] == "Submitted"
                 logger.info("Submitted {} to workflow".format(r.json()['id']))
 
                 # update GI cache
                 requests.get(Globals.CROMWELL_URL + "/gicache")
-
-                return {'message': 'Added to elastic import queue successful. Cromwell id :{}'.format(
-                    r.json()['id'])}, 200
+                return {'message': 'Added to elastic import queue successful', 'job_id': r.json()['id']}, 200
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
         except requests.exceptions.HTTPError as e:
             raise BadRequest("Could not authenticate: {}".format(e))
+        except ValueError as e:
+            raise BadRequest("Could not process request: {}".format(e))
+
 
 @api.route('/check/<id>')
 @api.doc(description="View files generated for a dataset")
@@ -126,8 +142,6 @@ class GetId(Resource):
             return d
         else:
             return []
-
-
 
 
 @api.route('/delete/<id>')
