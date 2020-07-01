@@ -34,10 +34,11 @@ class Globals:
     print("Params: {}".format(app_config))
 
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
-    LD_POPULATIONS = ['EUR', 'SAS', 'EAS', 'AFR', 'AMR']
+    LD_POPULATIONS = ['EUR', 'SAS', 'EAS', 'AFR', 'AMR', 'legacy']
     LD_REF = {}
     for pop in LD_POPULATIONS:
         LD_REF[pop] = os.path.join(root_path, 'ld_files', pop)
+    LD_REF['legacy'] = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs_ref')
 
     TMP_FOLDER = app_config['directories']['tmp']
     UPLOAD_FOLDER = app_config['directories']['upload']
