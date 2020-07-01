@@ -50,9 +50,10 @@ def test_release(url):
     assert r.status_code == 201
 
     # set quality control
+    # will fail because the first stage QC did not succeed
     payload = {'id': uid, 'comments': "test", 'passed_qc': "True"}
     r = requests.post(url + '/quality_control/release', data=payload, headers=headers)
-    assert r.status_code == 200
+    assert r.status_code == 400
 
     # delete quality control (permission denied)
     r = requests.delete(url + "/quality_control/delete/" + uid, headers={'X-API-TOKEN': 'null'})
