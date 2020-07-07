@@ -153,8 +153,8 @@ class GetId(Resource):
             raise BadRequest("Could not authenticate: {}".format(e))
 
 
-@api.route('/status/<job_id>')
-@api.doc(description="Check on the progress of the GWAS upload job")
+@api.route('/status/<gwas_id>')
+@api.doc(description="Check on the progress of GWAS upload")
 class JobStatus(Resource):
     parser = api.parser()
     parser.add_argument(
@@ -162,8 +162,8 @@ class JobStatus(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    def get(self, job_id):
-        r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/{}/status".format(job_id))
+    def get(self, gwas_id):
+        r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=dict(label="gwas_id:" + gwas_id))
         return r.json(), r.status_code
 
 
