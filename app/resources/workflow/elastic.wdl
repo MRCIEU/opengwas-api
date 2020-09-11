@@ -8,6 +8,7 @@ workflow elastic {
     File VcfFile=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz"
     File VcfFileIdx=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz.tbi"
     File ClumpFile=BaseDir + "/" + StudyId + "/clump.txt"
+    File ElasticCompleteFile=BaseDir + "/" + StudyId + "/ElasticComplete.txt"
     
     call get_index_from_study {
         input:
@@ -23,6 +24,10 @@ workflow elastic {
             ClumpFile=ClumpFile,
             Host=Host,
             Port=Port
+    }
+    call ready_for_rsync {
+        input:
+            ElasticCompleteFile=ElasticCompleteFile
     }
 
 }
@@ -70,4 +75,17 @@ task insert {
         -t ${ClumpFile}
     >>>
 
+}
+
+task ready_for_rsync {
+
+    File ElasticCompleteFile
+    
+    command <<<
+        touch ${ElasticCompleteFile}
+    >>>
+    
+    output {
+        File complete = "ElasticComplete.txt"
+    }
 }
