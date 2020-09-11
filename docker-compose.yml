@@ -90,6 +90,7 @@ services:
     restart: always
     volumes:
       - /data/cromwell-mysql:/var/lib/mysql
+      - /etc/timezone:/etc/timezone:ro
     environment:
       MYSQL_ROOT_PASSWORD: kQzWHp2V
     healthcheck:

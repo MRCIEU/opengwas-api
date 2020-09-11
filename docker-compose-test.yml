@@ -38,9 +38,22 @@ services:
   mr-base-api-cromwell:
     build: ./app/resources/workflow
     environment:
-      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs
+      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs -Ddatabase.profile="slick.jdbc.MySQLProfile$" -Ddatabase.db.driver="com.mysql.cj.jdbc.Driver" -Ddatabase.db.url="jdbc:mysql:mr-base-api-cromwell-mysql?rewriteBatchedStatements=true" -Ddatabase.db.user="root" -Ddatabase.db.password="kQzWHp2V" -Ddatabase.db.connectionTimeout=5000
     volumes:
       - /etc/timezone:/etc/timezone:ro
     command: ["server"]
+    depends_on:
+      - mr-base-api-cromwell-mysql
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000"]
+
+  mr-base-api-cromwell-mysql:
+    image: mysql:8.0.2.1
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: kQzWHp2V
+    volumes:
+        - /etc/timezone:/etc/timezone:ro  
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=kQzWHp2V
