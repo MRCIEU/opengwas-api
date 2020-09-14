@@ -58,4 +58,4 @@ services:
     volumes:
         - /etc/timezone:/etc/timezone:ro
     healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u root --password=kQzWHp2V2
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "--password=kQzWHp2V2"]
