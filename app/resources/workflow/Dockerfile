@@ -1,4 +1,4 @@
-FROM broadinstitute/cromwell:43
+FROM broadinstitute/cromwell:52
 
 # install docker
 RUN apt-get update
