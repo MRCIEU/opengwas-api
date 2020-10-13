@@ -80,7 +80,7 @@ task vcf {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas2vcf:1afa2e7e1f37f6677cf0550785e4e0fe8703209a \
+        gwas2vcf:11726ff26b7305f93fb62e5d16233ca269a29dff \
         python /app/main.py \
         --data ${SumStatsFile} \
         --id ${StudyId} \
@@ -88,7 +88,7 @@ task vcf {
         --ref ${RefGenomeFile} \
         --dbsnp ${DbSnpVcfFile} \
         --out ${VcfFileOutPath} \
-        --rm_chr_prefix \
+        --alias alias.txt \
         ${"--cohort_cases " + Cases} \
         ${"--cohort_controls " + Controls}
     >>>
