@@ -43,19 +43,19 @@ workflow qc {
             VcfFileIn=vcf.VcfFile,
             VcfFileInIdx=vcf.VcfFileIdx
     }
-    #call report {
-    #    input:
-    #        MountDir=MountDir,
-    #        VcfFileIn=vcf.VcfFile,
-    #        VcfFileInIdx=vcf.VcfFileIdx,
-    #        RefData=RefData,
-    #        RefDataIdx=RefDataIdx,
-    #        StudyId=StudyId,
-    #        LdscFileIn=ldsc.LdscFile,
-    #        ClumpFileIn=clumping.ClumpFile,
-    #        MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json",
-    #        OutDirPath=BaseDir + "/" + StudyId
-    #}
+    call report {
+        input:
+            MountDir=MountDir,
+            VcfFileIn=vcf.VcfFile,
+            VcfFileInIdx=vcf.VcfFileIdx,
+            RefData=RefData,
+            RefDataIdx=RefDataIdx,
+            StudyId=StudyId,
+            LdscFileIn=ldsc.LdscFile,
+            ClumpFileIn=clumping.ClumpFile,
+            MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json",
+            OutDirPath=BaseDir + "/" + StudyId
+    }
 
 }
 
@@ -114,7 +114,7 @@ task clumping {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:305e3e5133a19b87ab0031488e01588f76ee1be0 \
+        gwas_processing:7a81309ef7de99d862a1ca8ece783e46d7000558 \
         clump.py \
         --bcf ${VcfFileIn} \
         --out ${ClumpFilePath}
@@ -140,7 +140,7 @@ task ldsc {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        gwas_processing:305e3e5133a19b87ab0031488e01588f76ee1be0 \
+        gwas_processing:7a81309ef7de99d862a1ca8ece783e46d7000558 \
         ldsc.py \
         --bcf ${VcfFileIn} \
         --out ${LdscFilePath}
