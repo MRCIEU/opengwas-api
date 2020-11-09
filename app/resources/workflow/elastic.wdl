@@ -64,7 +64,7 @@ task insert {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        igd-elasticsearch:670f82529cc466f9003d53f1f14d2c2582abc7c6 \
+        igd-elasticsearch:2adda12c992aa884ca3ac0ef74fced9a0dc745f3 \
         python add-gwas.py \
         -m index_data \
         -f ${VcfFile} \
