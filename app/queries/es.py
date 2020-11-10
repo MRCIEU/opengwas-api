@@ -577,7 +577,7 @@ def proxy_alleles(pq, pd, maf_threshold):
             return "switch"
         return "skip"
     if pal == "1":
-        if eaf == None:
+        if eaf == None or eaf == '':
             return "skip"
         if eaf < maf_threshold:
             if (mallele1 == pallele1 and mallele2 == pallele2) or (mallele1 == pallele1 and mallele2 == None):
