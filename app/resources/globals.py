@@ -6,7 +6,7 @@ from neo4j import GraphDatabase
 
 
 class Globals:
-    VERSION = '3.6.2'
+    VERSION = '3.6.3'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
     AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. See the [homepage](https://gwas-api.mrcieu.ac.uk/#authentication) for details on how to authenticate.'
@@ -49,6 +49,8 @@ class Globals:
     OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
     CROMWELL_URL = 'http://' + app_config['cromwell']['host'] + ":" + str(app_config['cromwell']['port'])
+
+    CHROMLIST = list(range(1, 24), 'X', 'Y', 'MT')
 
     # reduced lifetime see here: https://github.com/neo4j/neo4j-python-driver/issues/196
     dbConnection = GraphDatabase.driver(

@@ -317,7 +317,7 @@ def elastic_query_rsid(studies, rsid):
     return res
 
 
-def elastic_query_pval(studies, pval, tophits=False):
+def elastic_query_pval(studies, pval, tophits=False, bychr=False):
     study_indexes = match_study_to_index(studies)
     res = []
     for s in study_indexes:
@@ -328,11 +328,18 @@ def elastic_query_pval(studies, pval, tophits=False):
         if tophits:
             print("looking in tophits index")
             s = s + "-tophits"
+        filterData.append({"range": {"p": {"lt": pval}}})
+        if bychr:
+            for c in Globals.CHROMLIST:
+                fd2 = filterData.copy()
+                fd2.append({"terms": {"chr": [c]}})
+                e = elastic_search(fd2, s)
+                e = organise_payload(e, s)
+                res += e
         else:
-            filterData.append({"range": {"p": {"lt": pval}}})
-        e = elastic_search(filterData, s)
-        e = organise_payload(e, s)
-        res += e
+            e = elastic_search(filterData, s)
+            e = organise_payload(e, s)
+            res += e
         end = time.time()
         t = round((end - start), 4)
         logger.debug("Time taken: " + str(t) + " seconds")
