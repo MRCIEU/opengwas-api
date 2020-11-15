@@ -39,7 +39,8 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb, pop="EUR"):
         out = []
         for x in words:
             if x != '':
-                out.append([y for y in rsid if y == x.split()[2]][0])
+                out.append(x.split()[2])
+                # out.append([y for y in rsid if y == x.split()[2]][0])
         logger.debug("done match")
         end = time.time()
         t = round((end - start), 4)

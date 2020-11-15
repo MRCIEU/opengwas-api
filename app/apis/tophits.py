@@ -14,6 +14,7 @@ parser1.add_argument('pval', type=float, required=False, default=0.00000005,
                      help='P-value threshold; exponents not supported through Swagger')
 parser1.add_argument('preclumped', type=int, required=False, default=1, help='Whether to use pre-clumped tophits')
 parser1.add_argument('clump', type=int, required=False, default=1, help='Whether to clump (1) or not (0)')
+parser1.add_argument('bychr', type=int, required=False, default=1, help='Whether to extract by chromosome (1) or all at once (0). There is a limit on query results so bychr might be required for some well-powered datasets')
 parser1.add_argument('r2', type=float, required=False, default=0.001, help='Clumping parameter')
 parser1.add_argument('kb', type=int, required=False, default=5000, help='Clumping parameter')
 parser1.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
@@ -31,14 +32,14 @@ class Tophits(Resource):
         args = parser1.parse_args()
         user_email = get_user_email(request.headers.get('X-Api-Token'))
         try:
-            out = extract_instruments(user_email, args['id'], args['preclumped'], args['clump'], args['pval'], args['r2'], args['kb'], args['pop'])
+            out = extract_instruments(user_email, args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])
         except Exception as e:
             logger.error("Could not obtain tophits: {}".format(e))
             abort(503)
         return out
 
 
-def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb, pop="EUR"):
+def extract_instruments(user_email, id, preclumped, clump, bychr, pval, r2, kb, pop="EUR"):
     outcomes = ",".join(["'" + x + "'" for x in id])
     outcomes_clean = outcomes.replace("'", "")
     logger.debug('searching ' + outcomes_clean)
@@ -49,7 +50,7 @@ def extract_instruments(user_email, id, preclumped, clump, pval, r2, kb, pop="EU
         logger.debug('No outcomes left after permissions check')
         return json.dumps([], ensure_ascii=False)
 
-    res = elastic_query_pval(studies=outcomes_access, pval=pval, tophits=preclumped)
+    res = elastic_query_pval(studies=outcomes_access, pval=pval, tophits=preclumped, bychr=bychr)
     for i in range(len(res)):
         res[i]['id'] = res[i]['id'].replace('tophits-', '')
 
