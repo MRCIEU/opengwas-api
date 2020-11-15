@@ -3,6 +3,7 @@ workflow elastic {
     String Port = 9200
 
     String StudyId
+    String EsIndex
     String MountDir = "/data"
     String BaseDir = "/data/igd"
     File VcfFile=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz"
@@ -20,7 +21,7 @@ workflow elastic {
             VcfFile=VcfFile,
             VcfFileIdx=VcfFileIdx,
             StudyId=StudyId,
-            EsIndex="ieu-b-1",
+            EsIndex=EsIndex,
             ClumpFile=ClumpFile,
             Host=Host,
             Port=Port
@@ -29,7 +30,6 @@ workflow elastic {
         input:
             ElasticCompleteFile=ElasticCompleteFile
     }
-
 }
 
 task get_index_from_study {

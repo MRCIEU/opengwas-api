@@ -17,12 +17,25 @@ import logging
 import os
 from resources.globals import Globals
 import time
+import re
 
 logger = logging.getLogger('debug-log')
 
 api = Namespace('edit', description="Upload and delete data")
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
+
+def check_batch_exists(gwas_id, study_indexes):
+    if gwas_id is None:
+        return None
+    try:
+        reg = r'^([\w]+-[\w]+)-([\w]+)'
+        study_prefix, study_id = re.match(reg, gwas_id).groups()
+    except ValueError as e:
+        raise BadRequest("ID is not in correct format <batch>-<section>-<id>: {}".format(gwas_id))
+    if study_prefix not in study_indexes:
+        raise BadRequest("Please use pre-existing batch or contact developers: {}".format(study_prefix))
+    return study_prefix
 
 @api.route('/add')
 @api.doc(description="Add new gwas metadata")
@@ -49,6 +62,7 @@ class Add(Resource):
             # use provided identifier if given
             gwas_id = req['id']
             check_id_is_valid_filename(gwas_id)
+            check_batch_exists(gwas_id, Globals.all_batches)
 
             req.pop('X-Api-Token')
             req.pop('id')
@@ -325,6 +339,7 @@ class Upload(Resource):
         elif args['delimiter'] == "space":
             args['delimiter'] = " "
 
+        study_prefix = check_batch_exists(args['id'], Globals.all_batches)
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
 
         # create json payload
@@ -407,7 +422,11 @@ class Upload(Resource):
                 json.dump(j, f)
 
             # write params for workflow
-            t = {"qc.StudyId": str(args['id']), "elastic.StudyId": str(args['id'])}
+            t = {
+                "qc.StudyId": str(args['id']), 
+                "elastic.StudyId": str(args['id']),
+                "elastic.EsIndex": str(study_prefix)
+                }
 
             # conditionally add ncase & ncontrol
             if g.get('ncase') is not None:
