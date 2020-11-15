@@ -50,7 +50,7 @@ class Globals:
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
     CROMWELL_URL = 'http://' + app_config['cromwell']['host'] + ":" + str(app_config['cromwell']['port'])
 
-    CHROMLIST = list(range(1, 24), 'X', 'Y', 'MT')
+    CHROMLIST = list(range(1, 24)) + ['X', 'Y', 'MT']
 
     # reduced lifetime see here: https://github.com/neo4j/neo4j-python-driver/issues/196
     dbConnection = GraphDatabase.driver(
