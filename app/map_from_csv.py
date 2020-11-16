@@ -166,8 +166,11 @@ with app.app_context():
                 d['sample_size'] = int(fields[14])
             except ValueError as e:
                 logging.warning(e)
-
-            d['nsnp'] = int(fields[15])
+                
+            try:
+                d['nsnp'] = int(fields[15])
+            except ValueError as e:
+                logging.warning(e)
 
             if fields[16] != "NULL":
                 d['unit'] = str(fields[16])
