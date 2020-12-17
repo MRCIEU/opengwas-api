@@ -131,6 +131,23 @@ def elastic_search(filterData, index_name):
         })
     return res
 
+def elastic_search_multi(bodyText):
+    res = Globals.es.msearch(bodyText)
+        ignore_unavailable=True,
+        request_timeout=120,
+        index=index_name,
+        # doc_type="assoc",
+        body={
+            # "from":from_val,
+            "size": 100000,
+            "query": {
+                "bool": {
+                    "filter": filterData
+                }
+            },
+        })
+    return res
+
 
 def match_study_to_index(studies):
     study_indexes = {}
@@ -316,6 +333,35 @@ def elastic_query_rsid(studies, rsid):
             logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
 
+def elastic_query_rsid_m(studies,rsid):
+    study_indexes = match_study_to_index(studies)
+    res = []
+    request = []
+    start = time.time()
+    for s in study_indexes:
+        if len(rsid) > 0:
+            logger.debug('checking ' + s + ' ...')
+            req_head = {'index': s}
+            filterData=[
+                    {"terms":{"gwas_id":study_indexes[s]}},
+                    {"terms":{"snp_id":rsid}}
+                    ]
+            bodyText={
+                "size":100000,
+                "query": {
+                    "bool" : {
+                        "filter" : filterData
+                    }
+                }
+            }
+            request.extend([req_head, bodyText])
+    e = elastic_search_multi(request)
+    for r in e['responses']:
+        res+=r
+    end = time.time()
+    t = round((end - start), 4)
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(r)) + ' records')
 
 def elastic_query_pval(studies, pval, tophits=False, bychr=False):
     study_indexes = match_study_to_index(studies)
