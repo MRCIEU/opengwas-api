@@ -5,7 +5,7 @@ autosemver==0.5.3
 certifi==2019.3.9
 chardet==3.0.4
 Click==7.0
-dulwich==0.19.11
+dulwich==0.20.14
 elasticsearch==6.3.1
 Flask==1.0.2
 flask-restplus==0.12.1
