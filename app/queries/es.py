@@ -221,8 +221,8 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
     if len(index_list) > 0:
         study_indexes = [x for x in study_indexes if x in index_list]
     res = []
+    request = []
     for s in study_indexes:
-        print(s)
         if len(chrpos) > 0:
             chrom = list(set([x['chr'] for x in chrpos]))
             for c in chrom:
@@ -231,16 +231,19 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
                 filterData = []
                 filterData.append({"terms": {'chr': [c]}})
                 filterData.append({"terms": {'position': pos}})
-                #filterData.append({"range": {"p": {"lt": pval}}})
-                logger.debug('running ES: index: ' + s)
-                start = time.time()
-                e = phewas_elastic_search(filterData, s, pval)
-                r = organise_payload(e, s)
-                res += r
-                end = time.time()
-                t = round((end - start), 4)
-                logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(len(r)) + ' records')
+                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                bodyText=make_multi_body_text(filterData,pval)
+                request.extend([req_head, bodyText])
+    start = time.time()
+    e = elastic_search_multi(request)
+    for response in e['responses']:
+        r = organise_payload_multi(response)
+        res+=r
+    end = time.time()
+    end = time.time()
+    t = round((end - start), 4)
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
     foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
@@ -255,24 +258,27 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
     if len(index_list) > 0:
         study_indexes = [x for x in study_indexes if x in index_list]
     res = []
+    request = []
     for s in study_indexes:
-        print(s)
         if len(cprange) > 0:
             for c in cprange:
                 logger.debug('checking ' + s + ' ...')
                 filterData = []
                 filterData.append({"terms": {'chr': [c['chr']]}})
                 filterData.append({"range": {'position': {'gte': c['start'], 'lte': c['end']}}})
+                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                bodyText=make_multi_body_text(filterData,pval)
+                request.extend([req_head, bodyText])
                 #filterData.append({"range": {"p": {"lt": pval}}})
-                logger.debug('running ES: index: ' + s)
-                start = time.time()
-                e = phewas_elastic_search(filterData, s, pval)
-                e = organise_payload(e, s)
-                res += e
-                end = time.time()
-                t = round((end - start), 4)
-                logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(len(e)) + ' records')
+    start = time.time()
+    e = elastic_search_multi(request)
+    for response in e['responses']:
+        r = organise_payload_multi(response)
+        res+=r
+    end = time.time()
+    t = round((end - start), 4)
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(e)) + ' records')
     # REMOVE DISALLOWED STUDIES
     foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
@@ -285,6 +291,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
 def elastic_query_chrpos(studies, chrpos):
     study_indexes = match_study_to_index(studies)
     res = []
+    request = []
     for s in study_indexes:
         if len(chrpos) > 0:
             chrom = list(set([x['chr'] for x in chrpos]))
@@ -295,22 +302,25 @@ def elastic_query_chrpos(studies, chrpos):
                 filterData.append({"terms": {'gwas_id': study_indexes[s]}})
                 filterData.append({"terms": {'chr': [c]}})
                 filterData.append({"terms": {'position': pos}})
-                logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' chrpos: ' + str(
-                    len(chrpos)) + 'chr: ' + str(c))
-                start = time.time()
-                e = elastic_search(filterData, s)
-                r = organise_payload(e, s)
-                res += r
-                end = time.time()
-                t = round((end - start), 4)
-                logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(len(r)) + ' records')
+                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                bodyText=make_multi_body_text(filterData)
+                request.extend([req_head, bodyText])
+    start = time.time()
+    e = elastic_search_multi(request)
+    for response in e['responses']:
+        r = organise_payload_multi(response)
+        res+=r
+    end = time.time()
+    t = round((end - start), 4)
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
 
 
 def elastic_query_cprange(studies, cprange):
     study_indexes = match_study_to_index(studies)
     res = []
+    request = []
     for s in study_indexes:
         if len(cprange) > 0:
             for c in cprange:
@@ -321,15 +331,18 @@ def elastic_query_cprange(studies, cprange):
                 filterData.append({"terms": {'gwas_id': study_indexes[s]}})
                 filterData.append({"terms": {'chr': [c['chr']]}})
                 filterData.append({"range": {'position': {'gte': c['start'], 'lte': c['end']}}})
-                logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' chrpos: ' + str(len(cprange)) + 'chr: ' + str(c))
-                start = time.time()
-                e = elastic_search(filterData, s)
-                r = organise_payload(e, s)
-                res += r
-                end = time.time()
-                t = round((end - start), 4)
-                logger.debug("Time taken: " + str(t) + " seconds")
-                logger.debug('ES returned ' + str(len(r)) + ' records')
+                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                bodyText=make_multi_body_text(filterData)
+                request.extend([req_head, bodyText])
+    start = time.time()
+    e = elastic_search_multi(request)
+    for response in e['responses']:
+        r = organise_payload_multi(response)
+        res+=r
+    end = time.time()
+    t = round((end - start), 4)
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
 
 def elastic_query_rsid(studies,rsid):
@@ -360,30 +373,46 @@ def elastic_query_rsid(studies,rsid):
 def elastic_query_pval(studies, pval, tophits=False, bychr=False):
     study_indexes = match_study_to_index(studies)
     res = []
-    for s in study_indexes:
-        logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + str(' pval: ' + str(pval)))
-        filterData = []
-        filterData.append({"terms": {'gwas_id': study_indexes[s]}})
-        start = time.time()
-        if tophits:
-            print("looking in tophits index")
-            s = s + "-tophits"
-        filterData.append({"range": {"p": {"lt": pval}}})
-        if bychr:
-            for c in Globals.CHROMLIST:
+    request = []
+    start = time.time()
+    if bychr:
+        for c in Globals.CHROMLIST:
+            request = []
+            for s in study_indexes:
+                filterData = []
+                filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+                filterData.append({"range": {"p": {"lt": pval}}})
                 fd2 = filterData.copy()
                 fd2.append({"terms": {"chr": [c]}})
-                e = elastic_search(fd2, s)
-                e = organise_payload(e, s)
-                res += e
-        else:
-            e = elastic_search(filterData, s)
-            e = organise_payload(e, s)
-            res += e
-        end = time.time()
-        t = round((end - start), 4)
-        logger.debug("Time taken: " + str(t) + " seconds")
-        logger.debug('ES returned ' + str(len(e)) + ' records')
+                if tophits:
+                    #print("looking in tophits index")
+                    s = s + "-tophits"
+                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                bodyText=make_multi_body_text(fd2)
+                request.extend([req_head, bodyText])
+            e = elastic_search_multi(request)
+            for response in e['responses']:
+                r = organise_payload_multi(response)
+                res+=r
+    else:
+        for s in study_indexes:
+            filterData = []
+            filterData.append({"terms": {'gwas_id': study_indexes[s]}})
+            filterData.append({"range": {"p": {"lt": pval}}})
+            if tophits:
+                print("looking in tophits index")
+                s = s + "-tophits"
+            req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+            bodyText=make_multi_body_text(filterData)
+            request.extend([req_head, bodyText])
+        e = elastic_search_multi(request)
+        for response in e['responses']:
+            r = organise_payload_multi(response)
+            res+=r
+    end = time.time()
+    t = round((end - start), 4)
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
 
 
