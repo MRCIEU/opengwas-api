@@ -32,6 +32,19 @@ def organise_payload(res, index):
         x[i]['eaf'] = x[i].pop('effect_allele_freq')
     return x
 
+def organise_payload_multi(hit):
+    reg = r'^([\w]+-[\w]+)-([\w]+)'
+    x = [o['_source'] for o in hit['hits']['hits']]
+    indexes = [o['_index'] for o in hit['hits']['hits']]
+    for i in range(len(x)):
+        study_prefix, study_id = re.match(reg, indexes[i]).groups()
+        x[i]['id'] = study_prefix + '-' + x[i].pop('gwas_id')
+        x[i]['rsid'] = x[i].pop('snp_id')
+        x[i]['ea'] = x[i].pop('effect_allele')
+        x[i]['nea'] = x[i].pop('other_allele')
+        x[i]['eaf'] = x[i].pop('effect_allele_freq')
+    return x
+
 def add_trait_to_result(res, study_data):
     for i in range(len(res)):
         res[i]['trait'] = study_data[res[i]['id']]['trait']
@@ -52,7 +65,7 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
         if proxies == 0:
             logger.debug("not using LD proxies")
             try:
-                allres += elastic_query_rsid(rsid=rsid, studies=id_access)
+                allres += elastic_query_rsid_m(rsid=rsid, studies=id_access)
             except Exception as e:
                 logging.error("Could not obtain summary stats: {}".format(e))
                 flask.abort(503, e)
@@ -61,7 +74,7 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
             try:
                 proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
                 proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
-                proxy_query = elastic_query_rsid(rsid=proxies, studies=id_access)
+                proxy_query = elastic_query_rsid_m(rsid=proxies, studies=id_access)
                 res = []
                 # Need to fix this
                 if proxy_query != '[]':
@@ -132,20 +145,11 @@ def elastic_search(filterData, index_name):
     return res
 
 def elastic_search_multi(bodyText):
-    res = Globals.es.msearch(bodyText)
-        ignore_unavailable=True,
-        request_timeout=120,
-        index=index_name,
-        # doc_type="assoc",
-        body={
-            # "from":from_val,
-            "size": 100000,
-            "query": {
-                "bool": {
-                    "filter": filterData
-                }
-            },
-        })
+    print(bodyText)
+    res = Globals.es.msearch(
+        #ignore_unavailable=True,
+        #request_timeout=120,
+        body=bodyText)
     return res
 
 
@@ -355,13 +359,18 @@ def elastic_query_rsid_m(studies,rsid):
                 }
             }
             request.extend([req_head, bodyText])
+    logger.debug(request)
     e = elastic_search_multi(request)
-    for r in e['responses']:
+    logger.debug(e)
+    for response in e['responses']:
+        #for hit in r:
+        r = organise_payload_multi(response)
         res+=r
     end = time.time()
     t = round((end - start), 4)
     logger.debug("Time taken: " + str(t) + " seconds")
-    logger.debug('ES returned ' + str(len(r)) + ' records')
+    logger.debug('ES returned ' + str(len(res)) + ' records')
+    return res
 
 def elastic_query_pval(studies, pval, tophits=False, bychr=False):
     study_indexes = match_study_to_index(studies)
