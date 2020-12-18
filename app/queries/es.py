@@ -9,6 +9,24 @@ from queries.variants import parse_chrpos
 
 logger = logging.getLogger('debug-log')
 
+#globals
+es_timeout=120
+return_size=100000
+
+def make_multi_body_text(filterData,pval=''):
+    m = {
+        "size":return_size,
+        "query": {
+            "bool" : {
+                "filter" : filterData
+                }
+            }
+        }
+    if pval != '':
+         m["post_filter"] = {
+                "range": {"p": {"lt": pval}}
+            }
+    return m
 
 def organise_variants(variants):
     rsreg = r'^rs\d+$'
@@ -65,7 +83,7 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
         if proxies == 0:
             logger.debug("not using LD proxies")
             try:
-                allres += elastic_query_rsid_m(rsid=rsid, studies=id_access)
+                allres += elastic_query_rsid(rsid=rsid, studies=id_access)
             except Exception as e:
                 logging.error("Could not obtain summary stats: {}".format(e))
                 flask.abort(503, e)
@@ -74,7 +92,7 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
             try:
                 proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
                 proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
-                proxy_query = elastic_query_rsid_m(rsid=proxies, studies=id_access)
+                proxy_query = elastic_query_rsid(rsid=proxies, studies=id_access)
                 res = []
                 # Need to fix this
                 if proxy_query != '[]':
@@ -109,12 +127,12 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
 def phewas_elastic_search(filterData, index_name, pval):
     res = Globals.es.search(
         ignore_unavailable=True,
-        request_timeout=120,
+        request_timeout=es_timeout,
         index=index_name,
         # doc_type="assoc",
         body={
             # "from":from_val,
-            "size": 100000,
+            "size": return_size,
             "query": {
                 "bool": {
                     "filter": filterData
@@ -130,12 +148,12 @@ def phewas_elastic_search(filterData, index_name, pval):
 def elastic_search(filterData, index_name):
     res = Globals.es.search(
         ignore_unavailable=True,
-        request_timeout=120,
+        request_timeout=es_timeout,
         index=index_name,
         # doc_type="assoc",
         body={
             # "from":from_val,
-            "size": 100000,
+            "size": return_size,
             "query": {
                 "bool": {
                     "filter": filterData
@@ -145,10 +163,8 @@ def elastic_search(filterData, index_name):
     return res
 
 def elastic_search_multi(bodyText):
-    print(bodyText)
+    logger.debug(bodyText)
     res = Globals.es.msearch(
-        #ignore_unavailable=True,
-        #request_timeout=120,
         body=bodyText)
     return res
 
@@ -174,22 +190,23 @@ def elastic_query_phewas_rsid(rsid, user_email, pval, index_list=[]):
     if len(index_list) > 0:
         study_indexes = [x for x in study_indexes if x in index_list]
     res = []
+    request = []
     for s in study_indexes:
         logger.debug('checking ' + s + ' ...')
+        req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
         filterData = []
         filterData.append({"terms": {'snp_id': rsid}})
-        # filterData.append({"range": {"p": {"lt": pval}}})
-        postData = {"range": {"p": {"lt": pval}}}
-        logger.debug('running ES: index: ' + s)
-        start = time.time()
-        e = phewas_elastic_search(filterData, s, pval)
-        # e = elastic_search(filterData, s)
-        r = organise_payload(e, s)
-        res += r
-        end = time.time()
-        t = round((end - start), 4)
-        logger.debug("Time taken: " + str(t) + " seconds")
-        logger.debug('ES returned ' + str(len(r)) + ' records')
+        bodyText=make_multi_body_text(filterData,pval)
+        request.extend([req_head, bodyText])
+    start = time.time()
+    e = elastic_search_multi(request)
+    for response in e['responses']:
+        r = organise_payload_multi(response)
+        res+=r
+    end = time.time()
+    t = round((end - start), 4)
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
     foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
@@ -315,29 +332,7 @@ def elastic_query_cprange(studies, cprange):
                 logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
 
-
-def elastic_query_rsid(studies, rsid):
-    study_indexes = match_study_to_index(studies)
-    res = []
-    for s in study_indexes:
-        if len(rsid) > 0:
-            logger.debug('checking ' + s + ' ...')
-            filterData = []
-            filterData.append({"terms": {'gwas_id': study_indexes[s]}})
-            filterData.append({"terms": {'snp_id': rsid}})
-            logger.debug('running ES: index: ' + s + ' studies: ' + str(len(studies)) + ' rsid: ' + str(
-                len(rsid)))
-            start = time.time()
-            e = elastic_search(filterData, s)
-            r = organise_payload(e, s)
-            res += r
-            end = time.time()
-            t = round((end - start), 4)
-            logger.debug("Time taken: " + str(t) + " seconds")
-            logger.debug('ES returned ' + str(len(r)) + ' records')
-    return res
-
-def elastic_query_rsid_m(studies,rsid):
+def elastic_query_rsid(studies,rsid):
     study_indexes = match_study_to_index(studies)
     res = []
     request = []
@@ -345,25 +340,15 @@ def elastic_query_rsid_m(studies,rsid):
     for s in study_indexes:
         if len(rsid) > 0:
             logger.debug('checking ' + s + ' ...')
-            req_head = {'index': s}
+            req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
             filterData=[
                     {"terms":{"gwas_id":study_indexes[s]}},
                     {"terms":{"snp_id":rsid}}
                     ]
-            bodyText={
-                "size":100000,
-                "query": {
-                    "bool" : {
-                        "filter" : filterData
-                    }
-                }
-            }
+            bodyText=make_multi_body_text(filterData)
             request.extend([req_head, bodyText])
-    logger.debug(request)
     e = elastic_search_multi(request)
-    logger.debug(e)
     for response in e['responses']:
-        #for hit in r:
         r = organise_payload_multi(response)
         res+=r
     end = time.time()
@@ -415,11 +400,11 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
     if palindromes == 0:
         filterData.append({"term": {'palindromic': '0'}})
         ESRes = Globals.es.search(
-            request_timeout=120,
+            request_timeout=es_timeout,
             index='mrb-proxies',
             doc_type="proxies",
             body={
-                "size": 100000,
+                "size": return_size,
                 "sort": [
                     {"distance": "asc"}
                 ],
@@ -438,11 +423,11 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
         filterData1.append({"range": {"pmaf": {"lt": str(maf_threshold)}}})
         filterData2.append({"term": {'palindromic': '0'}})
         ESRes = Globals.es.search(
-            request_timeout=120,
+            request_timeout=es_timeout,
             index='mrb-proxies',
             doc_type="proxies",
             body={
-                "size": 100000,
+                "size": return_size,
                 "query": {
                     "bool": {
                         "filter": [
