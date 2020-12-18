@@ -17,7 +17,7 @@ def index():
 
 
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s')
 
     # Create the log message rotation file handler to the logger
     # 10000000 = 10 MB
