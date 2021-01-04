@@ -1,5 +1,7 @@
 from flask_restplus import Resource, reqparse, abort, Namespace
 from queries.variants import *
+from resources.globals import Globals
+from queries.vcf import *
 from resources.auth import get_user_email
 from flask import request
 
@@ -136,3 +138,100 @@ class GeneGet(Resource):
         return hits
 
 
+@api.route('/afl2/rsid/<rsid>')
+@api.doc(
+    description="Obtain allele frequency and LD-scores for major populations based on 1000 genomes version 3 release",
+    params={
+        'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs'
+    }
+)
+class VariantGet(Resource):
+    def get(self, rsid=None):
+        if rsid is None:
+            abort(404)
+
+        try:
+            rsid = [x for x in ''.join(rsid.split()).split(',')]
+        except Exception as e:
+            logger.error("Could not parse rsid: {}".format(e))
+            abort(503)
+
+        try:
+            res = vcf_rsid(rsid, Globals.AFL2['vcf'], Globals.AFL2['rsidx'])
+        except Exception as e:
+            logger.error("Could not obtain variant information: {}".format(e))
+            abort(503)
+        return res
+
+
+@api.route('/afl2/chrpos/<chrpos>')
+@api.doc(
+    description="Obtain allele frequency and LD-scores for major populations based on 1000 genomes version 3 release",
+    params={
+        'chrpos': 'Comma separated B37 coordinates or coordinate ranges e.g. 7:105561135-105563135,10:44865737'
+    }
+)
+class ChrposGet(Resource):
+    def get(self, chrpos=None):
+        if chrpos is None:
+            abort(404)
+        args = parser1.parse_args()
+        try:
+            chrpos = parse_chrpos([x for x in ''.join(chrpos.split()).split(',')], args['radius'])
+        except Exception as e:
+            logger.error("Could not parse chrpos: {}".format(e))
+            abort(503)
+
+        try:
+            res = vcf_chrpos(chrpos, Globals.AFL2['vcf'])
+        except Exception as e:
+            logger.error("Could not obtain variant information: {}".format(e))
+            abort(503)
+        return res
+
+
+parser4 = reqparse.RequestParser()
+parser4.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of variant rs IDs")
+parser4.add_argument('chrpos', required=False, type=str, action='append', default=[], help="List of variant chr:pos format on build 37 (e.g. 7:105561135)")
+parser4.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus (for chrpos only)")
+
+@api.route('/afl2')
+@api.doc(
+    description="""
+Obtain allele frequency and LD scores for a particular variant or comma separated list of variants.
+```
+
+"""
+)
+class Afl2Post(Resource):
+    @api.expect(parser4)
+    def post(self):
+        args = parser4.parse_args()
+        if (len(args['chrpos']) == 0 and len(args['rsid']) == 0):
+            abort(405)
+
+        if len(args['chrpos']) != 0:
+            try:
+                chrpos = parse_chrpos(args['chrpos'], args['radius'])
+            except Exception as e:
+                logger.error("Could not parse chrpos: {}".format(e))
+                abort(503)
+
+            try:
+                out1 = vcf_chrpos(chrpos, Globals.AFL2['vcf'])
+            except Exception as e:
+                logger.error("Could not obtain variant information: {}".format(e))
+                abort(503)
+        else:
+            out1 = []
+
+        if len(args['rsid']) != 0:
+            try:
+                out2 = vcf_rsid(args['rsid'], Globals.AFL2['vcf'], Globals.AFL2['rsidx'])
+            except Exception as e:
+                logger.error("Could not obtain variant information: {}".format(e))
+                abort(503)
+        else:
+            out2 = []
+
+        return out1 + out2

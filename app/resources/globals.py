@@ -40,6 +40,12 @@ class Globals:
         LD_REF[pop] = os.path.join(root_path, 'ld_files', pop)
     LD_REF['legacy'] = os.path.join(root_path, 'ld_files', 'data_maf0.01_rs_ref')
 
+    AFL2 = {
+        'vcf': os.path.join(root_path, 'ld_files', 'annotations.vcf.gz'),
+        'tbi': os.path.join(root_path, 'ld_files', 'annotations.vcf.gz.tbi'),
+        'rsidx': os.path.join(root_path, 'ld_files', 'annotations.vcf.gz.rsidx')
+    }
+
     TMP_FOLDER = app_config['directories']['tmp']
     UPLOAD_FOLDER = app_config['directories']['upload']
     LOG_FILE = os.path.join(app_config['directories']['logs'], 'mrbaseapi.log')

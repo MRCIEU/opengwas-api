@@ -30,6 +30,7 @@ def check_all():
         'Neo4j status': Neo4j.check_running(),
         'ElasticSearch status': check_elastic(),
         'LD reference panel': check_ld_ref(),
+        '1000 genomes annotation VCF': check_1000g_vcf(),
         'PLINK executable': check_plink(),
         'Cromwell': cromwell_status,
         'Total associations': count_elastic_records(),
@@ -43,6 +44,13 @@ def check_all():
 def check_ld_ref():
     if (os.path.isfile(Globals.LD_REF['EUR'] + ".bed") and os.path.isfile(Globals.LD_REF['EUR'] + ".bim") and os.path.isfile(
             Globals.LD_REF['EUR'] + ".fam")):
+        return "Available"
+    else:
+        return 'Unavailable'
+
+
+def check_1000g_vcf():
+    if (os.path.isfile(Globals.AFL2['vcf']) and os.path.isfile(Globals.AFL2['tbi']) and os.path.isfile(Globals.AFL2['rsidx'])):
         return "Available"
     else:
         return 'Unavailable'
