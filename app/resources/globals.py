@@ -43,7 +43,8 @@ class Globals:
     AFL2 = {
         'vcf': os.path.join(root_path, 'ld_files', 'annotations.vcf.gz'),
         'tbi': os.path.join(root_path, 'ld_files', 'annotations.vcf.gz.tbi'),
-        'rsidx': os.path.join(root_path, 'ld_files', 'annotations.vcf.gz.rsidx')
+        'rsidx': os.path.join(root_path, 'ld_files', 'annotations.vcf.gz.rsidx'),
+        'snplist': os.path.join(root_path, 'ld_files', 'annotations.vcf.selected_snplist.json')
     }
 
     TMP_FOLDER = app_config['directories']['tmp']

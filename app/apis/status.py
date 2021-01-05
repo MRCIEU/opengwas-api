@@ -50,7 +50,7 @@ def check_ld_ref():
 
 
 def check_1000g_vcf():
-    if (os.path.isfile(Globals.AFL2['vcf']) and os.path.isfile(Globals.AFL2['tbi']) and os.path.isfile(Globals.AFL2['rsidx'])):
+    if (os.path.isfile(Globals.AFL2['vcf']) and os.path.isfile(Globals.AFL2['tbi']) and os.path.isfile(Globals.AFL2['rsidx']) and os.path.isfile(Globals.AFL2['snplist'])):
         return "Available"
     else:
         return 'Unavailable'

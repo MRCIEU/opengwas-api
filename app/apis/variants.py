@@ -3,7 +3,7 @@ from queries.variants import *
 from resources.globals import Globals
 from queries.vcf import *
 from resources.auth import get_user_email
-from flask import request
+from flask import request, send_file
 
 api = Namespace('variants', description="Retrieve variant information")
 
@@ -235,3 +235,15 @@ class Afl2Post(Resource):
             out2 = []
 
         return out1 + out2
+
+
+
+@api.route('/afl2/snplist')
+@api.doc(description="Get list of rsids that are variable across populations for ancestry analyses")
+class Afl2Snplist(Resource):
+    def get(self):
+        try:
+            return send_file(Globals.AFL2['snplist'])
+        except Exception as e:
+            logger.error("Could not obtain variant information: {}".format(e))
+            abort(503)
