@@ -29,5 +29,4 @@ six==1.12.0
 urllib3==1.25.2
 Werkzeug==0.15.5
 mygene==3.1.0
-pysam
-sqlite3
+pysam==0.16.0.1
