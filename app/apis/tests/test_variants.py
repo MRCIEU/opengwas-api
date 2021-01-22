@@ -1,7 +1,7 @@
 import requests
 
 
-## GET
+# GET
 
 def test_rsid_get1(url):
     r = requests.get(url + "/variants/rsid/rs234")
@@ -28,8 +28,7 @@ def test_gene_get1(url):
     assert r.status_code == 200 and len(r.json()) > 1
 
 
-# ## POST
-
+# POST
 
 def test_rsid_post1(url):
     payload = {'rsid': ['rs234', 'rs333']}
@@ -53,3 +52,26 @@ def test_chrpos_post3(url):
     payload = {'chrpos': ['7:105561135', '10:44865737'], 'radius': 100}
     r = requests.post(url + "/variants/chrpos", data=payload)
     assert r.status_code == 200 and len(r.json()) == 2
+
+
+# AFL2
+
+def test_afl2_get1(url):
+    r = requests.get(url + "/variants/afl2/snplist")
+    assert r.status_code == 200 and len(r.json()) > 10000
+
+
+def test_afl2_get2(url):
+    r = requests.get(url + "/variants/afl2/rsid/rs234,rs123")
+    assert r.status_code == 200 and len(r.json()) == 2
+
+
+def test_afl2_get3(url):
+    r = requests.get(url + "/variants/afl2/chrpos/7:105561135-105563135,10:44865737")
+    assert r.status_code == 200 and len(r.json()) == 16
+
+
+def test_afl2_post1(url):
+    payload = {'chrpos': ['7:105561135', '10:44865737'], 'rsid': ['rs123']}
+    r = requests.post(url + "/variants/afl2", data=payload)
+    assert r.status_code == 200 and len(r.json()) == 3
