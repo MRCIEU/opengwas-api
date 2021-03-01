@@ -8,6 +8,7 @@ from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
 from queries.variants import parse_chrpos
 
 logger = logging.getLogger('debug-log')
+query_logger = logging.getLogger('query-log')
 
 #globals
 es_timeout=120
@@ -205,6 +206,7 @@ def elastic_query_phewas_rsid(rsid, user_email, pval, index_list=[]):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug(f'phewas_rsid {rsid} {pval} {study_indexes} {request} {t}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
@@ -242,6 +244,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
     end = time.time()
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug(f'phewas_chrpos {chrpos} {pval} {study_indexes} {request} {t}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
@@ -259,6 +262,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
         study_indexes = [x for x in study_indexes if x in index_list]
     res = []
     request = []
+    
     for s in study_indexes:
         if len(cprange) > 0:
             for c in cprange:
@@ -277,6 +281,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug(f'phewas_cprange {cprange} {pval} {study_indexes} {request} {t}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(e)) + ' records')
     # REMOVE DISALLOWED STUDIES
