@@ -206,7 +206,7 @@ def elastic_query_phewas_rsid(rsid, user_email, pval, index_list=[]):
         res+=r
     end = time.time()
     t = round((end - start), 4)
-    query_logger.debug(f'phewas_rsid {rsid} {pval} {study_indexes} {request} {t}')
+    query_logger.debug(f'phewas_rsid\t{t}\t{rsid}\t{pval}\t{study_indexes}\t{request}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
@@ -244,7 +244,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
     end = time.time()
     end = time.time()
     t = round((end - start), 4)
-    query_logger.debug(f'phewas_chrpos {chrpos} {pval} {study_indexes} {request} {t}')
+    query_logger.debug(f'phewas_chrpos\t{chrpos}\t{pval}\t{study_indexes}\t{t}\t{request}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(r)) + ' records')
     # REMOVE DISALLOWED STUDIES
@@ -281,7 +281,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
         res+=r
     end = time.time()
     t = round((end - start), 4)
-    query_logger.debug(f'phewas_cprange {cprange} {pval} {study_indexes} {request} {t}')
+    query_logger.debug(f'phewas_cprange\t{t}\t{cprange}\t{pval}\t{study_indexes}\t{request}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(e)) + ' records')
     # REMOVE DISALLOWED STUDIES
@@ -317,6 +317,7 @@ def elastic_query_chrpos(studies, chrpos):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug(f'chrpos\t{t}\t{chrpos}\t{studies}\t{study_indexes}\t{request}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
@@ -346,6 +347,7 @@ def elastic_query_cprange(studies, cprange):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug(f'cprange\t{cprange}\t{studies}\t{study_indexes}\t{t}\t{request}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(r)) + ' records')
     return res
@@ -371,6 +373,7 @@ def elastic_query_rsid(studies,rsid):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug(f'rsid\t{t}\t{rsid}\t{studies}\t{study_indexes}\t{request}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
@@ -416,6 +419,7 @@ def elastic_query_pval(studies, pval, tophits=False, bychr=False):
             res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug(f'pval\t{t}\t{pval}\t{studies}\t{study_indexes}\t{request}')
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
