@@ -9,7 +9,7 @@ server=xxx
 
 ### elastic_query_phewas_chrpos
 
-`curl -XGET "http://$server:8019/phewas//7%3A105561135/0.001"`
+`curl -XGET "http://$server:8019/phewas/7%3A105561135/0.001"`
 
 ### elastic_query_phewas_cprange
 
