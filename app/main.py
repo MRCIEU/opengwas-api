@@ -54,7 +54,8 @@ print("Starting MRB API v{}".format(Globals.VERSION))
 app = flask.Flask(__name__, static_folder="static")
 
 setup_event_logger('event-log', Globals.LOG_FILE)
-setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=False)
+setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=True)
+setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=False)
 
 app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
 app.add_url_rule('/', 'index', index)
