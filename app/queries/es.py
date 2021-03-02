@@ -8,6 +8,7 @@ from queries.cql_queries import get_permitted_studies, get_all_gwas_for_user
 from queries.variants import parse_chrpos
 
 logger = logging.getLogger('debug-log')
+query_logger = logging.getLogger('query-log')
 
 #globals
 es_timeout=120
@@ -205,8 +206,9 @@ def elastic_query_phewas_rsid(rsid, user_email, pval, index_list=[]):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:phewas_rsid',f'time:{t}',f'hits:{len(res)}',f'rsid:{rsid}',f'pval:{pval}',f'indexes:{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
-    logger.debug('ES returned ' + str(len(r)) + ' records')
+    logger.debug('ES returned ' + str(len(res)) + ' records')
     # REMOVE DISALLOWED STUDIES
     foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
@@ -242,8 +244,9 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
     end = time.time()
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:phewas_chrpos',f'time{t}',f'hits:{len(res)}',f'chrpos:{chrpos}',f'pval:{pval}',f'indexes:{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
-    logger.debug('ES returned ' + str(len(r)) + ' records')
+    logger.debug('ES returned ' + str(len(res)) + ' records')
     # REMOVE DISALLOWED STUDIES
     foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
@@ -259,6 +262,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
         study_indexes = [x for x in study_indexes if x in index_list]
     res = []
     request = []
+    
     for s in study_indexes:
         if len(cprange) > 0:
             for c in cprange:
@@ -277,8 +281,9 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:phewas_cprange',f'time:{t}',f'hits:{len(res)}',f'cprange:{cprange}',f'pval:{pval}',f'indexes:{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
-    logger.debug('ES returned ' + str(len(e)) + ' records')
+    logger.debug('ES returned ' + str(len(res)) + ' records')
     # REMOVE DISALLOWED STUDIES
     foundids = [x['id'] for x in res]
     study_data = get_permitted_studies(user_email, foundids)
@@ -312,8 +317,9 @@ def elastic_query_chrpos(studies, chrpos):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:chrpos',f'time:{t}',f'hits:{len(res)}',f'chrpos:{chrpos}',f'gwas:{studies}',f'indexes:{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
-    logger.debug('ES returned ' + str(len(r)) + ' records')
+    logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
 
 
@@ -341,8 +347,9 @@ def elastic_query_cprange(studies, cprange):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:cprange',f'time:{t}',f'hits:{len(res)}',f'cprange:{cprange}',f'gwas{studies}',f'indexes{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
-    logger.debug('ES returned ' + str(len(r)) + ' records')
+    logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
 
 def elastic_query_rsid(studies,rsid):
@@ -366,6 +373,7 @@ def elastic_query_rsid(studies,rsid):
         res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:rsid',f'time:{t}',f'hits:{len(res)}',f'rsid:{rsid}',f'gwas:{studies}',f'indexes:{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
@@ -411,6 +419,7 @@ def elastic_query_pval(studies, pval, tophits=False, bychr=False):
             res+=r
     end = time.time()
     t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:pval',f'time:{t}',f'hits:{len(res)}',f'pval:{pval}',f'gwas:{studies}',f'indexes:{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
