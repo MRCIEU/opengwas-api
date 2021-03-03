@@ -21,7 +21,8 @@ def setup_logger(name, log_file, level=logging.INFO, disabled=False):
 
     # Create the log message rotation file handler to the logger
     # 10000000 = 10 MB
-    handler = handlers.RotatingFileHandler(log_file, maxBytes=100000000, backupCount=100)
+    #handler = handlers.RotatingFileHandler(log_file, maxBytes=100000000, backupCount=100)
+    handler = logging.FileHandler(log_file)
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
@@ -40,7 +41,8 @@ def setup_event_logger(name, log_file):
 
     # Create the log message rotation file handler to the logger
     # 10000000 = 10 MB
-    handler = handlers.RotatingFileHandler(log_file, maxBytes=100000000, backupCount=100)
+    #handler = handlers.RotatingFileHandler(log_file, maxBytes=100000000, backupCount=100)
+    handler = logging.FileHandler(log_file)
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
