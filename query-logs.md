@@ -1,7 +1,7 @@
 
 # Notes on query logs
 
-server=localhost:8019
+server=localhost:8019  
 server=gwas-api.mrcieu.ac.uk
 
 ### phewas_rsid
