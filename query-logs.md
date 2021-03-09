@@ -12,7 +12,7 @@ API function name:
 - elastic_query_phewas_rsid
 
 API:
-- `curl -XGET "http://$server/phewas/rs1205/0.001"`
+- `curl -XGET "http://$server/phewas/rs4343/0.001"`
 
 Log:
 - `name:phewas_rsid	time:0.5915	    hits:84	     rsid:['rs4343']	pval:0.001	indexes:['prot-c',.....]`
@@ -59,7 +59,7 @@ API:
 - `curl -XGET "http://$server/associations/ieu-a-1/3%3A186461181"`
 
 Log:
-- `name:chrpos	        time:0.0336	    hits:1	     chrpos:[{'chr': 6, 'start': 31486158, 'end': 31486158, 'type': 'position', 'orig': '6:31486158'}]	gwas:['bbj-a-148']	indexes:{'bbj-a': ['148']}`
+- `name:chrpos	    time:0.0336	    hits:1	     chrpos:[{'chr': 3, 'start': 186461181, 'end': 186461181, 'type': 'position', 'orig': '6:186461181'}]	gwas:['ieu-a-1']	indexes:{'ieu-a': ['1']}`
 
 ### cprange 
 
@@ -73,7 +73,7 @@ API:
 - `curl -XGET "http://$server/associations/ieu-a-1/7%3A105561135-105563135"`
 
 Log:
-- `name:cprange	    time:0.4407	    hits:3099	 cprange:[{'chr': 10, 'start': 11750620, 'end': 12750620, 'type': 'range', 'orig': '10:11750620-12750620'}]	gwas['ukb-b-12948']	indexes{'ukb-b': ['12948']}`
+- `name:cprange	    time:0.4407	    hits:3099	 cprange:[{'chr': 7, 'start': 105561135, 'end': 105563135, 'type': 'range', 'orig': '7:105561135-105563135'}]	gwas['ieu-a-1']	indexes{'ieu-a': ['1']}`
 
 ### rsid
 
@@ -84,10 +84,10 @@ API function name:
 - elastic_query_rsid
 
 API:
-- `curl -XGET "http://$server/associations/ieu-a-1/rs1205"`
+- `curl -XGET "http://$server/associations/finn-a-C3_CORPUS_UTERI/rs75438046,rs1808192"`
 
 Log:
-- `name:rsid           time:0.0328     hits:1       rsid:['rs75438046', 'rs1808192']    gwas:['finn-a-C3_CORPUS_UTERI']  indexes:{'finn-a': ['C3_CORPUS_UTERI']}`
+- `name:rsid      time:0.0328     hits:1       rsid:['rs75438046', 'rs1808192']    gwas:['finn-a-C3_CORPUS_UTERI']  indexes:{'finn-a': ['C3_CORPUS_UTERI']}`
 
 ### pval
 
@@ -101,7 +101,7 @@ API:
 - `curl -X POST "http://$server/tophits?id=ieu-a-1&pval=0.0001&preclumped=1&clump=1&bychr=1&r2=0.001&kb=5000&pop=EUR" -H "accept: application/json" -H "X-Api-Token: null"`
 
 Log:
-- `name:pval	        time:0.4632	    hits:68	     pval:5e-08	   gwas:['ieu-a-1095']	 indexes:{'ieu-a': ['1095']}`
+- `name:pval	 time:0.4632	   hits:14	    pval:1e-04	   gwas:['ieu-a-1']	 indexes:{'ieu-a': ['1']}`
 
 # Example call frequencies 
 
