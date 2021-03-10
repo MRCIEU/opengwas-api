@@ -42,6 +42,11 @@ def batch_add_rel(records):
 
 
 def map_population(pop):
+    if pop in ["Aboriginal Australian", "African American or Afro-Caribbean", "African unspecified", "Asian unspecified",
+                "Central Asian", "East Asian", "European", "Greater Middle Eastern (Middle Eastern, North African, or Persian)",
+                    "Hispanic or Latin American", "Native American", "Not reported", "Oceanian", "Other", "Other admixed ancestry",
+                        "South Asian", "South East Asian", "Sub-Saharan African", "Mixed", "NA"]:
+        return pop
     if pop.lower() == "african american":
         return "African American or Afro-Caribbean"
     elif pop.lower() == "chinese, japanese, east asian":
@@ -62,6 +67,8 @@ def map_population(pop):
         return "European"
     elif pop.lower() == "hispanic":
         return "Hispanic or Latin American"
+    elif pop.lower() == "hispanic or latin american":
+        return "Hispanic or Latin American"
     elif pop.lower() == "indian":
         return "South Asian"
     elif pop.lower() == "south asian":
@@ -70,13 +77,14 @@ def map_population(pop):
         return "Asian unspecified"
     elif pop.lower() == "mixed":
         return "Mixed"
+    elif pop.lower() == "nr":
+        return "NA"
     elif pop.lower() == "na":
         return "NA"
     elif pop.lower() == "sub-saharan african":
         return "Sub-Saharan African"
     else:
         raise ValueError("Unknown pop :{}".format(pop))
-
 
 # populate_db to neo4
 app = flask.Flask(__name__)
