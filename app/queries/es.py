@@ -244,7 +244,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
     end = time.time()
     end = time.time()
     t = round((end - start), 4)
-    query_logger.debug("\t".join(['name:phewas_chrpos',f'time{t}',f'hits:{len(res)}',f'chrpos:{chrpos}',f'pval:{pval}',f'indexes:{study_indexes}',f'es:{request}']))
+    query_logger.debug("\t".join(['name:phewas_chrpos',f'time:{t}',f'hits:{len(res)}',f'chrpos:{chrpos}',f'pval:{pval}',f'indexes:{study_indexes}',f'es:{request}']))
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(res)) + ' records')
     # REMOVE DISALLOWED STUDIES
