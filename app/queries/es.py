@@ -55,6 +55,7 @@ def organise_payload_multi(hit):
     reg = r'^([\w]+-[\w]+)-([\w]+)'
     x = [o['_source'] for o in hit['hits']['hits']]
     indexes = [o['_index'] for o in hit['hits']['hits']]
+    indexes = [x.replace("ukbb", "ukb") for x in indexes]
     for i in range(len(x)):
         study_prefix, study_id = re.match(reg, indexes[i]).groups()
         x[i]['id'] = study_prefix + '-' + x[i].pop('gwas_id')
