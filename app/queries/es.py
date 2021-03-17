@@ -75,6 +75,8 @@ def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes,
     variants = organise_variants(variants)
     study_data = get_permitted_studies(user_email, id)
     id_access = list(study_data.keys())
+    if len(id_access) == 0:
+        return []
 
     rsid = variants['rsid']
     chrpos = variants['chrpos']
