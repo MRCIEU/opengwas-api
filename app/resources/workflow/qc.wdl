@@ -175,7 +175,7 @@ task report {
         --rm \
         -v ${MountDir}:${MountDir} \
         --cpus="1" \
-        mrbase-report-module:21ac8afc52b29b6ce5911662e834002ade1d4ea0 \
+        mrbase-report-module:74213fc57b76fa0a22f81100135ccf96c6b92ae9 \
         Rscript render_gwas_report.R \
         --n_cores 1 \
         --refdata ${RefData} \
