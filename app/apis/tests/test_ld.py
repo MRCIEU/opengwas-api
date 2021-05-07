@@ -55,3 +55,38 @@ def test_matrix3(url):
     assert 'snplist' in o
     assert 'matrix' in o
     assert len(o['snplist']) == len(o['matrix'])
+
+
+def test_ref_lookup1(url):
+    payload = {'rsid': ['rs234']}
+    r = requests.post(url + "/ld/reflookup", data=payload)
+    o = r.json()
+    assert r.status_code == 200
+    assert len(o) == 1
+    assert o[0] == 'rs234'
+
+
+def test_ref_lookup2(url):
+    payload = {'rsid': ['rs234', 'fakesnp']}
+    r = requests.post(url + "/ld/reflookup", data=payload)
+    o = r.json()
+    assert r.status_code == 200
+    assert len(o) == 1
+    assert o[0] == 'rs234'
+
+
+def test_ref_lookup3(url):
+    payload = {'rsid': ['fakesnp']}
+    r = requests.post(url + "/ld/reflookup", data=payload)
+    o = r.json()
+    assert r.status_code == 200
+    assert len(o) == 0
+
+
+def test_ref_lookup4(url):
+    payload = {'rsid': ['rs234', 'fakesnp'], 'pop': 'AFR'}
+    r = requests.post(url + "/ld/reflookup", data=payload)
+    o = r.json()
+    assert r.status_code == 200
+    assert len(o) == 1
+    assert o[0] == 'rs234'

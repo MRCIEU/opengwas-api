@@ -59,3 +59,24 @@ class LdMatrix(Resource):
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
         return out, 200
+
+
+@api.route('/reflookup')
+@api.doc(
+    description="""
+Lookup whether rsids are present in the LD reference panel
+""")
+class RefLookup(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('rsid', required=False, type=str, action='append', default=[])
+    parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
+
+    @api.expect(parser)
+    def post(self):
+        args = parser.parse_args()
+        try:
+            out = ld_ref_lookup(Globals.TMP_FOLDER, args['rsid'], args['pop'])
+        except Exception as e:
+            logger.error("Could not lookup SNPs: {}".format(e))
+            abort(503)
+        return out, 200
