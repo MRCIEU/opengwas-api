@@ -113,6 +113,27 @@ def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
         logger.debug("finished")
         [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
 
-    #print(str(out))
+    # print(str(out))
 
     return out
+
+
+def ld_ref_lookup(upload_folder, snps, pop='EUR'):
+    try:
+        fn = str(uuid.uuid4())
+        filename = os.path.join(upload_folder, fn + "_snplist")
+        filename_out = os.path.join(upload_folder, fn + "_snplist.present")
+        tfile = open(filename, "w")
+        for i in range(len(snps)):
+            tfile.write(str(snps[i]) + "\n")
+        tfile.close()
+        cmd = "fgrep -wf {0} {1}.bim | awk '{{print $2}}' > {2}".format(filename, Globals.LD_REF[pop], filename_out)
+        logger.debug(cmd)
+        os.system(cmd)
+        with open(filename_out, "r") as f:
+            snplist = list(filter(None, f.read().split("\n")))
+
+    finally:
+        [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
+
+    return snplist
