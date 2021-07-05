@@ -1,23 +1,12 @@
 import flask
+import logging
 from os import path, walk
 from resources.globals import Globals
 from apis import api
-from resources.logging_middleware import LoggerMiddleWare
 from resources.neo4j import Neo4j
 from apis.status import check_all, count_elastic_records, count_neo4j_datasets
-from logging import handlers
-import logging
-from flask import has_request_context, request
-
-class RequestFormatter(logging.Formatter):
-    def format(self, record):
-        if has_request_context():
-            record.url = request.url
-            record.remote_addr = request.remote_addr
-        else:
-            record.url = None
-            record.remote_addr = None
-        return super().format(record)
+from flask import request, has_request_context
+from resources.logging_middleware import LoggerMiddleWare
 
 def index():
     status = check_all()
@@ -25,13 +14,11 @@ def index():
     neo4j_counts = count_neo4j_datasets()
     return flask.render_template('index.html', status=status, elastic_counts=elastic_counts, neo4j_counts=neo4j_counts)
 
-
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
-    formatter = RequestFormatter('%(asctime)s %(levelname)s %(remote_addr)s %(filename)s:%(lineno)d %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+        )
 
-    # Create the log message rotation file handler to the logger
-    # 10000000 = 10 MB
-    #handler = handlers.RotatingFileHandler(log_file, maxBytes=100000000, backupCount=100)
     handler = logging.FileHandler(log_file)
     handler.setFormatter(formatter)
 
@@ -44,14 +31,11 @@ def setup_logger(name, log_file, level=logging.INFO, disabled=False):
 
 
 def setup_event_logger(name, log_file):
-    formatter = RequestFormatter(
-        '%(asctime)s %(msecs)d %(remote_addr)s %(user)s %(threadName)s %(levelname)s %(path)s %(method)s',
+    formatter = logging.Formatter(
+        '%(asctime)s %(msecs)d %(user)s %(remote_addr)s %(threadName)s %(levelname)s %(path)s %(method)s',
         datefmt='%d-%m-%Y:%H:%M:%S'
     )
-
-    # Create the log message rotation file handler to the logger
-    # 10000000 = 10 MB
-    #handler = handlers.RotatingFileHandler(log_file, maxBytes=100000000, backupCount=100)
+    
     handler = logging.FileHandler(log_file)
     handler.setFormatter(formatter)
 
@@ -60,13 +44,13 @@ def setup_event_logger(name, log_file):
     logger.addHandler(handler)
     return logger
 
-
-print("Starting MRB API v{}".format(Globals.VERSION))
-app = flask.Flask(__name__, static_folder="static")
-
 setup_event_logger('event-log', Globals.LOG_FILE)
 setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=True)
 setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=False)
+
+
+print("Starting MRB API v{}".format(Globals.VERSION))
+app = flask.Flask(__name__, static_folder="static")
 
 app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
 app.add_url_rule('/', 'index', index)
