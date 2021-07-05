@@ -30,3 +30,5 @@ urllib3==1.25.2
 Werkzeug==0.15.5
 mygene==3.1.0
 pysam==0.16.0.1
+anonymizeip==1.0.0
+

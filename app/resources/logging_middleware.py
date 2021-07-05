@@ -1,4 +1,5 @@
 from resources.auth import get_user_email
+from anonymizeip import anonymize_ip
 import logging
 
 logger_event = logging.getLogger('event-log')
@@ -25,7 +26,13 @@ class LoggerMiddleWare(object):
         except Exception:
             method = None
 
-        logger = logging.LoggerAdapter(logger_event, dict(path=path, method=method, user=user_email))
+        try: 
+            remote_addr = environ['REMOTE_ADDR']
+            remote_addr = anonymize_ip(remote_addr)
+        except Exception:
+            user_ip = None
+
+        logger = logging.LoggerAdapter(logger_event, dict(path=path, method=method, user=user_email, remote_addr=remote_addr))
         logger.info(None)
 
         return self.app(environ, start_response)
