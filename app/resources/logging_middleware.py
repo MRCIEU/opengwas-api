@@ -27,10 +27,12 @@ class LoggerMiddleWare(object):
             method = None
 
         try: 
-            remote_addr = environ['REMOTE_ADDR']
+            remote_addr = environ['HTTP_X_FORWARDED_FOR']
+            if "," in remote_addr:
+                remote_addr = remote_addr.split(",")[-1].strip()
             remote_addr = anonymize_ip(remote_addr)
         except Exception:
-            user_ip = None
+            remote_addr = None
 
         logger = logging.LoggerAdapter(logger_event, dict(path=path, method=method, user=user_email, remote_addr=remote_addr))
         logger.info(None)
