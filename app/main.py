@@ -42,7 +42,6 @@ def setup_event_logger(name, log_file):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
-
     return logger
 
 setup_event_logger('event-log', Globals.LOG_FILE)
