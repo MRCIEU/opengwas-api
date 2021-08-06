@@ -425,7 +425,9 @@ class Upload(Resource):
             t = {
                 "qc.StudyId": str(args['id']), 
                 "elastic.StudyId": str(args['id']),
-                "elastic.EsIndex": str(study_prefix)
+                "elastic.EsIndex": str(study_prefix),
+                "elastic.Host": str(Globals.app_config['es']['host']),
+                "elastic.Port": str(Globals.app_config['es']['port'])
                 }
 
             # conditionally add ncase & ncontrol

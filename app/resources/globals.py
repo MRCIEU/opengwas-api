@@ -6,9 +6,9 @@ from neo4j import GraphDatabase
 
 
 class Globals:
-    VERSION = '3.7.4'
+    VERSION = '3.8.0'
     root_path = os.path.dirname(os.path.dirname(__file__))
-    APP_CONF = os.path.join(root_path, 'conf_files', 'app_conf.json')
+    APP_CONF = os.path.join(root_path, 'app_conf.json')
     AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. See the [homepage](https://gwas-api.mrcieu.ac.uk/#authentication) for details on how to authenticate.'
 
     """ Set environment files to toggle between local and production & private vs public APIs """
