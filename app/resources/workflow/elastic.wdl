@@ -1,6 +1,6 @@
 workflow elastic {
-    String Host = "140.238.83.192"
-    String Port = 9200
+    String Host
+    String Port
 
     String StudyId
     String EsIndex
