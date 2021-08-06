@@ -16,4 +16,4 @@ RUN mkdir /data/tmp
 RUN mkdir /ld_files
 
 # copy in parameters
-COPY ../conf_files/app_conf.json /app
+COPY app_conf.json /app
