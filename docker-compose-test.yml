@@ -7,7 +7,7 @@ services:
     volumes:
     - /etc/timezone:/etc/timezone:ro
     environment:
-      - NEO4J_AUTH="${NEO4J_AUTH}"
+      - NEO4J_AUTH=${NEO4J_AUTH}
       - NEO4J_dbms_memory_heap_max__size=10G
       - NEO4J_dbms_memory_heap_initial__size=5G
       - NEO4J_dbms_memory_pagecache_size=10G
@@ -41,7 +41,7 @@ services:
     build: ./app/resources/workflow
     restart: always
     environment:
-      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs -Ddatabase.profile=slick.jdbc.MySQLProfile$$ -Ddatabase.db.driver=com.mysql.cj.jdbc.Driver -Ddatabase.db.url=jdbc:mysql://mr-base-api-cromwell-mysql/cromwell?rewriteBatchedStatements=true -Ddatabase.db.user="${database_db_user}" -Ddatabase.db.password="${database_db_password}" -Ddatabase.db.connectionTimeout=5000
+      - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=1 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs -Ddatabase.profile=slick.jdbc.MySQLProfile$$ -Ddatabase.db.driver=com.mysql.cj.jdbc.Driver -Ddatabase.db.url=jdbc:mysql://mr-base-api-cromwell-mysql/cromwell?rewriteBatchedStatements=true -Ddatabase.db.user=${database_db_user} -Ddatabase.db.password=${database_db_password} -Ddatabase.db.connectionTimeout=5000
     volumes:
       - /etc/timezone:/etc/timezone:ro
     command: ["server"]
@@ -54,10 +54,10 @@ services:
     image: mysql:5.7
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD="${database_db_password}"
+      - MYSQL_ROOT_PASSWORD=${database_db_password}
       - MYSQL_DATABASE=cromwell
-      - MYSQL_USER="${database_db_user}"
-      - MYSQL_PASSWORD="${database_db_password}"
+      - MYSQL_USER=${database_db_user}
+      - MYSQL_PASSWORD=${database_db_password}
     volumes:
         - /etc/timezone:/etc/timezone:ro
     healthcheck:
