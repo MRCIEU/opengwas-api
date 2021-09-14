@@ -46,7 +46,7 @@ def setup_event_logger(name, log_file):
 
 setup_event_logger('event-log', Globals.LOG_FILE)
 setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=True)
-setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=False)
+setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=True)
 
 
 print("Starting MRB API v{}".format(Globals.VERSION))
