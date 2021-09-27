@@ -168,6 +168,7 @@ def elastic_search(filterData, index_name):
 
 def elastic_search_multi(bodyText):
     logger.debug(bodyText)
+    print(bodyText)
     res = Globals.es.msearch(
         body=bodyText, request_timeout=es_timeout)
     return res
@@ -197,7 +198,7 @@ def elastic_query_phewas_rsid(rsid, user_email, pval, index_list=[]):
     request = []
     for s in study_indexes:
         logger.debug('checking ' + s + ' ...')
-        req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+        req_head = {'index': s, "ignore_unavailable":True}
         filterData = []
         filterData.append({"terms": {'snp_id': rsid}})
         bodyText=make_multi_body_text(filterData,pval)
@@ -236,7 +237,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
                 filterData = []
                 filterData.append({"terms": {'chr': [c]}})
                 filterData.append({"terms": {'position': pos}})
-                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                req_head = {'index': s, "ignore_unavailable":True}
                 bodyText=make_multi_body_text(filterData,pval)
                 request.extend([req_head, bodyText])
     start = time.time()
@@ -273,7 +274,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
                 filterData = []
                 filterData.append({"terms": {'chr': [c['chr']]}})
                 filterData.append({"range": {'position': {'gte': c['start'], 'lte': c['end']}}})
-                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                req_head = {'index': s, "ignore_unavailable":True}
                 bodyText=make_multi_body_text(filterData,pval)
                 request.extend([req_head, bodyText])
                 #filterData.append({"range": {"p": {"lt": pval}}})
@@ -310,7 +311,7 @@ def elastic_query_chrpos(studies, chrpos):
                 filterData.append({"terms": {'gwas_id': study_indexes[s]}})
                 filterData.append({"terms": {'chr': [c]}})
                 filterData.append({"terms": {'position': pos}})
-                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                req_head = {'index': s, "ignore_unavailable":True}
                 bodyText=make_multi_body_text(filterData)
                 request.extend([req_head, bodyText])
     start = time.time()
@@ -340,7 +341,7 @@ def elastic_query_cprange(studies, cprange):
                 filterData.append({"terms": {'gwas_id': study_indexes[s]}})
                 filterData.append({"terms": {'chr': [c['chr']]}})
                 filterData.append({"range": {'position': {'gte': c['start'], 'lte': c['end']}}})
-                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                req_head = {'index': s, "ignore_unavailable":True}
                 bodyText=make_multi_body_text(filterData)
                 request.extend([req_head, bodyText])
     start = time.time()
@@ -363,7 +364,7 @@ def elastic_query_rsid(studies,rsid):
     for s in study_indexes:
         if len(rsid) > 0:
             logger.debug('checking ' + s + ' ...')
-            req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+            req_head = {'index': s, "ignore_unavailable":True}
             filterData=[
                     {"terms":{"gwas_id":study_indexes[s]}},
                     {"terms":{"snp_id":rsid}}
@@ -398,7 +399,7 @@ def elastic_query_pval(studies, pval, tophits=False, bychr=False):
                 if tophits:
                     #print("looking in tophits index")
                     s = s + "-tophits"
-                req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+                req_head = {'index': s, "ignore_unavailable":True}
                 bodyText=make_multi_body_text(fd2)
                 request.extend([req_head, bodyText])
             e = elastic_search_multi(request)
@@ -413,7 +414,7 @@ def elastic_query_pval(studies, pval, tophits=False, bychr=False):
             if tophits:
                 print("looking in tophits index")
                 s = s + "-tophits"
-            req_head = {'index': s, "timeout":es_timeout, "ignore_unavailable":True}
+            req_head = {'index': s, "ignore_unavailable":True}
             bodyText=make_multi_body_text(filterData)
             request.extend([req_head, bodyText])
         e = elastic_search_multi(request)
