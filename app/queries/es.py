@@ -168,7 +168,7 @@ def elastic_search(filterData, index_name):
 
 def elastic_search_multi(bodyText):
     logger.debug(bodyText)
-    print(bodyText)
+
     res = Globals.es.msearch(
         body=bodyText, request_timeout=es_timeout)
     return res
