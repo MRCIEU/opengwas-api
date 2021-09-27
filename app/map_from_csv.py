@@ -327,10 +327,11 @@ with app.app_context():
     for it in gid_to_name:
         groups.add(gid_to_name[it])
     # TODO use service account
-    add_new_user('opengwas-ci-cd@mr-base.iam.gserviceaccount.com', groups, admin=True)
+    #add_new_user('opengwas-ci-cd@mr-base.iam.gserviceaccount.com', groups, admin=True)
+    add_new_user('mlyon@live.co.uk', groups, admin=True)
 
     # set all gwas as QC passed
     tx = Neo4j.get_db()
-    tx.run("MATCH (u:User {uid:\"opengwas-ci-cd@mr-base.iam.gserviceaccount.com\"}) "
+    tx.run("MATCH (u:User {uid:\"mlyon@live.co.uk\"}) "
            "MATCH (g:GwasInfo) WHERE NOT (g)-[:DID_QC]->(:User) "
            "CREATE (g)-[:DID_QC {epoch:1549379289.720649, comment:\"historic\", data_passed:True}]->(u)")
