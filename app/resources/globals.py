@@ -6,7 +6,7 @@ from neo4j import GraphDatabase
 
 
 class Globals:
-    VERSION = '3.8.0'
+    VERSION = '3.8.1'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'app_conf.json')
     AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. See the [homepage](https://gwas-api.mrcieu.ac.uk/#authentication) for details on how to authenticate.'
@@ -67,9 +67,9 @@ class Globals:
     )
 
     # connect to elasticsearch
-    es = Elasticsearch(
-        [{'host': app_config['es']['host'], 'port': app_config['es']['port']}]
-    )
+    ES_HOST=app_config['es']['host']
+    ES_PORT=app_config['es']['port']
+    es = Elasticsearch([f"{ES_HOST}:{ES_PORT}"])
 
     all_batches = list(set(['-'.join(b['n.id'].split('-',2)[:2]) for b in dbConnection.session().run("match (n:GwasInfo) return n.id").data()]))
 
