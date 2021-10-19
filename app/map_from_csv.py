@@ -326,8 +326,7 @@ with app.app_context():
     groups = set()
     for it in gid_to_name:
         groups.add(gid_to_name[it])
-    # TODO use service account
-    #add_new_user('opengwas-ci-cd@mr-base.iam.gserviceaccount.com', groups, admin=True)
+    add_new_user('opengwas-ci-cd@mr-base.iam.gserviceaccount.com', groups, admin=True)
     add_new_user('mlyon@live.co.uk', groups, admin=True)
 
     # set all gwas as QC passed
