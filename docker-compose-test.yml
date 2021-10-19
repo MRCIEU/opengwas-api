@@ -28,7 +28,7 @@ services:
       - NGINX_MAX_UPLOAD=750m
       - UWSGI_PROCESSES=20
       - UWSGI_THREADS=2
-      - ENV=production
+      - ENV=local
       - ACCESS=private
       - FLASK_ENV=development
     depends_on:
