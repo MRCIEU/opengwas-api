@@ -94,7 +94,7 @@ def range_query(chrpos, radius=0):
                 {"range": {"POS": {"gte": chrpos[i]['start'], "lte": chrpos[i]['end']}}},
                 ]
         total, hits = es_search(filterData=filterData, routing=chrpos[i]['chr'])
-        if total > 0:
+        if total['value'] > 0:
             for item in hits:
                 item.update({'query': chrpos[i]['orig']})
                 so = item['_source']
