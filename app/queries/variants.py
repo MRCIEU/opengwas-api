@@ -31,7 +31,7 @@ def es_search(filterData,routing):
     end = time.time()
     t=round((end - start), 4)
     print("Time taken:",t, "seconds")
-    return res['hits']['total'],res['hits']['hits']
+    return res['hits']['total']['value'],res['hits']['hits']
 
 def snps(snp_list):
     print('snps',len(snp_list))
@@ -94,7 +94,7 @@ def range_query(chrpos, radius=0):
                 {"range": {"POS": {"gte": chrpos[i]['start'], "lte": chrpos[i]['end']}}},
                 ]
         total, hits = es_search(filterData=filterData, routing=chrpos[i]['chr'])
-        if total['value'] > 0:
+        if total > 0:
             for item in hits:
                 item.update({'query': chrpos[i]['orig']})
                 so = item['_source']
