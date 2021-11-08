@@ -133,7 +133,6 @@ def phewas_elastic_search(filterData, index_name, pval):
         ignore_unavailable=True,
         request_timeout=es_timeout,
         index=index_name,
-        # doc_type="assoc",
         body={
             # "from":from_val,
             "size": return_size,
@@ -154,7 +153,6 @@ def elastic_search(filterData, index_name):
         ignore_unavailable=True,
         request_timeout=es_timeout,
         index=index_name,
-        # doc_type="assoc",
         body={
             # "from":from_val,
             "size": return_size,
@@ -444,7 +442,6 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
         ESRes = Globals.es.search(
             request_timeout=es_timeout,
             index='mrb-proxies',
-            doc_type="proxies",
             body={
                 "size": return_size,
                 "sort": [
@@ -467,7 +464,6 @@ def get_proxies_es(snps, rsq, palindromes, maf_threshold):
         ESRes = Globals.es.search(
             request_timeout=es_timeout,
             index='mrb-proxies',
-            doc_type="proxies",
             body={
                 "size": return_size,
                 "query": {
