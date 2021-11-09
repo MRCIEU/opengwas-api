@@ -23,10 +23,11 @@ def make_multi_body_text(filterData,pval=''):
                 }
             }
         }
-    if pval != '':
-         m["post_filter"] = {
-                "range": {"p": {"lt": pval}}
-            }
+    # disabled phewas filter - issue 3
+    #if pval != '':
+    #     m["post_filter"] = {
+    #            "range": {"p": {"lt": pval}}
+    #        }
     return m
 
 def organise_variants(variants):
@@ -216,6 +217,7 @@ def elastic_query_phewas_rsid(rsid, user_email, pval, index_list=[]):
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
     res = [x for x in res if x['id'] in id_access]
+    res = [x for x in res if x['p'] < pval]
     res = add_trait_to_result(res, study_data)
     return res
 
@@ -254,6 +256,7 @@ def elastic_query_phewas_chrpos(chrpos, user_email, pval, index_list=[]):
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
     res = [x for x in res if x['id'] in id_access]
+    res = [x for x in res if x['p'] < pval]
     res = add_trait_to_result(res, study_data)
     return res
 
@@ -291,6 +294,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
     study_data = get_permitted_studies(user_email, foundids)
     id_access = list(study_data.keys())
     res = [x for x in res if x['id'] in id_access]
+    res = [x for x in res if x['p'] < pval]
     res = add_trait_to_result(res, study_data)
     return res
 
