@@ -2,7 +2,7 @@
 
 [![DOI](https://img.shields.io/badge/doi-10.1101%2F2020.08.10.244293-blue)](https://doi.org/10.1101/2020.08.10.244293)
 
-Source code for backend of <https://gwas.mrcieu.ac.uk/>
+Source code for backend of <https://gwas.mrcieu.ac.uk/>. See [here](https://gwas.mrcieu.ac.uk/about) for more details.
 
 ## Citation
 
