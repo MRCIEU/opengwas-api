@@ -31,9 +31,7 @@ class UniqueNode(dict):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":{uid}}) SET n = {params};",
-            uid=self.get(self._UID_KEY),
-            params=d
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) SET n += {name: '" + d['name'] + "'};"
         )
     
     def edit_node(self):
@@ -41,9 +39,7 @@ class UniqueNode(dict):
         d = schema.load(self)
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":{uid}}) SET n = {params};",
-            uid=self.get(self._UID_KEY),
-            params=d
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) SET n += {name: '" + d['name'] + "'};"
         )
 
 
@@ -53,8 +49,7 @@ class UniqueNode(dict):
             raise KeyError("You must provide a value for the unique key.")
         tx = Neo4j.get_db()
         tx.run(
-            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ":{uid}}) OPTIONAL MATCH (n)-[r]-() DELETE n, r;",
-            uid=uid
+            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": '" + uid + "'}) OPTIONAL MATCH (n)-[r]-() DELETE n, r;"
         )
 
     @classmethod
@@ -64,8 +59,7 @@ class UniqueNode(dict):
 
         tx = Neo4j.get_db()
         results = tx.run(
-            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ":{uid}}) RETURN n;",
-            uid=uid
+            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": '" + uid + "'}) RETURN n;"
         )
         result = results.single()
 
@@ -85,14 +79,14 @@ class UniqueNode(dict):
     def set_constraint(cls):
         tx = Neo4j.get_db()
         tx.run(
-            "CREATE CONSTRAINT ON (n:" + cls.get_node_label() + ") ASSERT n." + cls._UID_KEY + " IS UNIQUE;"
+            "CREATE CONSTRAINT FOR (n:" + cls.get_node_label() + ") REQUIRE n." + cls._UID_KEY + " IS UNIQUE;"
         )
 
     @classmethod
     def drop_constraint(cls):
         tx = Neo4j.get_db()
         tx.run(
-            "DROP CONSTRAINT ON (n:" + cls.get_node_label() + ") ASSERT n." + cls._UID_KEY + " IS UNIQUE;"
+            "DROP CONSTRAINT FOR (n:" + cls.get_node_label() + ") REQUIRE n." + cls._UID_KEY + " IS UNIQUE;"
         )
 
     @classmethod
