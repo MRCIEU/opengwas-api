@@ -1,12 +1,8 @@
 FROM python:3.8
 
-# RUN echo "uwsgi_read_timeout 1200s;" > /etc/nginx/conf.d/custom_timeout.conf
-
 # install flask app
 COPY ./app/requirements.txt /app/requirements.txt
 WORKDIR /app
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-
-# copy in parameters
-# COPY app_conf.json /app
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir Cython && \
+    pip install -r requirements.txt
