@@ -14,14 +14,10 @@ class UniqueRel(dict):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MATCH (l:" + lhs_node.get_node_label() + " {" + lhs_node.get_uid_key() + ":{lhs_uid}}) "
-            "MATCH (r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":{rhs_uid}}) "
+            "MATCH (l:" + lhs_node.get_node_label() + " {" + lhs_node.get_uid_key() + ":'" + lhs_node.get_uid() + "'}) "
+            "MATCH (r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":'" + lhs_node.get_uid() + "'}) "
             "MERGE (l)-[rel:" + self.get_rel_type() + "]->(r) "
-            "SET rel = {rel_props};",
-            lhs_uid=lhs_node.get_uid(),
-            rhs_uid=rhs_node.get_uid(),
-            rel_type=self.get_rel_type(),
-            rel_props=self
+            "SET rel = " + str(self) + ";"
         )
 
     @classmethod
@@ -33,7 +29,7 @@ class UniqueRel(dict):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MATCH (l:" + lhs_node.get_node_label() + " {" + lhs_node.get_uid_key() + ":{lhs_uid}})-[rel:" + cls.get_rel_type() + "]-(r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":{rhs_uid}})"
+            "MATCH (l:" + lhs_node.get_node_label() + " {" + lhs_node.get_uid_key() + ":$lhs_uid})-[rel:" + cls.get_rel_type() + "]-(r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":$rhs_uid})"
             "DELETE (rel);",
             lhs_uid=lhs_node.get_uid(),
             rhs_uid=rhs_node.get_uid(),
@@ -49,7 +45,7 @@ class UniqueRel(dict):
 
         tx = Neo4j.get_db()
         results = tx.run(
-            "MATCH (l:" + lhs_node.get_node_label() + " {" + lhs_node.get_uid_key() + ":{lhs_uid}})-[rel:" + cls.get_rel_type() + "]-(r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":{rhs_uid}})"
+            "MATCH (l:" + lhs_node.get_node_label() + " {" + lhs_node.get_uid_key() + ":$lhs_uid})-[rel:" + cls.get_rel_type() + "]-(r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":$rhs_uid})"
             "RETURN rel;",
             lhs_uid=lhs_node.get_uid(),
             rhs_uid=rhs_node.get_uid(),

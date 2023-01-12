@@ -1,0 +1,91 @@
+version: '3'
+services:
+
+  mrb-neo4j:
+    image: neo4j:5.3.0
+    restart: always
+    ports:
+    - "7474:7474"
+    - "7687:7687"
+    - "7473:7473"
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH}
+      - NEO4J_dbms_memory_heap_max__size=20G
+      - NEO4J_dbms_memory_heap_initial__size=5G
+      - NEO4J_dbms_memory_pagecache_size=10G
+      - NEO4J_dbms_shell_enabled=true
+      - NEO4J_dbms_allow__upgrade=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+
+  # mr-base-api-v3-public:
+  #   image: mr-base-api-v3:latest
+  #   restart: always
+  #   ports:
+  #   - "8084:80"
+  #   volumes:
+  #   - ./app:app
+  #   - ./app/data/mrb_logs_pub:/data/mrb_logs
+  #   - /etc/timezone:/etc/timezone:ro
+  #   - ./app/ld_files:/app/ld_files
+  #   environment:
+  #     - NGINX_MAX_UPLOAD=750m
+  #     - UWSGI_PROCESSES=20
+  #     - UWSGI_THREADS=2
+  #     - ENV=development
+  #     - ACCESS=private
+  #   depends_on:
+  #     - mrb-neo4j
+  #     # - mr-base-api-cromwell
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost"]
+  
+  ogapi:
+    image: ogapi:latest
+    restart: always
+    ports:
+    - "8019:8019"
+    volumes:
+    - ./app:/app
+    environment:
+      - NGINX_MAX_UPLOAD=750m
+      - UWSGI_PROCESSES=20
+      - UWSGI_THREADS=2
+      - ENV=development
+      - ACCESS=private
+    depends_on:
+      - mrb-neo4j
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+
+  # mr-base-api-cromwell:
+  #   build: ./app/resources/workflow
+  #   restart: always
+  #   environment:
+  #     - JAVA_OPTS=-Ddocker.hash-lookup.enabled=false -Dsystem.max-concurrent-workflows=12 -Dbackend.providers.Local.config.root=/data/cromwell-executions -Dworkflow-options.workflow-log-dir=/data/cromwell-workflow-logs -Ddatabase.profile=slick.jdbc.MySQLProfile$$ -Ddatabase.db.driver=com.mysql.cj.jdbc.Driver -Ddatabase.db.url=jdbc:mysql://mr-base-api-cromwell-mysql/cromwell?rewriteBatchedStatements=true -Ddatabase.db.user=${database_db_user} -Ddatabase.db.password=${database_db_password} -Ddatabase.db.connectionTimeout=5000
+  #   ports:
+  #   - "8001:8000"
+  #   volumes:
+  #   - /var/run/docker.sock:/var/run/docker.sock
+  #   - /data:/data
+  #   - /etc/timezone:/etc/timezone:ro
+  #   - /data/ref/ld_files:/data/ld_files
+  #   command: ["server"]
+  #   depends_on:
+  #     - mr-base-api-cromwell-mysql
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000"]
+
+  # mr-base-api-cromwell-mysql:
+  #   image: mysql:5.7
+  #   restart: always
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${database_db_password}
+  #     - MYSQL_DATABASE=cromwell
+  #     - MYSQL_USER=${database_db_user}
+  #     - MYSQL_PASSWORD=${database_db_password}
+  #   volumes:
+  #       - /data/cromwell-mysql:/var/lib/mysql
+  #       - /etc/timezone:/etc/timezone:ro
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]

@@ -11,7 +11,7 @@ class User(UniqueNode):
     def set_admin(cls, uid):
         tx = Neo4j.get_db()
         tx.run(
-            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ":{uid}}) SET n.admin=True;",
+            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": $uid}) SET n.admin=True;",
             uid=uid
         )
 
