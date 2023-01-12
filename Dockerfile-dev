@@ -1,8 +1,31 @@
-FROM python:3.8
+FROM python:3.8 as base
+
+LABEL maintainer "Gibran Hemani <explodecomputer@gmail.com>"
+WORKDIR /app
+
+ENV FLASK_ENV="docker"
+ENV FLASK_APP=app.py
+ENV ENV="development"
+ENV ACCESS="private"
+EXPOSE 8019
 
 # install flask app
 COPY ./app/requirements.txt /app/requirements.txt
-WORKDIR /app
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir Cython && \
     pip install -r requirements.txt
+
+FROM base as debug
+# Debug image reusing the base
+# Install dev dependencies for debugging
+RUN pip install debugpy
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE 1
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED 1
+
+FROM base as prod
+# Production image
+RUN pip install gunicorn
+COPY . .
+CMD ["gunicorn", "--reload", "--bind", "0.0.0.0:8019", "app:app"]
