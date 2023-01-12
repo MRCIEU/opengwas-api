@@ -32,7 +32,7 @@ def get_all_gwas_ids_for_user(uid):
 
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi.id) as id;",
+        "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN $group_names RETURN distinct(gi.id) as id;",
         group_names=list(group_names)
     )
 
@@ -63,7 +63,7 @@ def get_gwas_for_user(uid, gwasid, datapass=True):
 
     result = results.single()
     if result is None:
-        raise LookupError("GwasInfo ID {} does not exist or you do not have the required access".format(gwasid))
+        raise LookupError("GwasInfo ID $gwasid does not exist or you do not have the required access".format(gwasid=gwasid))
 
     return schema.load(GwasInfo(result['gi']))
 
