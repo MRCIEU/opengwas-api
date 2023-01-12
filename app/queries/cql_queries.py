@@ -50,13 +50,13 @@ def get_gwas_for_user(uid, gwasid, datapass=True):
 
     if datapass:
         results = tx.run(
-            "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}})-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} RETURN distinct(gi);",
+            "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:$gwasid})-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN $group_names RETURN distinct(gi);",
             group_names=list(group_names),
             gwasid=gwasid
         )
     else:
         results = tx.run(
-            "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:{gwasid}}) WHERE g.name IN {group_names} RETURN distinct(gi);",
+            "MATCH (g:Group)-[:ACCESS_TO]->(gi:GwasInfo {id:$gwasid}) WHERE g.name IN $group_names RETURN distinct(gi);",
             group_names=list(group_names),
             gwasid=gwasid
         )
@@ -144,7 +144,7 @@ def add_group_to_user(email, group_name):
 def delete_gwas(gwasid):
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (gi:GwasInfo {id:{gwasid}}) "
+        "MATCH (gi:GwasInfo {id:$gwasid}) "
         "OPTIONAL MATCH (gi)-[rel]-() "
         "DELETE rel, gi;",
         gwasid=gwasid
@@ -154,7 +154,7 @@ def delete_gwas(gwasid):
 def delete_groups(gwasid):
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (gi:GwasInfo {id:{gwasid}})-[rel]-(g:Group) "
+        "MATCH (gi:GwasInfo {id:$gwasid})-[rel]-(g:Group) "
         "DELETE rel;",
         gwasid=gwasid
     )
@@ -172,7 +172,7 @@ def get_groups_for_user(uid):
 
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (:User {uid:{uid}})-[:MEMBER_OF]->(g:Group) RETURN g.name as name;",
+        "MATCH (:User {uid:$uid})-[:MEMBER_OF]->(g:Group) RETURN g.name as name;",
         uid=str(uid)
     )
     for result in results:
@@ -193,7 +193,7 @@ def get_permitted_studies(uid, gwas_info_ids: list):
     group_names = get_groups_for_user(uid)
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN {group_names} AND s.id IN {sid} RETURN distinct(s) as s;",
+        "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN $group_names AND s.id IN $sid RETURN distinct(s) as s;",
         group_names=list(group_names), sid=gwas_info_ids_str
     )
     res = {}
@@ -214,7 +214,7 @@ def add_quality_control(user_email, gwas_info_id, data_passed, comment=None):
 def delete_quality_control(gwas_info_id):
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (gi:GwasInfo {id:{uid}})-[r:DID_QC]->(:User) DELETE r;",
+        "MATCH (gi:GwasInfo {id:$uid})-[r:DID_QC]->(:User) DELETE r;",
         uid=str(gwas_info_id)
     )
 
