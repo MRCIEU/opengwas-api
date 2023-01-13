@@ -15,7 +15,7 @@ class UniqueRel(dict):
         tx = Neo4j.get_db()
         tx.run(
             "MATCH (l:" + lhs_node.get_node_label() + " {" + lhs_node.get_uid_key() + ":'" + lhs_node.get_uid() + "'}) "
-            "MATCH (r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":'" + lhs_node.get_uid() + "'}) "
+            "MATCH (r:" + rhs_node.get_node_label() + " {" + rhs_node.get_uid_key() + ":'" + rhs_node.get_uid() + "'}) "
             "MERGE (l)-[rel:" + self.get_rel_type() + "]->(r) "
             "SET rel = " + str(self) + ";"
         )

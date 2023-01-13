@@ -76,7 +76,8 @@ class GetId(Resource):
     def get(self, id):
 
         try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
+            token = request.headers.get('X-Api-Token')
+            user_email = get_user_email(token)
             recs = []
             for uid in id.split(','):
                 try:
