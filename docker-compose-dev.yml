@@ -9,6 +9,7 @@ services:
     restart: always
     ports:
       - 8019:8019
+      - 5678:5678
     environment:
       - FLASK_APP=main.py
       - FLASK_DEBUG=1
