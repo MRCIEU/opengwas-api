@@ -31,7 +31,8 @@ class UniqueNode(dict):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) SET n += {name: '" + d['name'] + "'};"
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) SET n += $params;",
+            params=d
         )
     
     def edit_node(self):
@@ -39,7 +40,9 @@ class UniqueNode(dict):
         d = schema.load(self)
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) SET n += {name: '" + d['name'] + "'};"
+            "MATCH (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) "
+            "SET n = $params;",
+            params=d
         )
 
 
