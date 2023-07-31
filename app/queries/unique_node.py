@@ -88,20 +88,24 @@ class UniqueNode(dict):
     @classmethod
     def drop_constraint(cls):
         tx = Neo4j.get_db()
-        tx.run(
-            "DROP CONSTRAINT FOR (n:" + cls.get_node_label() + ") REQUIRE n." + cls._UID_KEY + " IS UNIQUE;"
+        constraints = tx.run(
+            "SHOW CONSTRAINTS WHERE labelsOrTypes = [\"" + cls.get_node_label() + "\"];"
         )
+        for c in constraints:
+            tx.run(
+                "DROP CONSTRAINT " + c['name'] + ";"
+            )
 
     @classmethod
     def check_constraint(cls):
         labels = set()
         tx = Neo4j.get_db()
         results = tx.run(
-            "CALL db.indexes();"
+            "SHOW INDEXES WHERE properties IS NOT NULL;"
         )
         for result in results:
             if cls._UID_KEY in result['properties']:
-                for l in result['tokenNames']:
+                for l in result['labelsOrTypes']:
                     labels.add(l)
         return cls.get_node_label() in labels
 
