@@ -28,9 +28,9 @@ class Neo4j:
     def drop_all_constraints():
         tx = Neo4j.get_db()
         cmd = []
-        results = tx.run("CALL db.constraints;")
+        results = tx.run("SHOW CONSTRAINTS;")
         for result in results:
-            cmd.append("DROP " + result['description'])
+            cmd.append("DROP CONSTRAINT " + result['name'])
         for c in cmd:
             tx.run(c)
 
