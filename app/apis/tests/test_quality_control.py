@@ -7,6 +7,22 @@ from resources.globals import Globals
 token = get_mrbase_access_token()
 
 
+def test_upload_qc_result(url):
+    headers = {'X-API-TOKEN': token}
+
+    query = {'id': 'ieu-b-5071'}
+    r = requests.post(url + "/quality_control/upload_qc_result/" + query['id'], headers=headers)
+    assert r.status_code == 200
+
+
+def test_get_qc_result(url):
+    headers = {'X-API-TOKEN': token}
+
+    query = {'id': 'ieu-b-5071'}
+    r = requests.get(url + "/quality_control/get_qc_result/" + query['id'], headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 3
+
+
 def test_release(url):
     headers = {'X-API-TOKEN': token}
 

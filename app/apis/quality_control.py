@@ -1,5 +1,6 @@
 from flask_restplus import Resource, Namespace
 from queries.cql_queries import *
+from schemas.gwas_info_node_schema import check_id_is_valid_filename
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 from resources.auth import get_user_email
@@ -47,6 +48,60 @@ class GetId(Resource):
             return send_from_directory(study_folder, htmlfile)
         except LookupError:
             raise BadRequest("GWAS ID {} does not have a html report file.".format(id))
+
+
+@api.route('/upload_qc_result/<id>')
+@api.doc(description="Update database with information from qc_metrics.json")
+class UploadQCResult(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=True, default='null',
+        help=Globals.AUTHTEXT)
+
+    @api.expect(parser)
+    def post(self, id):
+        try:
+            check_id_is_valid_filename(id)
+            user_uid = get_user_email(request.headers.get('X-Api-Token'))
+
+            gwas_info = get_gwas_for_user(user_uid, id, datapass=False)
+
+            study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_info["id"])
+            with open(os.path.join(study_folder, 'qc_metrics.json'), 'r') as f:
+                qc_metrics = json.load(f)
+            qc_metrics_field_list = ["n_snps"]
+            qc_metrics = {k: v for k, v in qc_metrics.items() if k in qc_metrics_field_list}
+
+            delete_qc_result(gwas_info["id"])
+            add_qc_result(gwas_info["id"], qc_metrics)
+
+        except LookupError:
+            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
+
+
+@api.route('/get_qc_result/<id>')
+@api.doc(description="Get QC result of given a GWAS dataset")
+class GetQCResult(Resource):
+    parser = api.parser()
+    parser.add_argument(
+        'X-Api-Token', location='headers', required=True, default='null',
+        help=Globals.AUTHTEXT)
+
+    @api.expect(parser)
+    def get(self, id):
+        try:
+            check_id_is_valid_filename(id)
+            user_uid = get_user_email(request.headers.get('X-Api-Token'))
+            gwas_info = get_gwas_for_user(user_uid, id, datapass=False)
+            qc_result = get_qc_result(gwas_info["id"])
+            return qc_result
+
+        except LookupError:
+            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
+        except requests.exceptions.HTTPError as e:
+            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/release')

@@ -1,8 +1,10 @@
 from resources.neo4j import Neo4j
 from queries.user_node import User
 from queries.gwas_info_node import GwasInfo
+from queries.qc_result_node import QCResult
 from queries.added_by_rel import AddedByRel
 from queries.quality_control_rel import QualityControlRel
+from queries.qc_result_rel import QCResultRel
 from queries.access_to_rel import AccessToRel
 from queries.member_of_rel import MemberOfRel
 from queries.group_node import Group
@@ -172,7 +174,7 @@ def get_groups_for_user(uid):
 
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (:User {uid:'" + uid + "'})-[:MEMBER_OF]->(g:Group) RETURN g.name as name;",
+        "MATCH (:User {uid:$uid})-[:MEMBER_OF]->(g:Group) RETURN g.name as name;",
         uid=str(uid)
     )
     for result in results:
@@ -216,6 +218,38 @@ def delete_quality_control(gwas_info_id):
     tx.run(
         "MATCH (gi:GwasInfo {id:$uid})-[r:DID_QC]->(:User) DELETE r;",
         uid=str(gwas_info_id)
+    )
+
+
+def add_qc_result(gwas_info_id, qc_metrics):
+    g = GwasInfo.get_node(gwas_info_id)
+    q = QCResult(dict({"id": gwas_info_id}, **qc_metrics))
+    q.create_node()
+    QCResultRel(epoch=time.time()).create_rel(g, q)
+
+
+def get_qc_result(gwas_info_id):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (qc:QCResult {id:$gwas_info_id}) "
+        "OPTIONAL MATCH (g:GwasInfo)-[r]-(qc) "
+        "RETURN g, r, qc",
+        gwas_info_id=gwas_info_id
+    ).single()
+
+    return {
+        "gwas_info": GwasInfo(result["g"]),
+        "has_qc": QCResultRel(result["r"]),
+        "qc_result": QCResult(result["qc"])
+    }
+
+
+def delete_qc_result(gwas_info_id):
+    tx = Neo4j.get_db()
+    tx.run(
+        "MATCH (qc:QCResult {id:$gwas_info_id}) "
+        "DETACH DELETE qc;",
+        gwas_info_id=gwas_info_id
     )
 
 
