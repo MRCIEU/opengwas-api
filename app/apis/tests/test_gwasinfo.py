@@ -19,7 +19,7 @@ def test_gwasinfo2(url):
 
 # Don't get private studies without authentication
 def test_gwasinfo3(url):
-    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-987']}
+    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-b-5007']}
     r = requests.post(url + "/gwasinfo", data=payload)
     assert r.status_code == 200 and len(r.json()) == 2
 
@@ -27,7 +27,7 @@ def test_gwasinfo3(url):
 # This time should have authentication to get private study
 def test_gwasinfo4(url):
     headers = {'X-API-TOKEN': token}
-    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-987']}
+    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-b-5007']}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 3
 
@@ -54,7 +54,7 @@ def test_gwasinfo7(url):
 
 # Using GET
 def test_gwasinfo8(url):
-    r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-987")
+    r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-b-5007")
     assert r.status_code == 200 and len(r.json()) == 1
 
 
