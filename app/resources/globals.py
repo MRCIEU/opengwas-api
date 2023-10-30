@@ -76,3 +76,9 @@ class Globals:
     public_batches = list(set(['-'.join(b['n.id'].split('-',2)[:2]) for b in dbConnection.session().run("match (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) return n.id").data()]))
 
     variant_index = "snp-base-v0.2"
+
+    FERNET_KEY = app_config['fernet']['key']
+    EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
+
+    JWT_KEY = app_config['jwt']['key']
+    JWT_VALIDITY = 1209600  # seconds (7 days)

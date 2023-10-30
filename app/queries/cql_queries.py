@@ -249,3 +249,16 @@ def get_todo_quality_control():
         res.append(GwasInfo(result['gi']))
 
     return res
+
+
+def get_user_by_email(email):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (u:User {uid:'" + email + "'}) RETURN u;",
+        uid=str(email)
+    ).single()
+    return result
+
+
+def set_user_jwt_timestamp(email, timestamp):
+    User().set_jwt_timestamp(email, timestamp)
