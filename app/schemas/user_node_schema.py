@@ -6,6 +6,7 @@ class UserNodeSchema(FRPMSchema):
     uid = fields.Str(required=False, validate=validate.Email(error='Not a valid email address'),
                      description="Email address of user.")
     admin = fields.Bool(required=False, description="Is the user an admin?")
+    jwt_timestamp = fields.Int(required=False, description="Invalid timestamp.")
 
     @post_load
     def lower_strip_email(self, item):

@@ -1,5 +1,6 @@
 from flask_restplus import Resource, Namespace
 from flask import request, send_file
+from middleware.auth import jwt_required
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 from werkzeug.exceptions import BadRequest
@@ -72,6 +73,7 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
+    # @jwt_required()
     @api.doc(model=gwas_info_model)
     def get(self, id):
 
