@@ -73,6 +73,7 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
+    # @jwt_required()
     @api.doc(model=gwas_info_model, id='get_gwas_by_id')
     # @jwt_required()
     def get(self, id):
