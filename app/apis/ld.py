@@ -21,6 +21,7 @@ Uses 1000 genomes reference data filtered to within-population MAF > 0.01 and on
 class Clump(Resource):
 
     @api.expect(parser)
+    @api.doc(id='post_clump')
     def post(self):
         args = parser.parse_args()
         if (len(args['rsid']) == 0):
@@ -72,6 +73,7 @@ class RefLookup(Resource):
     parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
 
     @api.expect(parser)
+    @api.doc(id='post_matrix')
     def post(self):
         args = parser.parse_args()
         try:

@@ -26,7 +26,7 @@ class List(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model)
+    @api.doc(model=gwas_info_model, id='get_qc_todo')
     def get(self):
         return get_todo_quality_control()
 
@@ -40,6 +40,7 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
+    @api.doc(id='get_report')
     def get(self, id):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
         htmlfile = id + "_report.html"
@@ -62,8 +63,8 @@ class Release(Resource):
     parser.add_argument('passed_qc', type=str, required=True, choices=("True", "False"), help='Did the data meet QC?')
 
     @api.expect(parser)
+    @api.doc(id='post_release')
     def post(self):
-
         try:
             req = self.parser.parse_args()
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
@@ -135,6 +136,7 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
+    @api.doc(id='get_qc_files')
     def get(self, id):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
         if os.path.isdir(study_folder):
@@ -154,8 +156,8 @@ class Delete(Resource):
     parser.add_argument('id', type=str, required=True, help='Identifier for the gwas info.')
 
     @api.expect(parser)
+    @api.doc(id='delete_qc')
     def delete(self, id):
-
         try:
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
