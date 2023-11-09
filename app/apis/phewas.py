@@ -22,6 +22,7 @@ parser1.add_argument(
     }
 )
 class PhewasGet(Resource):
+    @api.doc(id='get_phewas')
     def get(self, variant=None, pval=1e-3):
         if variant is None:
             abort(404)
@@ -49,6 +50,7 @@ parser2.add_argument(
 )
 class PhewasPost(Resource):
     @api.expect(parser2)
+    @api.doc(id='post_phewas')
     def post(self):
         args = parser2.parse_args()
         try:

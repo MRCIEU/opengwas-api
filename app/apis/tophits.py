@@ -28,6 +28,7 @@ parser1.add_argument(
     description="Extract top hits based on p-value threshold from a GWAS dataset.")
 class Tophits(Resource):
     @api.expect(parser1)
+    @api.doc(id='post_tophits')
     def post(self):
         args = parser1.parse_args()
         user_email = get_user_email(request.headers.get('X-Api-Token'))
