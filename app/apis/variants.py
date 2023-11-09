@@ -16,6 +16,7 @@ api = Namespace('variants', description="Retrieve variant information")
     }
 )
 class VariantGet(Resource):
+    @api.doc(id='get_variant_rsid')
     def get(self, rsid=None):
         if rsid is None:
             abort(404)
@@ -47,6 +48,7 @@ Obtain information for a particular SNP or comma separated list of SNPs. Note th
 )
 class VariantPost(Resource):
     @api.expect(parser2)
+    @api.doc(id='post_variant_rsid')
     def post(self):
         args = parser2.parse_args()
 
@@ -73,6 +75,7 @@ parser1.add_argument('radius', type=int, required=False, default=0, help="Range 
     }
 )
 class ChrposGet(Resource):
+    @api.doc(id='get_chrpos')
     def get(self, chrpos, radius=0):
         args = parser1.parse_args()
         chrpos = [x for x in ''.join(chrpos.split()).split(',')]
@@ -105,6 +108,7 @@ Obtain information for a particular variant or comma separated list of variants.
 )
 class ChrposPost(Resource):
     @api.expect(parser3)
+    @api.doc(id='post_chrpos')
     def post(self):
         args = parser3.parse_args()
 
@@ -128,6 +132,7 @@ class ChrposPost(Resource):
     }
 )
 class GeneGet(Resource):
+    @api.doc(id='get_gene')
     def get(self, gene=None):
         args = parser1.parse_args()
         try:
@@ -146,6 +151,7 @@ class GeneGet(Resource):
     }
 )
 class VariantGet(Resource):
+    @api.doc(id='get_afl2_rsid')
     def get(self, rsid=None):
         if rsid is None:
             abort(404)
@@ -172,6 +178,7 @@ class VariantGet(Resource):
     }
 )
 class ChrposGet(Resource):
+    @api.doc(id='get_afl2_chrpos')
     def get(self, chrpos=None):
         if chrpos is None:
             abort(404)
@@ -205,6 +212,7 @@ Obtain allele frequency and LD scores for a particular variant or comma separate
 )
 class Afl2Post(Resource):
     @api.expect(parser4)
+    @api.doc(id='post_afl2')
     def post(self):
         args = parser4.parse_args()
         if (len(args['chrpos']) == 0 and len(args['rsid']) == 0):
@@ -241,6 +249,7 @@ class Afl2Post(Resource):
 @api.route('/afl2/snplist')
 @api.doc(description="Get list of rsids that are variable across populations for ancestry analyses")
 class Afl2Snplist(Resource):
+    @api.doc(id='get_afl2_snplist')
     def get(self):
         try:
             return send_file(Globals.AFL2['snplist'])

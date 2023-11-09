@@ -50,8 +50,8 @@ class Add(Resource):
                                        ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
+    @api.doc(id='post_add_gwas_metadata')
     def post(self):
-
         try:
             req = self.parser.parse_args()
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
@@ -93,7 +93,7 @@ class Add(Resource):
 
 @api.route('/edit')
 @api.doc(description="Edit existing GWAS metadata")
-class Add(Resource):
+class Edit(Resource):
     parser = api.parser()
     parser.add_argument(
         'X-Api-Token', location='headers', required=True,
@@ -104,8 +104,8 @@ class Add(Resource):
                                        ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
+    @api.doc(id='post_edit_gwas_metadata')
     def post(self):
-
         try:
             req = self.parser.parse_args()
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
@@ -150,7 +150,7 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model)
+    @api.doc(model=gwas_info_model, id='get_gwas_metadata')
     def get(self, gwas_info_id):
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))
@@ -176,6 +176,7 @@ class JobStatus(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
+    @api.doc(id='get_gwas_status')
     def get(self, gwas_id):
         r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=dict(label="gwas_id:" + gwas_id))
         return r.json(), r.status_code
@@ -190,9 +191,9 @@ class Delete(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
+    @api.doc(id='delete_gwas')
     def delete(self, gwas_info_id):
         args = self.parser.parse_args()
-
         try:
             user_uid = get_user_email(request.headers.get('X-Api-Token'))
             check_user_is_developer(user_uid)
@@ -311,6 +312,7 @@ class Upload(Resource):
             return val
 
     @api.expect(parser)
+    @api.doc(id='upload_gwas')
     def post(self):
         args = self.parser.parse_args()
 

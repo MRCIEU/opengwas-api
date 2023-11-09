@@ -11,6 +11,7 @@ api = Namespace('batches', description="Data batches")
 @api.route('')
 @api.doc(description="List existing data batches")
 class Status(Resource):
+    @api.doc(id='get_batches')
     def get(self):
         return get_batches()
 

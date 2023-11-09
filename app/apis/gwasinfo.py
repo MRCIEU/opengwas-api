@@ -25,7 +25,7 @@ class Info(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model)
+    @api.doc(model=gwas_info_model, id='get_gwas')
     def get(self):
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))
@@ -42,7 +42,7 @@ class Info(Resource):
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model)
+    @api.doc(model=gwas_info_model, id='get_gwas_post')
     def post(self):
         args = self.parser.parse_args()
 
@@ -73,8 +73,8 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
+    @api.doc(model=gwas_info_model, id='get_gwas_by_id')
     # @jwt_required()
-    @api.doc(model=gwas_info_model)
     def get(self, id):
 
         try:
