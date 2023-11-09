@@ -22,6 +22,7 @@ parser1.add_argument(
     }
 )
 class AssocGet(Resource):
+    @api.doc(id='get_variants_gwas')
     def get(self, id=None, variant=None):
         if variant is None:
             abort(404)
@@ -56,6 +57,7 @@ parser2.add_argument(
 )
 class AssocPost(Resource):
     @api.expect(parser2)
+    @api.doc(id='post_variants_gwas')
     def post(self):
         args = parser2.parse_args()
 
