@@ -17,7 +17,7 @@ from .users import api as users
 from .utilities import api as utilities
 
 api = Api(version=Globals.VERSION, title='IEU OpenGWAS database',
-          description='A RESTful API for querying thousands of GWAS summary datasets', docExpansion='full',
+          description='A RESTful API for querying tens of thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs/')
 
 # public
@@ -31,10 +31,11 @@ api.add_namespace(variants)
 api.add_namespace(ld)
 api.add_namespace(users)
 
+if os.environ.get('ENV') == 'local':
+    api.add_namespace(utilities)
+
 # private
 if Globals.app_config['access'] == 'private':
     api.add_namespace(quality_control)
     api.add_namespace(edit)
     api.add_namespace(gicache)
-    if os.environ.get('ENV') == 'local':
-        api.add_namespace(utilities)

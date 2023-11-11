@@ -1,6 +1,7 @@
 from flask_restplus import Resource, Namespace
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
+from resources.globals import Globals
 import logging
 import os
 import json
@@ -27,7 +28,7 @@ class ImportMetadataFromJSON(Resource):
     parser = api.parser()
     parser.add_argument('overwrite', type=str, required=False, help="Whether to overwrite existing GwasInfo and update DID_QC")
 
-    developer_uid = ''
+    developer_uid = ''  # Specify the email address of the developer
     working_dir = ''  # A json/ subdirectory of this directory has all the .json files
     gwas_info_fields = GwasInfoNodeSchema.get_flask_model().keys()
 
@@ -100,3 +101,38 @@ class ImportMetadataFromJSON(Resource):
             'outcome': {outcome: len(results[outcome]) for outcome in results},
             'stats': stats
         }, 200
+
+
+@api.route('/export_deployment_oci')
+@api.doc(description="Export Specification for OCI API Deployment")
+class ExportOCIDepolymentSpec(Resource):
+    def __init__(self, *args, **kwargs):
+        self.api = kwargs.get('api')
+        super(ExportOCIDepolymentSpec, self).__init__(*args, **kwargs)
+
+    # https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycreatingspecification.htm#usingjson
+    # https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycontextvariables.htm
+    def get(self):
+        result = {'routes': [{
+            'path': '/{all*}',
+            'methods': ["GET"],
+            'backend': {
+                'type': 'HTTP_BACKEND',
+                'url': 'http://' + Globals.app_config['flask']['host'] + '/${request.path[all]}'
+            }
+        }]}
+        for path, details in self.api.__schema__['paths'].items():
+            for method, specs in details.items():
+                if method in ['get', 'post', 'put', 'delete', 'head', 'connect', 'options', 'trace', 'patch']:
+                    result['routes'].append({
+                        'path': path,
+                        'methods': [method.upper()],
+                        'backend': {
+                            'type': 'HTTP_BACKEND',
+                            'url': 'http://' + Globals.app_config['flask']['host'] + path.translate(str.maketrans({'{': '${request.path[', '}': ']}'})),
+                            'connectTimeoutInSeconds': 75,
+                            'readTimeoutInSeconds': 300,
+                            'sendTimeoutInSeconds': 300
+                        }
+                    })
+        return result
