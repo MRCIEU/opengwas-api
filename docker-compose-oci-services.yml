@@ -1,0 +1,21 @@
+version: '3.4'
+services:
+
+  og-neo4j:
+    image: neo4j:5.13
+    restart: always
+    ports:
+    - "7474:7474"
+    - "7687:7687"
+    volumes:
+    - /data/neo4j-v5/data:/data
+    - /data/neo4j-v5/logs:/logs
+    - /data/neo4j-backup:/backups
+    - /etc/localtime:/etc/timezone:ro
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH}
+    healthcheck:
+      test: ["CMD-SHELL", "/var/lib/neo4j/bin/neo4j status | grep pid"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
