@@ -1,0 +1,20 @@
+version: '3'
+services:
+
+  og-api-v3:
+    image: og-api-v3:latest
+    restart: always
+    stdin_open: true
+    tty: true
+    ports:
+    - "80:80"
+    volumes:
+    - /data/datasets:/data/igd
+    - /data/api-logs:/data/mrb_logs
+    - /data/ref/ld_files:/app/ld_files
+    - /etc/localtime:/etc/timezone:ro
+    environment:
+      - ENV=production
+      - ACCESS=public
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/status"]
