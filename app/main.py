@@ -1,5 +1,6 @@
 import flask
 import logging
+from werkzeug.middleware.proxy_fix import ProxyFix
 from os import path, walk
 from resources.globals import Globals
 from apis import api
@@ -7,12 +8,15 @@ from resources.neo4j import Neo4j
 from apis.status import check_all, count_elastic_records, count_neo4j_datasets
 from flask import request, has_request_context
 from resources.logging_middleware import LoggerMiddleWare
+from middleware.limiter import limiter
+
 
 def index():
     status = check_all()
     elastic_counts = count_elastic_records()
     neo4j_counts = count_neo4j_datasets()
     return flask.render_template('index.html', status=status, elastic_counts=elastic_counts, neo4j_counts=neo4j_counts)
+
 
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
     formatter = logging.Formatter(
@@ -58,6 +62,14 @@ app.add_url_rule('/', 'index', index)
 app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
 app.config['MAX_CONTENT_LENGTH'] = 7.5e+8
 app.teardown_appcontext(Neo4j.close_db)
+
+app.config.update(Globals.app_config['email'])
+
+# https://flask-limiter.readthedocs.io/en/stable/recipes.html#deploying-an-application-behind-a-proxy
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
+# https://stackoverflow.com/a/76902054
+limiter.init_app(app)
+
 api.init_app(app)
 
 if __name__ == "__main__":
