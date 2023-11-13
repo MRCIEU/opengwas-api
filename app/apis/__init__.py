@@ -1,4 +1,4 @@
-from flask_restplus import Api
+from flask_restx import Api
 import os
 
 from .status import api as status
