@@ -1,5 +1,7 @@
 from flask import Flask, request
-from flask_restplus import Api, Namespace, Resource
+from flask_restx import Api, Namespace, Resource
+from middleware.auth import validate_jwt, jwt_required
+from middleware.limiter import limiter
 from queries.cql_queries import *
 from queries.user_node import User
 from resources.globals import Globals

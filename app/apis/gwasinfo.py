@@ -1,4 +1,4 @@
-from flask_restplus import Resource, Namespace
+from flask_restx import Resource, Namespace
 from flask import request, send_file
 from middleware.auth import jwt_required
 from queries.cql_queries import *

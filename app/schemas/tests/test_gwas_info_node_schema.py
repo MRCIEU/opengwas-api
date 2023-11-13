@@ -1,5 +1,5 @@
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
-from flask_restplus import Resource, reqparse, Namespace, fields
+from flask_restx import Resource, reqparse, Namespace, fields
 
 d = {'id': '100', 'pmid': 23754948, 'year': 2013, 'mr': 1, 'note': 'Adjusted for BMI',
      'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric', 'population': 'European',
