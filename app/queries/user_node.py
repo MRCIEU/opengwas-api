@@ -25,14 +25,21 @@ class User(UniqueNode):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":'" + self.get(self._UID_KEY) + "'}) ON CREATE SET n.admin=False;"
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":'" + self.get(self._UID_KEY) + "'}) ON CREATE SET n.admin=False, n.first_name=$first_name, n.last_name=$last_name;", first_name=d['first_name'], last_name=d['last_name']
         )
 
     @classmethod
     def set_jwt_timestamp(cls, uid, timestamp):
-        print('set jwt timestamp', timestamp)
         tx = Neo4j.get_db()
         tx.run(
             "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": $uid}) SET n.jwt_timestamp=$timestamp;",
             uid=uid, timestamp=timestamp
+        )
+
+    @classmethod
+    def set_names(cls, uid, first_name, last_name):
+        tx = Neo4j.get_db()
+        tx.run(
+            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": $uid}) SET n.first_name=$first_name, n.last_name=$last_name;",
+            uid=uid, first_name=first_name, last_name=last_name
         )

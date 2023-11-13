@@ -120,10 +120,10 @@ def edit_existing_gwas(gwas_id, gwas_info_dict):
     return gwas_info_dict['id']
 
 
-def add_new_user(email, group_names=frozenset(['public']), admin=False):
+def add_new_user(email, firstname, lastname, group_names=frozenset(['public']), admin=False):
     uid = email.strip().lower()
     member_of_rel = MemberOfRel()
-    u = User(uid=uid)
+    u = User(uid=uid, first_name=firstname, last_name=lastname)
     u.create_node()
 
     if admin:
@@ -262,3 +262,7 @@ def get_user_by_email(email):
 
 def set_user_jwt_timestamp(email, timestamp):
     User().set_jwt_timestamp(email, timestamp)
+
+
+def set_user_names(email, first_name, last_name):
+    User().set_names(email, first_name, last_name)

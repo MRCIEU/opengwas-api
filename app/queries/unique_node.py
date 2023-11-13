@@ -45,7 +45,6 @@ class UniqueNode(dict):
             params=d
         )
 
-
     @classmethod
     def delete_node(cls, uid):
         if uid is None:

@@ -296,7 +296,7 @@ with app.app_context():
             for gid in email_to_gid[email]:
                 group_names.add(gid_to_name[int(gid)])
 
-            add_new_user(email, group_names=group_names)
+            add_new_user(email, "", "", group_names=group_names)
 
     # link gwas to group
     # TODO @be -- some studies do not exist in study table but have permissions
@@ -326,7 +326,7 @@ with app.app_context():
     groups = set()
     for it in gid_to_name:
         groups.add(gid_to_name[it])
-    add_new_user('opengwas-ci-cd@mr-base.iam.gserviceaccount.com', groups, admin=True)
+    add_new_user('opengwas-ci-cd@mr-base.iam.gserviceaccount.com', 'OpenGWAS', 'CI CD', groups, admin=True)
 
     # set all gwas as QC passed
     tx = Neo4j.get_db()
