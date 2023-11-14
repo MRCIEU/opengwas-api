@@ -1,3 +1,5 @@
+import os
+
 import flask
 import logging
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -82,3 +84,12 @@ if __name__ == "__main__":
                 if path.isfile(filename):
                     extra_files.append(filename)
     app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'], extra_files=extra_files)
+
+
+@app.before_request
+def check_test_mode():
+    key = request.headers.get('X-Declare-Test-Mode-Key')
+    if key and key == Globals.app_config['test']['key_declare_test_mode']:
+        os.environ['TEST_MODE'] = 'True'
+        # Disable flask-limiter
+        limiter.enabled = False

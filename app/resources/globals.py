@@ -77,8 +77,6 @@ class Globals:
 
     variant_index = "snp-base-v0.2"
 
-    FERNET_KEY = app_config['fernet']['key']
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
-    JWT_KEY = app_config['jwt']['key']
     JWT_VALIDITY = 1209600  # seconds (7 days)

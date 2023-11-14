@@ -1,5 +1,11 @@
-# content of conftest.py
+import sys
+sys.path.append('..')
 import pytest
+from resources.globals import Globals
+
+
+def pytest_configure():
+    pytest.shared_variable = {}
 
 
 def pytest_addoption(parser):
@@ -12,3 +18,10 @@ def pytest_addoption(parser):
 @pytest.fixture
 def url(request):
     return request.config.getoption("--url")
+
+
+@pytest.fixture
+def headers():
+    return {
+        "X-Declare-Test-Mode-Key": Globals.app_config['test']['key_declare_test_mode']
+    }

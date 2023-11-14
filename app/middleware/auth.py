@@ -18,7 +18,7 @@ def jwt_required():
 
 def validate_jwt(token):
     try:
-        payload = jwt.decode(token, Globals.JWT_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, Globals.app_config['jwt']['key'], algorithms=['HS256'])
     except jwt.exceptions.InvalidSignatureError:
         raise BadRequest("Invalid JWT signature.")
     except jwt.exceptions.DecodeError:
