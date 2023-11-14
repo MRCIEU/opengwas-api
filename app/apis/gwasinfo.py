@@ -73,13 +73,12 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    # @jwt_required()
     @api.doc(model=gwas_info_model, id='get_gwas_by_id')
     # @jwt_required()
     def get(self, id):
+        token = request.headers.get('X-Api-Token')
 
         try:
-            token = request.headers.get('X-Api-Token')
             user_email = get_user_email(token)
             recs = []
             for uid in id.split(','):
