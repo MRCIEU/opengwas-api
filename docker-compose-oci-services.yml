@@ -5,8 +5,8 @@ services:
     image: neo4j:5.13
     restart: always
     ports:
-      - 7474:7474
-      - 7687:7687
+      - "7474:7474"
+      - "7687:7687"
     volumes:
       - /data/neo4j-v5/data:/data
       - /data/neo4j-v5/logs:/logs
