@@ -1,19 +1,22 @@
 version: '3.4'
 
+networks:
+  og-api:
+    name: og-api
+
 services:
   og-api:
     image: og-api
     build:
       context: .
       dockerfile: ./Dockerfile-dev
-    restart: always
     ports:
-      - 8019:8019
-      - 5678:5678
+      - "8019:8019"
+      - "5678:5678"
     environment:
       - FLASK_APP=main.py
       - FLASK_DEBUG=1
-      - ENV=development
+      - ENV=local
       - ACCESS=private
     volumes:
       - ./app:/app
@@ -21,9 +24,18 @@ services:
     networks:
       - og-api
 
-networks:
-  og-api:
-    name: og-api
+  og-neo4j:
+    image: neo4j:5.13
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./app/data/neo4j-v5/data:/data
+      - ./app/data/neo4j-backup:/backup
+    environment:
+      - NEO4J_AUTH=neo4j/HbS4B47FR9bQAFq9
+    networks:
+      - og-api
 
   # mr-base-api-cromwell:
   #   build: ./app/resources/workflow
@@ -56,42 +68,3 @@ networks:
   #       - /etc/timezone:/etc/timezone:ro
   #   healthcheck:
   #     test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-
-  # mrb-neo4j:
-  #   image: neo4j:5.3.0
-  #   restart: always
-  #   ports:
-  #   - "7474:7474"
-  #   - "7687:7687"
-  #   - "7473:7473"
-  #   environment:
-  #     - NEO4J_AUTH=${NEO4J_AUTH}
-  #     - NEO4J_dbms_memory_heap_max__size=20G
-  #     - NEO4J_dbms_memory_heap_initial__size=5G
-  #     - NEO4J_dbms_memory_pagecache_size=10G
-  #     - NEO4J_dbms_shell_enabled=true
-  #     - NEO4J_dbms_allow__upgrade=true
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:7474"]
-
-  # mr-base-api-v3-public:
-  #   image: mr-base-api-v3:latest
-  #   restart: always
-  #   ports:
-  #   - "8084:80"
-  #   volumes:
-  #   - ./app:app
-  #   - ./app/data/mrb_logs_pub:/data/mrb_logs
-  #   - /etc/timezone:/etc/timezone:ro
-  #   - ./app/ld_files:/app/ld_files
-  #   environment:
-  #     - NGINX_MAX_UPLOAD=750m
-  #     - UWSGI_PROCESSES=20
-  #     - UWSGI_THREADS=2
-  #     - ENV=development
-  #     - ACCESS=private
-  #   depends_on:
-  #     - mrb-neo4j
-  #     # - mr-base-api-cromwell
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost"]
