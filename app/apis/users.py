@@ -19,7 +19,7 @@ api = Namespace('users', description='Users')
 
 
 def generate_verification_link(email):
-    fernet = Fernet(Globals.FERNET_KEY)
+    fernet = Fernet(Globals.app_config['fernet']['key'])
     expiry = int(time.time()) + Globals.EMAIL_VERIFICATION_LINK_VALIDITY
     message = fernet.encrypt(json.dumps({
         'email': email,
@@ -34,6 +34,7 @@ def generate_verification_link(email):
 class SendVerificationLink(Resource):
     parser = api.parser()
     parser.add_argument('email', type=str, required=True, help='Provide your email address.')
+    parser.add_argument('dry_run', type=str, required=False, help='Provide any value to suppress the email and instead, return the link directly. Used in testing environment. Do not provide this argument in production.')
 
     @api.expect(parser)
     @limiter.limit('20 per day')
@@ -43,18 +44,20 @@ class SendVerificationLink(Resource):
 
         link, expiry = generate_verification_link(req['email'])
         expiry_str = datetime.datetime.strftime(datetime.datetime.fromtimestamp(expiry).astimezone(), '%Y-%m-%d %H:%M:%S %Z')
-        # result = {"link": link, "expiry": expiry_str}
+        result = {"link": link, "expiry": expiry_str}
 
-        @limiter.limit('1 per day', key_func=lambda: req['email'])
-        def __send():
-            return Email().send_verification_email(link, req['email'], expiry_str)
+        if not 'dry_run' in req:
+            @limiter.limit('1 per day', key_func=lambda: req['email'])
+            def __send():
+                return Email().send_verification_email(link, req['email'], expiry_str)
 
-        result = __send()
+            result = __send()
+
         return result
 
 
 def validate_verification_link(message):
-    fernet = Fernet(Globals.FERNET_KEY)
+    fernet = Fernet(Globals.app_config['fernet']['key'])
     try:
         message = json.loads(fernet.decrypt(message.encode()).decode())
         email = message['email']
@@ -71,7 +74,7 @@ def generate_jwt(uid, timestamp):
     result = jwt.encode({
         'uid': uid,
         'timestamp': timestamp
-    }, Globals.JWT_KEY, algorithm='HS256')
+    }, Globals.app_config['jwt']['key'], algorithm='HS256')
     return result
 
 

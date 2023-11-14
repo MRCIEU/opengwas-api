@@ -14,6 +14,6 @@ class Email:
         self.mail.send(email)
 
         result = {
-            "message": "An email has been sent to {} - please check your junk folder, or contact us if you have not received any after three attempts. The link will be valid until {}.".format(email_address, expiry_str)
+            'message': "An email has been sent to {} - please check your junk folder, or contact us if you have not received any after three attempts. The link will be valid until {}.".format(email_address, expiry_str)
         }
         return result
