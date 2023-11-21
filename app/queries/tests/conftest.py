@@ -19,3 +19,5 @@ def reset_db():
         assert User.check_constraint()
         GwasInfo.set_constraint()
         assert GwasInfo.check_constraint()
+        # TODO: QCResult constraint?
+        # TODO: Org constraint?

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">Sign in</h2>
+    <p class="fs-5 text-muted">...</p>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col">
+        <a href="{{ auth_uri }}">
+            <img src="https://learn.microsoft.com/en-us/entra/identity-platform/media/howto-add-branding-in-apps/ms-symbollockup_signin_dark.svg">
+        </a>
+        Use your school, work or personal account (recommended)
+    </div>
+    <div class="col">
+    </div>
+    <div class="col">
+        <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#sendEmailModal">
+            Sign in using email
+        </button>
+        <div class="modal fade" id="sendEmailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">Get one-time sign in link via email</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="emailInput" placeholder="name@example.com">
+                        <label for="emailInput">Email</label>
+                    </div>
+                    <div class="mb-3 row" id="namesDivGroup" style="display: none">
+                        <div class="col-md">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="firstNameInput" placeholder="Firstname">
+                                <label for="firstNameInput">First name</label>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="lastNameInput" placeholder="Lastname">
+                                <label for="lastNameInput">Last name</label>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-success" id="resultP"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="sendBtn" onclick="signin()">Next</button>
+                </div>
+            </div>
+      </div>
+    </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var namesDivGroup, resultP, sendBtn;
+
+    $(document).ready(() => {
+        bind_events();
+        namesDivGroup = $("#namesDivGroup");
+        resultP = $("#resultP");
+        sendBtn = $("#sendBtn");
+    });
+
+    // Bind event listeners
+    function bind_events() {
+        $(document).on("change", "#emailInput", function() {
+            $("#namesDivGroup").css("display", "none");
+            resultP.attr("class", "").html("");
+            sendBtn.prop("disabled", false);
+        })
+    }
+
+    // Check email address and send link or ask for more information
+    function signin() {
+        sendBtn.prop("disabled", "disabled");
+        $.ajax({
+            url: "/users/auth/email/check",
+            data: {
+                "email": $("#emailInput").val(),
+                "first_name": $("#firstNameInput").val(),
+                "last_name": $("#lastNameInput").val()
+            },
+            error: function (xhr) {
+                if (xhr.responseJSON.message.indexOf("name") >= 0) {
+                    // Ask for first name and last name
+                    namesDivGroup.css("display", "flex");
+                    resultP.attr("class", "text-primary").html(xhr.responseJSON.message);
+                } else {
+                    // Validation error
+                    resultP.attr("class", "text-danger").html(xhr.responseJSON.message);
+                }
+                sendBtn.prop("disabled", false);
+            },
+            success: function (response) {
+                resultP.attr("class", "text-success").html(response.message);
+            }
+        }).done(response => {
+            sendBtn.prop("disabled", false);
+        });
+    }
+</script>
+{% endblock %}

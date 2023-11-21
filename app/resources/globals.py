@@ -3,6 +3,7 @@ import json
 import platform
 import os
 from neo4j import GraphDatabase
+import redis
 
 
 class Globals:
@@ -80,3 +81,22 @@ class Globals:
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
     JWT_VALIDITY = 1209600  # seconds (7 days)
+
+    SESSION = {
+        'SESSION_TYPE': 'redis',
+        'SESSION_REDIS': redis.from_url('redis://:' + app_config['redis']['pass'] + '@' + app_config['redis']['host'] + ':' + app_config['redis']['port'])
+    }
+
+    USER_TIERS = {
+        'ORG': "Organisational",
+        'PER': "Personal"
+    }
+
+    MS_ENTRA_ID_AUTHORITY = "https://login.microsoftonline.com/common"
+    MS_ENTRA_ID_CLIENT_ID = app_config['providers']['microsoft']['entra_id']['client_id']
+    MS_ENTRA_ID_CLIENT_SECRET = app_config['providers']['microsoft']['entra_id']['client_secret']
+    MS_ENTRA_ID_SCOPE = ["User.Read"]
+    MS_ENTRA_ID_ENDPOINTS = {
+        'me': 'https://graph.microsoft.com/v1.0/me?$select=accountEnabled,id,userPrincipalName,surname,givenName,mail,userType,jobTitle,creationType,createdDateTime,createdBy,department,identities,usageLocation,proxyAddresses',
+        'org': 'https://graph.microsoft.com/v1.0/organization?$select=id,displayName,verifiedDomains'
+    }
