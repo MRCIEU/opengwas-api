@@ -1,3 +1,5 @@
+import time
+
 from resources.neo4j import Neo4j
 from queries.user_node import User
 from queries.gwas_info_node import GwasInfo
@@ -5,9 +7,10 @@ from queries.added_by_rel import AddedByRel
 from queries.quality_control_rel import QualityControlRel
 from queries.access_to_rel import AccessToRel
 from queries.member_of_rel import MemberOfRel
+from queries.member_of_org_rel import MemberOfOrgRel
 from queries.group_node import Group
+from queries.org_node import Org
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
-import time
 
 """Return all available GWAS summary datasets"""
 
@@ -120,18 +123,26 @@ def edit_existing_gwas(gwas_id, gwas_info_dict):
     return gwas_info_dict['id']
 
 
-def add_new_user(email, firstname, lastname, group_names=frozenset(['public']), admin=False):
+def add_new_user(email, first_name, last_name, tier, org_uuid=None, user_org_info=None, group_names=frozenset(['public']), admin=False):
     uid = email.strip().lower()
-    member_of_rel = MemberOfRel()
-    u = User(uid=uid, first_name=firstname, last_name=lastname)
+    u = User(uid=uid, first_name=first_name, last_name=last_name, tier=tier)
     u.create_node()
 
     if admin:
         User.set_admin(uid)
 
+    if org_uuid:
+        o = Org.get_node(org_uuid)
+        if user_org_info:
+            MemberOfOrgRel({'job_title': user_org_info['jobTitle'], 'department': user_org_info['department']}).create_rel(u, o)
+        else:
+            MemberOfOrgRel().create_rel(u, o)
+
     for group_name in group_names:
         g = Group.get_node(group_name)
-        member_of_rel.create_rel(u, g)
+        MemberOfRel().create_rel(u, g)
+
+    return get_user_by_email(email)
 
 
 def add_group_to_user(email, group_name):
@@ -254,8 +265,8 @@ def get_todo_quality_control():
 def get_user_by_email(email):
     tx = Neo4j.get_db()
     result = tx.run(
-        "MATCH (u:User {uid:'" + email + "'}) RETURN u;",
-        uid=str(email)
+        "MATCH (u:User {uid: $email}) RETURN u;",
+        email=str(email)
     ).single()
     return result
 
@@ -266,3 +277,51 @@ def set_user_jwt_timestamp(email, timestamp):
 
 def set_user_names(email, first_name, last_name):
     User().set_names(email, first_name, last_name)
+
+
+def add_org_ms(ms_id, ms_name, ms_domains):
+    o = Org(uuid=ms_id)
+    o.create_node()
+    set_org_properties_from_ms(ms_id, ms_id, ms_name, ms_domains)
+
+
+def set_org_properties_from_ms(uuid, ms_id, ms_name, ms_domains):
+    Org().set_properties_from_ms(uuid, ms_id, ms_name, ms_domains)
+
+
+def add_org_github(uuid, name, gh_domains):
+    o = Org(uuid=uuid, name=name)
+    o.create_node()
+    Org().set_domains_from_github(uuid, gh_domains)
+
+
+def set_org_properties_from_github(uuid, gh_name, gh_domains):
+    Org().set_properties_from_github(uuid, gh_name, gh_domains)
+
+
+def get_org_by_id_or_domain(id_name=None, id_value=None, domain=None):
+    tx = Neo4j.get_db()
+    result = []
+
+    if id_name:
+        result = tx.run(
+            "MATCH (o:Org {" + id_name + ": $id_value}) RETURN o;",
+            id_value=id_value
+        ).data()
+    elif domain:
+        result = tx.run(
+            "MATCH (o:Org) WHERE any(d in o.ms_domains WHERE d=$domain) OR any(d in o.gh_domains WHERE d=$domain) RETURN o;",
+            domain=domain
+        ).data()
+
+    return result[0]['o'] if result else []
+
+
+def get_org_and_membership_from_user(uid):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (u:User {uid: $uid})-[r:MEMBER_OF_ORG]->(o:Org) RETURN PROPERTIES(r) as r, o;",
+        uid=uid
+    ).single().data()
+
+    return result['o'], result['r']
