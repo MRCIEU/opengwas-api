@@ -15,7 +15,6 @@ from resources.globals import Globals
 from .ld import api as ld
 from .variants import api as variants
 from .batches import api as batches
-from .users import api as users
 from .utilities import api as utilities
 
 api_bp = Blueprint('api', __name__)
@@ -34,7 +33,6 @@ api.add_namespace(tophits)
 api.add_namespace(phewas)
 api.add_namespace(variants)
 api.add_namespace(ld)
-api.add_namespace(users)
 
 if os.environ.get('ENV') == 'local':
     api.add_namespace(utilities)

@@ -18,7 +18,7 @@
             <div class="col-auto">
                 <label for="firstname" class="col-form-label">Firstname</label>
             </div>
-            <div class="col-auto">
+            <div class="col">
                 <input type="text" readonly class="form-control-plaintext" id="firstname" value="{{ user['first_name'] }}">
             </div>
         </div>
@@ -28,7 +28,7 @@
             <div class="col-auto">
                 <label for="lastname" class="col-form-label">Lastname</label>
             </div>
-            <div class="col-auto">
+            <div class="col">
                 <input type="text" readonly class="form-control-plaintext" id="lastname" value="{{ user['last_name'] }}">
             </div>
         </div>
@@ -40,7 +40,7 @@
             <div class="col-auto">
                 <label for="email" class="col-form-label">Email</label>
             </div>
-            <div class="col-auto">
+            <div class="col">
                 <input type="text" readonly class="form-control-plaintext" id="email" value="{{ user['uid'] }}">
             </div>
         </div>
@@ -50,7 +50,7 @@
             <div class="col-auto">
                 <label for="tier" class="col-form-label">Tier</label>
             </div>
-            <div class="col-auto">
+            <div class="col">
                 <input type="text" readonly class="form-control-plaintext" id="tier" value="{{ globals_tiers[user['tier']] }}">
             </div>
         </div>
@@ -59,33 +59,58 @@
 {% if org %}
     <hr>
     <h4>Organisation <small><i class="bi bi-info-circle" data-toggle="tooltip" title="{{ org_tooltip }}"></i></small></h4>
-    <div class="row">
-        <div class="col">
-            <div class="row">
-                <div class="col-auto">
-                    <label for="org_name" class="col-form-label">Name</label>
-                </div>
-                <div class="col-auto">
-                    <input type="text" readonly class="form-control-plaintext" id="org_name" value="{{ org['ms_name'] or org['gh_name'] }}">
-                </div>
+        <div class="row">
+            <div class="col-auto">
+                <label for="org_name" class="col-form-label">Name</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="org_name" value="{{ org['ms_name'] or org['gh_name'] }}">
             </div>
         </div>
-    </div>
     {% if membership %}
         <div class="row">
+            <div class="col-auto">
+                <label for="membership" class="col-form-label">Membership</label>
+            </div>
             <div class="col">
-                <div class="row">
-                    <div class="col-auto">
-                        <label for="membership" class="col-form-label">Membership</label>
-                    </div>
-                    <div class="col">
-                        <span type="text" readonly class="form-control-plaintext" id="membership">{{ "<br>".join(membership.values()) | safe }}</span>
-                    </div>
-                </div>
+                <span type="text" readonly class="form-control-plaintext" id="membership">{{ "<br>".join(membership.values()) | safe }}</span>
             </div>
         </div>
     {% endif %}
 {% endif %}
+<hr>
+<h4>Token</h4>
+<div id="noTokenDiv" class="row" style="display: none">
+    <div class="d-flex justify-content-center">
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="generate_token()">Generate a token</button>
+    </div>
+</div>
+<div id="currentTokenDiv" style="display: none">
+    <div class="row">
+        <div class="col-auto">
+            <label for="tokenExpiryInput" class="col-form-label">Expiry</label>
+        </div>
+        <div class="col">
+            <input type="text" readonly class="form-control-plaintext" id="tokenExpiryInput" value="">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-10">
+            <div class="row">
+                <div class="col-auto">
+                    <label for="tokenValueTextarea" class="col-form-label">Value</label>
+                </div>
+                <div class="col">
+                    <textarea readonly class="form-control" style="font-family: Consolas, monaco, monospace; font-size: 14px; resize: none" id="tokenValueTextarea" rows="1" value="" disabled></textarea>
+                    <p class="text-primary" id="tokenGenerationResultP"></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-2">
+            <button class="btn btn-sm btn-outline-danger float-end" onclick="generate_token()">Reset</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block styles %}
@@ -94,8 +119,70 @@
 
 {% block scripts %}
 <script>
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    })
+    var noTokenDiv, currentTokenDiv, tokenExpiryInput, tokenValueTextarea, tokenGenerationResultP;
+
+    $(document).ready(() => {
+        bind_events();
+        get_token();
+        noTokenDiv = $("#noTokenDiv");
+        currentTokenDiv = $("#currentTokenDiv");
+        tokenExpiryInput = $("#tokenExpiryInput");
+        tokenValueTextarea = $("#tokenValueTextarea");
+        tokenGenerationResultP = $('#tokenGenerationResultP');
+    });
+
+    // Bind event listeners
+    function bind_events() {
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+        $(document).on("click", "#tokenValueTextarea", function() {
+            tokenValueTextarea.select();
+            document.execCommand("copy");
+            tokenGenerationResultP.html("Copied!");
+        })
+    }
+
+    // Get token
+    function get_token() {
+        $.ajax({
+            url: "/users/token",
+            error: function (xhr) {
+                if (xhr.status === 410) {
+                    // No valid token
+                    noTokenDiv.css("display", "flex");
+                } else {
+                    alert("An error occurred when retrieving your token.")
+                }
+            },
+            success: function (response) {
+                populate_token_info(response.expiry, response.token);
+            }
+        });
+    }
+
+    // Generate a new token
+    function generate_token() {
+        $.ajax({
+            url: "/users/token/generate",
+            error: function () {
+                alert("An error occurred when generating your token.")
+            },
+            success: function (response) {
+                populate_token_info(response.expiry, response.token);
+                tokenGenerationResultP.html("Please save your token now. You will not be able to see its full value later.");
+                tokenValueTextarea.removeAttr('disabled').attr('rows', 3);
+
+            }
+        });
+    }
+
+    // Populate token expiry and value
+    function populate_token_info(expiry, token) {
+        noTokenDiv.css("display", "none");
+        tokenExpiryInput.val(expiry);
+        tokenValueTextarea.val(token);
+        currentTokenDiv.css("display", "inherit");
+    }
 </script>
 {% endblock %}
