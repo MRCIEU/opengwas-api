@@ -24,8 +24,7 @@ services:
     image: redis:7.2.3
     restart: always
     ports:
-      - 6379:6379
+      - "6379:6379"
     volumes:
       - /data/redis-v7/data:/data
-    command:
-      - redis-server --requirepass ${REDIS_PASS} --dir /data
+    command: redis-server --requirepass ${REDIS_PASS}
