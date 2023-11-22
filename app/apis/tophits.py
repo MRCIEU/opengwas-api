@@ -1,4 +1,4 @@
-from flask_restplus import Resource, reqparse, abort, Namespace
+from flask_restx import Resource, reqparse, abort, Namespace
 from queries.es import *
 from resources.ld import *
 from resources.auth import get_user_email

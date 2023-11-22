@@ -1,0 +1,205 @@
+/* Dataset detail page */
+.related-datasets ul {
+  overflow-y: auto;
+  max-height: 725px;
+}
+
+.navbar {
+  background-color: white;
+  border-color: white;
+}
+
+footer a {
+  color: grey;
+}
+
+/**
+ * Start footnote styles, ref: https://www.sitepoint.com/accessible-footnotes-css/ 
+ */
+
+/* footnote styles */
+footer ol {
+  display: inline-block;
+}
+
+footer ol li {
+  text-align: center;
+}
+
+/**
+ * Initializing a `footnotes` counter on the wrapper
+ */
+main {
+  counter-reset: footnotes;
+}
+
+/**
+ * Inline footnotes references
+ * 1. Increment the counter at each new reference
+ * 2. Reset link styles to make it appear like regular text
+ */
+[aria-describedby="footnote-label"] {
+  counter-increment: footnotes; /* 1 */
+  text-decoration: none; /* 2 */
+  color: inherit; /* 2 */
+  cursor: default; /* 2 */
+  outline: none; /* 2 */
+}
+
+/**
+ * Actual numbered references
+ * 1. Display the current state of the counter (e.g. `[1]`)
+ * 2. Align text as superscript
+ * 3. Make the number smaller (since it's superscript)
+ * 4. Slightly offset the number from the text
+ * 5. Reset link styles on the number to show it's usable
+ */
+[aria-describedby="footnote-label"]::after {
+  content: '[' counter(footnotes) ']'; /* 1 */
+  vertical-align: super; /* 2 */
+  font-size: 0.5em; /* 3 */
+  margin-left: 2px; /* 4 */
+  color: blue; /* 5 */
+  text-decoration: underline; /* 5 */
+  cursor: pointer; /* 5 */
+}
+
+/**
+ * Resetting the default focused styles on the number
+ */
+[aria-describedby="footnote-label"]:focus::after {
+  outline: thin dotted;
+  outline-offset: 2px;
+}
+
+[aria-label="Back to content"] {
+  font-size: 0.8em;
+}
+
+/* End footnote styles */
+
+main {
+	margin-top: 1.25em;
+  margin-bottom: 1em;
+}
+
+a {
+  color: #06c;
+}
+
+a:hover {
+  color:#06c;
+}
+
+.status {
+	list-style-type: none;
+}
+
+
+.bubble {
+  color: #283444;
+  /*background-color: #FF5733;*/
+  border: 2px dotted #FF5733;
+  border-radius: 10px;
+  padding: 0px 10px;
+}
+
+.bubble:hover {
+  text-decoration: none;
+  color: black;
+  background-color: #FF5733;
+}
+
+.bubble2 {
+  color: #FF5733;
+}
+
+.bubble2:hover {
+  text-decoration: none;
+  color: #FF5733;
+}
+
+.bubble-left {
+  color: white;
+  background-color: grey;
+  border-radius: 6px 0px 0px 6px;
+  padding: 1px 6px;
+}
+
+.bubble-right {
+  color: white;
+  background-color: #FF5733;
+  border-radius: 0px 6px 6px 0px;
+  padding: 1px 6px;
+}
+
+.logos {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.logoimg {
+  padding-right: 20px;
+}
+
+.glyphicon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* See https://gist.github.com/planetoftheweb/5d75a1ad45eb3059710747a3695fc068.  Thanks to https://www.glyphicons.com/ */
+
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url(../fonts/glyphicons-halflings-regular.eot);
+  src: url(../fonts/glyphicons-halflings-regular.eot?#iefix) format('embedded-opentype'), url(../fonts/glyphicons-halflings-regular.woff) format('woff'), url(../fonts/glyphicons-halflings-regular.ttf) format('truetype'), url(../fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular) format('svg')
+}
+
+.glyphicon-search:before {
+  content: "\e003";
+}
+
+.glyphicon-info-sign:before {
+  content: "\e086";
+}
+
+.text-xs-left { text-align: left; }
+.text-xs-right { text-align: right; }
+.text-xs-center { text-align: center; }
+.text-xs-justify { text-align: justify; }
+
+@media (min-width: 576px) {
+  .text-sm-left { text-align: left; }
+  .text-sm-right { text-align: right; }
+  .text-sm-center { text-align: center; }
+  .text-sm-justify { text-align: justify; }
+}
+
+@media (min-width: 768px) {
+  .text-md-left { text-align: left; }
+  .text-md-right { text-align: right; }
+  .text-md-center { text-align: center; }
+  .text-md-justify { text-align: justify; }
+}
+
+@media (min-width: 992px) {
+  .text-lg-left { text-align: left; }
+  .text-lg-right { text-align: right; }
+  .text-lg-center { text-align: center; }
+  .text-lg-justify { text-align: justify; }
+}
+
+#toc {
+  margin-bottom: 20px;
+}
+
+#svgHolder {
+  width: 100%;
+}

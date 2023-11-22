@@ -1,4 +1,4 @@
-from flask_restplus import Resource, Namespace
+from flask_restx import Resource, Namespace
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import logging

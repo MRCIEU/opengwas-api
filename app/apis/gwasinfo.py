@@ -1,5 +1,6 @@
-from flask_restplus import Resource, Namespace
+from flask_restx import Resource, Namespace
 from flask import request, send_file
+from middleware.auth import jwt_required
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 from werkzeug.exceptions import BadRequest
@@ -44,6 +45,7 @@ class Info(Resource):
     @api.doc(model=gwas_info_model, id='get_gwas_post')
     def post(self):
         args = self.parser.parse_args()
+
         try:
             user_email = get_user_email(request.headers.get('X-Api-Token'))
 
@@ -72,9 +74,11 @@ class GetId(Resource):
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_by_id')
+    # @jwt_required()
     def get(self, id):
+        token = request.headers.get('X-Api-Token')
+
         try:
-            token = request.headers.get('X-Api-Token')
             user_email = get_user_email(token)
             recs = []
             for uid in id.split(','):

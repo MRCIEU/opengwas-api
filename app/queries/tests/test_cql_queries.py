@@ -20,16 +20,16 @@ def test_add_new_user(reset_db):
         g.create_node()
 
         # should work
-        add_new_user(email, {group_name})
+        add_new_user(email, 'TestFirstName', 'TestLastName', {group_name})
         User.get_node(email)
 
         # check email formatting
-        add_new_user('   Test1@email.ac.uk', {'public'})
+        add_new_user('   Test1@email.ac.uk', 'TestFirstName', 'TestLastName', {'public'})
         User.get_node('test1@email.ac.uk')
 
         # test not email
         with pytest.raises(ValidationError):
-            add_new_user('test12344', {'public'})
+            add_new_user('test12344', 'TestFirstName', 'TestLastName', {'public'})
 
 
 def test_add_group_to_user(reset_db):
@@ -43,7 +43,7 @@ def test_add_group_to_user(reset_db):
 
         assert get_groups_for_user(None) == {"public"}
 
-        add_new_user(email)
+        add_new_user(email, 'TestFirstName', 'TestLastName')
 
         g = Group(name=second_grp)
         g.create_node()
@@ -104,7 +104,7 @@ def test_get_permitted_studies(reset_db):
         g = Group(name=group_name)
         g.create_node()
 
-        add_new_user(email)
+        add_new_user(email, 'TestFirstName', 'TestLastName')
 
         uid = add_new_gwas(email, gwas_info)
         add_quality_control(email, uid, True)
@@ -119,12 +119,12 @@ def test_admin(reset_db):
         g = Group(name=group_name)
         g.create_node()
         # create non-admin user
-        add_new_user(email)
+        add_new_user(email, 'TestFirstName', 'TestLastName')
         with pytest.raises(PermissionError):
             # check failed operation when attempting admin func
             check_user_is_admin(email)
         # delete and re-create with admin credentials
         User.delete_node(email)
-        add_new_user(email, admin=True)
+        add_new_user(email, 'TestFirstNameAdmin', 'TestLastNameAdmin', admin=True)
         # should not fail
         check_user_is_admin(email)

@@ -1,4 +1,4 @@
-from flask_restplus import Namespace, Resource
+from flask_restx import Namespace, Resource
 from resources.globals import Globals
 from resources.neo4j import Neo4j
 from resources.cromwell import Cromwell

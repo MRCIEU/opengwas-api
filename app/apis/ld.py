@@ -1,4 +1,4 @@
-from flask_restplus import Resource, reqparse, abort, Namespace
+from flask_restx import Resource, reqparse, abort, Namespace
 from resources.ld import *
 from resources.globals import Globals
 

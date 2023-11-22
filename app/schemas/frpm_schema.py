@@ -1,5 +1,5 @@
 from marshmallow import Schema
-from flask_restplus import fields
+from flask_restx import fields
 
 """ Schema class compatible with Flask-restplus """
 
