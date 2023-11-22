@@ -1,11 +1,14 @@
+from flask import request
 from flask_restx import Resource, Namespace
-from queries.cql_queries import *
-from queries.gwas_info_node import GwasInfo
-from resources.globals import Globals
 import logging
 import os
 import json
 import time
+
+from queries.cql_queries import *
+from queries.gwas_info_node import GwasInfo
+from resources.globals import Globals
+
 
 logger = logging.getLogger('debug-log')
 
@@ -113,14 +116,20 @@ class ExportOCIDepolymentSpec(Resource):
     # https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycreatingspecification.htm#usingjson
     # https://docs.oracle.com/en-us/iaas/Content/APIGateway/Tasks/apigatewaycontextvariables.htm
     def get(self):
+        if (os.environ.get('ENV') != 'production' or os.environ.get('ACCESS') != 'public') and not request.args.get('suppress_warning'):
+            return "WARNING: Not in production + public mode. Remember to remove vulnerable endpoints. To proceed, visit ?suppress_warning=1"
+
+        root_url = 'http://' + Globals.app_config['flask']['host'] + self.api.__schema__['basePath']
+
         result = {'routes': [{
             'path': '/{all*}',
             'methods': ["GET"],
             'backend': {
                 'type': 'HTTP_BACKEND',
-                'url': 'http://' + Globals.app_config['flask']['host'] + '/${request.path[all]}'
+                'url': root_url + '/${request.path[all]}'
             }
         }]}
+
         for path, details in self.api.__schema__['paths'].items():
             for method, specs in details.items():
                 if method in ['get', 'post', 'put', 'delete', 'head', 'connect', 'options', 'trace', 'patch']:
@@ -129,7 +138,7 @@ class ExportOCIDepolymentSpec(Resource):
                         'methods': [method.upper()],
                         'backend': {
                             'type': 'HTTP_BACKEND',
-                            'url': 'http://' + Globals.app_config['flask']['host'] + path.translate(str.maketrans({'{': '${request.path[', '}': ']}'})),
+                            'url': root_url + path.translate(str.maketrans({'{': '${request.path[', '}': ']}'})),
                             'connectTimeoutInSeconds': 75,
                             'readTimeoutInSeconds': 300,
                             'sendTimeoutInSeconds': 300
