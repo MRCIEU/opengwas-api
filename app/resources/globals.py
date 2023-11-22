@@ -80,7 +80,7 @@ class Globals:
 
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
-    JWT_VALIDITY = 1209600  # seconds (7 days)
+    JWT_VALIDITY = 14 * 86400  # seconds
 
     SESSION = {
         'SESSION_TYPE': 'redis',
