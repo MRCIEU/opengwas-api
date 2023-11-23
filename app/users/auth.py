@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, url_for, request, redirect, flash
+from flask import Blueprint, url_for, request, redirect, flash
 from cryptography.fernet import Fernet
 import time
 import json
@@ -16,18 +16,13 @@ from . import organisations
 users_auth_bp = Blueprint('auth', __name__)
 
 
-@users_auth_bp.route('/')
-def show_signin_options():
-    return render_template('users/signin.html', **microsoft.generate_signin_link(url_for('users.auth.signup_via_microsoft', _external=True)))
-
-
 @users_auth_bp.route('/microsoft/redirect')
 def signup_via_microsoft():
     try:
         microsoft.get_tokens(request.args)
     except Exception as e:
         flash(str(e), 'danger')
-        return redirect(url_for('users.auth.show_signin_options'))
+        return redirect(url_for('/'))
 
     user = _add_user_from_microsoft()
     signin_user(user)
@@ -40,7 +35,7 @@ def _add_user_from_microsoft():
         user_org_info = microsoft.get_user_and_org_info()
     except Exception as e:
         flash(str(e), 'danger')
-        return redirect(url_for('users.auth.show_signin_options'))
+        return redirect(url_for('/'))
 
     try:
         domain = user_org_info['user']['mail'].split("@")[1]
@@ -59,7 +54,7 @@ def _add_user_from_microsoft():
                          tier='PER')
     except Exception as e:
         flash(str(e), 'danger')
-        return redirect(url_for('users.auth.show_signin_options'))
+        return redirect(url_for('/'))
 
     return user.data()['u']
 
@@ -125,7 +120,7 @@ def signin_via_email():
         email, first_name, last_name = _decrypt_email_link(req["message"])
     except Exception as e:
         flash(str(e), 'danger')
-        return redirect(url_for('users.auth.show_signin_options'))
+        return redirect(url_for('/'))
 
     user = get_user_by_email(email)
     if user is None:
@@ -178,7 +173,7 @@ def _add_user_from_email(email, first_name, last_name):
             user = add_new_user(email=email, first_name=first_name, last_name=last_name, tier='PER')
     except Exception as e:
         flash(str(e), 'danger')
-        return redirect(url_for('users.auth.show_signin_options'))
+        return redirect(url_for('/'))
 
     return user.data()['u']
 
@@ -187,4 +182,4 @@ def _add_user_from_email(email, first_name, last_name):
 def signout():
     sign_out_user()
     flash('You have successfully signed out. Please note your API tokens are still valid.')
-    return redirect(url_for('users.auth.show_signin_options'))
+    return redirect(url_for('/'))

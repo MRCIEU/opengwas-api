@@ -3,7 +3,7 @@ from flask_login import LoginManager, login_user, current_user, logout_user
 from queries.user_node import User
 
 login_manager = LoginManager()
-login_manager.login_view = 'users.auth.show_signin_options'
+login_manager.login_view = '/'
 
 
 @login_manager.user_loader

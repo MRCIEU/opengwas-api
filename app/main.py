@@ -1,18 +1,20 @@
-import os
-
 import flask
-from flask import request, has_request_context
-import logging
-from werkzeug.middleware.proxy_fix import ProxyFix
-from os import path, walk
+from flask import request, url_for
 from flask_session import Session
+from flask_login import current_user
+from werkzeug.middleware.proxy_fix import ProxyFix
+import logging
+import os
+from os import path, walk
+from datetime import datetime
 
-from resources.globals import Globals
 from apis import api_bp
-from users import users_bp, login_manager
+from resources import microsoft
+from resources.globals import Globals
 from resources.neo4j import Neo4j
 from resources.logging_middleware import LoggerMiddleWare
 from middleware.limiter import limiter
+from users import users_bp, login_manager
 
 
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
@@ -46,6 +48,10 @@ def setup_event_logger(name, log_file):
     return logger
 
 
+def show_index():
+    return flask.render_template('index.html', current_user=current_user, **microsoft.generate_signin_link(url_for('users.auth.signup_via_microsoft', _external=True)))
+
+
 setup_event_logger('event-log', Globals.LOG_FILE)
 setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=True)
 setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=True)
@@ -67,6 +73,8 @@ app.teardown_appcontext(Neo4j.close_db)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
+
+app.add_url_rule('/', '/', show_index)
 
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(users_bp, url_prefix='/users')
@@ -94,3 +102,11 @@ def check_test_mode():
         os.environ['TEST_MODE'] = 'True'
         # Disable flask-limiter
         limiter.enabled = False
+
+
+@app.context_processor
+def inject_metadata():
+    return {
+        'now': datetime.utcnow(),
+        'version': Globals.VERSION
+    }

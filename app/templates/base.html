@@ -45,19 +45,19 @@
           </ul>
           <ul class="navbar-nav me-right">
             <li class="nav-item">
-              <a class="nav-link" href="">home</a>
+              <a class="nav-link" href="https://gwas.mrcieu.ac.uk" rel="external">home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="">datasets</a>
+              <a class="nav-link" href="https://gwas.mrcieu.ac.uk/datasets" rel="external">datasets</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="">phewas</a>
+              <a class="nav-link" href="https://gwas.mrcieu.ac.uk/phewas" rel="external">phewas</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="">about</a>
+              <a class="nav-link" href="https://gwas.mrcieu.ac.uk/about" rel="external">about</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active" href="https://gwas-api.mrcieu.ac.uk" target="_blank" rel="external">api<span class="visually-hidden">(current)</span></a>
+              <a class="nav-link active" href="{{ url_for('/') }}">api<span class="visually-hidden">(current)</span></a>
             </li>
           </ul>
         </div>
@@ -102,11 +102,10 @@
             </p>
             </div>
             <div class="col-6 text-start align-middle">
-              <a href="">Terms of use</a> <br>
+              <a href="https://gwas.mrcieu.ac.uk/terms" rel="external">Terms of use</a><br>
               <a href="https://github.com/MRCIEU/igd-data-requests/issues" rel="external">Data contributions or requests</a><br>
-              <a href="mailto:g.hemani@bristol.ac.uk">Contact</a><br>
-              <a href="{{ url_for('static', filename='CHANGELOG.md') }}" title="Download change log" class="text-nowrap"></a><br>
-              <span class="text-nowrap">&copy;  University of Bristol</span><br>
+              <a href="mailto:g.hemani@bristol.ac.uk">Contact</a><br><br>
+              <span class="text-nowrap">&copy; {{ now.year }} University of Bristol</span><br>
             </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask_restx import Api
 import os
 
+from resources.globals import Globals
 from .index import index
 from .status import api as status
 from .gwasinfo import api as gwasinfo
@@ -11,7 +12,6 @@ from .phewas import api as phewas
 from .tophits import api as tophits
 from .quality_control import api as quality_control
 from .edit import api as edit
-from resources.globals import Globals
 from .ld import api as ld
 from .variants import api as variants
 from .batches import api as batches

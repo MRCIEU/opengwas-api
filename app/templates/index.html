@@ -1,147 +1,138 @@
-<!doctype html>
-<head>
-    <title>IEU OpenGWAS API</title>
+{% extends "base.html" %}
 
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">OpenGWAS API</h2>
+    <p class="fs-5 text-muted">...</p>
+</div>
+{% endblock %}
 
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/logo/opengwas/favicon/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/logo/opengwas/favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/logo/opengwas/favicon/favicon-16x16.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='images/logo/opengwas/favicon/site.webmanifest') }}">
-    <link rel="mask-icon" href="{{ url_for('static', filename='images/logo/opengwas/favicon/safari-pinned-tab.svg') }}" color="#5bbad5">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo/opengwas/favicon/favicon.ico') }}">
-    <meta name="msapplication-TileColor" content="#da532c">
-    <meta name="msapplication-config" content="{{ url_for('static', filename='images/logo/opengwas/favicon/browserconfig.xml') }}">
-    <meta name="theme-color" content="#ffffff">
-
-    <!--bootstrap darkly theme-->
-    <link rel="stylesheet" type="text/css" href="https://cdn.staticfile.org/bootswatch/4.6.2/darkly/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.css" media="screen" charset="utf-8" />
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script>
-
-</head>
-
-<body data-spy="scroll" data-target="#toc">
-
-    <header><nav class="navbar"></nav></header>
-
-
-    <main>
-
-        <div class="container">
-
-            <!-- <h1 style="margin: 50px 20px 50px 20px;">IEU OpenGWAS database <span class="badge badge-info">api</span></h1> -->
-
-            <div class="row">
-                <div class="col-md-3"></div>
-                <div class="col-md-9 text-right">
-                    <img src="{{ url_for('static', filename='images/logo/opengwas/text-white.png')}}" height="100" style="margin-bottom: 30px;">
-                </div>
+{% block main %}
+<div class="row">
+    <div class="col">
+        <p><h4>Tutorial</h4></p>
+        <p>
+            <a href="{{ url_for('api./') }}">API Homepage</a>
+            <ul>
+                <li>Overview</li>
+                <li>API status</li>
+                <li>Authentication</li>
+                <li>Related tools</li>
+            </ul>
+        </p>
+    </div>
+    <div class="col">
+        <p><h4>Account</h4></p>
+        {% if current_user.is_authenticated %}
+            <p>
+                You are now signed in as:<br>{{ current_user.uid }}
+            </p>
+            <p>
+                <a href="{{ url_for('users.index.index') }}" class="btn btn-outline-primary">My profile and token &rarr;</a>
+            </p>
+        {% else %}
+            <p>
+                <a href="{{ auth_uri }}">
+                    <img src="https://learn.microsoft.com/en-us/entra/identity-platform/media/howto-add-branding-in-apps/ms-symbollockup_signin_dark.svg">
+                </a>
+                <ul>
+                    <li>Recommended</li>
+                    <li>Accepts your school, work or personal account</li>
+                </ul>
+            </p>
+            <hr>
+            <p>
+                <a data-bs-toggle="modal" data-bs-target="#sendEmailModal" style="cursor: pointer;">Alternatively, <u>sign in using email</u></a>
+                <ul>
+                    <li>Only accepts academic address </li>
+                </ul>
+            </p>
+        {% endif %}
+    </div>
+</div>
+<div class="modal fade" id="sendEmailModal" tabindex="-1" aria-labelledby="sendEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Get one-time sign in link via email</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <div class="row">
-                <div class="col-md-3">
-                    <nav id="toc" data-toggle="toc"  class="sticky-top"></nav>
+            <div class="modal-body">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="emailInput" placeholder="name@example.com">
+                    <label for="emailInput">Email</label>
                 </div>
-                <div class="col-md-9">
-                    <section id="heading">
-                        <h3><span class="badge badge-info">API</span> status</h3>
-                        <div class="jumbotron" style="padding: 20px;">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <ul class="list-group" style="list-style: none;">
-                                        <li class=" "><span class="badge badge-success">{{ status['API version'] }}</span> Version</li>
-                                        <li class=" "><span class="badge badge-success">{{ status['Access'] }}</span> Access level</li>
-                                    </ul>
-                                    <p>
-                                        {% if elastic_counts %}
-                                            <span class="badge badge-success">{{ "{:,}".format(elastic_counts) }}</span> genetic associations<br/>
-                                        {% endif %}
-                                        {% if neo4j_counts %}
-                                            <span class="badge badge-success">{{ "{:,}".format(neo4j_counts) }}</span> GWAS summary datasets.
-                                        {% endif %}
-                                    </p>
-                                </div>
-                                <div class="col-md-6">
-                                    <ul class="list-group" style="list-style: none;">
-                                        <li class=" "><span class="badge badge-success">{{ status['Neo4j status'] }}</span> Neo4j status</li>
-                                        <li class=" "><span class="badge badge-success">{{ status['ElasticSearch status'] }}</span> ElasticSearch status</li>
-                                        <li class=" "><span class="badge badge-success">{{ status['LD reference panel'] }}</span> LD reference panel</li>
-                                        <li class=" "><span class="badge badge-success">{{ status['PLINK executable'] }}</span> PLINK executable</li>
-                                        <li class=" "><span class="badge badge-success">{{ status['Cromwell'] }}</span> Cromwell</li>
-                                        <li class=" "><span class="badge badge-success">{{ status['1000 genomes annotation VCF'] }}</span> Population LD scores and frequencies</li>
-                                    </ul>
-                                </div>
-                            </div>
+                <div class="mb-3 row" id="namesDivGroup" style="display: none">
+                    <div class="col-md">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="firstNameInput" placeholder="Firstname">
+                            <label for="firstNameInput">First name</label>
                         </div>
-                        <div class="row">
-                            <div class="col">
-                                <p class="lead text-left">
-                                    <a class="btn btn-warning btn-lg" href="/docs/" target="_blank" role="button"><span class="glyphicon glyphicon-star"></span>Documentation</a>
-                                    {% if status['Access'] == 'private' %}
-                                        <a class="btn btn-warning btn-lg" href="https://ieugit-scmv-d0.epi.bris.ac.uk/ml18692/igd-upload-docs" role="button">Upload instructions</a>
-                                    {% endif %}
-                                    <a class="btn btn-secondary btn-lg" href="https://gwas.mrcieu.ac.uk" role="button">GWAS home page</a>
-                                </p>
-                            </div>
+                    </div>
+                    <div class="col-md">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="lastNameInput" placeholder="Lastname">
+                            <label for="lastNameInput">Last name</label>
                         </div>
-                    </section>
-
-                    <hr class='my-4'>
-
-                    <section id="usage">
-                        <h3>Overview</h3>
-                        <p>This is a <abbr title="Representational state transfer application programming interface">REST</abbr>ful <abbr title="Application programming interface">API</abbr> for programmatic access to the <abbr title="MRC Integrative Epidemiology Unit">IEU</abbr> Open<abbr title="Genome wide association study">GWAS</abbr> database. The API is designed to support the following operations:</p>
-                        <ul>
-                            <li>Make available study information about all the GWAS datasets in the database</li>
-                            <li>Obtain the top hits from a GWAS, with optional automatic clumping.</li>
-                            <li>Find any set of variant-trait associations based on rsid or chromosome:position.</li>
-                            <li>Automatically find <abbr title="linkage disequilibrium">LD</abbr> proxies if a variant is missing from a GWAS database.</li>
-                            <li>Calculate LD matrices across a set of variants.</li>
-                            <li>Phenome-wide association study (PheWAS) - Perform fast lookups of a particular variant across all datasets.</li>
-                            <li>Get <a href="https://www.ncbi.nlm.nih.gov/snp/" target="_blank">dbSNP</a> information and annotations on a set of variants.</li>
-                        </ul>
-                        <p>The API can be used directly in applications, or accessed through convenient packages in R and python. More information on those below. The <a href="https://github.com/MRCIEU/TwoSampleMR">TwoSampleMR</a> R package, and <a href="http://www.mrbase.org/">MR-Base</a> web apps both use this API in order to automatically perform Mendelian randomization for causal inference. The <a href="https://mrcieu.github.io/gwasglue/">gwasglue</a> R package aims to extend the use of these data to further types of statistical methods. The <a href="http://ldsc.broadinstitute.org/ldhub/">LD Hub</a> platform also uses the data underlying this database.</p>
-                    </section>
-
-                    <hr class='my-4'>
-
-                    <section id="authentication">
-                        <h3>Authentication</h3>
-                        <p>The <a href="http://gwas-api.mrcieu.ac.uk/docs/" target="_blank">documentation</a> provides a list of endpoints, the parameters they require, descriptions of the data that is returned, and an interactive way to try out each of the endpoints.</p>
-                        <p>The database of GWAS summary data mostly contains public data, however there are some 'private' datasets, which can only be accessed by authorised users. Authentication is managed using <a href="https://developers.google.com/identity/protocols/OAuth2WebServer">Google OAuth 2.0</a>. In order to authenticate, you will need to generate a 'token' for each session in which private access is required.</p>
-                        <p>The simplest way to obtain an authentication token is to use a browser to authenticate with your gmail account at <a href="https://accounts.google.com/o/oauth2/auth?client_id=906514199468-m9thhcept50gu26ng494376iipt125d6.apps.googleusercontent.com&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/userinfo.email&response_type=code">this link</a>.</p>
-                        <p>The access token can also be obtained using the <code>ieugwasr::get_access_token()</code> function, more information about that <a href="https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication">here</a>.</p>
-                    </section>
-
-                    <hr class='my-4'>
-
-                    <section id="tools">
-                        <h3>Related tools</h3>
-                        <p>For ease of use we have developed two packages which are solely designed to create easy interfaces to the API endpoints:</p>
-                        <ul>
-                            <li>The ieugwasr R package <a href="https://mrcieu.github.io/ieugwasr">[link]</a></li>
-                            <li>The ieugwaspy python package <a href="https://github.com/mrcieu/ieugwaspy">[link]</a></li>
-                        </ul>
-                        <p>The following packages also connect to these data:</p>
-                        <ul>
-                            <li>The TwoSampleMR R package automatically performs Mendelian randomization on the data accessed through the API <a href="https://github.com/mrcieu/TwoSampleMR">[link]</a></li>
-                            <li>The gwasglue R packages connects the data to several other analytical tools related to e.g. colocalisation, fine mapping, etc <a href="https://mrcieu.github.io/gwasglue/">[link]</a></li>
-                            <li>The <a href="https://gwas.mrcieu.ac.uk">https://gwas.mrcieu.ac.uk</a> page provides an interactive way to browse through the available datasets.</li>
-                            <li>The MR-Base web app uses the underlying data for basic interactive <a href="http://www.mrbase.org">[link]</a></li>
-                        </ul>
-                    </section>
+                    </div>
                 </div>
+                <p class="text-success" id="resultP"></p>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="sendBtn" onclick="signin()">Next</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-      </div>
+{% block scripts %}
+<script>
+    var namesDivGroup, resultP, sendBtn;
 
-    </main>
+    $(document).ready(() => {
+        bind_events();
+        namesDivGroup = $("#namesDivGroup");
+        resultP = $("#resultP");
+        sendBtn = $("#sendBtn");
+    });
 
-    <hr class='my-4'>
+    // Bind event listeners
+    function bind_events() {
+        $(document).on("change", "#emailInput", function() {
+            $("#namesDivGroup").css("display", "none");
+            resultP.attr("class", "").html("");
+            sendBtn.prop("disabled", false);
+        })
+    }
 
-</body>
-</html>
+    // Check email address and send link or ask for more information
+    function signin() {
+        sendBtn.prop("disabled", "disabled");
+        $.ajax({
+            url: "/users/auth/email/check",
+            data: {
+                "email": $("#emailInput").val(),
+                "first_name": $("#firstNameInput").val(),
+                "last_name": $("#lastNameInput").val()
+            },
+            error: function (xhr) {
+                if (xhr.responseJSON.message.indexOf("name") >= 0) {
+                    // Ask for first name and last name
+                    namesDivGroup.css("display", "flex");
+                    resultP.attr("class", "text-primary").html(xhr.responseJSON.message);
+                } else {
+                    // Validation error
+                    resultP.attr("class", "text-danger").html(xhr.responseJSON.message);
+                }
+                sendBtn.prop("disabled", false);
+            },
+            success: function (response) {
+                resultP.attr("class", "text-success").html(response.message);
+            }
+        }).done(response => {
+            sendBtn.prop("disabled", false);
+        });
+    }
+</script>
+{% endblock %}
