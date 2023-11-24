@@ -15,7 +15,7 @@ def index():
     org_tooltip = ""
     if org:
         if membership:
-            org_tooltip = "The following information was retrieved from Microsoft when you use Single Sign-On (SSO)."
+            org_tooltip = "The following information was provided by Microsoft when you use Single Sign-On (SSO)."
         else:
             org_tooltip = "The following information was inferred from the domain name of your email address."
 

@@ -68,10 +68,19 @@ def check_email_and_names():
     except Exception as e:
         return {'message': "Please provide a valid email address."}, 400
 
+    try:
+        domain = req['email'].split("@")[1]
+        if not GitHubUniversities().search_by_domain(domain):
+            raise Exception("Only new user with an academic email address can sign up via this method. If you only have non-academic email address, please first use the 'Microsoft' method to sign up (i.e. sign in for the first time). You will then be able to sign in using this method.")
+    except Exception as e:
+        return {'message': str(e)}, 400
+
+    # For existing user, send one-time sign-in link
     user = get_user_by_email(req['email'])
     if user:
         return send_email(req['email'])
 
+    # For new user, check names and send one-time sign-in link containing names
     try:
         Validator('UserNodeSchema', partial=True).validate({
             'uid': req["email"], 'first_name': req['first_name'], 'last_name': req['last_name']
@@ -139,7 +148,7 @@ def _decrypt_email_link(message):
         first_name = message['first_name']
         last_name = message['last_name']
         expiry = message['expiry']
-    except Exception:
+    except Exception as e:
         raise Exception("Invalid sign in link. Please get a new one.")
 
     if int(time.time()) > expiry:
@@ -154,7 +163,7 @@ def signup_via_email(email, first_name, last_name):
         Validator('UserNodeSchema', partial=True).validate({
             'uid': email, 'first_name': first_name, 'last_name': last_name
         })
-    except Exception:
+    except Exception as e:
         return {'message': "Please provide valid first name and last name."}, 400
 
     user = _add_user_from_email(email, first_name, last_name)
@@ -181,5 +190,5 @@ def _add_user_from_email(email, first_name, last_name):
 @users_auth_bp.route('/signout')
 def signout():
     sign_out_user()
-    flash('You have successfully signed out. Please note your API tokens are still valid.')
+    flash('You have successfully signed out. Please note your API token is still valid.')
     return redirect(url_for('/'))

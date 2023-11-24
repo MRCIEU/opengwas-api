@@ -46,7 +46,7 @@ def _org_response_unavailable(response_json):
     return False
 
 
-def determine_account_type(me, org):
+def _determine_account_type(me, org):
     user_id = me['id'].replace("-", "")
     if len(user_id) == 32 and not _org_response_unavailable(org) and len(org['value'][0]['id'].replace("-", "")) == 32:
         if me['accountEnabled']:
@@ -62,7 +62,7 @@ def determine_account_type(me, org):
 def get_user_and_org_info():
     ms_me = _call_api('me')
     ms_org = _call_api('org')
-    account_type = determine_account_type(ms_me, ms_org)
+    account_type = _determine_account_type(ms_me, ms_org)
     result = {
         'type': account_type,
         'user': {

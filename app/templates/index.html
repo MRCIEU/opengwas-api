@@ -10,19 +10,17 @@
 {% block main %}
 <div class="row">
     <div class="col">
-        <p><h4>Tutorial</h4></p>
-        <p>
-            <a href="{{ url_for('api./') }}">API Homepage</a>
-            <ul>
-                <li>Overview</li>
-                <li>API status</li>
-                <li>Authentication</li>
-                <li>Related tools</li>
-            </ul>
-        </p>
+        <h4>Tutorial</h4>
+        <ul>
+            <li>Overview</li>
+            <li>API status</li>
+            <li>Authentication</li>
+            <li>Related tools</li>
+            <li><a href="{{ url_for('api./') }}" target="_blank">Read more &rarr;</a></li>
+        </ul>
     </div>
     <div class="col">
-        <p><h4>Account</h4></p>
+        <h4>Account</h4>
         {% if current_user.is_authenticated %}
             <p>
                 You are now signed in as:<br>{{ current_user.uid }}
@@ -33,7 +31,7 @@
         {% else %}
             <p>
                 <a href="{{ auth_uri }}">
-                    <img src="https://learn.microsoft.com/en-us/entra/identity-platform/media/howto-add-branding-in-apps/ms-symbollockup_signin_dark.svg">
+                    <img src="https://learn.microsoft.com/en-us/entra/identity-platform/media/howto-add-branding-in-apps/ms-symbollockup_signin_dark.svg" alt="Sign in with Microsoft">
                 </a>
                 <ul>
                     <li>Recommended</li>
@@ -44,9 +42,12 @@
             <p>
                 <a data-bs-toggle="modal" data-bs-target="#sendEmailModal" style="cursor: pointer;">Alternatively, <u>sign in using email</u></a>
                 <ul>
-                    <li>Only accepts academic address </li>
+                    <li>Accepts academic email address</li>
+                    <li>Accepts non-academic email address only if you are an existing user with us</li>
                 </ul>
             </p>
+            <hr>
+            <p style="font-size: 12px">By signin in, you agree to the <a href="https://gwas.mrcieu.ac.uk/terms" rel="external">Terms of use</a>.</p>
         {% endif %}
     </div>
 </div>

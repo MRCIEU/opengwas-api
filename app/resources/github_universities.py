@@ -5,12 +5,16 @@ from resources.globals import Globals
 
 class GitHubUniversities:
     def __init__(self):
-        self.api = Globals.app_config['github']['universities']['url']
+        self.api = Globals.app_config['providers']['github']['universities']['url']
 
     def search_by_domain(self, domain):
-        results = requests.get(self.api, params={
-            'domain': domain
-        }).json()
+        try:
+            results = requests.get(self.api, params={
+                'domain': domain
+            }).json()
+        except Exception as e:
+            raise Exception("Service unavailable. At the moment we cannot search for universities using the domain name. Please try again later.")
+
         if len(results) == 0:
             return []
         elif len(results) == 1:
