@@ -106,6 +106,7 @@ class ImportMetadataFromJSON(Resource):
         }, 200
 
 
+@api.deprecated  # This endpoint is deprecated
 @api.route('/export_deployment_oci')
 @api.doc(description="Export Specification for OCI API Deployment")
 class ExportOCIDepolymentSpec(Resource):
@@ -122,11 +123,32 @@ class ExportOCIDepolymentSpec(Resource):
         root_url = 'http://' + Globals.app_config['flask']['host'] + self.api.__schema__['basePath']
 
         result = {'routes': [{
-            'path': '/{all*}',
+            'path': '/',
             'methods': ["GET"],
             'backend': {
                 'type': 'HTTP_BACKEND',
-                'url': root_url + '/${request.path[all]}'
+                'url': root_url + '/'  # Must have the trailing '/' to avoid 302
+            }
+        }, {
+            'path': '/api/{all*}',
+            'methods': ["GET"],
+            'backend': {
+                'type': 'HTTP_BACKEND',
+                'url': root_url + '/${request.path[all]}'  # Must have the trailing '/' to avoid 302
+            }
+        }, {
+            'path': '/static/{all*}',
+            'methods': ["GET"],
+            'backend': {
+                'type': 'HTTP_BACKEND',
+                'url': 'http://' + Globals.app_config['flask']['host'] + '/static/${request.path[all]}'  # Do not include basePath
+            }
+        }, {
+            'path': '/swaggerui/{all*}',
+            'methods': ["GET"],
+            'backend': {
+                'type': 'HTTP_BACKEND',
+                'url': 'http://' + Globals.app_config['flask']['host'] + '/swaggerui/${request.path[all]}'  # Do not include basePath
             }
         }]}
 
