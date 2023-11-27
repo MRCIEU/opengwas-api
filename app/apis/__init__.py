@@ -19,7 +19,7 @@ from .utilities import api as utilities
 
 api_bp = Blueprint('api', __name__)
 # https://stackoverflow.com/a/56540031
-api_bp.add_url_rule('/', '/', view_func=index)
+api_bp.add_url_rule('/', view_func=index)
 api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
           description='A RESTful API for querying tens of thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs/')

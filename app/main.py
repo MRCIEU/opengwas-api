@@ -52,6 +52,11 @@ def show_index():
     return flask.render_template('index.html', current_user=current_user, **microsoft.generate_signin_link(url_for('users.auth.signup_via_microsoft', _external=True)))
 
 
+# Let's Encrypt ACME challenge
+def acme():
+    return "mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k.zDm77IFw4JnpIjshtRK4waD-ibCJOaVSKngPHpp3teQ"
+
+
 setup_event_logger('event-log', Globals.LOG_FILE)
 setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=True)
 setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=True)
@@ -74,10 +79,20 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
 
-app.add_url_rule('/', '/', show_index)
+# Let's Encrypt ACME challenge
+app.add_url_rule('/.well-known/acme-challenge/mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k', '/acme', acme)
 
-app.register_blueprint(api_bp, url_prefix='/api')
-app.register_blueprint(users_bp, url_prefix='/users')
+if os.environ.get('ENV') == 'production':
+    print('POOL', os.environ.get('POOL'))
+    if os.environ.get('POOL') == 'api':
+        app.register_blueprint(api_bp, url_prefix='')
+    else:
+        app.add_url_rule('/', '/', view_func=show_index)
+        app.register_blueprint(users_bp, url_prefix='/users')
+else:
+    app.add_url_rule('/', '/', view_func=show_index)
+    app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(users_bp, url_prefix='/users')
 
 Session(app)
 
