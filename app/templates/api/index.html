@@ -54,7 +54,7 @@
                                 <div class="col-md-6">
                                     <ul class="list-group" style="list-style: none;">
                                         <li class=" "><span class="badge badge-success">{{ status['API version'] }}</span> Version</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['Neo4j status'] == 'public' else 'danger' }}">{{ status['Access'] }}</span> Access level</li>
+                                        <li class=" "><span class="badge badge-{{ 'success' if status['Access'] == 'public' else 'danger' }}">{{ status['Access'] }}</span> Access level</li>
                                     </ul>
                                     <p>
                                         {% if elastic_counts %}
