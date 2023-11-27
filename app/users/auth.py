@@ -68,17 +68,17 @@ def check_email_and_names():
     except Exception as e:
         return {'message': "Please provide a valid email address."}, 400
 
+    # For existing user, send one-time sign-in link
+    user = get_user_by_email(req['email'])
+    if user:
+        return send_email(req['email'])
+
     try:
         domain = req['email'].split("@")[1]
         if not GitHubUniversities().search_by_domain(domain):
             raise Exception("Only new user with an academic email address can sign up via this method. If you only have non-academic email address, please first use the 'Microsoft' method to sign up (i.e. sign in for the first time). You will then be able to sign in using this method.")
     except Exception as e:
         return {'message': str(e)}, 400
-
-    # For existing user, send one-time sign-in link
-    user = get_user_by_email(req['email'])
-    if user:
-        return send_email(req['email'])
 
     # For new user, check names and send one-time sign-in link containing names
     try:
