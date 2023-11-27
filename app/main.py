@@ -49,7 +49,8 @@ def setup_event_logger(name, log_file):
 
 
 def show_index():
-    return flask.render_template('index.html', current_user=current_user, **microsoft.generate_signin_link(url_for('users.auth.signup_via_microsoft', _external=True)))
+    api_index_href = 'http://api.opengwas.io' if os.environ.get('ENV') == 'production' else url_for('api./')
+    return flask.render_template('index.html', api_index_href=api_index_href, current_user=current_user, **microsoft.generate_signin_link(url_for('users.auth.signup_via_microsoft', _external=True)))
 
 
 # Let's Encrypt ACME challenge
