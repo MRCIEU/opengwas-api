@@ -1,5 +1,6 @@
 import flask
 from flask import request, url_for
+from flask.sessions import SecureCookieSessionInterface
 from flask_session import Session
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -15,6 +16,16 @@ from resources.neo4j import Neo4j
 from resources.logging_middleware import LoggerMiddleWare
 from middleware.limiter import limiter
 from users import users_bp, login_manager
+
+
+# Disable sessions
+# https://stackoverflow.com/questions/50162502/disable-session-cookie-generation-in-python-flask-login
+class NoSessionInterface(SecureCookieSessionInterface):
+    def should_set_cookie(self, *args, **kwargs):
+        return
+
+    def save_session(self, *args, **kwargs):
+        return
 
 
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
@@ -80,24 +91,26 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
 
+Session(app)
+
 # Let's Encrypt ACME challenge
 app.add_url_rule('/.well-known/acme-challenge/mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k', '/acme', acme)
 
 if os.environ.get('ENV') == 'production':
     print('POOL', os.environ.get('POOL'))
     if os.environ.get('POOL') == 'api':
+        app.session_interface = NoSessionInterface()
         app.register_blueprint(api_bp, url_prefix='')
     else:
         app.add_url_rule('/', '/', view_func=show_index)
         app.register_blueprint(users_bp, url_prefix='/users')
+        login_manager.init_app(app)
 else:
     app.add_url_rule('/', '/', view_func=show_index)
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(users_bp, url_prefix='/users')
+    login_manager.init_app(app)
 
-Session(app)
-
-login_manager.init_app(app)
 
 if __name__ == "__main__":
     extra_dirs = ['templates','static']
