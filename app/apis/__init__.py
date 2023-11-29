@@ -22,7 +22,14 @@ api_bp = Blueprint('api', __name__)
 api_bp.add_url_rule('/', view_func=index)
 api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
           description='A RESTful API for querying tens of thousands of GWAS summary datasets', docExpansion='full',
-          doc='/docs/')
+          doc='/docs', authorizations={
+              'Bearer token': {
+                  'type': 'apiKey',
+                  'in': 'header',
+                  'name': 'X-Api-Token',
+                  'description': 'Prepend "<code>Bearer(whitespace)</code>" to your token. The entire value provided for this header should be like: <code>Bearer ey******.**********.*********</code>.'
+              }
+          }, security='token')
 
 # public
 api.add_namespace(status)

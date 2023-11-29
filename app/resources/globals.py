@@ -100,3 +100,9 @@ class Globals:
         'me': 'https://graph.microsoft.com/v1.0/me?$select=accountEnabled,id,userPrincipalName,surname,givenName,mail,userType,jobTitle,creationType,createdDateTime,createdBy,department,identities,usageLocation,proxyAddresses',
         'org': 'https://graph.microsoft.com/v1.0/organization?$select=id,displayName,verifiedDomains'
     }
+
+    app_config['rsa_keys'] = {}
+    with open(os.path.join(root_path, 'vault/api-jwt.key'), 'r') as f:
+        app_config['rsa_keys']['private'] = f.read()
+    with open(os.path.join(root_path, 'vault/api-jwt.pub'), 'r') as f:
+        app_config['rsa_keys']['public'] = f.read()

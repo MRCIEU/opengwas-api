@@ -1,6 +1,6 @@
 import jwt
 import time
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import Unauthorized
 
 from queries.cql_queries import get_user_by_email
 from resources.globals import Globals
@@ -8,9 +8,14 @@ from resources.globals import Globals
 
 def generate_jwt(uid, timestamp):
     result = jwt.encode({
-        'uid': uid,
-        'timestamp': timestamp
-    }, Globals.app_config['jwt']['key'], algorithm='HS256')
+        'iss': 'api.opengwas.io',
+        'aud': 'api.opengwas.io',
+        'sub': uid,
+        'iat': timestamp,
+        'exp': timestamp + Globals.JWT_VALIDITY
+    }, Globals.app_config['rsa_keys']['private'], algorithm='RS256', headers={
+        'kid': 'api-jwt'
+    })
     return result
 
 
@@ -21,21 +26,22 @@ def generate_jwt_preview(uid, timestamp):
 
 def validate_jwt(token):
     try:
-        payload = jwt.decode(token, Globals.app_config['jwt']['key'], algorithms=['HS256'])
+        payload = jwt.decode(token, Globals.app_config['rsa_keys']['public'], algorithms=['RS256'])
     except jwt.exceptions.InvalidSignatureError:
-        raise BadRequest("Invalid JWT signature.")
+        raise Unauthorized("Invalid JWT signature.")
     except jwt.exceptions.DecodeError:
-        raise BadRequest("Invalid JWT header or payload.")
+        raise Unauthorized("Invalid JWT header or payload.")
 
-    user = get_user_by_email(payload['uid'])
+    user = get_user_by_email(payload['sub'])
     if user is None:
-        raise BadRequest('User does not exist or has been deactivated.')
+        raise Unauthorized('User does not exist or has been deactivated.')
     user = user.data()['u']
     if 'jwt_timestamp' not in user:
-        raise BadRequest('Invalid JWT.')
+        raise Unauthorized('Invalid JWT.')
 
-    if int(time.time()) > payload['timestamp'] + Globals.JWT_VALIDITY or payload['timestamp'] != user['jwt_timestamp']:
-        raise BadRequest("Please generate a new token.")
+    if int(time.time()) > payload['iat'] + Globals.JWT_VALIDITY or payload['iat'] != user['jwt_timestamp']:
+        # TODO: reset jwt_timestamp?
+        raise Unauthorized("Please generate a new token.")
 
     # TODO: add counter
     return user
