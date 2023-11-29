@@ -26,7 +26,7 @@ api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
               'Bearer token': {
                   'type': 'apiKey',
                   'in': 'header',
-                  'name': 'X-Api-Token',
+                  'name': 'Authorization',
                   'description': 'Prepend "<code>Bearer(whitespace)</code>" to your token. The entire value provided for this header should be like: <code>Bearer ey******.**********.*********</code>.'
               }
           }, security='token')
