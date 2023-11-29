@@ -22,5 +22,5 @@ app/data/igd
 app/igd-metadata
 ieugwasr_oauth
 app/venv3
-app_conf.json
 .env
+app/vault
