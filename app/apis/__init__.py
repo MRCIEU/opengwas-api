@@ -23,7 +23,7 @@ api_bp.add_url_rule('/', view_func=index)
 api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
           description='A RESTful API for querying tens of thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs', authorizations={
-              'Bearer token': {
+              'token': {
                   'type': 'apiKey',
                   'in': 'header',
                   'name': 'Authorization',
