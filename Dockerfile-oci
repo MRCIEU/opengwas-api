@@ -3,7 +3,7 @@ EXPOSE 80
 
 COPY ./app /app
 WORKDIR /app
-COPY app_conf.json /app
+COPY ./vault /app/vault
 
 RUN python -m pip install -r /app/requirements.txt
 
