@@ -12,7 +12,7 @@ api = Namespace('status', description="Status of API and linked resources")
 @api.route('')
 @api.doc(description="Check services are running")
 class Status(Resource):
-    @api.doc(id='get_status')
+    @api.doc(id='get_status', security=[])
     def get(self):
         # print(str(count_elastic_calls()))
         return check_all()
