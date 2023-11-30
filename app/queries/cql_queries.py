@@ -124,12 +124,12 @@ def edit_existing_gwas(gwas_id, gwas_info_dict):
 
 
 def add_new_user(email, first_name, last_name, tier, org_uuid=None, user_org_info=None, group_names=frozenset(['public']), admin=False):
-    uid = email.strip().lower()
-    u = User(uid=uid, first_name=first_name, last_name=last_name, tier=tier)
+    email = email.strip().lower()
+    u = User(uid=email, first_name=first_name, last_name=last_name, tier=tier)
     u.create_node()
 
     if admin:
-        User.set_admin(uid)
+        User.set_admin(email)
 
     if org_uuid:
         o = Org.get_node(org_uuid)
@@ -142,7 +142,12 @@ def add_new_user(email, first_name, last_name, tier, org_uuid=None, user_org_inf
         g = Group.get_node(group_name)
         MemberOfRel().create_rel(u, g)
 
-    return get_user_by_email(email)
+    user = get_user_by_email(email)
+
+    if not user:
+        raise Exception("Failed to find the user.")
+
+    return user
 
 
 def add_group_to_user(email, group_name):
