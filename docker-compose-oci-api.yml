@@ -19,7 +19,7 @@ services:
       - ACCESS=public
       - POOL=api
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/status"]
+      test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
 
   og-frontend:
     image: og-api-v3:latest
@@ -39,4 +39,4 @@ services:
       - ACCESS=public
       - POOL=frontend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
+      test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
