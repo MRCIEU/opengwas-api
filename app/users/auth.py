@@ -16,6 +16,13 @@ from . import organisations
 users_auth_bp = Blueprint('auth', __name__)
 
 
+@users_auth_bp.route('/microsoft/init')
+def get_microsoft_auth_uri():
+    return {
+        'auth_uri': microsoft.generate_signin_link(url_for('users.auth.signup_via_microsoft', _external=True))['auth_uri']
+    }
+
+
 @users_auth_bp.route('/microsoft/redirect')
 def signup_via_microsoft():
     try:
@@ -190,5 +197,5 @@ def _add_user_from_email(email, first_name, last_name):
 @users_auth_bp.route('/signout')
 def signout():
     sign_out_user()
-    flash('You have successfully signed out. Please note your API token is still valid.')
+    flash('You have signed out successfully. Please note your API token is still valid.')
     return redirect(url_for('/'))

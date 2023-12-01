@@ -31,8 +31,8 @@
             </p>
         {% else %}
             <p>
-                <a href="{{ auth_uri }}">
-                    <img src="https://learn.microsoft.com/en-us/entra/identity-platform/media/howto-add-branding-in-apps/ms-symbollockup_signin_dark.svg" alt="Sign in with Microsoft">
+                <a id="signInWithMSA">
+                    <img id="signInWithMSImg" src="https://learn.microsoft.com/en-us/entra/identity-platform/media/howto-add-branding-in-apps/ms-symbollockup_signin_dark.svg" alt="Sign in with Microsoft">
                 </a>
                 <ul>
                     <li>Recommended</li>
@@ -90,13 +90,15 @@
 
 {% block scripts %}
 <script>
-    var namesDivGroup, resultP, sendBtn;
+    var signInWithMSA, namesDivGroup, resultP, sendBtn;
 
     $(document).ready(() => {
         bind_events();
+        signInWithMSA = $("#signInWithMSA");
         namesDivGroup = $("#namesDivGroup");
         resultP = $("#resultP");
         sendBtn = $("#sendBtn");
+        get_ms_auth_uri();
     });
 
     // Bind event listeners
@@ -105,6 +107,20 @@
             $("#namesDivGroup").css("display", "none");
             resultP.attr("class", "").html("");
             sendBtn.prop("disabled", false);
+        })
+    }
+
+    // Get Microsoft Auth URI
+    function get_ms_auth_uri() {
+        $.ajax({
+            url: "/users/auth/microsoft/init",
+            error: function () {
+                $("#signInWithMSImg").css("filter", "grayscale(100%)").css("cursor", "not-allowed");
+                signInWithMSA.attr("onclick", "alert('Failed to generate link for Microsoft sign in - please try again or contact us.')")
+            },
+            success: function (response) {
+                signInWithMSA.attr("href", response.auth_uri);
+            }
         })
     }
 
@@ -132,7 +148,7 @@
             success: function (response) {
                 resultP.attr("class", "text-success").html(response.message);
             }
-        }).done(response => {
+        }).done(() => {
             sendBtn.prop("disabled", false);
         });
     }
