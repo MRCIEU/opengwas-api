@@ -82,10 +82,7 @@ class Globals:
 
     JWT_VALIDITY = 14 * 86400  # seconds
 
-    SESSION = {
-        'SESSION_TYPE': 'redis',
-        'SESSION_REDIS': redis.from_url('redis://:' + app_config['redis']['pass'] + '@' + app_config['redis']['host'] + ':' + app_config['redis']['port'])
-    }
+    SESSION_REDIS = redis.from_url('redis://:' + app_config['redis']['pass'] + '@' + app_config['redis']['host'] + ':' + app_config['redis']['port'] + '/0')
 
     USER_TIERS = {
         'ORG': "Organisational",

@@ -1,11 +1,11 @@
 import flask
 from flask import request, url_for
-from flask.sessions import SecureCookieSessionInterface
-from flask_session import Session
+from flask_session.sessions import RedisSessionInterface, NullSessionInterface
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
 import os
+import time
 from os import path, walk
 from datetime import datetime
 
@@ -20,12 +20,20 @@ from users import users_bp, login_manager
 
 # Disable sessions
 # https://stackoverflow.com/questions/50162502/disable-session-cookie-generation-in-python-flask-login
-class NoSessionInterface(SecureCookieSessionInterface):
+class CustomRedisSessionInterface(RedisSessionInterface):
+    def __init__(self):
+        super(CustomRedisSessionInterface, self).__init__(Globals.SESSION_REDIS, 'session:')
+
+    def _path_requires_session(self):
+        if request.path in ['/healthcheck']:
+            return False
+        return True
+
     def should_set_cookie(self, *args, **kwargs):
-        return
+        return True if self._path_requires_session() else False
 
     def save_session(self, *args, **kwargs):
-        return
+        return super(CustomRedisSessionInterface, self).save_session(*args, **kwargs) if self._path_requires_session() else False
 
 
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
@@ -64,6 +72,12 @@ def show_index():
     return flask.render_template('index.html', api_index_href=api_index_href, current_user=current_user, **microsoft.generate_signin_link(url_for('users.auth.signup_via_microsoft', _external=True)))
 
 
+def healthcheck():
+    return {
+        'time': int(time.time())
+    }
+
+
 # Let's Encrypt ACME challenge
 def acme():
     return "mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k.zDm77IFw4JnpIjshtRK4waD-ibCJOaVSKngPHpp3teQ"
@@ -81,7 +95,6 @@ app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
 
 app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
 app.config['MAX_CONTENT_LENGTH'] = 7.5e+8
-app.config.update(Globals.SESSION)
 app.config.update(Globals.app_config['email'])
 
 app.teardown_appcontext(Neo4j.close_db)
@@ -91,21 +104,22 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
 
-Session(app)
-
 # Let's Encrypt ACME challenge
 app.add_url_rule('/.well-known/acme-challenge/mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k', '/acme', acme)
+app.add_url_rule('/healthcheck', '/healthcheck', view_func=healthcheck)
 
 if os.environ.get('ENV') == 'production':
     print('POOL', os.environ.get('POOL'))
     if os.environ.get('POOL') == 'api':
-        app.session_interface = NoSessionInterface()
+        app.session_interface = NullSessionInterface()
         app.register_blueprint(api_bp, url_prefix='')
     else:
+        app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
         app.register_blueprint(users_bp, url_prefix='/users')
         login_manager.init_app(app)
 else:
+    app.session_interface = CustomRedisSessionInterface()
     app.add_url_rule('/', '/', view_func=show_index)
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(users_bp, url_prefix='/users')
