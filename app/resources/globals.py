@@ -78,11 +78,9 @@ class Globals:
 
     variant_index = "snp-base-v0.2"
 
-    EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
-
-    JWT_VALIDITY = 14 * 86400  # seconds
-
     SESSION_REDIS = redis.from_url('redis://:' + app_config['redis']['pass'] + '@' + app_config['redis']['host'] + ':' + app_config['redis']['port'] + '/0')
+
+    EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
     USER_TIERS = {
         'ORG': "Organisational",
@@ -98,8 +96,18 @@ class Globals:
         'org': 'https://graph.microsoft.com/v1.0/organization?$select=id,displayName,verifiedDomains'
     }
 
+    GH_APPS_AUTH_URL = "https://github.com/login/oauth/authorize"
+    GH_APPS_AUTH_CLIENT_ID = app_config['providers']['github']['apps']['client_id']
+    GH_APPS_AUTH_CLIENT_SECRET = app_config['providers']['github']['apps']['client_secret']
+    GH_APPS_AUTH_ENDPOINTS = {
+        'token': 'https://github.com/login/oauth/access_token',
+        'user_emails': 'https://api.github.com/user/emails'
+    }
+
     app_config['rsa_keys'] = {}
     with open(os.path.join(root_path, 'vault/api-jwt.key'), 'r') as f:
         app_config['rsa_keys']['private'] = f.read()
     with open(os.path.join(root_path, 'vault/api-jwt.pub'), 'r') as f:
         app_config['rsa_keys']['public'] = f.read()
+
+    JWT_VALIDITY = 14 * 86400  # seconds

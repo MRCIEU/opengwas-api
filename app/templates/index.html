@@ -31,12 +31,21 @@
             </p>
         {% else %}
             <p>
-                <a id="signInWithMSA">
-                    <img id="signInWithMSImg" src="https://learn.microsoft.com/en-us/entra/identity-platform/media/howto-add-branding-in-apps/ms-symbollockup_signin_dark.svg" alt="Sign in with Microsoft">
+                <a id="signinWithMSA">
+                    <img id="signinWithMSImg" src="{{ url_for('static', filename='images/microsoft-signin.svg') }}" alt="Sign in with Microsoft">
                 </a>
                 <ul>
                     <li>Recommended</li>
                     <li>Accepts your school, work or personal account</li>
+                </ul>
+            </p>
+            <hr>
+            <p>
+                <a id="signinWithGHA" class="btn btn-outline-dark" style="background-color: #fff; color: #212529">
+                    <img src="{{ url_for('static', filename='images/logo/github.svg') }}" height="24px">  Sign in with GitHub
+                </a>
+                <ul>
+                    <li>Accepts any email address verified by GitHub</li>
                 </ul>
             </p>
             <hr>
@@ -52,6 +61,38 @@
         {% endif %}
     </div>
 </div>
+<div class="modal fade" id="ghSignupModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="ghSignupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Choose your email address</h1>
+            </div>
+            <div class="modal-body">
+                <p>Below are the email addresses verified by GitHub (click <a href="https://github.com/settings/emails">here</a> to manage them). Please choose the one you would like to use for signing in to OpenGWAS and provide your names.</p>
+                <div class="mb-3" id="ghEmailsDivGroup"></div>
+                <div class="mb-3 row">
+                    <div class="col-md">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="ghFirstNameInput" placeholder="Firstname">
+                            <label for="firstNameInput">First name</label>
+                        </div>
+                    </div>
+                    <div class="col-md">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="ghLastNameInput" placeholder="Lastname">
+                            <label for="lastNameInput">Last name</label>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-success" id="ghResultP"></p>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <div><a class="text-danger" href="{{ url_for('users.auth.cancel_signin_via_github') }}" style="text-decoration: none;">Cancel</a></div>
+                <div><button type="button" class="btn btn-primary" id="ghSignupBtn" onclick="signup_github()">Next</button></div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="sendEmailModal" tabindex="-1" aria-labelledby="sendEmailModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -64,7 +105,7 @@
                     <input type="text" class="form-control" id="emailInput" placeholder="name@example.com">
                     <label for="emailInput">Email</label>
                 </div>
-                <div class="mb-3 row" id="namesDivGroup" style="display: none">
+                <div class="mb-3 row" id="emailNamesDivGroup" style="display: none">
                     <div class="col-md">
                         <div class="form-floating">
                             <input type="text" class="form-control" id="firstNameInput" placeholder="Firstname">
@@ -78,10 +119,10 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-success" id="resultP"></p>
+                <p class="text-success" id="emailResultP"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="sendBtn" onclick="signin()">Next</button>
+                <button type="button" class="btn btn-primary" id="emailSigninBtn" onclick="signin_email()">Next</button>
             </div>
         </div>
     </div>
@@ -89,44 +130,84 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.staticfile.org/bootstrap/5.3.2/js/bootstrap.min.js" crossorigin="anonymous"></script>
 <script>
-    var signInWithMSA, namesDivGroup, resultP, sendBtn;
+    var signinWithMSA, signinWithGHA, ghSignupModal, ghEmailsDivGroup, ghResultP, ghSignupBtn, emailNamesDivGroup, emailResultP, emailSigninBtn;
 
     $(document).ready(() => {
         bind_events();
-        signInWithMSA = $("#signInWithMSA");
-        namesDivGroup = $("#namesDivGroup");
-        resultP = $("#resultP");
-        sendBtn = $("#sendBtn");
-        get_ms_auth_uri();
+        signinWithMSA = $("#signinWithMSA");
+        signinWithGHA = $("#signinWithGHA");
+        ghSignupModal = new bootstrap.Modal('#ghSignupModal', {})
+        ghEmailsDivGroup = $("#ghEmailsDivGroup");
+        ghResultP = $("#ghResultP");
+        ghSignupBtn = $('#ghSignupBtn');
+        emailNamesDivGroup = $("#emailNamesDivGroup");
+        emailResultP = $("#emailResultP");
+        emailSigninBtn = $("#emailSigninBtn");
+        init_providers();
     });
 
     // Bind event listeners
     function bind_events() {
         $(document).on("change", "#emailInput", function() {
-            $("#namesDivGroup").css("display", "none");
-            resultP.attr("class", "").html("");
-            sendBtn.prop("disabled", false);
+            $("#emailNamesDivGroup").css("display", "none");
+            emailResultP.attr("class", "").html("");
+            emailSigninBtn.prop("disabled", false);
         })
     }
 
-    // Get Microsoft Auth URI
-    function get_ms_auth_uri() {
+    // Get Auth URIs from providers
+    function init_providers() {
         $.ajax({
-            url: "/users/auth/microsoft/init",
+            url: "/users/auth/providers/init",
             error: function () {
-                $("#signInWithMSImg").css("filter", "grayscale(100%)").css("cursor", "not-allowed");
-                signInWithMSA.attr("onclick", "alert('Failed to generate link for Microsoft sign in - please try again or contact us.')")
+                $("#signinWithMSImg").css("filter", "grayscale(100%)").css("cursor", "not-allowed");
+                signinWithMSA.attr("onclick", "alert('Failed to generate link for Microsoft sign in - please refresh this page or contact us.')")
+                $("#signinWithGHA").prop("disabled", "disabled");
+                signinWithGHA.attr("onclick", "alert('Failed to generate link for GitHub sign in - please refresh this page or contact us.')")
             },
             success: function (response) {
-                signInWithMSA.attr("href", response.auth_uri);
+                signinWithMSA.attr("href", response.microsoft);
+                // If in the midway of GitHub sign in i.e. verified email addresses retrieved from GitHub and stored in sessions
+                if (response.github_emails) {
+                    $.each(response.github_emails, function (key, email) {
+                        ghEmailsDivGroup.append(`<div class="form-check"><input class="form-check-input" type="radio" name="ghEmailInput" id="ghEmailInput_${key}" value="${email}"><label class="form-check-label" for="ghEmailInput_${key}">${email}</label></div>`);
+                    })
+                    ghSignupModal.show();
+                } else {
+                    signinWithGHA.attr("href", response.github);
+                }
             }
         })
     }
+    
+    // Submit information for GitHub sign up
+    function signup_github() {
+        ghSignupBtn.prop("disabled", "disabled");
+        $.ajax({
+            url: "/users/auth/github/signup",
+            data: {
+                "email": $("input[name='ghEmailInput']:checked").val() ?? "",
+                "first_name": $("#ghFirstNameInput").val(),
+                "last_name": $("#ghLastNameInput").val()
+            },
+            error: function (xhr) {
+                ghResultP.attr("class", "text-danger").html(xhr.responseJSON.message);
+                ghSignupBtn.prop("disabled", false);
+            },
+            success: function (response) {
+                ghResultP.attr("class", "text-success").html(response.message);
+                window.location.href = response.redirect;
+            }
+        }).done(() => {
+            ghSignupBtn.prop("disabled", false);
+        });
+    }
 
     // Check email address and send link or ask for more information
-    function signin() {
-        sendBtn.prop("disabled", "disabled");
+    function signin_email() {
+        emailSigninBtn.prop("disabled", "disabled");
         $.ajax({
             url: "/users/auth/email/check",
             data: {
@@ -137,19 +218,19 @@
             error: function (xhr) {
                 if (xhr.responseJSON.message.indexOf("name") >= 0) {
                     // Ask for first name and last name
-                    namesDivGroup.css("display", "flex");
-                    resultP.attr("class", "text-primary").html(xhr.responseJSON.message);
+                    emailNamesDivGroup.css("display", "flex");
+                    emailResultP.attr("class", "text-primary").html(xhr.responseJSON.message);
                 } else {
                     // Validation error
-                    resultP.attr("class", "text-danger").html(xhr.responseJSON.message);
+                    emailResultP.attr("class", "text-danger").html(xhr.responseJSON.message);
                 }
-                sendBtn.prop("disabled", false);
+                emailSigninBtn.prop("disabled", false);
             },
             success: function (response) {
-                resultP.attr("class", "text-success").html(response.message);
+                emailResultP.attr("class", "text-success").html(response.message);
             }
         }).done(() => {
-            sendBtn.prop("disabled", false);
+            emailSigninBtn.prop("disabled", false);
         });
     }
 </script>

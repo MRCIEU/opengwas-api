@@ -1,4 +1,5 @@
 import time
+from typing import List
 
 from resources.neo4j import Neo4j
 from queries.user_node import User
@@ -274,6 +275,15 @@ def get_user_by_email(email):
         email=str(email)
     ).single()
     return result
+
+
+def get_user_by_emails(emails: List[str]):
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (u:User) WHERE u.uid IN $emails RETURN u;",
+        emails=emails
+    )
+    return [r['u'] for r in results.data()]
 
 
 def set_user_jwt_timestamp(email, timestamp):
