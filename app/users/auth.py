@@ -158,7 +158,7 @@ def check_email_and_names():
     try:
         domain = req['email'].split("@")[1]
         if not GitHubUniversities().search_by_domain(domain):
-            raise Exception("Only new user with an academic email address can sign up via this method. If you only have non-academic email address, please first use the 'Microsoft' method to sign up (i.e. sign in for the first time). You will then be able to sign in using this method.")
+            raise Exception("Only new user with an academic email address can sign up via this method. If you only have non-academic email address, please first use the Microsoft or GitHub channel to sign up (i.e. sign in for the first time). You will then be able to sign in using email.")
     except Exception as e:
         return {'message': str(e)}, 400
 
