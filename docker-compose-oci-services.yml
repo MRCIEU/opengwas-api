@@ -13,7 +13,7 @@ services:
       - /data/neo4j-backup:/backups
       - /etc/localtime:/etc/timezone:ro
     environment:
-      - NEO4J_AUTH=${NEO4J_AUTH}
+      - NEO4J_AUTH=${NEO4J_AUTH} # Note: This does not override the existing authentication (e.g. when creating a container using existing data directory). To change password, run cypher ALTER USER neo4j SET PASSWORD 'mynewpassword'
     healthcheck:
       test: ["CMD-SHELL", "/var/lib/neo4j/bin/neo4j status | grep pid"]
       interval: 30s
