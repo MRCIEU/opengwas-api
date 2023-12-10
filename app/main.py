@@ -23,8 +23,9 @@ class CustomRedisSessionInterface(RedisSessionInterface):
     def __init__(self):
         super(CustomRedisSessionInterface, self).__init__(Globals.SESSION_REDIS, 'session:')
 
-    def _path_requires_session(self):
-        if request.path in ['/healthcheck']:
+    @staticmethod
+    def _path_requires_session():
+        if request.path in ['/healthcheck'] or request.path.startswith('/api'):
             return False
         return True
 
