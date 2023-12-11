@@ -3,6 +3,8 @@ from flask_restx import Api
 import os
 
 from resources.globals import Globals
+from werkzeug.exceptions import TooManyRequests
+
 from .index import index
 from .status import api as status
 from .gwasinfo import api as gwasinfo
@@ -49,3 +51,8 @@ if Globals.app_config['access'] == 'private':
     api.add_namespace(quality_control)
     api.add_namespace(edit)
     api.add_namespace(gicache)
+
+
+@api.errorhandler(TooManyRequests)
+def handle_429(e):
+    return e.response.json, 429

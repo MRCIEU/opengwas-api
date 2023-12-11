@@ -111,3 +111,11 @@ class Globals:
         app_config['rsa_keys']['public'] = f.read()
 
     JWT_VALIDITY = 14 * 86400  # seconds
+
+    # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
+    # This only applies to chargeable endpoints
+    RATE_ALLOWANCE = {
+        'NONE': '0/hour',
+        'ORG': '1000/hour',
+        'PER': '200/hour'
+    }

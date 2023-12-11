@@ -26,18 +26,16 @@ def generate_jwt_preview(uid, timestamp):
 
 def validate_jwt(token):
     try:
-        payload = jwt.decode(token, Globals.app_config['rsa_keys']['public'], algorithms=['RS256'])
-    except jwt.exceptions.InvalidSignatureError:
-        raise Unauthorized("Invalid JWT signature.")
-    except jwt.exceptions.DecodeError:
-        raise Unauthorized("Invalid JWT header or payload.")
+        payload = jwt.decode(token, Globals.app_config['rsa_keys']['public'], algorithms=['RS256'], audience='api.opengwas.io')
+    except Exception as e:
+        raise Unauthorized("Invalid token. Please add your token to the requesst header. Header name: 'Authorization'. Header value: 'Bearer <your_token>'.")
 
     user = get_user_by_email(payload['sub'])
     if user is None:
-        raise Unauthorized('User does not exist or has been deactivated.')
+        raise Unauthorized("User does not exist or has been deactivated.")
     user = user.data()['u']
     if 'jwt_timestamp' not in user:
-        raise Unauthorized('Invalid JWT.')
+        raise Unauthorized("Please generate a new token.")
 
     if int(time.time()) > payload['iat'] + Globals.JWT_VALIDITY or payload['iat'] != user['jwt_timestamp']:
         # TODO: reset jwt_timestamp?

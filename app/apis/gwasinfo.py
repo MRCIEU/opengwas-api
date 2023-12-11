@@ -1,14 +1,13 @@
+from flask import request, send_file, g
 from flask_restx import Resource, Namespace
-from flask import request, send_file
 from middleware.auth import jwt_required
+from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 from queries.cql_queries import *
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 from werkzeug.exceptions import BadRequest
-from resources.auth import get_user_email
 import logging
 from resources.globals import Globals
 import os
-import requests
 
 logger = logging.getLogger('debug-log')
 
@@ -16,78 +15,76 @@ api = Namespace('gwasinfo', description="Get information about available GWAS su
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
 
+def _get_cost(ids=None):
+    if ids is None:
+        ids = request.values.getlist('id')
+    if not ids or len(ids) > 10:
+        return 10
+    return len(ids)
+
+
 @api.route('')
-@api.doc(description="Get metadata about specified GWAS summary datasets")
+@api.doc(description="Get metadata about specified GWAS summary datasets (or all datasets if no id is specified)")
 class Info(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
+    parser.add_argument('Authorization', location='headers', required=True, default='', help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas')
+    @jwt_required()
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=10)
     def get(self):
-        try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
-            if user_email is None and os.path.exists(Globals.STATIC_GWASINFO):
-                # with open(Globals.STATIC_GWASINFO, "r") as f:
-                #     a = json.load(f)
-                # return a
-                return send_file(Globals.STATIC_GWASINFO)
-            else:
-                return get_all_gwas_for_user(user_email)
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
+        user_email = g.user['uid']
+        if user_email is None and os.path.exists(Globals.STATIC_GWASINFO):
+            return send_file(Globals.STATIC_GWASINFO)
+        return get_all_gwas_for_user(user_email)
 
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_post')
+    @jwt_required()
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
+        user_email = g.user['uid']
 
-        try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
+        if 'id' not in args or args['id'] is None or len(args['id']) == 0:
+            return get_all_gwas_for_user(user_email)
 
-            if 'id' not in args or args['id'] is None or len(args['id']) == 0:
-                return get_all_gwas_for_user(user_email)
-            else:
-                recs = []
-                for gwas_info_id in args['id']:
-                    try:
-                        recs.append(get_gwas_for_user(user_email, str(gwas_info_id)))
-                    except LookupError as e:
-                        logger.warning("Could not locate study: {}".format(e))
-                        continue
-                return recs
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
+        recs = []
+        for gwas_info_id in args['id']:
+            try:
+                recs.append(get_gwas_for_user(user_email, str(gwas_info_id)))
+            except LookupError as e:
+                logger.warning("Could not locate study: {}".format(e))
+                continue
+        return recs
 
 
-@api.route('/<id>')
+@api.route('/<gwas_id>')
 @api.doc(description="Get metadata about specified GWAS summary datasets")
-class GetId(Resource):
+class GetById(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
+    parser.add_argument('Authorization', location='headers', required=True, default='', help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_by_id')
-    # @jwt_required()
-    def get(self, id):
-        token = request.headers.get('X-Api-Token')
+    @jwt_required()
+    def get(self, gwas_id):
+        user_email = g.user['uid']
+        gwas_ids = gwas_id.split(',')
+
+        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=lambda: _get_cost(gwas_ids)):
+            pass
 
         try:
-            user_email = get_user_email(token)
             recs = []
-            for uid in id.split(','):
+            for gwas_info_id in gwas_ids:
                 try:
-                    recs.append(get_gwas_for_user(user_email, str(uid)))
+                    recs.append(get_gwas_for_user(user_email, str(gwas_info_id)))
                 except LookupError:
                     continue
             return recs
         except LookupError:
             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
