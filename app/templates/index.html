@@ -17,7 +17,7 @@
             <li>Authentication</li>
             <li>Related tools</li>
             <li>Documentation</li>
-            <li><a href="{{ api_index_href }}" target="_blank">Read more &rarr;</a></li>
+            <li><a href="{{ root_url['api'] }}" target="_blank">Read more &rarr;</a></li>
         </ul>
     </div>
     <div class="col">
@@ -135,16 +135,16 @@
     var signinWithMSA, signinWithGHA, ghSignupModal, ghEmailsDivGroup, ghResultP, ghSignupBtn, emailNamesDivGroup, emailResultP, emailSigninBtn;
 
     $(document).ready(() => {
-        bind_events();
         signinWithMSA = $("#signinWithMSA");
         signinWithGHA = $("#signinWithGHA");
-        ghSignupModal = new bootstrap.Modal('#ghSignupModal', {})
+        ghSignupModal = new bootstrap.Modal('#ghSignupModal', {});
         ghEmailsDivGroup = $("#ghEmailsDivGroup");
         ghResultP = $("#ghResultP");
         ghSignupBtn = $('#ghSignupBtn');
         emailNamesDivGroup = $("#emailNamesDivGroup");
         emailResultP = $("#emailResultP");
         emailSigninBtn = $("#emailSigninBtn");
+        bind_events();
         init_providers();
     });
 
@@ -163,9 +163,9 @@
             url: "/users/auth/providers/init",
             error: function () {
                 $("#signinWithMSImg").css("filter", "grayscale(100%)").css("cursor", "not-allowed");
-                signinWithMSA.attr("onclick", "alert('Failed to generate link for Microsoft sign in - please refresh this page or contact us.')")
+                signinWithMSA.attr("onclick", "alert('Failed to generate link for Microsoft sign in - please refresh this page or contact us.')");
                 $("#signinWithGHA").prop("disabled", "disabled");
-                signinWithGHA.attr("onclick", "alert('Failed to generate link for GitHub sign in - please refresh this page or contact us.')")
+                signinWithGHA.attr("onclick", "alert('Failed to generate link for GitHub sign in - please refresh this page or contact us.')");
             },
             success: function (response) {
                 signinWithMSA.attr("href", response.microsoft);
