@@ -111,6 +111,24 @@
         </div>
     </div>
 </div>
+<hr>
+<h4>Allowance</h4>
+<div class="row">
+    <div class="col-auto">
+        <label for="allowanceLimitInput" class="col-form-label">Allowance</label>
+    </div>
+    <div class="col">
+        <input type="text" readonly class="form-control-plaintext" id="allowanceLimitInput" value="{{ tiered_allowance }}">
+    </div>
+</div>
+<div class="row">
+    <div class="col-auto">
+        <label for="allowanceRemainingInput" class="col-form-label">Remaining</label>
+    </div>
+    <div class="col">
+        <input type="text" readonly class="form-control-plaintext" id="allowanceRemainingInput" value="">
+    </div>
+</div>
 {% endblock %}
 
 {% block styles %}
@@ -119,16 +137,15 @@
 
 {% block scripts %}
 <script>
-    var noTokenDiv, currentTokenDiv, tokenExpiryInput, tokenValueTextarea, tokenGenerationResultP;
+    var noTokenDiv, tokenValueTextarea, tokenGenerationResultP;
 
     $(document).ready(() => {
-        bind_events();
-        get_token();
         noTokenDiv = $("#noTokenDiv");
-        currentTokenDiv = $("#currentTokenDiv");
-        tokenExpiryInput = $("#tokenExpiryInput");
         tokenValueTextarea = $("#tokenValueTextarea");
         tokenGenerationResultP = $('#tokenGenerationResultP');
+        bind_events();
+        get_token();
+        test_allowance();
     });
 
     // Bind event listeners
@@ -152,11 +169,28 @@
                     // No valid token
                     noTokenDiv.css("display", "flex");
                 } else {
-                    alert("An error occurred when retrieving your token.")
+                    alert("An error occurred when retrieving your token.");
                 }
             },
             success: function (response) {
                 populate_token_info(response.expiry, response.token);
+            }
+        });
+    }
+
+    // Get allowance
+    function test_allowance() {
+        $.ajax({
+            url: "/users/test_allowance",
+            error: function (xhr) {
+                if (xhr.status === 429) {
+                    populate_allowance_info(xhr.getResponseHeader('X-Ratelimit-Remaining'), xhr.getResponseHeader('X-RateLimit-Reset'));
+                } else {
+                    alert("An error occurred when retrieving your allowance.");
+                }
+            },
+            success: function (response, status, xhr) {
+                populate_allowance_info(xhr.getResponseHeader('X-Ratelimit-Remaining'), xhr.getResponseHeader('X-RateLimit-Reset'));
             }
         });
     }
@@ -166,7 +200,7 @@
         $.ajax({
             url: "/users/token/generate",
             error: function () {
-                alert("An error occurred when generating your token.")
+                alert("An error occurred when generating your token.");
             },
             success: function (response) {
                 populate_token_info(response.expiry, response.token);
@@ -180,9 +214,14 @@
     // Populate token expiry and value
     function populate_token_info(expiry, token) {
         noTokenDiv.css("display", "none");
-        tokenExpiryInput.val(expiry);
+        $("#tokenExpiryInput").val(expiry);
         tokenValueTextarea.val(token);
-        currentTokenDiv.css("display", "inherit");
+        $("#currentTokenDiv").css("display", "inherit");
+    }
+
+    // Populate allowance info
+    function populate_allowance_info(remaining, reset) {
+        $("#allowanceRemainingInput").val(`${remaining} (reset at ${(new Date(reset * 1000)).toLocaleString()} ${Intl.DateTimeFormat().resolvedOptions().timeZone} time)`);
     }
 </script>
 {% endblock %}

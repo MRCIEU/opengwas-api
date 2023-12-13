@@ -17,13 +17,14 @@ def make_429_response(request_limit: RequestLimit):
 limiter = Limiter(
     key_func=get_remote_address,
     strategy='fixed-window-elastic-expiry',
+    headers_enabled=True,
     on_breach=make_429_response,
-    storage_uri='redis://:' + Globals.app_config['redis']['pass'] + '@' + Globals.app_config['redis']['host'] + ':' + Globals.app_config['redis']['port'] + '/1',
+    storage_uri='redis://:' + Globals.app_config['redis']['pass'] + '@' + Globals.app_config['redis']['host'] + ':' + Globals.app_config['redis']['port'] + '/1'
 )
 
 
 def get_tiered_allowance():
-    return Globals.RATE_ALLOWANCE[get_tier()]
+    return Globals.ALLOWANCE_BY_TIER[get_tier()]
 
 
 def get_key_func_uid():

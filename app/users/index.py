@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, g
 from flask_login import login_required, current_user
 
 from queries.cql_queries import *
 from resources.globals import Globals
+from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 
 
 users_index_bp = Blueprint('index', __name__)
@@ -19,4 +20,16 @@ def index():
         else:
             org_tooltip = "The following information was inferred from the domain name of your email address."
 
-    return render_template('users/index.html', user=current_user, globals_tiers=Globals.USER_TIERS, org=org, org_tooltip=org_tooltip, membership=membership)
+    g.user = current_user
+    return render_template('users/index.html',
+                           user=current_user, globals_tiers=Globals.USER_TIERS, org=org, org_tooltip=org_tooltip, membership=membership,
+                           tiered_allowance=get_tiered_allowance())
+
+
+@users_index_bp.route('/test_allowance')
+@login_required
+def get_allowance():
+    g.user = current_user
+    with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, deduct_when=lambda flask_response: False):
+        pass
+    return {}
