@@ -10,7 +10,7 @@ class Globals:
     VERSION = '3.8.7'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'vault/app_conf.json')
-    AUTHTEXT = 'Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. See the [homepage](https://gwas-api.mrcieu.ac.uk/#authentication) for details on how to authenticate.'
+    AUTHTEXT = 'See the Authentication section of API tutorial page for details on how to authenticate.'
 
     """ Set environment files to toggle between local and production & private vs public APIs """
     with open(APP_CONF) as f:
@@ -83,6 +83,7 @@ class Globals:
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
     USER_TIERS = {
+        'NONE': "Anonymous",
         'ORG': "Organisational",
         'PER': "Personal"
     }
@@ -114,8 +115,8 @@ class Globals:
 
     # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
     # This only applies to chargeable endpoints
-    RATE_ALLOWANCE = {
-        'NONE': '0/hour',
-        'ORG': '1000/hour',
-        'PER': '200/hour'
+    ALLOWANCE_BY_TIER = {
+        'NONE': '0 per hour',
+        'ORG': '1000 per hour',
+        'PER': '200 per hour'
     }

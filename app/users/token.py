@@ -11,7 +11,7 @@ from resources.globals import Globals
 users_token_bp = Blueprint('token', __name__)
 
 
-@users_token_bp.route('/')
+@users_token_bp.route('')
 @login_required
 def get_token():
     if 'jwt_timestamp' not in current_user or not (jwt_timestamp := current_user['jwt_timestamp']) or int(time.time()) > jwt_timestamp + Globals.JWT_VALIDITY:

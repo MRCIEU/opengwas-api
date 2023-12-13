@@ -8,7 +8,7 @@ from resources.globals import Globals
 users_index_bp = Blueprint('index', __name__)
 
 
-@users_index_bp.route('/')
+@users_index_bp.route('')
 @login_required
 def index():
     org, membership = get_org_and_membership_from_user(current_user['uid']) if current_user['tier'] == 'ORG' else (None, None)
