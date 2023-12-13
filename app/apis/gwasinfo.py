@@ -1,13 +1,14 @@
 from flask import request, send_file, g
 from flask_restx import Resource, Namespace
+from werkzeug.exceptions import BadRequest
+import logging
+import os
+
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 from queries.cql_queries import *
-from schemas.gwas_info_node_schema import GwasInfoNodeSchema
-from werkzeug.exceptions import BadRequest
-import logging
 from resources.globals import Globals
-import os
+from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 logger = logging.getLogger('debug-log')
 
@@ -31,7 +32,7 @@ class Info(Resource):
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas')
-    @jwt_required()
+    @jwt_required
     @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=10)
     def get(self):
         user_email = g.user['uid']
@@ -43,7 +44,7 @@ class Info(Resource):
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_post')
-    @jwt_required()
+    @jwt_required
     @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
@@ -70,7 +71,7 @@ class GetById(Resource):
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_by_id')
-    @jwt_required()
+    @jwt_required
     def get(self, gwas_id):
         user_email = g.user['uid']
         gwas_ids = gwas_id.split(',')

@@ -5,14 +5,12 @@ from werkzeug.exceptions import Unauthorized
 from resources.jwt import validate_jwt
 
 
-def jwt_required():
-    def decorator(f):
-        @wraps(f)
-        def _decorator(*args, **kwargs):
-            g.user = validate_jwt(request.headers.get('Authorization', '').replace("Bearer ", ""))
-            return f(*args, **kwargs)
-        return _decorator
-    return decorator
+def jwt_required(f):
+    @wraps(f)
+    def _decorator(*args, **kwargs):
+        g.user = validate_jwt(request.headers.get('Authorization', '').replace("Bearer ", ""))
+        return f(*args, **kwargs)
+    return _decorator
 
 
 def get_uid(error_on_none=False):
