@@ -1,39 +1,39 @@
 import requests
-from apis.tests.token import get_mrbase_access_token
-
-token = get_mrbase_access_token()
 
 
 ## GET
 
-def test_phewas_get1(url):
-    r = requests.get(url + "/phewas/rs234/0.001")
+def test_phewas_get1(url, headers):
+    r = requests.get(url + "/phewas/rs234/0.001", headers=headers)
     assert r.status_code == 200 and len(r.json()) > 5
 
-def test_phewas_get2(url):
-    r = requests.get(url + "/phewas/rs234/0.01")
+
+def test_phewas_get2(url, headers):
+    r = requests.get(url + "/phewas/rs234/0.01", headers=headers)
     assert r.status_code == 200 and len(r.json()) > 100
 
 
 ## POST
 
-def test_phewas_post1(url):
+def test_phewas_post1(url, headers):
     payload = {'variant': 'rs234', 'pval': 0.001}
-    r = requests.post(url + "/phewas", data=payload)
+    r = requests.post(url + "/phewas", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) > 5
 
-def test_phewas_post2(url):
+
+def test_phewas_post2(url, headers):
     payload = {'variant': 'rs234', 'pval': 0.01}
-    r = requests.post(url + "/phewas", data=payload)
+    r = requests.post(url + "/phewas", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) > 100
 
-def test_phewas_post3(url):
+
+def test_phewas_post3(url, headers):
     payload = {'variant': '7:105561135', 'pval': 0.01}
-    r = requests.post(url + "/phewas", data=payload)
+    r = requests.post(url + "/phewas", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) > 100
 
-def test_phewas_post4(url):
+
+def test_phewas_post4(url, headers):
     payload = {'variant': '7:105561135-105563135', 'pval': 0.01}
-    r = requests.post(url + "/phewas", data=payload)
+    r = requests.post(url + "/phewas", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) > 100
-
