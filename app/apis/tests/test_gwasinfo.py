@@ -28,14 +28,14 @@ def test_gwasinfo3(url):
 # This time should have authentication to get private study
 def test_gwasinfo4(url):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998']}
-    r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
+    r = requests.post(url + "/gwasinfo", data=payload)
     assert r.status_code == 200 and len(r.json()) == 3
 
 
 # This time should have authentication to get private study
 def test_gwasinfo5(url):
     payload = {}
-    r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
+    r = requests.post(url + "/gwasinfo", data=payload)
     assert r.status_code == 200 and len(r.json()) > 1000
 
 

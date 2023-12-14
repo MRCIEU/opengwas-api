@@ -24,7 +24,7 @@ def test_tophits_post1a(url):
 
 def test_tophits_post2(url):
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0, 'clump': 0}
-    r = requests.post(url + "/tophits", data=payload, headers=headers)
+    r = requests.post(url + "/tophits", data=payload)
     assert r.status_code == 200
     assert len(r.json()) > 2000
     assert len(set([x.get('id') for x in r.json()])) == 2
@@ -40,7 +40,7 @@ def test_tophits_post3(url):
 
 def test_tophits_post4(url):
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0, 'clump': 1}
-    r = requests.post(url + "/tophits", data=payload, headers=headers)
+    r = requests.post(url + "/tophits", data=payload)
     assert r.status_code == 200
     assert len(r.json()) > 70
     assert len(set([x.get('id') for x in r.json()])) == 2
@@ -48,7 +48,7 @@ def test_tophits_post4(url):
 
 def test_tophits_post5(url):
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0}
-    r = requests.post(url + "/tophits", data=payload, headers=headers)
+    r = requests.post(url + "/tophits", data=payload)
     assert r.status_code == 200
     assert len(r.json()) > 70
     assert len(set([x.get('id') for x in r.json()])) == 2
