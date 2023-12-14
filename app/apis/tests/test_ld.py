@@ -68,8 +68,7 @@ def test_ref_lookup2(url, headers):
 def test_ref_lookup3(url, headers):
     payload = {'rsid': ['fakesnp']}
     r = requests.post(url + "/ld/reflookup", data=payload, headers=headers)
-    o = r.json()
-    assert r.status_code == 200 and len(o) == 0
+    assert r.status_code == 200 and len(r.json()) == 0
 
 
 def test_ref_lookup4(url, headers):
