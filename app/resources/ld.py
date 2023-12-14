@@ -95,7 +95,7 @@ def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
         if not os.path.isfile(filename_c):
             logger.debug("no file found")
             [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
-            return {'snplist': '', 'matrix': []}
+            return {'snplist': [], 'matrix': []}
 
 
         f = open(filenameka, "r")
