@@ -2,8 +2,9 @@ import requests
 
 
 # Anonymous
-def test_assoc_get0(url):
-    r = requests.get(url + "/associations/ieu-a-2/rs234")
+def test_assoc_get0(url, headers):
+    del headers['Authorization']
+    r = requests.get(url + "/associations/ieu-a-2/rs234", headers=headers)
     assert r.status_code == 401
 
 
@@ -86,21 +87,23 @@ def test_assoc_post6(url, headers):
 
 def test_chrpos1(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135'], 'proxies': 0}
-    r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
+    r1 = requests.post(url + "/associations", data=payload, headers=headers)
+    assert r1.status_code == 200
     payload = {'id': ['ieu-a-2'], 'variant': ['rs234'], 'proxies': 0}
-    r2 = requests.post(url + "/associations", data=payload, headers=headers).json()
-    assert r1[0]['rsid'] == r2[0]['rsid']
+    r2 = requests.post(url + "/associations", data=payload, headers=headers)
+    assert r2.status_code == 200
+    assert r1.json()[0]['rsid'] == r2.json()[0]['rsid']
 
 
 def test_chrpos2(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135', 'rs1205'], 'proxies': 0}
-    r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
-    assert len(r1) == 2
-    assert 'rs234' in [x['rsid'] for x in r1]
+    r1 = requests.post(url + "/associations", data=payload, headers=headers)
+    assert r1.status_code == 200 and len(r1.json()) == 2
+    assert 'rs234' in [x['rsid'] for x in r1.json()]
 
 
 def test_chrpos3(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135-105571135', 'rs1205'], 'proxies': 0}
     r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
-    assert len(r1) == 9
-    assert 'rs1205' in [x['rsid'] for x in r1]
+    assert r1.status_code == 200 and len(r1.json()) == 9
+    assert 'rs1205' in [x['rsid'] for x in r1.json()]

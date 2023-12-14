@@ -1,61 +1,73 @@
 import requests
 
 
+# Anonymous
+def test_gwasinfo_post0(url, headers):
+    del headers['Authorization']
+    payload = {'id': ['ieu-a-2', 'ieu-a-7']}
+    r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
+    assert r.status_code == 401
+
+
 # Should return json entries for each study
-def test_gwasinfo1(url, headers):
+def test_gwasinfo_post1(url, headers):
+    payload = {'id': ['ieu-a-2']}
+    r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 1
+
+
+# Should return json entries for each study
+def test_gwasinfo_post2(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7']}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
-# Should return json entries for each study
-def test_gwasinfo2(url, headers):
-    payload = {'id': ['ieu-a-2', 'ieu-a-7']}
-    r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 2
-
-
-# Don't get private studies without authentication
-def test_gwasinfo3(url, headers):
+# Don't get studies to which the test user has no access
+def test_gwasinfo_post3(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998']}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
-# This time should have authentication to get private study
-def test_gwasinfo4(url, headers):
-    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998']}
+# Get authorised study
+def test_gwasinfo_post4(url, headers):
+    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998', 'ieu-b-5008']}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 3
 
 
-# This time should have authentication to get private study
-def test_gwasinfo5(url, headers):
+# Get all studies
+def test_gwasinfo_post5(url, headers):
     payload = {}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
-    assert r.status_code == 200 and len(r.json()) > 1000
+    assert r.status_code == 200 and len(r.json()) > 48000
 
 
-# Using GET
-def test_gwasinfo6(url, headers):
+def test_gwasinfo_get0(url, headers):
+    del headers['Authorization']
     r = requests.get(url + "/gwasinfo", headers=headers)
-    assert r.status_code == 200 and len(r.json()) > 1000
+    assert r.status_code == 401
 
 
-# Using GET
-def test_gwasinfo7(url, headers):
+def test_gwasinfo_get1(url, headers):
+    r = requests.get(url + "/gwasinfo", headers=headers)
+    assert r.status_code == 200 and len(r.json()) > 48000
+
+
+def test_gwasinfo_get2(url, headers):
     r = requests.get(url + "/gwasinfo/ieu-a-2", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
+    # Issue 57
+    assert r.json()[0]['trait'] == "Body mass index"
 
-# Using GET
-def test_gwasinfo8(url, headers):
+
+def test_gwasinfo_get3(url, headers):
     r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-998", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
-# issue 57
-def test_gwasinfo_issue_57(url, headers):
-    r = requests.get(url + "/gwasinfo/ieu-a-2", headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 1
-    assert r.json()[0]['trait'] == "Body mass index"
+def test_gwasinfo_get4(url, headers):
+    r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-998,ieu-b-5008", headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 2
