@@ -40,7 +40,7 @@ class PhewasGet(Resource):
             pass
 
         try:
-            return run_phewas(user_email=g.user['id'], variants=variants, pval=pval, index_list=[])
+            return run_phewas(user_email=g.user['uid'], variants=variants, pval=pval, index_list=[])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
@@ -64,7 +64,7 @@ class PhewasPost(Resource):
         args = self.parser.parse_args()
 
         try:
-            return run_phewas(user_email=g.user['id'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
+            return run_phewas(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
