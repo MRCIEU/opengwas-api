@@ -40,7 +40,7 @@ def test_tophits_post4(url, headers):
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     o = r.json()
     assert r.status_code == 200 and 85 < len(o) < 95
-    assert len(set([x.get('id') for x in o])) == {'ieu-a-2', 'ieu-b-1'}
+    assert set([x.get('id') for x in o]) == {'ieu-a-2', 'ieu-b-1'}
 
 
 def test_tophits_post5(url, headers):
@@ -48,7 +48,7 @@ def test_tophits_post5(url, headers):
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     o = r.json()
     assert r.status_code == 200 and 85 < len(o) < 90
-    assert len(set([x.get('id') for x in o])) == {'ieu-a-2', 'ieu-b-1'}
+    assert set([x.get('id') for x in o]) == {'ieu-a-2', 'ieu-b-1'}
 
 
 def test_tophits_post6(url, headers):
@@ -56,4 +56,4 @@ def test_tophits_post6(url, headers):
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     o = r.json()
     assert r.status_code == 200 and len(o) > 2300
-    assert len(set([x.get('id') for x in o])) == {'ieu-a-2', 'ieu-b-1'}
+    assert set([x.get('id') for x in o]) == {'ieu-a-2', 'ieu-b-1'}
