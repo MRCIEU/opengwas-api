@@ -1,5 +1,5 @@
 from flask import make_response
-from flask_limiter import Limiter, RequestLimit
+from flask_limiter import Limiter, RequestLimit, HEADERS
 from flask_limiter.util import get_remote_address
 import datetime
 
@@ -16,8 +16,13 @@ def make_429_response(request_limit: RequestLimit):
 
 limiter = Limiter(
     key_func=get_remote_address,
-    strategy='fixed-window-elastic-expiry',
+    strategy='fixed-window',
     headers_enabled=True,
+    header_name_mapping={
+        HEADERS.LIMIT: "X-Allowance-Limit",
+        HEADERS.REMAINING: "X-Allowance-Remaining",
+        HEADERS.RESET: "X-Allowance-Reset"
+    },
     on_breach=make_429_response,
     storage_uri='redis://:' + Globals.app_config['redis']['pass'] + '@' + Globals.app_config['redis']['host'] + ':' + Globals.app_config['redis']['port'] + '/1'
 )
