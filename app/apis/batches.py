@@ -1,9 +1,7 @@
 from flask_restx import Namespace, Resource
-from resources.globals import Globals
+
 from resources.neo4j import Neo4j
-from resources.cromwell import Cromwell
-import requests
-import os
+from middleware.limiter import limiter
 
 api = Namespace('batches', description="Data batches")
 
@@ -12,16 +10,12 @@ api = Namespace('batches', description="Data batches")
 @api.doc(description="List existing data batches")
 class Status(Resource):
     @api.doc(id='get_batches', security=[])
+    @limiter.limit('30 per hour')  # Max number of requests per IP
     def get(self):
-        return get_batches()
-
-def get_batches():
-    try:
-        tx = Neo4j.get_db()
-        res = []
-        for r in tx.run("MATCH (n:Batches) return n"):
-            d = r['n'].__dict__['_properties']
-            res.append(d)
-        return (res)
-    except Exception as e:
-        return None
+        try:
+            res = []
+            for r in Neo4j.get_db().run("MATCH (n:Batches) return n"):
+                res.append(r['n'].__dict__['_properties'])
+            return res
+        except Exception as e:
+            return None

@@ -1,9 +1,11 @@
-from flask_restx import Resource, reqparse, abort, Namespace
-from queries.variants import *
-from resources.globals import Globals
-from queries.vcf import *
-from resources.auth import get_user_email
 from flask import request, send_file
+from flask_restx import Resource, reqparse, abort, Namespace
+
+from queries.variants import *
+from queries.vcf import *
+from resources.globals import Globals
+from middleware.auth import jwt_required
+from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 
 api = Namespace('variants', description="Retrieve variant information")
 
@@ -17,25 +19,27 @@ api = Namespace('variants', description="Retrieve variant information")
 )
 class VariantGet(Resource):
     @api.doc(id='get_variant_rsid')
+    @jwt_required
     def get(self, rsid=None):
         if rsid is None:
             abort(404)
+
+        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1):
+            pass
+
         try:
             total, hits = snps(rsid.split(','))
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
+
         return hits
 
-
-parser2 = reqparse.RequestParser()
-parser2.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of variant rs IDs")
 
 @api.route('/rsid')
 @api.doc(
     description="""
 Obtain information for a particular SNP or comma separated list of SNPs. Note the payload can be passed to curl via json using e.g.:
-
 ```
 -X POST -d '
 {
@@ -43,31 +47,31 @@ Obtain information for a particular SNP or comma separated list of SNPs. Note th
 }
 '
 ```
-
 """
 )
 class VariantPost(Resource):
-    @api.expect(parser2)
-    @api.doc(id='post_variant_rsid')
-    def post(self):
-        args = parser2.parse_args()
+    parser = reqparse.RequestParser()
+    parser.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of variant rs IDs")
 
-        if (len(args['rsid']) == 0):
-            abort(405)
+    @api.expect(parser)
+    @api.doc(id='post_variant_rsid')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    def post(self):
+        args = self.parser.parse_args()
+        if len(args['rsid']) == 0:
+            abort(400)
+        
         try:
             total, hits = snps(args['rsid'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
+
         return hits
 
 
-
-parser1 = reqparse.RequestParser()
-parser1.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
-
 @api.route('/chrpos/<chrpos>')
-@api.expect(parser1)
 @api.doc(
     description="Obtain information for a particular variant or comma separated list of variants",
     params={
@@ -75,21 +79,23 @@ parser1.add_argument('radius', type=int, required=False, default=0, help="Range 
     }
 )
 class ChrposGet(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
+
+    @api.expect(parser)
     @api.doc(id='get_chrpos')
-    def get(self, chrpos, radius=0):
-        args = parser1.parse_args()
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    def get(self, chrpos):
+        args = self.parser.parse_args()
         chrpos = [x for x in ''.join(chrpos.split()).split(',')]
+
         try:
-            out = range_query(chrpos, args['radius'])
+            return range_query(chrpos, args['radius'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
-        return out
 
-
-parser3 = reqparse.RequestParser()
-parser3.add_argument('chrpos', required=False, type=str, action='append', default=[], help="List of variant chr:pos format on build 37 (e.g. 7:105561135)")
-parser3.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
 
 @api.route('/chrpos')
 @api.doc(
@@ -107,24 +113,29 @@ Obtain information for a particular variant or comma separated list of variants.
 """
 )
 class ChrposPost(Resource):
-    @api.expect(parser3)
-    @api.doc(id='post_chrpos')
-    def post(self):
-        args = parser3.parse_args()
+    parser = reqparse.RequestParser()
+    parser.add_argument('chrpos', required=False, type=str, action='append', default=[],
+                         help="List of variant chr:pos format on build 37 (e.g. 7:105561135)")
+    parser.add_argument('radius', type=int, required=False, default=0,
+                         help="Range to search either side of target locus")
 
-        if (len(args['chrpos']) == 0):
-            abort(405)
+    @api.expect(parser)
+    @api.doc(id='post_chrpos')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    def post(self):
+        args = self.parser.parse_args()
+        if len(args['chrpos']) == 0:
+            abort(400)
+
         try:
-            out = range_query(args['chrpos'], args['radius'])
+            return range_query(args['chrpos'], args['radius'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
-        return out
-
 
 
 @api.route('/gene/<gene>')
-@api.expect(parser1)
 @api.doc(
     description="Obtain information for a particular SNP or comma separated list of SNPs",
     params={
@@ -132,14 +143,22 @@ class ChrposPost(Resource):
     }
 )
 class GeneGet(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
+
+    @api.expect(parser)
     @api.doc(id='get_gene')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
     def get(self, gene=None):
-        args = parser1.parse_args()
+        args = self.parser.parse_args()
+
         try:
             total, hits = gene_query(gene, args['radius'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
+
         return hits
 
 
@@ -152,6 +171,8 @@ class GeneGet(Resource):
 )
 class VariantGet(Resource):
     @api.doc(id='get_afl2_rsid')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
     def get(self, rsid=None):
         if rsid is None:
             abort(404)
@@ -163,11 +184,10 @@ class VariantGet(Resource):
             abort(503)
 
         try:
-            res = vcf_rsid(rsid, Globals.AFL2['vcf'], Globals.AFL2['rsidx'])
+            return vcf_rsid(rsid, Globals.AFL2['vcf'], Globals.AFL2['rsidx'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
-        return res
 
 
 @api.route('/afl2/chrpos/<chrpos>')
@@ -178,11 +198,18 @@ class VariantGet(Resource):
     }
 )
 class ChrposGet(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
+
+    @api.expect(parser)
     @api.doc(id='get_afl2_chrpos')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
     def get(self, chrpos=None):
         if chrpos is None:
             abort(404)
-        args = parser1.parse_args()
+        args = self.parser.parse_args()
+
         try:
             chrpos = parse_chrpos([x for x in ''.join(chrpos.split()).split(',')], args['radius'])
         except Exception as e:
@@ -190,17 +217,11 @@ class ChrposGet(Resource):
             abort(503)
 
         try:
-            res = vcf_chrpos(chrpos, Globals.AFL2['vcf'])
+            return vcf_chrpos(chrpos, Globals.AFL2['vcf'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
-        return res
 
-
-parser4 = reqparse.RequestParser()
-parser4.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of variant rs IDs")
-parser4.add_argument('chrpos', required=False, type=str, action='append', default=[], help="List of variant chr:pos format on build 37 (e.g. 7:105561135)")
-parser4.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus (for chrpos only)")
 
 @api.route('/afl2')
 @api.doc(
@@ -211,12 +232,21 @@ Obtain allele frequency and LD scores for a particular variant or comma separate
 """
 )
 class Afl2Post(Resource):
-    @api.expect(parser4)
+    parser = reqparse.RequestParser()
+    parser.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of variant rs IDs")
+    parser.add_argument('chrpos', required=False, type=str, action='append', default=[], help="List of variant chr:pos format on build 37 (e.g. 7:105561135)")
+    parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus (for chrpos only)")
+
+    @api.expect(parser)
     @api.doc(id='post_afl2')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
     def post(self):
-        args = parser4.parse_args()
+        args = self.parser.parse_args()
         if (len(args['chrpos']) == 0 and len(args['rsid']) == 0):
-            abort(405)
+            abort(400)
+
+        out1, out2 = [], []
 
         if len(args['chrpos']) != 0:
             try:
@@ -230,8 +260,6 @@ class Afl2Post(Resource):
             except Exception as e:
                 logger.error("Could not obtain variant information: {}".format(e))
                 abort(503)
-        else:
-            out1 = []
 
         if len(args['rsid']) != 0:
             try:
@@ -239,17 +267,16 @@ class Afl2Post(Resource):
             except Exception as e:
                 logger.error("Could not obtain variant information: {}".format(e))
                 abort(503)
-        else:
-            out2 = []
 
         return out1 + out2
-
 
 
 @api.route('/afl2/snplist')
 @api.doc(description="Get list of rsids that are variable across populations for ancestry analyses")
 class Afl2Snplist(Resource):
     @api.doc(id='get_afl2_snplist')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=10)
     def get(self):
         try:
             return send_file(Globals.AFL2['snplist'])

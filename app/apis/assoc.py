@@ -1,19 +1,22 @@
+from flask import request, g
 from flask_restx import Resource, reqparse, abort, Namespace
+
+from middleware.auth import jwt_required
+from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 from queries.es import *
-from resources.auth import get_user_email
-from flask import request
-from resources.globals import Globals
 
 api = Namespace('associations', description="Retrieve GWAS associations")
 
-parser1 = api.parser()
-parser1.add_argument(
-    'X-Api-Token', location='headers', required=False, default='null',
-    help=Globals.AUTHTEXT)
+
+def _get_cost(ids=None, variants=None):  # Note: both inputs should be non-empty
+    if ids is None:
+        ids = request.values.getlist('id')
+    if variants is None:
+        variants = request.values.getlist('variant')
+    return len(ids) * len(variants)
 
 
 @api.route('/<id>/<variant>')
-@api.expect(parser1)
 @api.doc(
     description="Get specific variant associations for specifc GWAS datasets",
     params={
@@ -22,33 +25,26 @@ parser1.add_argument(
     }
 )
 class AssocGet(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
     @api.doc(id='get_variants_gwas')
+    @jwt_required
     def get(self, id=None, variant=None):
-        if variant is None:
-            abort(404)
-        if id is None:
-            abort(404)
+        if id is None or variant is None:
+            abort(400)
+        ids = id.split(',')
+        variants = variant.split(',')
+
+        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid,
+                                  cost=lambda: _get_cost(ids, variants)):
+            pass
+
         try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
-            out = get_assoc(user_email, variant.split(','), id.split(','), 1, 0.8, 1, 1, 0.3)
+            return get_assoc(g.user['uid'], variants, ids, 1, 0.8, 1, 1, 0.3)
         except Exception as e:
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
-        return out
-
-
-parser2 = reqparse.RequestParser()
-parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="List of variants as rsid or chr:pos or chr:pos1-pos2 where positions are in hg19/b37 e.g. ['rs1205', '7:105561135', '7:105561135-105563135']")
-parser2.add_argument('id', required=False, type=str, action='append', default=[], help="list of GWAS study IDs")
-parser2.add_argument('proxies', type=int, required=False, default=0, help="Whether to look for proxies (1) or not (0). Note that proxies won't be looked for range queries")
-parser2.add_argument('r2', type=float, required=False, default=0.8, help="Minimum LD r2 for a proxy")
-parser2.add_argument('align_alleles', type=int, required=False, default=1, help="Whether to align alleles")
-parser2.add_argument('palindromes', type=int, required=False, default=1, help="Whether to allow palindromic proxies")
-parser2.add_argument('maf_threshold', type=float, required=False, default=0.3,
-                     help="Maximum MAF allowed for a palindromic variant")
-parser2.add_argument(
-    'X-Api-Token', location='headers', required=False, default='null',
-    help=Globals.AUTHTEXT)
 
 
 @api.route('')
@@ -56,22 +52,32 @@ parser2.add_argument(
     description="Get specific variant associations for specifc GWAS datasets"
 )
 class AssocPost(Resource):
-    @api.expect(parser2)
+    parser = reqparse.RequestParser()
+    parser.add_argument('variant', required=False, type=str, action='append', default=[],
+                         help="List of variants as rsid or chr:pos or chr:pos1-pos2 where positions are in hg19/b37 e.g. ['rs1205', '7:105561135', '7:105561135-105563135']")
+    parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of GWAS study IDs")
+    parser.add_argument('proxies', type=int, required=False, default=0,
+                         help="Whether to look for proxies (1) or not (0). Note that proxies won't be looked for range queries")
+    parser.add_argument('r2', type=float, required=False, default=0.8, help="Minimum LD r2 for a proxy")
+    parser.add_argument('align_alleles', type=int, required=False, default=1, help="Whether to align alleles")
+    parser.add_argument('palindromes', type=int, required=False, default=1,
+                         help="Whether to allow palindromic proxies")
+    parser.add_argument('maf_threshold', type=float, required=False, default=0.3,
+                         help="Maximum MAF allowed for a palindromic variant")
+
+    @api.expect(parser)
     @api.doc(id='post_variants_gwas')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid,
+                          cost=_get_cost)
     def post(self):
-        args = parser2.parse_args()
-
-        if (len(args['id']) == 0):
-            abort(405)
-
-        if (len(args['variant']) == 0):
-            abort(405)
+        args = self.parser.parse_args()
+        if len(args['id']) == 0 or len(args['variant']) == 0:
+            abort(400)
 
         try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
-            out = get_assoc(user_email, args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'],
+            return get_assoc(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'],
                             args['palindromes'], args['maf_threshold'])
         except Exception as e:
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
-        return out, 200

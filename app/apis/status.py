@@ -1,10 +1,12 @@
 from flask_restx import Namespace, Resource
-from resources.globals import Globals
-from resources.neo4j import Neo4j
-from resources.cromwell import Cromwell
 import requests
 import os
 import json
+
+from resources.globals import Globals
+from resources.neo4j import Neo4j
+from resources.cromwell import Cromwell
+from middleware.limiter import limiter
 
 api = Namespace('status', description="Status of API and linked resources")
 
@@ -13,6 +15,7 @@ api = Namespace('status', description="Status of API and linked resources")
 @api.doc(description="Check services are running")
 class Status(Resource):
     @api.doc(id='get_status', security=[])
+    @limiter.limit('30 per hour')  # Max number of requests per IP
     def get(self):
         # print(str(count_elastic_calls()))
         return check_all()

@@ -1,15 +1,16 @@
+from flask import request
 from flask_restx import Resource, reqparse, abort, Namespace
+
 from resources.ld import *
 from resources.globals import Globals
+from middleware.auth import jwt_required
+from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
-parser = reqparse.RequestParser()
-parser.add_argument('rsid', type=str, required=False, action='append', default=[])
-parser.add_argument('pval', type=float, required=False, action='append', default=[])
-parser.add_argument('pthresh', type=float, required=False, default=5e-8)
-parser.add_argument('r2', type=float, required=False, default=0.001)
-parser.add_argument('kb', type=int, required=False, default=5000)
-parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
+
+
+def _get_cost():
+    return len(request.values.getlist('rsid'))
 
 
 @api.route('/clump')
@@ -19,25 +20,29 @@ Perform clumping a specified set of rs IDs.
 Uses 1000 genomes reference data filtered to within-population MAF > 0.01 and only retaining SNPs.
 """)
 class Clump(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('rsid', type=str, required=False, action='append', default=[])
+    parser.add_argument('pval', type=float, required=False, action='append', default=[])
+    parser.add_argument('pthresh', type=float, required=False, default=5e-8)
+    parser.add_argument('r2', type=float, required=False, default=0.001)
+    parser.add_argument('kb', type=int, required=False, default=5000)
+    parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
 
     @api.expect(parser)
-    @api.doc(id='post_clump')
+    @api.doc(id='post_ld_clump')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
-        args = parser.parse_args()
-        if (len(args['rsid']) == 0):
-            abort(405)
-        if (len(args['pval']) == 0):
-            abort(405)
-        if (len(args['rsid']) != len(args['pval'])):
-            abort(405)
+        args = self.parser.parse_args()
+        if len(args['rsid']) == 0 or len(args['pval']) == 0 or len(args['rsid']) != len(args['pval']):
+            abort(400)
 
         try:
-            out = plink_clumping_rs(Globals.TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'],
+            return plink_clumping_rs(Globals.TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'],
                                     args['r2'], args['kb'], args['pop'])
         except Exception as e:
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
-        return out, 200
 
 
 @api.route('/matrix')
@@ -52,14 +57,17 @@ class LdMatrix(Resource):
     parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
     
     @api.expect(parser)
+    @api.doc(id='post_ld_matrix')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
-        args = parser.parse_args()
+        args = self.parser.parse_args()
+
         try:
-            out = plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'], args['pop'])
+            return plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'], args['pop'])
         except Exception as e:
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
-        return out, 200
 
 
 @api.route('/reflookup')
@@ -73,12 +81,14 @@ class RefLookup(Resource):
     parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
 
     @api.expect(parser)
-    @api.doc(id='post_matrix')
+    @api.doc(id='post_ld_reflookup')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
-        args = parser.parse_args()
+        args = self.parser.parse_args()
+
         try:
-            out = ld_ref_lookup(Globals.TMP_FOLDER, args['rsid'], args['pop'])
+            return ld_ref_lookup(Globals.TMP_FOLDER, args['rsid'], args['pop'])
         except Exception as e:
             logger.error("Could not lookup SNPs: {}".format(e))
             abort(503)
-        return out, 200

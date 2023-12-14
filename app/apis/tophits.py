@@ -1,43 +1,54 @@
+from flask import request, g
 from flask_restx import Resource, reqparse, abort, Namespace
-from queries.es import *
-from resources.ld import *
-from resources.auth import get_user_email
-from queries.cql_queries import get_all_gwas_ids_for_user
-from flask import request
 import logging
 
+from queries.es import *
+from resources.ld import *
+from resources.globals import Globals
+from middleware.auth import jwt_required
+from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
+
+
 logger = logging.getLogger('debug-log')
+
 api = Namespace('tophits', description="Extract top hits based on p-value threshold from a GWAS dataset")
-parser1 = reqparse.RequestParser()
-parser1.add_argument('id', required=False, type=str, action='append', default=[], help="list of GWAS study IDs")
-parser1.add_argument('pval', type=float, required=False, default=0.00000005,
-                     help='P-value threshold; exponents not supported through Swagger')
-parser1.add_argument('preclumped', type=int, required=False, default=1, help='Whether to use pre-clumped tophits')
-parser1.add_argument('clump', type=int, required=False, default=1, help='Whether to clump (1) or not (0)')
-parser1.add_argument('bychr', type=int, required=False, default=1, help='Whether to extract by chromosome (1) or all at once (0). There is a limit on query results so bychr might be required for some well-powered datasets')
-parser1.add_argument('r2', type=float, required=False, default=0.001, help='Clumping parameter')
-parser1.add_argument('kb', type=int, required=False, default=5000, help='Clumping parameter')
-parser1.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
-parser1.add_argument(
-    'X-Api-Token', location='headers', required=False, default='null',
-    help='Public datasets can be queried without any authentication, but some studies are only accessible by specific users. To authenticate we use Google OAuth2.0 access tokens. The easiest way to obtain an access token is through the [ieugwasr](https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication) package using the `get_access_token()` function.')
+
+
+def _get_cost():
+    ids = request.values.getlist('id')
+    preclumped = request.values.get('preclumped')
+    clump = request.values.get('clump')
+    return len(ids) * (5 if not preclumped and clump else 1)
 
 
 @api.route('')
 @api.doc(
     description="Extract top hits based on p-value threshold from a GWAS dataset.")
 class Tophits(Resource):
-    @api.expect(parser1)
+    parser = reqparse.RequestParser()
+    parser.add_argument('id', required=False, type=str, action='append', default=[], help="list of GWAS study IDs")
+    parser.add_argument('pval', type=float, required=False, default=0.00000005,
+                         help='P-value threshold; exponents not supported through Swagger')
+    parser.add_argument('preclumped', type=int, required=False, default=1, help='Whether to use pre-clumped tophits')
+    parser.add_argument('clump', type=int, required=False, default=1, help='Whether to clump (1) or not (0)')
+    parser.add_argument('bychr', type=int, required=False, default=1,
+                         help='Whether to extract by chromosome (1) or all at once (0). There is a limit on query results so bychr might be required for some well-powered datasets')
+    parser.add_argument('r2', type=float, required=False, default=0.001, help='Clumping parameter')
+    parser.add_argument('kb', type=int, required=False, default=5000, help='Clumping parameter')
+    parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
+
+    @api.expect(parser)
     @api.doc(id='post_tophits')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
-        args = parser1.parse_args()
-        user_email = get_user_email(request.headers.get('X-Api-Token'))
+        args = self.parser.parse_args()
+
         try:
-            out = extract_instruments(user_email, args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])
+            return extract_instruments(g.user['uid'], args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])
         except Exception as e:
             logger.error("Could not obtain tophits: {}".format(e))
             abort(503)
-        return out
 
 
 def extract_instruments(user_email, id, preclumped, clump, bychr, pval, r2, kb, pop="EUR"):

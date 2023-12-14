@@ -1,47 +1,49 @@
+from flask import request, g
 from flask_restx import Resource, reqparse, abort, Namespace
+
 from queries.es import *
-from resources.auth import get_user_email
-from flask import request
-from resources.globals import Globals
+from middleware.auth import jwt_required
+from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
 
-parser1 = api.parser()
-parser1.add_argument(
-    'X-Api-Token', location='headers', required=False, default='null',
-    help=Globals.AUTHTEXT)
+
+def _get_cost(variants=None, pval=None):
+    if variants is None:
+        variants = request.values.getlist('variants')
+    if pval is None:
+        pval = request.values.get('pval')
+    return len(variants) * (1 if float(pval) <= 1e-3 else 5)
 
 
 @api.route('/<variant>/<pval>')
-@api.expect(parser1)
 @api.doc(
     description="Perform PheWAS of specified variants across all available GWAS datasets",
     params={
-        'variant': 'Comma-separated list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135',
-        'pval': 'P-value threshold. Default = 1e-3'
+        'variant': "Comma-separated list of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135",
+        'pval': "P-value threshold. Default = 1e-3"
     }
 )
 class PhewasGet(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
     @api.doc(id='get_phewas')
+    @jwt_required
     def get(self, variant=None, pval=1e-3):
         if variant is None:
-            abort(404)
+            abort(400)
+        variants = variant.split(',')
+        pval = float(pval)
+
+        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=lambda: _get_cost(variants, pval)):
+            pass
+
         try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
-            out = run_phewas(user_email=user_email, variants=variant.split(','), pval=float(pval), index_list=[])
+            return run_phewas(user_email=g.user['id'], variants=variants, pval=pval, index_list=[])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
-        return out
-
-
-parser2 = reqparse.RequestParser()
-parser2.add_argument('variant', required=False, type=str, action='append', default=[], help="List of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135")
-parser2.add_argument('pval', type=float, required=False, default=1e-05, help='P-value threshold')
-parser2.add_argument('index_list', required=False, type=str, action='append', default=[], help="List of study indexes. If empty then searches across all indexes.")
-parser2.add_argument(
-    'X-Api-Token', location='headers', required=False, default='null',
-    help=Globals.AUTHTEXT)
 
 
 @api.route('')
@@ -49,17 +51,23 @@ parser2.add_argument(
     description="Perform PheWAS of specified variants across all available GWAS datasets."
 )
 class PhewasPost(Resource):
-    @api.expect(parser2)
+    parser = reqparse.RequestParser()
+    parser.add_argument('variant', required=False, type=str, action='append', default=[], help="List of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135")
+    parser.add_argument('pval', type=float, required=False, default=1e-05, help='P-value threshold')
+    parser.add_argument('index_list', required=False, type=str, action='append', default=[], help="List of study indexes. If empty then searches across all indexes.")
+
+    @api.expect(parser)
     @api.doc(id='post_phewas')
+    @jwt_required
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
-        args = parser2.parse_args()
+        args = self.parser.parse_args()
+
         try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
-            out = run_phewas(user_email=user_email, variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
+            return run_phewas(user_email=g.user['id'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
-        return out
 
 
 def run_phewas(user_email, variants, pval, index_list=None):
