@@ -6,97 +6,97 @@ token = get_mrbase_access_token()
 ## GET
 
 
-def test_assoc_get1(url):
-    r = requests.get(url + "/associations/ieu-a-2/rs234")
+def test_assoc_get1(url, headers):
+    r = requests.get(url + "/associations/ieu-a-2/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
-def test_assoc_get2(url):
-    r = requests.get(url + "/associations/ieu-a-300/rs4988235")
+def test_assoc_get2(url, headers):
+    r = requests.get(url + "/associations/ieu-a-300/rs4988235", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
-def test_assoc_get3(url):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998/rs234")
+def test_assoc_get3(url, headers):
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
-def test_assoc_get4(url):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234")
+def test_assoc_get4(url, headers):
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
-def test_assoc_get5(url):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234,rs123")
+def test_assoc_get5(url, headers):
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234,rs123", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
-def test_assoc_get6(url):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234,rs123")
+def test_assoc_get6(url, headers):
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234,rs123", headers=headers)
     assert r.status_code == 200 and len(r.json()) >= 6
 
 
 ## POST
 
 # Should return json entries for each study
-def test_assoc_post1(url):
+def test_assoc_post1(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
-    r = requests.post(url + "/associations", data=payload)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
-def test_assoc_post2(url):
+def test_assoc_post2(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
-    r = requests.post(url + "/associations", data=payload)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) >= 6
 
 
-def test_assoc_post3(url):
+def test_assoc_post3(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs6689306']}
-    r = requests.post(url + "/associations", data=payload)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 0
 
 
-def test_assoc_post4(url):
+def test_assoc_post4(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs6689306'], 'proxies': 1}
-    r = requests.post(url + "/associations", data=payload)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
-def test_assoc_post5(url):
+def test_assoc_post5(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs234', 'rs123', 'rs6689306']}
-    r = requests.post(url + "/associations", data=payload)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
-def test_assoc_post6(url):
+def test_assoc_post6(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs234', 'rs123', 'rs6689306'], 'proxies': 1}
-    r = requests.post(url + "/associations", data=payload)
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 6
 
 # chrpos
 
 
-def test_chrpos1(url):
+def test_chrpos1(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135'], 'proxies': 0}
-    r1 = requests.post(url + "/associations", data=payload).json()
+    r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
     payload = {'id': ['ieu-a-2'], 'variant': ['rs234'], 'proxies': 0}
-    r2 = requests.post(url + "/associations", data=payload).json()
+    r2 = requests.post(url + "/associations", data=payload, headers=headers).json()
 
     assert r1[0]['rsid'] == r2[0]['rsid']
 
 
-def test_chrpos2(url):
+def test_chrpos2(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135', 'rs1205'], 'proxies': 0}
-    r1 = requests.post(url + "/associations", data=payload).json()
+    r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
     payload = {'id': ['ieu-a-2'], 'variant': ['rs234'], 'proxies': 0}
-    r2 = requests.post(url + "/associations", data=payload).json()
+    r2 = requests.post(url + "/associations", data=payload, headers=headers).json()
 
     assert len(r1) == 2
 
 
-def test_chrpos3(url):
+def test_chrpos3(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135-105571135', 'rs1205'], 'proxies': 0}
-    r1 = requests.post(url + "/associations", data=payload).json()
+    r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
     assert 'rs1205' in [x['rsid'] for x in r1]
     assert len(r1) > 1
