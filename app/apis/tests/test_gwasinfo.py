@@ -27,7 +27,7 @@ def test_gwasinfo3(url):
 
 # This time should have authentication to get private study
 def test_gwasinfo4(url):
-    headers = {'X-API-TOKEN': token}
+    headers = {'Authorization': 'Bearer ' + token}
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998']}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 3
@@ -35,7 +35,7 @@ def test_gwasinfo4(url):
 
 # This time should have authentication to get private study
 def test_gwasinfo5(url):
-    headers = {'X-API-TOKEN': token}
+    headers = {'Authorization': 'Bearer ' + token}
     payload = {}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) > 1000
