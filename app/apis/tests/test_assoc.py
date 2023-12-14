@@ -1,9 +1,10 @@
 import requests
-from apis.tests.token import get_mrbase_access_token
 
-token = get_mrbase_access_token()
 
-## GET
+# Anonymous
+def test_assoc_get0(url):
+    r = requests.get(url + "/associations/ieu-a-2/rs234")
+    assert r.status_code == 401
 
 
 def test_assoc_get1(url, headers):
@@ -16,29 +17,37 @@ def test_assoc_get2(url, headers):
     assert r.status_code == 200 and len(r.json()) == 1
 
 
+# No result for ieu-a-998 because it's in the 'developer' group
 def test_assoc_get3(url, headers):
     r = requests.get(url + "/associations/ieu-a-2,ieu-a-998/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
+# No result for ieu-a-998 because it's in the 'developer' group
 def test_assoc_get4(url, headers):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234", headers=headers)
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-a-998/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
+# No result for ieu-a-998 because it's in the 'developer' group
 def test_assoc_get5(url, headers):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234,rs123", headers=headers)
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-a-998/rs234,rs123", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
+# ieu-b-5008 is in the 'biogen' group, of which the test user is a member
 def test_assoc_get6(url, headers):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998,ieu-a-7/rs234,rs123", headers=headers)
-    assert r.status_code == 200 and len(r.json()) >= 6
+    print(headers)
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-b-5008/rs234,rs123", headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 6
 
 
-## POST
+def test_assoc_post0(url):
+    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
+    r = requests.post(url + "/associations", data=payload)
+    assert r.status_code == 401
 
-# Should return json entries for each study
+
 def test_assoc_post1(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
     r = requests.post(url + "/associations", data=payload, headers=headers)
@@ -46,9 +55,9 @@ def test_assoc_post1(url, headers):
 
 
 def test_assoc_post2(url, headers):
-    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
+    payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-b-5008'], 'variant': ['rs234', 'rs123']}
     r = requests.post(url + "/associations", data=payload, headers=headers)
-    assert r.status_code == 200 and len(r.json()) >= 6
+    assert r.status_code == 200 and len(r.json()) == 6
 
 
 def test_assoc_post3(url, headers):
@@ -74,29 +83,24 @@ def test_assoc_post6(url, headers):
     r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 6
 
-# chrpos
-
 
 def test_chrpos1(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135'], 'proxies': 0}
     r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
     payload = {'id': ['ieu-a-2'], 'variant': ['rs234'], 'proxies': 0}
     r2 = requests.post(url + "/associations", data=payload, headers=headers).json()
-
     assert r1[0]['rsid'] == r2[0]['rsid']
 
 
 def test_chrpos2(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135', 'rs1205'], 'proxies': 0}
     r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
-    payload = {'id': ['ieu-a-2'], 'variant': ['rs234'], 'proxies': 0}
-    r2 = requests.post(url + "/associations", data=payload, headers=headers).json()
-
     assert len(r1) == 2
+    assert 'rs234' in [x['rsid'] for x in r1]
 
 
 def test_chrpos3(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135-105571135', 'rs1205'], 'proxies': 0}
     r1 = requests.post(url + "/associations", data=payload, headers=headers).json()
+    assert len(r1) == 9
     assert 'rs1205' in [x['rsid'] for x in r1]
-    assert len(r1) > 1

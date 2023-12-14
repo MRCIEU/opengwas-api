@@ -9,7 +9,7 @@ from resources.globals import Globals
 from resources.jwt import generate_jwt
 
 
-def get_mrbase_access_token():
+def get_jwt():
     try:
         return os.environ['MRB_TOKEN']
     except Exception:
