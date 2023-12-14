@@ -1,7 +1,9 @@
 import sys
 sys.path.append('..')
 import pytest
+
 from resources.globals import Globals
+from apis.tests.token import get_mrbase_access_token
 
 
 collect_ignore = ["test_edit.py", "test_quality_control.py"]
@@ -26,5 +28,6 @@ def url(request):
 @pytest.fixture
 def headers():
     return {
-        "X-Declare-Test-Mode-Key": Globals.app_config['test']['key_declare_test_mode']
+        'X-Declare-Test-Mode-Key': Globals.app_config['test']['key_declare_test_mode'],
+        'Authorization': 'Bearer ' + get_mrbase_access_token()
     }

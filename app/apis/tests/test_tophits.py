@@ -23,7 +23,6 @@ def test_tophits_post1a(url):
 
 
 def test_tophits_post2(url):
-    headers = {'Authorization': 'Bearer ' + token}
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0, 'clump': 0}
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     assert r.status_code == 200
@@ -40,7 +39,6 @@ def test_tophits_post3(url):
 
 
 def test_tophits_post4(url):
-    headers = {'Authorization': 'Bearer ' + token}
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0, 'clump': 1}
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     assert r.status_code == 200
@@ -49,7 +47,6 @@ def test_tophits_post4(url):
 
 
 def test_tophits_post5(url):
-    headers = {'Authorization': 'Bearer ' + token}
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0}
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     assert r.status_code == 200
