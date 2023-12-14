@@ -1,14 +1,20 @@
-import subprocess, os
+from flask import Flask
+import os
+import time
+import sys
+sys.path.append('..')
+
+from queries.cql_queries import set_user_jwt_timestamp
+from resources.globals import Globals
+from resources.jwt import generate_jwt
 
 
 def get_mrbase_access_token():
     try:
         return os.environ['MRB_TOKEN']
     except Exception:
-        subprocess.call(
-            "Rscript -e \"write.table(ieugwasr::get_access_token(), file='token.temp', row=F, col=F, qu=F)\"",
-            shell=True)
-        with open('token.temp', 'r') as tokenfile:
-            token = tokenfile.read().replace('\n', '')
-        # os.remove('token.temp')
-        return token
+        with Flask(__name__).app_context():
+            timestamp = int(time.time())
+            jwt = generate_jwt(Globals.app_config['test']['uid'], timestamp)
+            set_user_jwt_timestamp(Globals.app_config['test']['uid'], timestamp)
+            return jwt
