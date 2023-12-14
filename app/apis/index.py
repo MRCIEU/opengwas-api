@@ -12,4 +12,4 @@ def index():
                                  status=status, elastic_counts=elastic_counts, neo4j_counts=neo4j_counts,
                                  root_url=Globals.app_config['root_url'],
                                  tiers=Globals.USER_TIERS, allowance=Globals.ALLOWANCE_BY_TIER,
-                                 jwt_validity=Globals.JWT_VALIDITY / 86400)
+                                 jwt_validity=int(Globals.JWT_VALIDITY / 86400))

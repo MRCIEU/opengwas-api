@@ -83,9 +83,9 @@ class Globals:
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
     USER_TIERS = {
-        'NONE': "Anonymous",
         'ORG': "Organisational",
-        'PER': "Personal"
+        'PER': "Personal",
+        'NONE': "Anonymous"
     }
 
     MS_ENTRA_ID_AUTHORITY = "https://login.microsoftonline.com/common"
@@ -116,7 +116,7 @@ class Globals:
     # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
     # This only applies to chargeable endpoints
     ALLOWANCE_BY_TIER = {
-        'NONE': '0 per hour',
         'ORG': '1000 per hour',
-        'PER': '200 per hour'
+        'PER': '200 per hour',
+        'NONE': '0 per hour'
     }
