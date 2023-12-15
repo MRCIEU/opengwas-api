@@ -26,9 +26,7 @@ def test_chrpos_get0(url, headers):
 
 def test_chrpos_get1(url, headers):
     r = requests.get(url + "/variants/chrpos/7:105561135", headers=headers)
-    o = r.json()
-    assert r.status_code == 200 and len(o) == 1
-    assert len(o[0]) > 12
+    assert r.status_code == 200 and len(r.json()) == 1
 
 
 def test_chrpos_get2(url, headers):
@@ -38,7 +36,9 @@ def test_chrpos_get2(url, headers):
 
 def test_chrpos_get3(url, headers):
     r = requests.get(url + "/variants/chrpos/7:105561135-105563135,10:44865737", headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 2
+    o = r.json()
+    assert r.status_code == 200 and len(o) == 2
+    assert len(o[0]) > 12 or len(o[1]) > 12
 
 
 def test_gene_get0(url, headers):
