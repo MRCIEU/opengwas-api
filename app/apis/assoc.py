@@ -8,12 +8,14 @@ from queries.es import *
 api = Namespace('associations', description="Retrieve GWAS associations")
 
 
-def _get_cost(ids=None, variants=None):  # Note: both inputs should be non-empty
+def _get_cost(ids=None, variants=None, proxies=None):  # Note: both inputs should be non-empty
     if ids is None:
         ids = request.values.getlist('id')
     if variants is None:
         variants = request.values.getlist('variant')
-    return len(ids) * len(variants)
+    if proxies is None:
+        proxies = request.values.get('proxies', None)
+    return max(len(ids), len(variants)) * (1 if not proxies else 5)
 
 
 @api.route('/<id>/<variant>')

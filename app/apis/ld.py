@@ -10,7 +10,7 @@ api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matr
 
 
 def _get_cost():
-    return len(request.values.getlist('rsid'))
+    return len(request.values.getlist('rsid')) * 10
 
 
 @api.route('/clump')
@@ -59,7 +59,7 @@ class LdMatrix(Resource):
     @api.expect(parser)
     @api.doc(id='post_ld_matrix')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=20)
     def post(self):
         args = self.parser.parse_args()
 
@@ -83,7 +83,7 @@ class RefLookup(Resource):
     @api.expect(parser)
     @api.doc(id='post_ld_reflookup')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
+    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=2)
     def post(self):
         args = self.parser.parse_args()
 

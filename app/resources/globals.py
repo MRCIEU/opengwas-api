@@ -116,7 +116,7 @@ class Globals:
     # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
     # This only applies to chargeable endpoints
     ALLOWANCE_BY_TIER = {
-        'ORG': '1000 per hour',
-        'PER': '200 per hour',
+        'ORG': '15000 per hour',
+        'PER': '3000 per hour',
         'NONE': '0 per hour'
     }

@@ -8,12 +8,11 @@ from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
 
 
-def _get_cost(variants=None, pval=None):
+def _get_cost(variants=None):
     if variants is None:
         variants = request.values.getlist('variants')
-    if pval is None:
-        pval = request.values.get('pval')
-    return len(variants) * (1 if float(pval) <= 1e-3 else 5)
+    variants = organise_variants(variants)
+    return (len(variants['rsid']) + len(variants['chrpos'])) * 75 + len(variants['cprange']) * 750
 
 
 @api.route('/<variant>/<pval>')
@@ -34,13 +33,12 @@ class PhewasGet(Resource):
         if variant is None:
             abort(400)
         variants = variant.split(',')
-        pval = float(pval)
 
-        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=lambda: _get_cost(variants, pval)):
+        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=lambda: _get_cost(variants)):
             pass
 
         try:
-            return run_phewas(user_email=g.user['uid'], variants=variants, pval=pval, index_list=[])
+            return run_phewas(user_email=g.user['uid'], variants=variants, pval=float(pval), index_list=[])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)

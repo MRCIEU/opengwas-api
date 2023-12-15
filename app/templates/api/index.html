@@ -129,15 +129,14 @@
                             <thead><tr><td><b>Endpoint</b></td><td><b>Cost per request</b></td><td><b>Condition</b></td></tr></thead>
                             <tbody>
                                 <tr><td>/status, /batches</td><td>0 (non-chargeable)</td><td></td></tr>
-                                <tr><td>/gwasinfo</td><td>1<br>50</td><td>1 &le; N(id) &le; 100<br>100 &lt; N(id) or no id is specified</td></tr>
-                                <tr><td>/associations</td><td>N(id) * N(variant)</td><td></td></tr>
-                                <tr><td>/ld</td><td>N(rsid)</td><td></td></tr>
-                                <tr><td>/tophits</td><td>N(id)<br>N(id) * 5</td><td><br>preclumped = 0 and clump = 1 </td></tr>
-                                <tr><td>/phewas</td><td>N(variant)<br>N(variant) * 5</td><td>pval &le; 1e-3<br>pval &gt; 1e-3</td></tr>
+                                <tr><td>/gwasinfo</td><td>1<br>50</td><td>1 &le; N<sub>id</sub> &le; 100<br>100 &lt; N<sub>id</sub> or no id is specified</td></tr>
+                                <tr><td>/associations</td><td>max(N<sub>id</sub>, N<sub>variant</sub>)<br>max(N<sub>id</sub>, N<sub>variant</sub>) &times; 5</td><td><br>proxies = 1</td></tr>
+                                <tr><td>/tophits</td><td>N<sub>id</sub><br>N<sub>id</sub> &times; 15<br>N<sub>id</sub> &times; 30</td><td><br>preclumped = 0<br>preclumped = 0 and clump = 0</td></tr>
+                                <tr><td>/ld/clumping<br>/ld/matrix<br>/ld/reflookup</td><td>N(rsid) &times; 10<br>20<br>2</td><td></td></tr>
+                                <tr><td>/phewas</td><td>(N<sub>variant_rsid</sub> + N<sub>variant_chrpos</sub>) &times; 75 + N<sub>variant_cprange</sub> &times; 750</td><td></td></tr>
                                 <tr><td>/variants<br>/variants/afl2/snplist</td><td>1<br>10</td><td></td></tr>
                             </tbody>
                         </table></p>
-                        <p>One chr:pos_range string e.g. <i>7:105561135-105563135</i> is counted as one variant for costing purpose.</p>
                     </section>
 
                     <hr class='my-4'>

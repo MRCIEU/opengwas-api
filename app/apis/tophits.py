@@ -18,7 +18,9 @@ def _get_cost():
     ids = request.values.getlist('id')
     preclumped = request.values.get('preclumped')
     clump = request.values.get('clump')
-    return len(ids) * (5 if not preclumped and clump else 1)
+    if not preclumped:
+        return len(ids) * (15 if clump else 30)
+    return len(ids)
 
 
 @api.route('')
