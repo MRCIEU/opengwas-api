@@ -139,8 +139,7 @@ if __name__ == "__main__":
 
 @app.before_request
 def check_test_mode():
-    key = request.headers.get('X-Declare-Test-Mode-Key')
-    if key and key == Globals.app_config['test']['key_declare_test_mode']:
+    if request.headers.get('X-Declare-Test-Mode-Key', None) == Globals.app_config['test']['key_declare_test_mode']:
         os.environ['TEST_MODE'] = 'True'
         # Disable flask-limiter
         limiter.enabled = False
