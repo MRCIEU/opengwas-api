@@ -184,13 +184,13 @@
             url: "/users/test_allowance",
             error: function (xhr) {
                 if (xhr.status === 429) {
-                    populate_allowance_info(xhr.getResponseHeader('X-Ratelimit-Remaining'), xhr.getResponseHeader('X-RateLimit-Reset'));
+                    populate_allowance_info(xhr.getResponseHeader('X-Allowance-Remaining'), xhr.getResponseHeader('X-Allowance-Reset'));
                 } else {
                     alert("An error occurred when retrieving your allowance.");
                 }
             },
             success: function (response, status, xhr) {
-                populate_allowance_info(xhr.getResponseHeader('X-Ratelimit-Remaining'), xhr.getResponseHeader('X-RateLimit-Reset'));
+                populate_allowance_info(xhr.getResponseHeader('X-Allowance-Remaining'), xhr.getResponseHeader('X-Allowance-Reset'));
             }
         });
     }
