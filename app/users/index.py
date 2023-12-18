@@ -23,7 +23,7 @@ def index():
     g.user = current_user
     return render_template('users/index.html',
                            user=current_user, globals_tiers=Globals.USER_TIERS, org=org, org_tooltip=org_tooltip, membership=membership,
-                           tiered_allowance=get_tiered_allowance())
+                           tiered_allowance=get_tiered_allowance(), root_url=Globals.app_config['root_url'])
 
 
 @users_index_bp.route('/test_allowance')
