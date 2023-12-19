@@ -163,7 +163,7 @@
     // Get token
     function get_token() {
         $.ajax({
-            url: "/users/token",
+            url: "/users/token?random=" + Math.random(),
             error: function (xhr) {
                 if (xhr.status === 410) {
                     // No valid token
