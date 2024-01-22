@@ -1,8 +1,8 @@
 version: '3'
 services:
 
-  og-api-v3:
-    image: og-api-v3:latest
+  og-api:
+    image: og-api:latest
     restart: always
     stdin_open: true
     tty: true
@@ -21,8 +21,8 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
 
-  og-frontend:
-    image: og-api-v3:latest
+  og-profile:
+    image: og-api:latest
     restart: always
     stdin_open: true
     tty: true
