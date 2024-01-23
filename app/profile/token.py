@@ -8,10 +8,10 @@ from resources.jwt import generate_jwt, generate_jwt_preview
 from resources.globals import Globals
 
 
-users_token_bp = Blueprint('token', __name__)
+profile_token_bp = Blueprint('token', __name__)
 
 
-@users_token_bp.route('')
+@profile_token_bp.route('')
 @login_required
 def get_token():
     if 'jwt_timestamp' not in current_user or not (jwt_timestamp := current_user['jwt_timestamp']) or int(time.time()) > jwt_timestamp + Globals.JWT_VALIDITY:
@@ -23,7 +23,7 @@ def get_token():
     }
 
 
-@users_token_bp.route('/generate')
+@profile_token_bp.route('/generate')
 @login_required
 def generate_token():
     timestamp = int(time.time())

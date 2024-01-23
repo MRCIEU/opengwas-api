@@ -10,7 +10,7 @@
 {% block main %}
 <div class="clearfix">
     <div class="float-start"><h4>User</h4></div>
-    <div class="float-end"><a href="{{ url_for('users.auth.signout') }}" class="text-danger" data-toggle="tooltip" title="Sign out from this website. Please note your API token (if any) will still be valid.">Sign out</a></div>
+    <div class="float-end"><a href="{{ url_for('profile.auth.signout') }}" class="text-danger" data-toggle="tooltip" title="Sign out from this website. Please note your API token (if any) will still be valid.">Sign out</a></div>
 </div>
 <div class="row">
     <div class="col">
@@ -163,7 +163,7 @@
     // Get token
     function get_token() {
         $.ajax({
-            url: "/users/token?random=" + Math.random(),
+            url: "/profile/token?random=" + Math.random(),
             error: function (xhr) {
                 if (xhr.status === 410) {
                     // No valid token
@@ -181,7 +181,7 @@
     // Get allowance
     function test_allowance() {
         $.ajax({
-            url: "/users/test_allowance",
+            url: "/profile/test_allowance",
             error: function (xhr) {
                 if (xhr.status === 429) {
                     populate_allowance_info(xhr.getResponseHeader('X-Allowance-Remaining'), xhr.getResponseHeader('X-Allowance-Reset'));
@@ -198,7 +198,7 @@
     // Generate a new token
     function generate_token() {
         $.ajax({
-            url: "/users/token/generate",
+            url: "/profile/token/generate",
             error: function () {
                 alert("An error occurred when generating your token.");
             },

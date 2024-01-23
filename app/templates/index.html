@@ -27,7 +27,7 @@
                 You are now signed in as:<br>{{ current_user.uid }}
             </p>
             <p>
-                <a href="{{ url_for('users.index.index') }}" class="btn btn-outline-primary">My profile and token &rarr;</a>
+                <a href="{{ url_for('profile.index.index') }}" class="btn btn-outline-primary">My profile and token &rarr;</a>
             </p>
         {% else %}
             <p>
@@ -87,7 +87,7 @@
                 <p class="text-success" id="ghResultP"></p>
             </div>
             <div class="modal-footer d-flex justify-content-between">
-                <div><a class="text-danger" href="{{ url_for('users.auth.cancel_signin_via_github') }}" style="text-decoration: none;">Cancel</a></div>
+                <div><a class="text-danger" href="{{ url_for('profile.auth.cancel_signin_via_github') }}" style="text-decoration: none;">Cancel</a></div>
                 <div><button type="button" class="btn btn-primary" id="ghSignupBtn" onclick="signup_github()">Next</button></div>
             </div>
         </div>
@@ -162,7 +162,7 @@
     // Get Auth URIs from providers
     function init_providers() {
         $.ajax({
-            url: "/users/auth/providers/init",
+            url: "/profile/auth/providers/init",
             error: function () {
                 $("#signinWithMSImg").css("filter", "grayscale(100%)").css("cursor", "not-allowed");
                 signinWithMSA.attr("onclick", "alert('Failed to generate link for Microsoft sign in - please refresh this page or contact us.')");
@@ -188,7 +188,7 @@
     function signup_github() {
         ghSignupBtn.prop("disabled", "disabled");
         $.ajax({
-            url: "/users/auth/github/signup",
+            url: "/profile/auth/github/signup",
             data: {
                 "email": $("input[name='ghEmailInput']:checked").val() ?? "",
                 "first_name": $("#ghFirstNameInput").val(),
@@ -211,7 +211,7 @@
     function signin_email() {
         emailSigninBtn.prop("disabled", "disabled");
         $.ajax({
-            url: "/users/auth/email/check",
+            url: "/profile/auth/email/check",
             data: {
                 "email": $("#emailInput").val(),
                 "first_name": $("#firstNameInput").val(),

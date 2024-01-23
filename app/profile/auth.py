@@ -13,19 +13,19 @@ from .login_manager import *
 from . import organisations
 
 
-users_auth_bp = Blueprint('auth', __name__)
+profile_auth_bp = Blueprint('auth', __name__)
 
 
-@users_auth_bp.route('/providers/init')
+@profile_auth_bp.route('/providers/init')
 def init_providers():
     return {
-        'microsoft': microsoft.generate_signin_link(url_for('users.auth.signin_via_microsoft', _external=True))['auth_uri'],
-        'github': Globals.GH_APPS_AUTH_URL + '?client_id=' + Globals.GH_APPS_AUTH_CLIENT_ID + '&redirect_uri=' + url_for('users.auth.signin_via_github', _external=True),
+        'microsoft': microsoft.generate_signin_link(url_for('profile.auth.signin_via_microsoft', _external=True))['auth_uri'],
+        'github': Globals.GH_APPS_AUTH_URL + '?client_id=' + Globals.GH_APPS_AUTH_CLIENT_ID + '&redirect_uri=' + url_for('profile.auth.signin_via_github', _external=True),
         'github_emails': session.get('github_emails')
     }
 
 
-@users_auth_bp.route('/microsoft/redirect')
+@profile_auth_bp.route('/microsoft/redirect')
 def signin_via_microsoft():
     try:
         microsoft.get_tokens(request.args)
@@ -36,7 +36,7 @@ def signin_via_microsoft():
     user = _add_user_from_microsoft()
     signin_user(user)
 
-    return redirect(url_for('users.index.index'))
+    return redirect(url_for('profile.index.index'))
 
 
 def _add_user_from_microsoft():
@@ -68,7 +68,7 @@ def _add_user_from_microsoft():
     return user.data()['u']
 
 
-@users_auth_bp.route('/github/redirect')
+@profile_auth_bp.route('/github/redirect')
 def signin_via_github():
     try:
         github.request_tokens(request.args)
@@ -79,7 +79,7 @@ def signin_via_github():
     gh_emails = _search_user_by_github()
     if 'existing' in gh_emails:
         signin_user({'uid': gh_emails['existing'][0]})
-        return redirect(url_for('users.index.index'))
+        return redirect(url_for('profile.index.index'))
     else:
         session['github_emails'] = gh_emails['new']
         return redirect(url_for('/'))
@@ -100,13 +100,13 @@ def _search_user_by_github():
     return {'new': gh_emails}
 
 
-@users_auth_bp.route('/github/cancel')
+@profile_auth_bp.route('/github/cancel')
 def cancel_signin_via_github():
     session.pop('github_emails', None)
     return redirect(url_for('/'))
 
 
-@users_auth_bp.route('/github/signup')
+@profile_auth_bp.route('/github/signup')
 def signup_via_github():
     req = request.args.to_dict()
 
@@ -132,7 +132,7 @@ def signup_via_github():
 
     return {
         'message': "Signing in existing user.",
-        'redirect': url_for('users.index.index', _external=True)
+        'redirect': url_for('profile.index.index', _external=True)
     }
 
 
@@ -141,7 +141,7 @@ def _check_github_email(email):
         raise Exception("Please provide an email address that is verified in your GitHub account.")
 
 
-@users_auth_bp.route('/email/check')
+@profile_auth_bp.route('/email/check')
 @limiter.limit('30 per day')  # Max number of requests per IP
 def check_email_and_names():
     req = request.args.to_dict()
@@ -200,11 +200,11 @@ def _generate_email_signin_link(email, first_name=None, last_name=None):
         'last_name': last_name,
         'expiry': expiry
     }).encode())
-    link = url_for('users.auth.signin_via_email', _external=True, message=message.decode())
+    link = url_for('profile.auth.signin_via_email', _external=True, message=message.decode())
     return link, expiry
 
 
-@users_auth_bp.route('/email/signin')
+@profile_auth_bp.route('/email/signin')
 def signin_via_email():
     req = request.args.to_dict()
     try:
@@ -219,7 +219,7 @@ def signin_via_email():
 
     signin_user(user.data()['u'])
 
-    return redirect(url_for('users.index.index'))
+    return redirect(url_for('profile.index.index'))
 
 
 def _decrypt_email_link(message):
@@ -239,7 +239,7 @@ def _decrypt_email_link(message):
     return email, first_name, last_name
 
 
-@users_auth_bp.route('/email/signup')
+@profile_auth_bp.route('/email/signup')
 def signup_via_email(email, first_name, last_name, return_redirect=True):
     try:
         Validator('UserNodeSchema', partial=True).validate({
@@ -255,10 +255,10 @@ def signup_via_email(email, first_name, last_name, return_redirect=True):
         return {'message': str(e)}, 400
 
     if return_redirect:
-        return redirect(url_for('users.index.index'))
+        return redirect(url_for('profile.index.index'))
     return {
         'message': "Welcome - please wait to be redirected.",
-        'redirect': url_for('users.index.index', _external=True)
+        'redirect': url_for('profile.index.index', _external=True)
     }
 
 
@@ -280,7 +280,7 @@ def _add_user_from_email(email, first_name, last_name, return_redirect=True):
     return user.data()['u']
 
 
-@users_auth_bp.route('/signout')
+@profile_auth_bp.route('/signout')
 def signout():
     sign_out_user()
     flash('You have signed out successfully. Please note your API token (if any) is still valid.')

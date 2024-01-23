@@ -1,5 +1,5 @@
 import flask
-from flask import request, url_for
+from flask import request
 from flask_session.sessions import RedisSessionInterface, NullSessionInterface
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -9,12 +9,12 @@ import time
 from os import path, walk
 from datetime import datetime
 
-from apis import api_bp
 from resources.globals import Globals
 from resources.neo4j import Neo4j
 from resources.logging_middleware import LoggerMiddleWare
 from middleware.limiter import limiter
-from users import users_bp, login_manager
+from apis import api_bp
+from profile import profile_bp, login_manager
 
 
 # Disable sessions
@@ -111,17 +111,17 @@ if os.environ.get('ENV') == 'production':
     print('POOL', os.environ.get('POOL'))
     if os.environ.get('POOL') == 'api':
         app.session_interface = NullSessionInterface()
-        app.register_blueprint(api_bp, url_prefix='')
+        app.register_blueprint(api_bp, url_prefix='/api')
     else:
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
-        app.register_blueprint(users_bp, url_prefix='/users')
+        app.register_blueprint(profile_bp, url_prefix='/profile')
         login_manager.init_app(app)
 else:
     app.session_interface = CustomRedisSessionInterface()
     app.add_url_rule('/', '/', view_func=show_index)
     app.register_blueprint(api_bp, url_prefix='/api')
-    app.register_blueprint(users_bp, url_prefix='/users')
+    app.register_blueprint(profile_bp, url_prefix='/profile')
     login_manager.init_app(app)
 
 

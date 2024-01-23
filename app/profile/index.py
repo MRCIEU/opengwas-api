@@ -6,10 +6,10 @@ from resources.globals import Globals
 from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
 
 
-users_index_bp = Blueprint('index', __name__)
+profile_index_bp = Blueprint('index', __name__)
 
 
-@users_index_bp.route('')
+@profile_index_bp.route('')
 @login_required
 def index():
     org, membership = get_org_and_membership_from_user(current_user['uid']) if current_user['tier'] == 'ORG' else (None, None)
@@ -26,7 +26,7 @@ def index():
                            tiered_allowance=get_tiered_allowance(), root_url=Globals.app_config['root_url'])
 
 
-@users_index_bp.route('/test_allowance')
+@profile_index_bp.route('/test_allowance')
 @login_required
 def get_allowance():
     g.user = current_user
