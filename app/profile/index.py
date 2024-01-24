@@ -21,7 +21,7 @@ def index():
             org_tooltip = "The following information was inferred from the domain name of your email address."
 
     g.user = current_user
-    return render_template('users/index.html',
+    return render_template('profile/index.html',
                            user=current_user, globals_tiers=Globals.USER_TIERS, org=org, org_tooltip=org_tooltip, membership=membership,
                            tiered_allowance=get_tiered_allowance(), root_url=Globals.app_config['root_url'])
 
