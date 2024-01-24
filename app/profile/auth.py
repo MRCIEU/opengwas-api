@@ -19,11 +19,14 @@ profile_auth_bp = Blueprint('auth', __name__)
 @profile_auth_bp.route('/providers/init')
 def init_providers():
     with current_app.test_request_context(base_url=Globals.app_config['root_url']):
-        return {
-            'microsoft': microsoft.generate_signin_link(url_for('profile.auth.signin_via_microsoft', _external=True))['auth_uri'],
-            'github': Globals.GH_APPS_AUTH_URL + '?client_id=' + Globals.GH_APPS_AUTH_CLIENT_ID + '&redirect_uri=' + url_for('profile.auth.signin_via_github', _external=True),
-            'github_emails': session.get('github_emails')
-        }
+        redirect_url_ms = url_for('profile.auth.signin_via_microsoft', _external=True)
+        redirect_url_gh = url_for('profile.auth.signin_via_github', _external=True)
+
+    return {
+        'microsoft': microsoft.generate_signin_link(redirect_url_ms)['auth_uri'],
+        'github': Globals.GH_APPS_AUTH_URL + '?client_id=' + Globals.GH_APPS_AUTH_CLIENT_ID + '&redirect_uri=' + redirect_url_gh,
+        'github_emails': session.get('github_emails')
+    }
 
 
 @profile_auth_bp.route('/microsoft/redirect')
