@@ -1,4 +1,4 @@
-from flask import Blueprint, url_for, request, redirect, flash,session
+from flask import current_app, Blueprint, url_for, request, redirect, flash,session
 from cryptography.fernet import Fernet
 import time
 import json
@@ -18,11 +18,12 @@ profile_auth_bp = Blueprint('auth', __name__)
 
 @profile_auth_bp.route('/providers/init')
 def init_providers():
-    return {
-        'microsoft': microsoft.generate_signin_link(url_for('profile.auth.signin_via_microsoft', _external=True))['auth_uri'],
-        'github': Globals.GH_APPS_AUTH_URL + '?client_id=' + Globals.GH_APPS_AUTH_CLIENT_ID + '&redirect_uri=' + url_for('profile.auth.signin_via_github', _external=True),
-        'github_emails': session.get('github_emails')
-    }
+    with current_app.test_request_context(base_url=Globals.app_config['root_url']):
+        return {
+            'microsoft': microsoft.generate_signin_link(url_for('profile.auth.signin_via_microsoft', _external=True))['auth_uri'],
+            'github': Globals.GH_APPS_AUTH_URL + '?client_id=' + Globals.GH_APPS_AUTH_CLIENT_ID + '&redirect_uri=' + url_for('profile.auth.signin_via_github', _external=True),
+            'github_emails': session.get('github_emails')
+        }
 
 
 @profile_auth_bp.route('/microsoft/redirect')
@@ -200,7 +201,8 @@ def _generate_email_signin_link(email, first_name=None, last_name=None):
         'last_name': last_name,
         'expiry': expiry
     }).encode())
-    link = url_for('profile.auth.signin_via_email', _external=True, message=message.decode())
+    with current_app.test_request_context(base_url=Globals.app_config['root_url']):
+        link = url_for('profile.auth.signin_via_email', _external=True, message=message.decode())
     return link, expiry
 
 
