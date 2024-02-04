@@ -28,3 +28,11 @@ services:
     volumes:
       - /data/redis-v7/data:/data
     command: redis-server --requirepass ${REDIS_PASS}
+
+  og-fileserve:
+    image: nginx:1.25.3
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - /data/fileserve:/usr/share/nginx/html
