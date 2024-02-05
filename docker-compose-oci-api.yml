@@ -37,6 +37,6 @@ services:
       - FLASK_APP=main.py
       - ENV=production
       - ACCESS=public
-      - POOL=frontend
+      - POOL=profile
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
