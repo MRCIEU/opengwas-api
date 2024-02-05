@@ -7,7 +7,7 @@ COPY ./vault /app/vault
 
 RUN python -m pip install -r /app/requirements.txt
 
-RUN mkdir /data /data/igd /data/mrb_logs /data/tmp /ld_files
+RUN mkdir /data /data/igd /data/mrb_logs /data/tmp
 
 RUN chmod +x /app/gunicorn.sh
 CMD /app/gunicorn.sh
