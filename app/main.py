@@ -14,6 +14,7 @@ from resources.neo4j import Neo4j
 from resources.logging_middleware import LoggerMiddleWare
 from middleware.limiter import limiter
 from apis import api_bp
+from apis.status import check_ld_ref, check_1000g_vcf
 from profile import profile_bp, login_manager
 
 
@@ -71,10 +72,16 @@ def show_index():
     return flask.render_template('index.html', root_url=Globals.app_config['root_url'], current_user=current_user)
 
 
-def healthcheck():
+def probe_health():
     return {
         'time': int(time.time())
     }
+
+
+def probe_readiness():
+    if check_ld_ref() == "Available" and check_1000g_vcf() == "Available":
+        return {'message': "LD files available"}, 200
+    return {'message': "LD files unavailable"}, 503
 
 
 # Let's Encrypt ACME challenge
@@ -105,12 +112,14 @@ limiter.init_app(app)
 
 # Let's Encrypt ACME challenge
 app.add_url_rule('/.well-known/acme-challenge/mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k', '/acme', acme)
-app.add_url_rule('/healthcheck', '/healthcheck', view_func=healthcheck)
+
+app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
 if os.environ.get('ENV') == 'production':
     print('POOL', os.environ.get('POOL'))
     if os.environ.get('POOL') == 'api':
         app.session_interface = NullSessionInterface()
+        app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
     else:
         app.session_interface = CustomRedisSessionInterface()
@@ -120,6 +129,7 @@ if os.environ.get('ENV') == 'production':
 else:
     app.session_interface = CustomRedisSessionInterface()
     app.add_url_rule('/', '/', view_func=show_index)
+    app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(profile_bp, url_prefix='/profile')
     login_manager.init_app(app)
