@@ -38,7 +38,8 @@ def signin_via_microsoft():
         return redirect(url_for('/'))
 
     user = _add_user_from_microsoft()
-    signin_user(user)
+
+    signin_user(user, 'MS')
 
     return redirect(url_for('profile.index.index'))
 
@@ -58,13 +59,13 @@ def _add_user_from_microsoft():
             # Create/merge User node as well as MEMBER_OF and MEMBER_OF_ORG relationships
             user = add_new_user(email=user_org_info['user']['mail'],
                          first_name=user_org_info['user']['givenName'], last_name=user_org_info['user']['surname'],
-                         tier='ORG', org_uuid=org['uuid'], user_org_info=user_org_info['user_org'])
+                         tier='ORG', source='MS', org_uuid=org['uuid'], user_org_info=user_org_info['user_org'])
 
         else:
             # Just create/merge User node
             user = add_new_user(email=user_org_info['user']['mail'],
                          first_name=user_org_info['user']['givenName'], last_name=user_org_info['user']['surname'],
-                         tier='PER')
+                         tier='PER', source='MS')
     except Exception as e:
         flash(str(e), 'danger')
         return redirect(url_for('/'))
@@ -82,7 +83,7 @@ def signin_via_github():
 
     gh_emails = _search_user_by_github()
     if 'existing' in gh_emails:
-        signin_user({'uid': gh_emails['existing'][0]})
+        signin_user({'uid': gh_emails['existing'][0]}, 'GH')
         return redirect(url_for('profile.index.index'))
     else:
         session['github_emails'] = gh_emails['new']
@@ -130,9 +131,9 @@ def signup_via_github():
 
     user = get_user_by_email(req['email'])
     if user is None:
-        return signup_via_email(req["email"], req['first_name'], req['last_name'], False)
+        return signup_via_email(req["email"], req['first_name'], req['last_name'], 'GH', False)
 
-    signin_user(user.data()['u'])
+    signin_user(user.data()['u'], 'GH')
 
     return {
         'message': "Signing in existing user.",
@@ -222,7 +223,7 @@ def signin_via_email():
     if user is None:
         return signup_via_email(email, first_name, last_name)
 
-    signin_user(user.data()['u'])
+    signin_user(user.data()['u'], 'EM')
 
     return redirect(url_for('profile.index.index'))
 
@@ -245,7 +246,7 @@ def _decrypt_email_link(message):
 
 
 @profile_auth_bp.route('/email/signup')
-def signup_via_email(email, first_name, last_name, return_redirect=True):
+def signup_via_email(email, first_name, last_name, source='EM', return_redirect=True):
     try:
         Validator('UserNodeSchema', partial=True).validate({
             'uid': email, 'first_name': first_name, 'last_name': last_name
@@ -254,8 +255,8 @@ def signup_via_email(email, first_name, last_name, return_redirect=True):
         return {'message': "Please provide valid first name and last name."}, 400
 
     try:
-        user = _add_user_from_email(email, first_name, last_name, return_redirect=False)
-        signin_user(user)
+        user = _add_user_from_email(email, first_name, last_name, source, return_redirect=False)
+        signin_user(user, source)
     except Exception as e:
         return {'message': str(e)}, 400
 
@@ -267,14 +268,14 @@ def signup_via_email(email, first_name, last_name, return_redirect=True):
     }
 
 
-def _add_user_from_email(email, first_name, last_name, return_redirect=True):
+def _add_user_from_email(email, first_name, last_name, source, return_redirect=True):
     try:
         domain = email.split("@")[1]
         org = organisations.get_or_add_org(provider='GH', domain=domain, new_org=GitHubUniversities().search_by_domain(domain))
         if org:
-            user = add_new_user(email=email, first_name=first_name, last_name=last_name, tier='ORG', org_uuid=org['uuid'])
+            user = add_new_user(email=email, first_name=first_name, last_name=last_name, tier='ORG', source=source, org_uuid=org['uuid'])
         else:
-            user = add_new_user(email=email, first_name=first_name, last_name=last_name, tier='PER')
+            user = add_new_user(email=email, first_name=first_name, last_name=last_name, tier='PER', source=source)
     except Exception as e:
         if return_redirect:
             flash(str(e), 'danger')

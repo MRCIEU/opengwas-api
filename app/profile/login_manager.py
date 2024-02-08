@@ -11,8 +11,16 @@ def load_user(uid):
     return User.get_node(uid)
 
 
-def signin_user(user):
-    login_user(load_user(user['uid']))
+def update_user_source(user, source):
+    user.source = source
+    user.create_node()
+    return user
+
+
+def signin_user(user, source):
+    user = load_user(user['uid'])
+    user = update_user_source(user, source)
+    login_user(user)
     return current_user
 
 

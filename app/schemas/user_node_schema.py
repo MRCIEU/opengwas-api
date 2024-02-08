@@ -11,6 +11,7 @@ class UserNodeSchema(FRPMSchema):
     last_name = fields.Str(required=True, allow_none=False, validate=validate.Length(min=1, max=40),
                            description="Last name")
     tier = fields.Str(required=True, allow_none=False, validate=validate.OneOf(['ORG', 'PER']), description="Tier of user")
+    source = fields.Str(required=True, allow_none=False, validate=validate.OneOf(['MS', 'GH', 'EM']), description="Source of user info")
     jwt_timestamp = fields.Int(required=False, description="JWT timestamp")
     created = fields.Int(required=False, description="Timestamp of node creation")
     updated = fields.Int(required=False, description="Timestamp of node update")

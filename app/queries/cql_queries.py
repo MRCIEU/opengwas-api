@@ -124,9 +124,9 @@ def edit_existing_gwas(gwas_id, gwas_info_dict):
     return gwas_info_dict['id']
 
 
-def add_new_user(email, first_name, last_name, tier, org_uuid=None, user_org_info=None, group_names=frozenset(['public']), admin=False):
+def add_new_user(email, first_name, last_name, tier, source, org_uuid=None, user_org_info=None, group_names=frozenset(['public']), admin=False):
     email = email.strip().lower()
-    u = User(uid=email, first_name=first_name, last_name=last_name, tier=tier)
+    u = User(uid=email, first_name=first_name, last_name=last_name, tier=tier, source=source)
     u.create_node()
 
     if admin:

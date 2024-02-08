@@ -29,9 +29,9 @@ class User(UniqueNode, UserMixin):
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":'" + self.get(self._UID_KEY) + "'}) " +
-            "ON CREATE SET n.admin=False, n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.created=$timestamp " +
-            "ON MATCH SET n.admin=False, n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.updated=$timestamp;",
-            first_name=d['first_name'], last_name=d['last_name'], tier=d['tier'], timestamp=int(time.time())
+            "ON CREATE SET n.admin=False, n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.source=$source, n.created=$timestamp " +
+            "ON MATCH SET n.admin=False, n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.source=$source, n.updated=$timestamp;",
+            first_name=d['first_name'], last_name=d['last_name'], tier=d['tier'], source=d['source'], timestamp=int(time.time())
         )
 
     @classmethod
