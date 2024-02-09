@@ -5,7 +5,7 @@ from queries.variants import *
 from queries.vcf import *
 from resources.globals import Globals
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 
 api = Namespace('variants', description="Retrieve variant information")
 
@@ -24,7 +24,7 @@ class VariantGet(Resource):
         if rsid is None:
             abort(404)
 
-        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1):
             pass
 
         try:
@@ -56,7 +56,7 @@ class VariantPost(Resource):
     @api.expect(parser)
     @api.doc(id='post_variant_rsid')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def post(self):
         args = self.parser.parse_args()
         if len(args['rsid']) == 0:
@@ -85,7 +85,7 @@ class ChrposGet(Resource):
     @api.expect(parser)
     @api.doc(id='get_chrpos')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, chrpos):
         args = self.parser.parse_args()
         chrpos = [x for x in ''.join(chrpos.split()).split(',')]
@@ -122,7 +122,7 @@ class ChrposPost(Resource):
     @api.expect(parser)
     @api.doc(id='post_chrpos')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def post(self):
         args = self.parser.parse_args()
         if len(args['chrpos']) == 0:
@@ -149,7 +149,7 @@ class GeneGet(Resource):
     @api.expect(parser)
     @api.doc(id='get_gene')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, gene=None):
         args = self.parser.parse_args()
 
@@ -172,7 +172,7 @@ class GeneGet(Resource):
 class VariantGet(Resource):
     @api.doc(id='get_afl2_rsid')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, rsid=None):
         if rsid is None:
             abort(404)
@@ -204,7 +204,7 @@ class ChrposGet(Resource):
     @api.expect(parser)
     @api.doc(id='get_afl2_chrpos')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, chrpos=None):
         if chrpos is None:
             abort(404)
@@ -240,7 +240,7 @@ class Afl2Post(Resource):
     @api.expect(parser)
     @api.doc(id='post_afl2')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=1)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def post(self):
         args = self.parser.parse_args()
         if (len(args['chrpos']) == 0 and len(args['rsid']) == 0):
@@ -276,7 +276,7 @@ class Afl2Post(Resource):
 class Afl2Snplist(Resource):
     @api.doc(id='get_afl2_snplist')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=10)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=10)
     def get(self):
         try:
             return send_file(Globals.AFL2['snplist'])

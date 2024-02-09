@@ -82,9 +82,15 @@ class Globals:
 
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
-    USER_TIERS = {
-        'ORG': "Organisational",
-        'PER': "Personal",
+    # USER_TIERS = {
+    #     'TRUSTED': "Organisational",
+    #     'PER': "Personal",
+    #     'NONE': "Anonymous"
+    # }
+    USER_SOURCES = {
+        'MS': "Microsoft",
+        'GH': "GitHub",
+        'EM': "Email verification",
         'NONE': "Anonymous"
     }
 
@@ -115,8 +121,14 @@ class Globals:
 
     # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
     # This only applies to chargeable endpoints
-    ALLOWANCE_BY_TIER = {
-        'ORG': '15000 per hour',
-        'PER': '3000 per hour',
+    # ALLOWANCE_BY_TIER = {
+    #     'TRUSTED': '15000 per hour',
+    #     'PER': '3000 per hour',
+    #     'NONE': '0 per hour'
+    # }
+    ALLOWANCE_BY_USER_SOURCE = {
+        'MS': '15000 per hour',
+        'GH': '15000 per hour',
+        'EM': '3000 per hour',
         'NONE': '0 per hour'
     }

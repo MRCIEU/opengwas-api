@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 
 from queries.cql_queries import *
 from resources.globals import Globals
-from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 
 
 profile_index_bp = Blueprint('index', __name__)
@@ -22,14 +22,14 @@ def index():
 
     g.user = current_user
     return render_template('profile/index.html',
-                           user=current_user, globals_tiers=Globals.USER_TIERS, org=org, org_tooltip=org_tooltip, membership=membership,
-                           tiered_allowance=get_tiered_allowance(), root_url=Globals.app_config['root_url'])
+                           user=current_user, globals_sources=Globals.USER_SOURCES, org=org, org_tooltip=org_tooltip, membership=membership,
+                           allowance_by_user_source=get_allowance_by_user_source(), root_url=Globals.app_config['root_url'])
 
 
 @profile_index_bp.route('/test_allowance')
 @login_required
 def get_allowance():
     g.user = current_user
-    with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, deduct_when=lambda flask_response: False):
+    with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, deduct_when=lambda flask_response: False):
         pass
     return {}

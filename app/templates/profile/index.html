@@ -48,10 +48,10 @@
     <div class="col">
         <div class="row">
             <div class="col-auto">
-                <label for="tier" class="col-form-label">Tier</label>
+                <label for="user_source" class="col-form-label">Method of sign in</label>
             </div>
             <div class="col">
-                <input type="text" readonly class="form-control-plaintext" id="tier" value="{{ globals_tiers[user['tier']] }}">
+                <input type="text" readonly class="form-control-plaintext" id="user_source" value="{{ globals_sources[user['source']] }}">
             </div>
         </div>
     </div>
@@ -79,7 +79,7 @@
     {% endif %}
 {% endif %}
 <hr>
-<h4>Token <small><a href="{{ root_url + '/#authentication' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
+<h4>Token <small><a href="{{ root_url + '/api/#authentication' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
 <div id="noTokenDiv" class="row" style="display: none">
     <div class="d-flex justify-content-center">
         <button type="button" class="btn btn-sm btn-outline-success" onclick="generate_token()">Generate a token</button>
@@ -112,13 +112,13 @@
     </div>
 </div>
 <hr>
-<h4>Allowance <small><a href="{{ root_url + '/#allowance' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
+<h4>Allowance <small><a href="{{ root_url + '/api/#allowance' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
 <div class="row">
     <div class="col-auto">
         <label for="allowanceLimitInput" class="col-form-label">Allowance</label>
     </div>
     <div class="col">
-        <input type="text" readonly class="form-control-plaintext" id="allowanceLimitInput" value="{{ tiered_allowance }}">
+        <input type="text" readonly class="form-control-plaintext" id="allowanceLimitInput" value="{{ allowance_by_user_source }}">
     </div>
 </div>
 <div class="row">

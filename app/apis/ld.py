@@ -4,7 +4,7 @@ from flask_restx import Resource, reqparse, abort, Namespace
 from resources.ld import *
 from resources.globals import Globals
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
 
@@ -31,7 +31,7 @@ class Clump(Resource):
     @api.expect(parser)
     @api.doc(id='post_ld_clump')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
         if len(args['rsid']) == 0 or len(args['pval']) == 0 or len(args['rsid']) != len(args['pval']):
@@ -59,7 +59,7 @@ class LdMatrix(Resource):
     @api.expect(parser)
     @api.doc(id='post_ld_matrix')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=20)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=20)
     def post(self):
         args = self.parser.parse_args()
 
@@ -83,7 +83,7 @@ class RefLookup(Resource):
     @api.expect(parser)
     @api.doc(id='post_ld_reflookup')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=2)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=2)
     def post(self):
         args = self.parser.parse_args()
 

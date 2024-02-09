@@ -2,7 +2,7 @@ from flask import request, g
 from flask_restx import Resource, reqparse, abort, Namespace
 
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 from queries.es import *
 
 api = Namespace('associations', description="Retrieve GWAS associations")
@@ -38,7 +38,7 @@ class AssocGet(Resource):
         ids = id.split(',')
         variants = variant.split(',')
 
-        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid,
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
                                   cost=lambda: _get_cost(ids, variants)):
             pass
 
@@ -70,7 +70,7 @@ class AssocPost(Resource):
     @api.expect(parser)
     @api.doc(id='post_variants_gwas')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid,
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
                           cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()

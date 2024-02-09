@@ -4,7 +4,7 @@ from flask_limiter.util import get_remote_address
 import datetime
 
 from resources.globals import Globals
-from middleware.auth import get_tier, get_uid
+from middleware.auth import get_user_source, get_uid
 
 
 def make_429_response(request_limit: RequestLimit):
@@ -28,8 +28,8 @@ limiter = Limiter(
 )
 
 
-def get_tiered_allowance():
-    return Globals.ALLOWANCE_BY_TIER[get_tier()]
+def get_allowance_by_user_source():
+    return Globals.ALLOWANCE_BY_USER_SOURCE[get_user_source()]
 
 
 def get_key_func_uid():

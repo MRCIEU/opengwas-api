@@ -5,7 +5,7 @@ import logging
 # import os
 
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 from queries.cql_queries import *
 # from resources.globals import Globals
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
@@ -32,7 +32,7 @@ class Info(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=50)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=50)
     def get(self):
         # user_email = g.user['uid']
         # if user_email is None and os.path.exists(Globals.STATIC_GWASINFO):
@@ -44,7 +44,7 @@ class Info(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_post')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid,
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
                           cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
@@ -73,7 +73,7 @@ class GetById(Resource):
     def get(self, id):
         ids = id.split(',')
 
-        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid,
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
                                   cost=lambda: _get_cost(ids)):
             pass
 

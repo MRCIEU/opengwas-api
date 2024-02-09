@@ -3,7 +3,7 @@ from flask_restx import Resource, reqparse, abort, Namespace
 
 from queries.es import *
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_tiered_allowance, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
 
@@ -34,7 +34,7 @@ class PhewasGet(Resource):
             abort(400)
         variants = variant.split(',')
 
-        with limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=lambda: _get_cost(variants)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(variants)):
             pass
 
         try:
@@ -57,7 +57,7 @@ class PhewasPost(Resource):
     @api.expect(parser)
     @api.doc(id='post_phewas')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_tiered_allowance, scope='tiered_allowance', key_func=get_key_func_uid, cost=_get_cost)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
 

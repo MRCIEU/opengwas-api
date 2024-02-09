@@ -19,7 +19,7 @@ def get_uid(error_on_none=False):
     return g.user['uid']
 
 
-def get_tier(error_on_none=False):
-    if 'user' not in g or 'tier' not in g.user:
-        return Unauthorized("Unable to get tier for rate limiting. Please provide your token.") if error_on_none else 'NONE'
-    return g.user['tier']
+def get_user_source(error_on_none=False):
+    if 'user' not in g or 'source' not in g.user:
+        return Unauthorized("Unable to get user source for rate limiting. Please provide your token.") if error_on_none else 'NONE'
+    return g.user['source']
