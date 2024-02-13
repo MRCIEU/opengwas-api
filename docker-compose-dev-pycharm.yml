@@ -1,0 +1,50 @@
+version: '3.4'
+
+networks:
+  og-api:
+    name: og-api
+
+services:
+  og-api:
+    image: og-api
+    build:
+      context: .
+      dockerfile: ./Dockerfile-dev-pycharm
+    ports:
+      - "8019:8019"
+      - "5678:5678"
+    environment:
+      - FLASK_APP=main.py
+      - FLASK_DEBUG=1
+      - ENV=local
+      - ACCESS=private
+    volumes:
+      - ./app:/app
+    command: ["gunicorn", "--bind", "0.0.0.0:8019", "main:app"]
+    networks:
+      - og-api
+    depends_on:
+      - og-neo4j
+      - og-redis
+
+  og-neo4j:
+    image: neo4j:5.13
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./app/data/neo4j-v5/data:/data
+      - ./app/data/neo4j-backup:/backup
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH}
+      - NEO4J_dbms_directories_run=/run
+    networks:
+      - og-api
+
+  og-redis:
+    image: redis:7.2.3
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./app/data/redis-v7/data:/data
+    command: ["redis-server", "--requirepass", "${REDIS_PASS}", "--dir", "/data"]
