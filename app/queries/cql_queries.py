@@ -304,13 +304,9 @@ def set_org_properties_from_ms(uuid, ms_id, ms_name, ms_domains):
     Org().set_properties_from_ms(uuid, ms_id, ms_name, ms_domains)
 
 
-def add_org_github(uuid, name, gh_domains):
-    o = Org(uuid=uuid, name=name)
+def add_org_github(uuid, gh_name, gh_domains):
+    o = Org(uuid=uuid)
     o.create_node()
-    Org().set_domains_from_github(uuid, gh_domains)
-
-
-def set_org_properties_from_github(uuid, gh_name, gh_domains):
     Org().set_properties_from_github(uuid, gh_name, gh_domains)
 
 
