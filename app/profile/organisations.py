@@ -13,7 +13,7 @@ def get_or_add_org(provider=None, domain=None, new_org=None):
         if existing_org:
             # A domain name may be 'verified' by another tenant if deleted by the current tenant
             # https://learn.microsoft.com/en-us/entra/identity/users/domains-manage#best-practices-for-domain-hygiene
-            if existing_org['ms_id'] == new_org['id']:  # Always update org properties using MS data source
+            if 'ms_id' not in existing_org or existing_org['ms_id'] == new_org['id']:  # Always update org properties using MS data source
                 cql_queries.set_org_properties_from_ms(existing_org['uuid'], new_org['id'], new_org['displayName'], new_org['verifiedDomains'])
             else:
                 raise Exception("The domain {} was verified by an existing organisation, of which the Microsoft organization.id {} is different from the new one {}. Please contact us.".format(domain, existing_org['ms_id'], new_org['id']))
