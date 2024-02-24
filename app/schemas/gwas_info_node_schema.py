@@ -153,75 +153,67 @@ def check_id_is_valid_filename(data):
 
 class GwasInfoNodeSchema(FRPMSchema):
     id = fields.Str(required=True, allow_none=False,
-                    description="GWAS study identifier",
+                    metadata={"description": "GWAS study identifier"},
                     validate=check_id_is_valid_filename)
     pmid = fields.Int(required=False, allow_none=True,
-                      description="Pubmed identifier. Leave blank for unpublished studies.")
+                      metadata={"description": "Pubmed identifier. Leave blank for unpublished studies."})
     doi = fields.Str(required=False, allow_none=True,
-                     description="DOI. Leave blank for unpublished studies.",
+                     metadata={"description": "DOI. Leave blank for unpublished studies."},
                      validate=check_doi)
-    year = fields.Int(required=False, validate=check_study_year, allow_none=True, missing=None,
-                      description="What year was this GWAS published?")
+    year = fields.Int(required=False, validate=check_study_year, allow_none=True, load_default=None,
+                      metadata={"description": "What year was this GWAS published?"})
     mr = fields.Int(required=False, allow_none=True,
                     validate=check_mr_is_0_or_1,
-                    description="Is the study suitable for MR studies?", choices=(0, 1))
+                    metadata={"description": "Is the study suitable for MR studies?", "choices": (0, 1)})
     note = fields.Str(required=False, allow_none=True,
-                      description="Is there any other information you would like to provide us about your GWAS?")
+                      metadata={"description": "Is there any other information you would like to provide us about your GWAS?"})
     trait = fields.Str(required=True, allow_none=False,
-                       description="Avoid acronyms; don't include other information in the trait name (e.g. don't include array name, whether restricted to males or females or whether adjusted or unadjusted for covariates)")
+                       metadata={"description": "Avoid acronyms; don't include other information in the trait name (e.g. don't include array name, whether restricted to males or females or whether adjusted or unadjusted for covariates)"})
     # trait_description = fields.Str(required=False, validate=check_trait_description, allow_none=True,
     # choices=sorted(list(valid_trait_descriptions)),
-    # description="Describe the distribution of your phenotype")
+    # metadata={"description": "Describe the distribution of your phenotype")
     category = fields.Str(required=True, validate=check_category_is_valid, allow_none=False,
-                          description="Is your phenotype a binary disease phenotype or a non-disease phenotype",
-                          choices=sorted(list(valid_categories)))
+                          metadata={"description": "Is your phenotype a binary disease phenotype or a non-disease phenotype", "choices": sorted(list(valid_categories))})
     subcategory = fields.Str(required=True, allow_none=False,
                              validate=check_subcategory_is_valid,
-                             description="Select the option that best describes your phenotype.",
-                             choices=sorted(list(valid_trait_subcategories)))
+                             metadata={"description": "Select the option that best describes your phenotype.", "choices": sorted(list(valid_trait_subcategories))})
     ontology = fields.Str(required=False, allow_none=True,
-                          description="Ontology mapping, semi-colon separated, e.g. 'MONDO:0003274;EFO:0000311'")
+                          metadata={"description": "Ontology mapping, semi-colon separated, e.g. 'MONDO:0003274;EFO:0000311'"})
     population = fields.Str(required=True, validate=check_population_is_valid, allow_none=False,
-                            description="Describe the geographic origins of your population",
-                            choices=sorted(list(valid_populations)))
+                            metadata={"description": "Describe the geographic origins of your population", "choices": sorted(list(valid_populations))})
     sex = fields.Str(required=True, validate=check_sex_is_valid, allow_none=False,
-                     description="Indicate whether males or females are included in your study",
-                     choices=sorted(list(valid_sex)))
+                     metadata={"description": "Indicate whether males or females are included in your study", "choices": sorted(list(valid_sex))})
     ncase = fields.Int(required=False, allow_none=True,
-                       description="Provide number of cases in your study (if applicable)")
+                       metadata={"description": "Provide number of cases in your study (if applicable)"})
     ncontrol = fields.Int(required=False, allow_none=True,
-                          description="Provide number of controls in your study (if applicable)")
-    sample_size = fields.Int(required=False, allow_none=True, description="Provide the sample size of your study")
+                          metadata={"description": "Provide number of controls in your study (if applicable)"})
+    sample_size = fields.Int(required=False, allow_none=True, metadata={"description": "Provide the sample size of your study"})
     nsnp = fields.Int(required=False, allow_none=True,
-                      description="How many SNPs are in your results file that you are uploading?")
+                      metadata={"description": "How many SNPs are in your results file that you are uploading?"})
     unit = fields.Str(required=False, allow_none=True,
-                      description="How do you interpret a 1-unit change in the phenotype? eg log odds ratio, mmol/L, SD units?")
+                      metadata={"description": "How do you interpret a 1-unit change in the phenotype? eg log odds ratio, mmol/L, SD units?"})
     sd = fields.Float(required=False, allow_none=True,
-                      description="What is the standard deviation of the sample mean of the phenotype?")
+                      metadata={"description": "What is the standard deviation of the sample mean of the phenotype?"})
     priority = fields.Int(required=False, allow_none=True,
-                          description="If multiple datasets with the same trait name exist, where does this dataset rank in terms of priority")
-    author = fields.Str(required=False, allow_none=True, missing="NA",
-                        description="Provide the last name of the first author of your study")
-    consortium = fields.Str(required=False, allow_none=True, missing="NA",
-                            description="What is the name of your study or consortium (if applicable)?")
+                          metadata={"description": "If multiple datasets with the same trait name exist, where does this dataset rank in terms of priority"})
+    author = fields.Str(required=False, allow_none=True, load_default="NA",
+                        metadata={"description": "Provide the last name of the first author of your study"})
+    consortium = fields.Str(required=False, allow_none=True, load_default="NA",
+                            metadata={"description": "What is the name of your study or consortium (if applicable)?"})
     study_design = fields.Str(required=False, validate=check_study_design_is_valid, allow_none=True,
-                              description="Which best describes the design of your study",
-                              choices=sorted(list(valid_study_designs)))
+                              metadata={"description": "Which best describes the design of your study", "choices": sorted(list(valid_study_designs))})
     covariates = fields.Str(required=False, allow_none=True,
-                            description="Describe the covariates included in your regression model")
+                            metadata={"description": "Describe the covariates included in your regression model"})
     beta_transformation = fields.Str(required=False, allow_none=True,
-                                     description="Describe transformations applied to your phenotype (e.g. inverse rank normal, Z transformations, etc)")
+                                     metadata={"description": "Describe transformations applied to your phenotype (e.g. inverse rank normal, Z transformations, etc)"})
     imputation_panel = fields.Str(required=False, validate=check_imputation_panel_is_valid, allow_none=True,
-                                  description="Select the imputation panel used in your study",
-                                  choices=sorted(list(valid_imputation_panels)))
+                                  metadata={"description": "Select the imputation panel used in your study", "choices": sorted(list(valid_imputation_panels))})
     build = fields.Str(required=False, validate=check_genome_build_is_valid, allow_none=True,
-                       description="Select the genome build for your study", choices=sorted(list(valid_genome_build)))
+                       metadata={"description": "Select the genome build for your study", "choices": sorted(list(valid_genome_build))})
     coverage = fields.Str(required=False, allow_none=True,
-                          description="Level of genome coverage",
-                          choices=list(valid_coverage))
+                          metadata={"description": "Level of genome coverage", "choices": list(valid_coverage)})
     qc_prior_to_upload = fields.Str(required=False, allow_none=True,
-                                    description="Detail any QC or filtering steps taken prior to data upload")
+                                    metadata={"description": "Detail any QC or filtering steps taken prior to data upload"})
     group_name = fields.Str(required=False, allow_none=True,
                             validate=check_group_name_is_valid,
-                            description="Name for the group this study should belong to.",
-                            choices=sorted(list(valid_group_names)))
+                            metadata={"description": "Name for the group this study should belong to.", "choices": sorted(list(valid_group_names))})

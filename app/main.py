@@ -22,7 +22,7 @@ from profile import profile_bp, login_manager
 # https://stackoverflow.com/questions/50162502/disable-session-cookie-generation-in-python-flask-login
 class CustomRedisSessionInterface(RedisSessionInterface):
     def __init__(self):
-        super(CustomRedisSessionInterface, self).__init__(Globals.SESSION_REDIS, 'session:')
+        super(CustomRedisSessionInterface, self).__init__(Globals.SESSION_REDIS, 'session:',False, False, 32)
 
     @staticmethod
     def _path_requires_session():

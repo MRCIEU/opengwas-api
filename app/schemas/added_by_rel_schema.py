@@ -9,4 +9,4 @@ def check_epoch_is_valid(data):
 
 class AddedByRelSchema(FRPMSchema):
     epoch = fields.Float(required=True, allow_none=False,
-                       description="Unix timestamp: time recorded as number of miliseconds past 01.01.1970")
+                       metadata={"description": "Unix timestamp: time recorded as number of miliseconds past 01.01.1970"})

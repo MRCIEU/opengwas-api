@@ -38,4 +38,4 @@ def check_group_name_is_valid(data):
 
 
 class GroupNodeSchema(FRPMSchema):
-    name = fields.Str(required=True, allow_none=False, description="Group name", validate=check_group_name_is_valid)
+    name = fields.Str(required=True, allow_none=False, metadata={"description": "Group name"}, validate=check_group_name_is_valid)
