@@ -28,8 +28,8 @@ api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
               'token': {
                   'type': 'apiKey',
                   'in': 'header',
-                  'name': 'Authorization',
-                  'description': 'Prepend "<code>Bearer(whitespace)</code>" to your token. The entire value provided for this header should be like: <code>Bearer ey******.**********.*********</code>.'
+                  'name': 'X-API-TOKEN',
+                  'description': 'Please provide your token, which can be obtained via <code>ieugwasr::get_access_token()</code> in R.'
               }
           }, security='token')
 
