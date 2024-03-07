@@ -3,6 +3,7 @@ import requests
 
 # Anonymous
 def test_gwasinfo_post0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     payload = {'id': ['ieu-a-2', 'ieu-a-7']}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
@@ -45,6 +46,7 @@ def test_gwasinfo_post5(url, headers):
 
 
 def test_gwasinfo_get0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     r = requests.get(url + "/gwasinfo", headers=headers)
     assert r.status_code == 401

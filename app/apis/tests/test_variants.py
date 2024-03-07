@@ -3,6 +3,7 @@ import requests
 
 # Anonymous
 def test_rsid_get0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     r = requests.get(url + "/variants/rsid/rs234", headers=headers)
     assert r.status_code == 401
@@ -19,6 +20,7 @@ def test_rsid_get2(url, headers):
 
 
 def test_chrpos_get0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     r = requests.get(url + "/variants/chrpos/7:105561135", headers=headers)
     assert r.status_code == 401
@@ -42,6 +44,7 @@ def test_chrpos_get3(url, headers):
 
 
 def test_gene_get0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     r = requests.get(url + "/variants/gene/ENSG00000123374", headers=headers)
     assert r.status_code == 401
@@ -53,6 +56,7 @@ def test_gene_get1(url, headers):
 
 
 def test_rsid_post0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     payload = {'rsid': ['rs234', 'rs333']}
     r = requests.post(url + "/variants/rsid", data=payload, headers=headers)
@@ -84,6 +88,7 @@ def test_chrpos_post3(url, headers):
 
 
 def test_afl2_get0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     r = requests.get(url + "/variants/afl2/snplist", headers=headers)
     assert r.status_code == 401
@@ -105,6 +110,7 @@ def test_afl2_get3(url, headers):
 
 
 def test_afl2_post0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     payload = {'chrpos': ['7:105561135', '10:44865737'], 'rsid': ['rs123']}
     r = requests.post(url + "/variants/afl2", data=payload, headers=headers)

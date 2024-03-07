@@ -17,4 +17,5 @@ def get_jwt():
             timestamp = int(time.time())
             jwt = generate_jwt(Globals.app_config['test']['uid'], timestamp)
             set_user_jwt_timestamp(Globals.app_config['test']['uid'], timestamp)
+            print(jwt)
             return jwt

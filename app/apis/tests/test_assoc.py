@@ -3,6 +3,7 @@ import requests
 
 # Anonymous
 def test_assoc_get0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     r = requests.get(url + "/associations/ieu-a-2/rs234", headers=headers)
     assert r.status_code == 401
@@ -38,7 +39,6 @@ def test_assoc_get5(url, headers):
 
 # ieu-b-5008 is in the 'biogen' group, of which the test user is a member
 def test_assoc_get6(url, headers):
-    print(headers)
     r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-b-5008/rs234,rs123", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 6
 

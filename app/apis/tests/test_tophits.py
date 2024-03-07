@@ -3,6 +3,7 @@ import requests
 
 # Anonymous
 def test_tophits_post0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     payload = {'id': ['ieu-a-2', 'ieu-a-998']}
     r = requests.post(url + "/tophits", data=payload, headers=headers)

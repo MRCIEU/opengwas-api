@@ -25,7 +25,7 @@ def url(request):
     return request.config.getoption("--url")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def headers():
     return {
         'X-Declare-Test-Mode-Key': Globals.app_config['test']['key_declare_test_mode'],

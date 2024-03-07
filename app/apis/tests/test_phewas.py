@@ -3,6 +3,7 @@ import requests
 
 # Anonymous
 def test_phewas_get0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     r = requests.get(url + "/phewas/rs234/0.001", headers=headers)
     assert r.status_code == 401
@@ -19,6 +20,7 @@ def test_phewas_get2(url, headers):
 
 
 def test_phewas_post0(url, headers):
+    headers = headers.copy()
     del headers['Authorization']
     payload = {'variant': 'rs234', 'pval': 0.001}
     r = requests.post(url + "/phewas", data=payload, headers=headers)
