@@ -2,12 +2,12 @@ from flask import request, send_file, g
 from flask_restx import Resource, Namespace
 from werkzeug.exceptions import BadRequest
 import logging
-# import os
+import os
 
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 from queries.cql_queries import *
-# from resources.globals import Globals
+from resources.globals import Globals
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 logger = logging.getLogger('debug-log')
@@ -34,9 +34,8 @@ class Info(Resource):
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=50)
     def get(self):
-        # user_email = g.user['uid']
-        # if user_email is None and os.path.exists(Globals.STATIC_GWASINFO):
-        #     return send_file(Globals.STATIC_GWASINFO)
+        if g.user['uid'] is None and os.path.exists(Globals.STATIC_GWASINFO):
+            return send_file(Globals.STATIC_GWASINFO)
         return get_all_gwas_for_user(g.user['uid'])
 
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")

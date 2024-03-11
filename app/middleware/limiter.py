@@ -15,6 +15,7 @@ def make_429_response(request_limit: RequestLimit):
 
 
 limiter = Limiter(
+    enabled=False,
     key_func=get_remote_address,
     strategy='fixed-window',
     headers_enabled=True,
