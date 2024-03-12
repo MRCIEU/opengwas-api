@@ -17,10 +17,10 @@ app/import/data
 app/import/local
 populate_db/data
 app/*.tsv
-app/data/mrb_logs
-app/data/igd
+app/data
 app/igd-metadata
 ieugwasr_oauth
 app/venv3
 .env
 app/vault
+vault
