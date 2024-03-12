@@ -34,8 +34,8 @@ class Info(Resource):
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=50)
     def get(self):
-        if g.user['uid'] is None and os.path.exists(Globals.STATIC_GWASINFO):
-            return send_file(Globals.STATIC_GWASINFO)
+        # if g.user['uid'] is None and os.path.exists(Globals.STATIC_GWASINFO):
+        #     return send_file(Globals.STATIC_GWASINFO)
         return get_all_gwas_for_user(g.user['uid'])
 
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
