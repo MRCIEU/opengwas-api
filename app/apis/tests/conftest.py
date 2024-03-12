@@ -3,7 +3,7 @@ sys.path.append('..')
 import pytest
 
 from resources.globals import Globals
-from apis.tests.token import get_jwt
+from apis.tests.token import get_token
 
 
 collect_ignore = ["test_edit.py", "test_quality_control.py"]
@@ -29,5 +29,6 @@ def url(request):
 def headers():
     return {
         'X-Declare-Test-Mode-Key': Globals.app_config['test']['key_declare_test_mode'],
-        'Authorization': 'Bearer ' + get_jwt()
+        # 'Authorization': 'Bearer ' + get_token()
+        'X-API-TOKEN': get_token()
     }

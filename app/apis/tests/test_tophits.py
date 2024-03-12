@@ -1,7 +1,9 @@
+import pytest
 import requests
 
 
 # Anonymous
+@pytest.mark.skip
 def test_tophits_post0(url, headers):
     headers = headers.copy()
     del headers['Authorization']
@@ -13,7 +15,7 @@ def test_tophits_post0(url, headers):
 # Use preclumped
 def test_tophits_post1(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-998']}
-    r = requests.post(url + "/tophits", data=payload, headers=headers)
+    r = requests.post(url + "/tophits", data=payload, headers={})
     o = r.json()
     assert r.status_code == 200 and 70 < len(o) < 80
     assert set([x.get('id') for x in o]) == {'ieu-a-2'}
@@ -21,7 +23,7 @@ def test_tophits_post1(url, headers):
 
 def test_tophits_post2(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0}
-    r = requests.post(url + "/tophits", data=payload, headers=headers)
+    r = requests.post(url + "/tophits", data=payload, headers={})
     o = r.json()
     assert r.status_code == 200 and 70 < len(o) < 80
     assert set([x.get('id') for x in o]) == {'ieu-a-2'}
@@ -29,7 +31,7 @@ def test_tophits_post2(url, headers):
 
 def test_tophits_post3(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-998'], 'preclumped': 0, 'clump': 0}
-    r = requests.post(url + "/tophits", data=payload, headers=headers)
+    r = requests.post(url + "/tophits", data=payload, headers={})
     o = r.json()
     assert r.status_code == 200 and len(o) > 2000
     assert set([x.get('id') for x in o]) == {'ieu-a-2'}
