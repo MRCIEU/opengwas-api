@@ -15,7 +15,6 @@ def make_429_response(request_limit: RequestLimit):
 
 
 limiter = Limiter(
-    enabled=False,
     key_func=get_remote_address,
     strategy='fixed-window',
     headers_enabled=True,
@@ -34,5 +33,6 @@ def get_allowance_by_user_source():
 
 
 def get_key_func_uid():
-    uid = get_uid()
-    return uid if uid else 'anonymous'
+    return get_remote_address()
+    # uid = get_uid()
+    # return uid if uid else 'anonymous'
