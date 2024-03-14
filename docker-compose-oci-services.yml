@@ -2,7 +2,7 @@ version: '3.4'
 services:
 
   og-neo4j:
-    image: neo4j:5.13
+    image: neo4j:5.17
     restart: always
     ports:
       - "7474:7474"
@@ -21,7 +21,7 @@ services:
       retries: 5
 
   og-redis:
-    image: redis:7.2.3
+    image: redis:7.2.4
     restart: always
     ports:
       - "6379:6379"
@@ -30,7 +30,7 @@ services:
     command: redis-server --requirepass ${REDIS_PASS}
 
   og-fileserve:
-    image: nginx:1.25.3
+    image: nginx:1.25.4
     restart: always
     ports:
       - "8080:80"

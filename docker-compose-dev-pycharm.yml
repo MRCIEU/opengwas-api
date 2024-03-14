@@ -28,7 +28,7 @@ services:
       - og-redis
 
   og-neo4j:
-    image: neo4j:5.13
+    image: neo4j:5.17
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -37,12 +37,12 @@ services:
       - ./app/data/neo4j-backup:/backup
     environment:
       - NEO4J_AUTH=${NEO4J_AUTH}
-      - NEO4J_dbms_directories_run=/run
+      - NEO4J_server_directories_run=/run
     networks:
       - og-api
 
   og-redis:
-    image: redis:7.2.3
+    image: redis:7.2.4
     ports:
       - "6379:6379"
     volumes:
