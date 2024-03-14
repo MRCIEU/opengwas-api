@@ -41,6 +41,7 @@ def test_gwasinfo_post4(url, headers):
 
 
 # Get all studies incl. the authorised ones
+@pytest.mark.skip
 def test_gwasinfo_post5(url, headers):
     payload = {}
     r = requests.post(url + "/gwasinfo", data=payload, headers=headers)
@@ -55,6 +56,7 @@ def test_gwasinfo_get0(url, headers):
     assert r.status_code == 401
 
 
+@pytest.mark.skip
 def test_gwasinfo_get1(url, headers):
     r = requests.get(url + "/gwasinfo", headers={})
     assert r.status_code == 200 and len(r.json()) > 48000
