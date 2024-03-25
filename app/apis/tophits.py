@@ -14,13 +14,21 @@ logger = logging.getLogger('debug-log')
 api = Namespace('tophits', description="Extract top hits based on p-value threshold from a GWAS dataset")
 
 
-def _get_cost():
-    ids = request.values.getlist('id')
-    preclumped = request.values.get('preclumped')
-    clump = request.values.get('clump')
-    if not preclumped:
-        return len(ids) * (15 if clump else 30)
-    return len(ids)
+def _get_cost(ids, preclumped, clump):
+    if len(ids) == 0:
+        return 1
+    # https://github.com/MRCIEU/ieugwasr/blob/HEAD/R/query.R
+    # If clump = 1 and all thresholds (r2, kb and pval) are still in default value
+    # Then preclumped = 1, use preclumped data (easy)
+    if preclumped:
+        return len(ids)
+    # Else if clump = 0
+    # Then just return all records (medium)
+    if not clump:
+        return len(ids) * 10
+    # Else if clump = 1 and any threshold is different from default value
+    # Then get all records and clump again (hard)
+    return len(ids) * 30
 
 
 @api.route('')
@@ -42,9 +50,14 @@ class Tophits(Resource):
     @api.expect(parser)
     @api.doc(id='post_tophits')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['id'], args['preclumped'], args['clump'])):
+            pass
+
+        if len(args['id']) == 0:
+            abort(400)
 
         try:
             return extract_instruments(g.user['uid'], args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])

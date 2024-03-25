@@ -17,9 +17,7 @@ gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
 
 def _get_cost(ids=None):
-    if ids is None:
-        ids = request.values.getlist('id')
-    if not ids or len(ids) > 100:
+    if ids is None or len(ids) > 100:
         return 50
     return 1
 
@@ -32,8 +30,9 @@ class Info(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=50)
     def get(self):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost()):
+            pass
         # if g.user['uid'] is None and os.path.exists(Globals.STATIC_GWASINFO):
         #     return send_file(Globals.STATIC_GWASINFO)
         return get_all_gwas_for_user(g.user['uid'])
@@ -43,10 +42,11 @@ class Info(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_post')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
-                          cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(args['id'])):
+            pass
 
         if 'id' not in args or args['id'] is None or len(args['id']) == 0:
             return get_all_gwas_for_user(g.user['uid'])
@@ -72,8 +72,7 @@ class GetById(Resource):
     def get(self, id):
         ids = id.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
-                                  cost=lambda: _get_cost(ids)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(ids)):
             pass
 
         try:

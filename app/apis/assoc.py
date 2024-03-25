@@ -8,14 +8,8 @@ from queries.es import *
 api = Namespace('associations', description="Retrieve GWAS associations")
 
 
-def _get_cost(ids=None, variants=None, proxies=None):  # Note: both inputs should be non-empty
-    if ids is None:
-        ids = request.values.getlist('id')
-    if variants is None:
-        variants = request.values.getlist('variant')
-    if proxies is None:
-        proxies = request.values.get('proxies', None)
-    return max(len(ids), len(variants)) * (1 if not proxies else 5)
+def _get_cost(ids=None, variants=None, proxies=0):  # Note: both inputs should be non-empty
+    return max(len(ids), len(variants)) * (1 if proxies == 1 else 5)
 
 
 @api.route('/<id>/<variant>')
@@ -32,15 +26,15 @@ class AssocGet(Resource):
     @api.expect(parser)
     @api.doc(id='get_variants_gwas')
     @jwt_required
-    def get(self, id=None, variant=None):
-        if id is None or variant is None:
-            abort(400)
-        ids = id.split(',')
+    def get(self, id='', variant=''):
+        ids = id.split(',')  # ''.split(',') == ['']
         variants = variant.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
-                                  cost=lambda: _get_cost(ids, variants)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(ids, variants, proxies=1)):
             pass
+
+        if ids == [''] or variants == ['']:
+            abort(400)
 
         try:
             return get_assoc(g.user['uid'], variants, ids, 1, 0.8, 1, 1, 0.3)
@@ -70,16 +64,17 @@ class AssocPost(Resource):
     @api.expect(parser)
     @api.doc(id='post_variants_gwas')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid,
-                          cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(args['id'], args['variant'], args['proxies'])):
+            pass
+
         if len(args['id']) == 0 or len(args['variant']) == 0:
             abort(400)
 
         try:
-            return get_assoc(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'],
-                            args['palindromes'], args['maf_threshold'])
+            return get_assoc(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
         except Exception as e:
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
