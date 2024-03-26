@@ -45,7 +45,7 @@ class Info(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(args['id'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['id'])):
             pass
 
         if 'id' not in args or args['id'] is None or len(args['id']) == 0:
@@ -72,7 +72,7 @@ class GetById(Resource):
     def get(self, id):
         ids = id.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(ids)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(ids)):
             pass
 
         try:

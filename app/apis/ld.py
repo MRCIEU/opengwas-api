@@ -9,8 +9,10 @@ from middleware.limiter import limiter, get_allowance_by_user_source, get_key_fu
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
 
 
-def _get_cost():
-    return len(request.values.getlist('rsid')) * 10
+def _get_cost(rsids):
+    if len(rsids) == 0:
+        return 1
+    return len(rsids) * 10
 
 
 @api.route('/clump')
@@ -31,9 +33,12 @@ class Clump(Resource):
     @api.expect(parser)
     @api.doc(id='post_ld_clump')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['rsid'])):
+            pass
+
         if len(args['rsid']) == 0 or len(args['pval']) == 0 or len(args['rsid']) != len(args['pval']):
             abort(400)
 

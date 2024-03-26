@@ -30,7 +30,7 @@ class AssocGet(Resource):
         ids = id.split(',')  # ''.split(',') == ['']
         variants = variant.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(ids, variants, proxies=1)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(ids, variants, proxies=1)):
             pass
 
         if ids == [''] or variants == ['']:
@@ -67,7 +67,7 @@ class AssocPost(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(args['id'], args['variant'], args['proxies'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['id'], args['variant'], args['proxies'])):
             pass
 
         if len(args['id']) == 0 or len(args['variant']) == 0:

@@ -8,9 +8,9 @@ from middleware.limiter import limiter, get_allowance_by_user_source, get_key_fu
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
 
 
-def _get_cost(variants=None):
-    if variants is None:
-        variants = request.values.getlist('variants')
+def _get_cost(variants):
+    if len(variants) == 0:
+        return 1
     variants = organise_variants(variants)
     return (len(variants['rsid']) + len(variants['chrpos'])) * 75 + len(variants['cprange']) * 750
 
@@ -29,13 +29,14 @@ class PhewasGet(Resource):
     @api.expect(parser)
     @api.doc(id='get_phewas')
     @jwt_required
-    def get(self, variant=None, pval=1e-3):
-        if variant is None:
-            abort(400)
+    def get(self, variant='', pval=1e-3):
         variants = variant.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=lambda: _get_cost(variants)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(variants)):
             pass
+
+        if variants == ['']:
+            abort(400)
 
         try:
             return run_phewas(user_email=g.user['uid'], variants=variants, pval=float(pval), index_list=[])
@@ -57,9 +58,11 @@ class PhewasPost(Resource):
     @api.expect(parser)
     @api.doc(id='post_phewas')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost)
     def post(self):
         args = self.parser.parse_args()
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['variant'])):
+            pass
 
         try:
             return run_phewas(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
