@@ -88,9 +88,9 @@ class Globals:
     #     'NONE': "Anonymous"
     # }
     USER_SOURCES = {
-        'MS': "Microsoft",
-        'GH': "GitHub",
-        'EM': "Email verification",
+        # 'MS': "Microsoft",
+        # 'GH': "GitHub",
+        # 'EM': "Email verification",
         'NONE': "Anonymous"
     }
 
@@ -130,5 +130,5 @@ class Globals:
         # 'MS': '15000 per hour',
         # 'GH': '15000 per hour',
         # 'EM': '3000 per hour',
-        'NONE': '3000 per hour'
+        'NONE': '6000 per 10 minutes'
     }
