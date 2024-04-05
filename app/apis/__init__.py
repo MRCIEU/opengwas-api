@@ -32,7 +32,7 @@ api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
                   'name': 'X-API-TOKEN',
                   'description': '[To be deprecated soon] Please provide your token, which can be obtained via <code>ieugwasr::get_access_token()</code> in R.'
               },
-              'jwt': {
+              'token_jwt': {
                   'type': 'apiKey',
                   'in': 'header',
                   'name': 'Authorization',

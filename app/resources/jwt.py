@@ -28,7 +28,7 @@ def validate_jwt(token):
     try:
         payload = jwt.decode(token, Globals.app_config['rsa_keys']['public'], algorithms=['RS256'], audience='api.opengwas.io')
     except Exception as e:
-        raise Unauthorized("Invalid token. Please add your token to the request header. Header name: 'Authorization'. Header value: 'Bearer <your_token>'.")
+        raise Unauthorized("Invalid token. Please add your token to the request header. Header name: 'Authorization'. Header value: 'Bearer <your_token>'. To obtain a token, visit https://api.opengwas.io")
 
     user = get_user_by_email(payload['sub'])
     if user is None:
