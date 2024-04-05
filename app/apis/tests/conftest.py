@@ -28,7 +28,7 @@ def url(request):
 @pytest.fixture(scope="session")
 def headers():
     return {
-        'X-Declare-Test-Mode-Key': Globals.app_config['test']['key_declare_test_mode'],
+        'X-TEST-MODE-KEY': Globals.app_config['test']['test_mode_key'],
         # 'Authorization': 'Bearer ' + get_token()
         'X-API-TOKEN': get_token()
     }
