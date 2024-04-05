@@ -127,8 +127,8 @@ class Globals:
     #     'NONE': '0 per hour'
     # }
     ALLOWANCE_BY_USER_SOURCE = {
-        # 'MS': '15000 per hour',
-        # 'GH': '15000 per hour',
-        # 'EM': '3000 per hour',
+        'MS': '12000 per 10 minutes',
+        'GH': '12000 per 10 minutes',
+        'EM': '9000 per 10 minutes',
         'NONE': '6000 per 10 minutes'
     }
