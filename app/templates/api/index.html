@@ -103,8 +103,17 @@
 
                     <section>
                         <h3 id="authentication">Authentication</h3>
+                        <br>Methods of authentication:
+                        <table class="table table-sm">
+                            <thead><tr><td><b>Endpoint</b></td><td><b>Until 30th April 2024</b></td><td><b>From 1st May 2024</b></td></tr></thead>
+                            <tbody>
+                                <tr><td>/status, /batches</td><td>None</td><td>None</td></tr>
+                                <tr><td>/user</td><td>JWT (required)</td><td>JWT (required)</td></tr>
+                                <tr><td>All other endpoints</td><td>Google OAuth token (optional) <br>(only required if you want to use private datasets)</td><td>JWT (required)</td></tr>
+                            </tbody>
+                        </table>
 
-                        <h5><b>To be deprecated soon</b> - Token obtained from Google OAuth</h5>
+                        <hr><h5><b>To be deprecated soon</b> - Token obtained from Google OAuth</h5>
                         <p>The <a href="http://gwas-api.mrcieu.ac.uk/docs/" target="_blank">documentation</a> provides a list of endpoints, the parameters they require, descriptions of the data that is returned, and an interactive way to try out each of the endpoints.</p>
                         <p>The database of GWAS summary data mostly contains public data, however there are some 'private' datasets, which can only be accessed by authorised users.</p>
                         <s><p>Authentication is managed using <a href="https://developers.google.com/identity/protocols/OAuth2WebServer">Google OAuth 2.0</a>. In order to authenticate, you will need to generate a 'token' for each session in which private access is required.</p>
@@ -120,10 +129,9 @@
                         <p>You will still be able to use our service anonymously until 30th April 2024.</p>
                         <p>All the endpoints can work anonymously, except for one endpoint that we created to help you validate your implementation of the new authentication process. You may want to visit the <a href="{{ url_for('api.doc') }}" target="_blank">API docs</a> and find the <code>/user</code> endpoint.
                             <br>- <b>What will happen without a valid token?</b><br>If you just click 'Try it out' then 'Execute', you will get a '401 Unauthorized' error.
-                            <br>- <b>What if I have a valid token?</b><br>If you go to the upper right corner of the API docs, click 'Authorize' and focus on the 'token_jwt' section, you can follow the instruction and click 'Authorize', finally try to execute on the /user endpoint again. This time you will get '200 OK' and you can see your user information in the response body.
+                            <br>- <b>What if I have a valid token?</b><br>If you go to the upper right corner of the API docs, click 'Authorize' and focus on the 'token_jwt' section, you can follow the instruction, click 'Authorize', and finally try to execute on the /user endpoint again. This time you will get '200 OK' and you can see your user information in the response body.
                             <br>- <b>Is there any other errors?</b><br>Yes. You may see other errors (e.g. if you go beyond the rate limit you will get the '429 Too Many Requests' error), so you should only use the 200 status code as the condition of success, although you may also want to check the response body.</p>
-                        <p>During this period, your new version token will only work on the /users endpoint. If you need access to private datasets via any other endpoints, please use the old version token issued by ieugwasr::get_access_token().</p>
-
+                        <p>During this period, your JWT will only work on the /user endpoint. If you need access to private datasets via any other endpoints, please use the Google OAuth token obtained by ieugwasr::get_access_token().</p>
                     </section>
 
                     <hr class='my-4'>
