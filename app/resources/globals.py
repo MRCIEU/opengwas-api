@@ -88,9 +88,9 @@ class Globals:
     #     'NONE': "Anonymous"
     # }
     USER_SOURCES = {
-        # 'MS': "Microsoft",
-        # 'GH': "GitHub",
-        # 'EM': "Email verification",
+        'MS': "Microsoft",
+        'GH': "GitHub",
+        'EM': "Email verification",
         'NONE': "Anonymous"
     }
 

@@ -7,16 +7,17 @@ from werkzeug.exceptions import TooManyRequests
 
 from .index import index
 from .status import api as status
+from .batches import api as batches
+from .user import api as user
 from .gwasinfo import api as gwasinfo
 from .gicache import api as gicache
 from .assoc import api as assoc
-from .phewas import api as phewas
 from .tophits import api as tophits
+from .phewas import api as phewas
+from .variants import api as variants
+from .ld import api as ld
 from .quality_control import api as quality_control
 from .edit import api as edit
-from .ld import api as ld
-from .variants import api as variants
-from .batches import api as batches
 from .utilities import api as utilities
 
 api_bp = Blueprint('api', __name__)
@@ -25,17 +26,24 @@ api_bp.add_url_rule('/', view_func=index)
 api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
           description='A RESTful API for querying tens of thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs', authorizations={
-              'token': {
+              'token_google': {
                   'type': 'apiKey',
                   'in': 'header',
                   'name': 'X-API-TOKEN',
-                  'description': 'Please provide your token, which can be obtained via <code>ieugwasr::get_access_token()</code> in R.'
+                  'description': '[To be deprecated soon] Please provide your token, which can be obtained via <code>ieugwasr::get_access_token()</code> in R.'
+              },
+              'jwt': {
+                  'type': 'apiKey',
+                  'in': 'header',
+                  'name': 'Authorization',
+                  'description': '[New - now rolling out] Prepend "<code>Bearer(whitespace)</code>" to your token. The entire value provided for this header should be like: <code>Bearer ey******.**********.*********</code>. Read more at https://api.opengwas.io/api/#authentication'
               }
-          }, security='token')
+          }, security='token_google')
 
 # public
 api.add_namespace(status)
 api.add_namespace(batches)
+api.add_namespace(user)
 api.add_namespace(gwasinfo)
 api.add_namespace(assoc)
 api.add_namespace(tophits)
@@ -43,14 +51,14 @@ api.add_namespace(phewas)
 api.add_namespace(variants)
 api.add_namespace(ld)
 
-if os.environ.get('ENV') == 'local':
-    api.add_namespace(utilities)
-
 # private
 if Globals.app_config['access'] == 'private':
+    api.add_namespace(gicache)
     api.add_namespace(quality_control)
     api.add_namespace(edit)
-    api.add_namespace(gicache)
+
+if os.environ.get('ENV') == 'local':
+    api.add_namespace(utilities)
 
 
 @api.errorhandler(TooManyRequests)
