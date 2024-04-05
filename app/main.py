@@ -26,7 +26,7 @@ class CustomRedisSessionInterface(RedisSessionInterface):
 
     @staticmethod
     def _path_requires_session():
-        if request.path in ['/healthcheck'] or request.path.startswith('/api'):
+        if request.path.startswith('/probe') or request.path.startswith('/api'):
             return False
         return True
 
