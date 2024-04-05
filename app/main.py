@@ -147,14 +147,6 @@ if __name__ == "__main__":
     app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'], extra_files=extra_files)
 
 
-@app.before_request
-def check_test_mode():
-    if request.headers.get('X-TEST-MODE-KEY', None) == Globals.app_config['test']['test_mode_key']:
-        os.environ['TEST_MODE'] = 'True'
-        # Disable flask-limiter
-        limiter.enabled = False
-
-
 @app.context_processor
 def inject_metadata():
     return {

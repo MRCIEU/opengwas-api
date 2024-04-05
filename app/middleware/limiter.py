@@ -1,4 +1,4 @@
-from flask import make_response
+from flask import make_response, request
 from flask_limiter import Limiter, RequestLimit, HEADERS
 from flask_limiter.util import get_remote_address
 import datetime
@@ -36,3 +36,8 @@ def get_key_func_uid():
     return get_remote_address()
     # uid = get_uid()
     # return uid if uid else 'anonymous'
+
+
+@limiter.request_filter
+def header_whitelist():
+    return request.headers.get('X-TEST-MODE-KEY', None) == Globals.app_config['test']['test_mode_key']
