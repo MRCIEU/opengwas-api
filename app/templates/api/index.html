@@ -140,8 +140,7 @@
                         <h3 id="allowance">Allowance and cost</h3>
                         <h5>Allowance</h5>
                         <p>As part of our fair use policy, users will be given allowance for the cost of the requests they make in a time period. The allowance is provided free of charge.</p>
-{#                        <p>As part of our fair use policy, users will be given allowance for the cost of the requests they make in a time period. The allowance is provided free of charge and based on the method of your most recent sign in, which can be found on the <a href="{{ root_url }}">account</a> page.</p>#}
-                        <p>The allowance is reset periodically. The clock starts at your first chargeable request. E.g. if the request is "1000 per 10 minutes" and you made your first chargeable request at 09:41, your allowance will be reset to 1000 at 09:51. Your real-time allowance information is available on your account page, or in the response header of every chargeable request (X-Allowance-* and Retry-After).</p>
+                        <p>The allowance is reset periodically. The clock starts at your first chargeable request. E.g. if the allowance is "1000 per 10 minutes" and you made your first chargeable request at 09:41, your allowance will be reset to 1000 at 09:51. Your real-time allowance information is available on your account page, or in the response header of every chargeable request (X-Allowance-* and Retry-After).</p>
                         <table class="table table-sm">
                             <thead><tr><td><b>Method of most recent sign in</b></td><td><b>Allowance</b></td></tr></thead>
                             <tbody>
@@ -154,7 +153,7 @@
                         <p><table class="table table-sm">
                             <thead><tr><td><b>Endpoint</b></td><td><b>Cost per request</b></td><td><b>Condition</b></td></tr></thead>
                             <tbody>
-                                <tr><td>/status, /batches</td><td>0 (non-chargeable)</td><td></td></tr>
+                                <tr><td>/status, /batches, /users</td><td>0 (non-chargeable, but still subject to fair-use policy)</td><td></td></tr>
                                 <tr><td>/gwasinfo</td><td>1<br>50</td><td>1 &le; N<sub>id</sub> &le; 100<br>100 &lt; N<sub>id</sub> or no id is specified</td></tr>
                                 <tr><td>/associations</td><td>max(N<sub>id</sub>, N<sub>variant</sub>)<br>max(N<sub>id</sub>, N<sub>variant</sub>) &times; 5</td><td><br>proxies = 1</td></tr>
                                 <tr><td>/tophits</td><td>N<sub>id</sub><br>N<sub>id</sub> &times; 10<br>N<sub>id</sub> &times; 30</td><td>clump = 1 (use preclumped data)<br>clump = 0 (return all records)<br>clump = 1 (requires new clumping)</td></tr>

@@ -12,7 +12,7 @@ api = Namespace('user', description="User zone")
 
 @api.route('')
 @api.doc(description="Get information of the current user. This can be used to validate your token (status code will be 200 OK if successful). Read more at https://api.opengwas.io/api/#authentication")
-class Status(Resource):
+class User(Resource):
     @api.doc(id='get_user', security=['token_jwt'])
     @limiter.limit('30 per hour')  # Max number of requests per IP
     def get(self):
