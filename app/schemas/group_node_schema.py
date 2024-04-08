@@ -28,7 +28,8 @@ valid_group_names = {
     "ncase_lt_10_ukb-b",
     "CHDI",
     "internal",
-    "Sclerostin_genetics_consortium"
+    "Sclerostin_genetics_consortium",
+    "headspace"
 }
 
 
