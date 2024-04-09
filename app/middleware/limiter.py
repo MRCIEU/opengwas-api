@@ -33,9 +33,8 @@ def get_allowance_by_user_source():
 
 
 def get_key_func_uid():
-    return get_remote_address()
-    # uid = get_uid()
-    # return uid if uid else 'anonymous'
+    uid = get_uid()
+    return uid if uid is not None else get_remote_address()
 
 
 @limiter.request_filter

@@ -3,16 +3,18 @@ from functools import wraps
 from werkzeug.exceptions import Unauthorized
 
 from resources.auth import get_user_email
-# from resources.jwt import validate_jwt
+from resources.jwt import validate_jwt
 
 
 def jwt_required(f):
     @wraps(f)
     def _decorator(*args, **kwargs):
-        # g.user = validate_jwt(request.headers.get('Authorization', '').replace("Bearer ", ""))
-        g.user = {
-            'uid': get_user_email(request.headers.get('X-Api-Token'))
-        }
+        if request.headers.get('Authorization') is not None:
+            g.user = validate_jwt(request.headers.get('Authorization', '').replace("Bearer ", ""))
+        else:
+            g.user = {
+                'uid': get_user_email(request.headers.get('X-Api-Token'))
+            }
         return f(*args, **kwargs)
     return _decorator
 
