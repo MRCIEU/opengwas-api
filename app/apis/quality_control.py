@@ -1,15 +1,17 @@
+from flask import request, send_from_directory
 from flask_restx import Resource, Namespace
-from queries.cql_queries import *
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
-from resources.auth import get_user_email
-from flask import request, send_from_directory
 import requests
 import logging
 import os
-from resources.globals import Globals
 import json
 import time
+
+from queries.cql_queries import *
+from resources.auth import get_user_email
+from resources.globals import Globals
+from resources.oci import OCI
 
 logger = logging.getLogger('debug-log')
 
@@ -76,14 +78,13 @@ class Release(Resource):
 
             # check first stage workflow completed successfully
             payload = {'label': 'gwas_id:' + req['id']}
-            r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=payload)
+            r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=payload, auth=Globals.CROMWELL_AUTH)
             assert r.status_code == 200
             first_stage_passed = False
             for result in r.json()["results"]:
-                if result["name"] == "qc":
-                    if result["status"] == "Succeeded":
-                        first_stage_passed = True
-                        break
+                if "name" in result and result["name"] == "qc" and result["status"] == "Succeeded":
+                    first_stage_passed = True
+                    break
             if req['passed_qc'] == "True" and not first_stage_passed:
                 raise ValueError("Cannot release data; the qc workflow failed!")
 
@@ -92,31 +93,44 @@ class Release(Resource):
 
             # update json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
-            with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'r') as f:
-                j = json.load(f)
-            j['release_uid'] = user_uid
-            j['release_epoch'] = time.time()
-            j['release_comments'] = req['comments']
-            j['passed_qc'] = req['passed_qc']
+
+            oci = OCI()
+
+            f = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json').data.text
+            analyst = json.loads(f)
+
+            analyst['release_uid'] = user_uid
+            analyst['release_epoch'] = time.time()
+            analyst['release_comments'] = req['comments']
+            analyst['passed_qc'] = req['passed_qc']
+
             with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'w') as f:
-                json.dump(j, f)
+                json.dump(analyst, f)
+            with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'rb') as f:
+                oci_upload = oci.object_storage_upload('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json', f)
+
+            labels_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_labels.json').data.text
+            wdl_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_wdl.json').data.text
 
             # insert new data to elastic
             if req['passed_qc'] == "True":
                 # find WDL params
                 # add to workflow queue
                 r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
-                                  files={'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
-                                         'labels': open(os.path.join(study_folder, str(req['id']) + '_labels.json'),
-                                                        'rb'),
-                                         'workflowInputs': open(os.path.join(study_folder, req['id'] + '_wdl.json'),
-                                                                'rb')})
+                                  files={
+                                      'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
+                                      'labels': labels_str,
+                                      'workflowInputs': json.dumps(dict(filter(lambda item: item[0].startswith('elastic.'), json.loads(wdl_str).items())))
+                                  }, auth=Globals.CROMWELL_AUTH)
                 assert r.status_code == 201
                 assert r.json()['status'] == "Submitted"
                 logger.info("Submitted {} to workflow".format(r.json()['id']))
 
                 # update GI cache
-                requests.get(Globals.CROMWELL_URL + "/gicache")
+                requests.get(Globals.app_config['root_url'] + "/api/gicache")
+
+                # oci.object_storage_delete_by_prefix('upload', req['id'] + '/')
+
                 return {'message': 'Added to elastic import queue successful', 'job_id': r.json()['id']}, 200
 
         except marshmallow.exceptions.ValidationError as e:
@@ -147,7 +161,7 @@ class GetId(Resource):
 
 
 @api.route('/delete/<id>')
-@api.doc(description="Delete data from quality control process")
+@api.doc(description="Delete quality control relationship (does not delete metadata or data files)")
 class Delete(Resource):
     parser = api.parser()
     parser.add_argument(

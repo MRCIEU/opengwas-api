@@ -1,18 +1,30 @@
-workflow elastic {
-    String Host
-    String Port
+version 1.0
 
-    String StudyId
-    String EsIndex
-    String MountDir = "/data"
-    String BaseDir = "/data/igd"
-    File VcfFile=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz"
-    File VcfFileIdx=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz.tbi"
-    File ClumpFile=BaseDir + "/" + StudyId + "/clump.txt"
-    String ElasticCompleteFilePath=BaseDir + "/" + StudyId + "/ElasticComplete.txt"
-    
+workflow elastic {
+    input {
+        String Host
+        String Port
+
+        String StudyId
+        String OCIObjectStoragePAR = "/data/oci_object_storage_par_url.txt"
+        String EsIndex
+        String MountDir = "/data"
+        String BaseDir = "/data/igd"
+        File VcfFile=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz"
+        File VcfFileIdx=BaseDir + "/" + StudyId + "/" + StudyId + ".vcf.gz.tbi"
+        File ClumpFile=BaseDir + "/" + StudyId + "/clump.txt"
+        String ElasticCompleteFilePath=BaseDir + "/" + StudyId + "/ElasticComplete.txt"
+    }
+
+    call upload {
+        input:
+            StudyId=StudyId,
+            OCIObjectStoragePAR=OCIObjectStoragePAR,
+            BaseDir=BaseDir
+    }
     call get_index_from_study {
         input:
+            UploadDone=upload.UploadDone,
             StudyId=StudyId
     }
     call insert {
@@ -32,12 +44,41 @@ workflow elastic {
     }
 }
 
+task upload {
+    input {
+        String OCIObjectStoragePAR
+        String BaseDir
+        String StudyId
+    }
+
+    command <<<
+        set -e
+        source ~{OCIObjectStoragePAR}
+        cd ~{BaseDir}/~{StudyId}
+        curl -X PUT --data-binary '@~{StudyId}.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}.json
+        curl -X PUT --data-binary '@~{StudyId}_analyst.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_analyst.json
+        curl -X PUT --data-binary '@~{StudyId}_labels.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_labels.json
+        curl -X PUT --data-binary '@~{StudyId}_data.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_data.json
+        curl -X PUT --data-binary '@~{StudyId}_wdl.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_wdl.json
+        curl -X PUT --data-binary '@clump.txt' ${OCI_PAR_URL_DATA}~{StudyId}/clump.txt
+        curl -X PUT --data-binary '@~{StudyId}.vcf.gz' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}.vcf.gz
+        curl -X PUT --data-binary '@~{StudyId}.vcf.gz.tbi' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}.vcf.gz.tbi
+    >>>
+
+    output {
+        String UploadDone = StudyId
+    }
+}
+
 task get_index_from_study {
-    String StudyId
+    input {
+        String UploadDone
+        String StudyId
+    }
     
     command <<<
         set -e
-        awk -F"-" '{print $1"-"$2}' <<< ${StudyId}
+        awk -F"-" '{print $1"-"$2}' <<< ~{StudyId}
     >>>
     
     output {
@@ -47,45 +88,47 @@ task get_index_from_study {
 }
 
 task insert {
-
-    String MountDir
-    File VcfFile
-    File VcfFileIdx
-    String StudyId
-    String EsIndex
-    File ClumpFile
-    String Host
-    String Port
+    input {
+        String MountDir
+        File VcfFile
+        File VcfFileIdx
+        String StudyId
+        String EsIndex
+        File ClumpFile
+        String Host
+        String Port
+    }
 
     command <<<
         set -e
 
         docker run \
         --rm \
-        -v ${MountDir}:${MountDir} \
+        -v ~{MountDir}:~{MountDir} \
         --cpus="1" \
         igd-elasticsearch:latest \
         python add-gwas.py \
         -m index_data \
-        -f ${VcfFile} \
-        -g ${StudyId} \
-        -i ${EsIndex} \
-        -e ${Host} \
-        -p ${Port} \
-        -t ${ClumpFile}
+        -f ~{VcfFile} \
+        -g ~{StudyId} \
+        -i ~{EsIndex} \
+        -e ~{Host} \
+        -p ~{Port} \
+        -t ~{ClumpFile}
     >>>
 
 }
 
 task ready_for_rsync {
-
-    String ElasticCompleteFilePath
+    input {
+        String ElasticCompleteFilePath
+    }
     
     command <<<
-        touch ${ElasticCompleteFilePath}
+        touch ~{ElasticCompleteFilePath}
     >>>
     
     output {
-        File complete = "${ElasticCompleteFilePath}"
+        File complete = "~{ElasticCompleteFilePath}"
     }
 }
