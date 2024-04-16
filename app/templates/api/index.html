@@ -108,8 +108,7 @@
                             <thead><tr><td><b>Endpoint</b></td><td width="50%"><b>Until 30th April 2024</b></td><td><b>From 1st May 2024</b></td></tr></thead>
                             <tbody>
                                 <tr><td>/status, /batches</td><td>None</td><td>None</td></tr>
-                                <tr><td>/user</td><td>JWT (required)</td><td>JWT (required)</td></tr>
-                                <tr><td>All other endpoints</td><td>Google OAuth token (optional*) <br>JWT (optional*)<br> (*: only necessary if you want to use private datasets or benefit from higher allowance)</td><td>JWT (required)</td></tr>
+                                <tr><td>All other endpoints</td><td>Google OAuth token (optional*), or <br>JWT (optional*)<br> (*: only necessary if you want to use private datasets or benefit from higher allowance)</td><td>JWT (required)</td></tr>
                             </tbody>
                         </table>
 
@@ -130,8 +129,7 @@
                         <p>All the endpoints can work anonymously, except for one endpoint that we created to help you validate your implementation of the new authentication process. You may want to visit the <a href="{{ url_for('api.doc') }}" target="_blank">API docs</a> and find the <code>/user</code> endpoint.
                             <br>- <b>What will happen without a valid token?</b><br>If you just click 'Try it out' then 'Execute', you will get a '401 Unauthorized' error.
                             <br>- <b>What if I have a valid token?</b><br>If you focus on the upper right corner of the /user area, you will see a lock icon. Click the lock icon and you will find 'token_jwt' as available authorizations. Follow the instruction, click 'Authorize', and finally try to execute on the /user endpoint again. This time you will get '200 OK' and you can see your user information in the response body.
-                            <br>- <b>Is there any other errors?</b><br>Yes. You may see other errors (e.g. if you go beyond the rate limit you will get the '429 Too Many Requests' error), so you should only use the 200 status code as the condition of success, although you may also want to check the response body.</p>
-                        <p>During this period, your JWT will only work on the /user endpoint. If you need access to private datasets via any other endpoints, please use the Google OAuth token obtained by ieugwasr::get_access_token().</p>
+                            <br>- <b>Is there any other errors?</b><br>Yes. You may see other errors (e.g. if you go beyond the rate limit you will get the '429 Too Many Requests' error), so you should only use the 200 status code as the indicator of success, although you may also want to check the response body.</p>
                     </section>
 
                     <hr class='my-4'>
