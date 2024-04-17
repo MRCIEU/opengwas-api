@@ -93,6 +93,7 @@ class Release(Resource):
 
             # update json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
+            os.makedirs(study_folder, exist_ok=True)
 
             oci = OCI()
 
@@ -108,6 +109,8 @@ class Release(Resource):
                 json.dump(analyst, f)
             with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'rb') as f:
                 oci_upload = oci.object_storage_upload('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json', f)
+
+            shutil.rmtree(study_folder)
 
             labels_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_labels.json').data.text
             wdl_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_wdl.json').data.text
@@ -126,8 +129,9 @@ class Release(Resource):
                 assert r.json()['status'] == "Submitted"
                 logger.info("Submitted {} to workflow".format(r.json()['id']))
 
-                # update GI cache
-                requests.get(Globals.app_config['root_url'] + "/api/gicache")
+                if Globals.app_config['env'] == 'production':
+                    # update GI cache
+                    requests.get(Globals.app_config['root_url'] + "/api/gicache")
 
                 # oci.object_storage_delete_by_prefix('upload', req['id'] + '/')
 

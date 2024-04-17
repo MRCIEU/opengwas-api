@@ -86,6 +86,7 @@ class Add(Resource):
                 json.dump(gi, f)
             with open(output_path, 'rb') as f:
                 oci_upload = OCI().object_storage_upload('upload', str(gwas_id) + '/' + str(gwas_id) + '.json', f)
+            shutil.rmtree(study_folder)
 
             return {"id": gwas_uid, "oci_upload": {'status': oci_upload.status, 'headers': dict(oci_upload.headers)}}, 200
 
@@ -145,6 +146,7 @@ class Edit(Resource):
                     oci_upload_upload = oci.object_storage_upload('upload', prefix, f)
                 if len(oci.object_storage_list('data', prefix)) > 0:
                     oci_upload_data = oci.object_storage_upload('data', prefix, f)
+            shutil.rmtree(study_folder)
 
             return {
                 "gwas_info": gi,
@@ -496,6 +498,8 @@ class Upload(Resource):
             assert r.status_code == 201
             assert r.json()['status'] == "Submitted"
             logger.info("Submitted {} to workflow".format(r.json()['id']))
+
+            shutil.rmtree(study_folder)
 
             return {'message': 'Upload successful', 'job_id': r.json()['id']}, 201
         else:
