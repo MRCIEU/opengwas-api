@@ -20,18 +20,20 @@ class Globals:
         if os.environ.get('ENV') == 'production':
             print("Production")
             app_config = app_config['production']
+            app_config['env'] = 'production'
             QC_WDL_PATH = "/app/resources/workflow/qc.wdl"
             ELASTIC_WDL_PATH = "/app/resources/workflow/elastic.wdl"
         else:
             print("Local")
             app_config = app_config['local']
+            app_config['env'] = 'local'
             QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
             ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
 
-        if os.environ.get('ACCESS') == 'public':
-            app_config['access'] = 'public'
-        else:
+        if os.environ.get('ACCESS') == 'private':
             app_config['access'] = 'private'
+        else:
+            app_config['access'] = 'public'
 
     print("Params: {}".format(app_config))
 
