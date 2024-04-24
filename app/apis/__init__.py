@@ -38,7 +38,7 @@ api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
                   'name': 'Authorization',
                   'description': '[New - now rolling out] Prepend "<code>Bearer(whitespace)</code>" to your token. The entire value provided for this header should be like: <code>Bearer ey******.**********.*********</code>. Read more at https://api.opengwas.io/api/#authentication'
               }
-          }, security='token_google')
+          }, security=['token_google', 'token_jwt'])
 
 # public
 api.add_namespace(status)
