@@ -1,4 +1,4 @@
-from flask import make_response, request
+from flask import make_response, request, g
 from flask_limiter import Limiter, RequestLimit, HEADERS
 from flask_limiter.util import get_remote_address
 import datetime
@@ -29,7 +29,10 @@ limiter = Limiter(
 
 
 def get_allowance_by_user_source():
-    return Globals.ALLOWANCE_BY_USER_SOURCE[get_user_source()]
+    user_source = get_user_source()
+    if 'user' in g and g.user['uid'].split('@')[1] == 'bristol.ac.uk':
+        user_source = 'UOB'
+    return Globals.ALLOWANCE_BY_USER_SOURCE[user_source]
 
 
 def get_key_func_uid():
