@@ -30,8 +30,11 @@ limiter = Limiter(
 
 def get_allowance_by_user_source():
     user_source = get_user_source()
-    if 'user' in g and g.user['uid'].split('@')[1] == 'bristol.ac.uk':
-        user_source = 'UOB'
+    try:
+        if g.user['uid'].split('@')[1] == 'bristol.ac.uk':
+            user_source = 'UOB'
+    except:
+        pass
     return Globals.ALLOWANCE_BY_USER_SOURCE[user_source]
 
 
