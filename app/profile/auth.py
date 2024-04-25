@@ -147,7 +147,7 @@ def _check_github_email(email):
 
 
 @profile_auth_bp.route('/email/check')
-@limiter.limit('30 per day')  # Max number of requests per IP
+@limiter.limit('30 per day', scope='check_email_and_names')  # Max number of requests per IP
 def check_email_and_names():
     req = request.args.to_dict()
     try:
@@ -178,12 +178,12 @@ def check_email_and_names():
     return send_email(req['email'], req['first_name'], req['last_name'])
 
 
-@limiter.limit('15 per day')  # Max number of requests per IP
+@limiter.limit('15 per day', scope='send_email_per_ip')  # Max number of requests per IP
 def send_email(email, first_name=None, last_name=None):
     link, expiry = _generate_email_signin_link(email, first_name, last_name)
     expiry_str = datetime.datetime.strftime(datetime.datetime.fromtimestamp(expiry).astimezone(), '%Y-%m-%d %H:%M:%S %Z')
 
-    @limiter.limit('3 per day', key_func=lambda: email)  # Max number of requests per IP per recipient email address
+    @limiter.limit('3 per day', scope='send_email_per_recipient', key_func=lambda: email)  # Max number of requests per IP per recipient email address
     def __send():
         return Email().send_signin_email(link, email, expiry_str)
 

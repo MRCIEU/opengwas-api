@@ -121,7 +121,7 @@
 
                         <hr><h5><b>Now rolling out</b> - JSON Web Token (JWT) issued by us</h5>
                         <p>From Wednesday 1st May 2024, you need to prove your identity (authenticate) to use our service, even if you are querying a public dataset.</p>
-                        <p>JSON Web Token (JWT) is used for authentication. The token is required for most endpoints. To obtain a token, sign in to the <a href="{{ root_url }}">account</a> page. You will be prompted to generate a token, which is valid for {{ jwt_validity }} days. To use your token, add it into your request header under the key <code>Authorization</code> with value <code>Bearer <i>your_token</i></code>. Note that there is a whitespace between <code>Bearer</code> and your token.</p>
+                        <p>JSON Web Token (JWT) is used for authentication. The token is required for most endpoints. To obtain a token, sign in to the <a href="{{ root_url }}/profile">account</a> page. You will be prompted to generate a token, which is valid for {{ jwt_validity }} days. To use your token, add it into your request header under the key <code>Authorization</code> with value <code>Bearer <i>your_token</i></code>. Note that there is a whitespace between <code>Bearer</code> and your token.</p>
                         <p>The <a href="{{ url_for('api.doc') }}" target="_blank">API documentation</a> provides a list of endpoints, whether they are protected (require authentication), the parameters and responses, and an interactive way to try out. To try the protected endpoints, click the green 'Authorize' button in API docs and provide your token as instructed.</p>
 
                         <hr><h5>Transition period (from now until May 2024)</h5>
@@ -138,7 +138,8 @@
                         <h3 id="allowance">Allowance and cost</h3>
                         <h5>Allowance (free credits)</h5>
                         <p>As part of our fair use policy, users will be given allowance for the cost of the requests they make in each time span. The allowance is provided <u>free of charge</u>.</p>
-                        <p>The allowance is reset periodically. The clock starts at your first request. E.g. if the allowance is "1000 per 10 minutes" and you made your first request at 09:41, your allowance will be reset to 1000 at 09:51. Your real-time allowance information is available on your account page, or in the response header (X-Allowance-* and Retry-After) of every request, except for those endpoints of which the cost is 0.</p>
+                        <p>The allowance is reset periodically. The clock starts at your first request. E.g. if the allowance is "1000 per 10 minutes" and you made your first request at 09:41, your allowance will be reset to 1000 at 09:51. Your real-time allowance information is available on your <a href="{{ root_url }}/profile">account</a> page, or in the response header (X-Allowance-* and Retry-After) of every request, except for those endpoints of which the cost is 0.</p>
+                        <p><u>Note</u>: University of Bristol users (who signed in using Microsoft, GitHub or email verification, as long as the email address on your OpenGWAS profile ends with @bristol.ac.uk) will be given higher allowance than displayed below. Please check your <a href="{{ root_url }}/profile">account</a> page for details.</p>
                         <table class="table table-sm">
                             <thead><tr><td><b>Method of most recent sign-in</b></td><td><b>Allowance (free credits)</b></td></tr></thead>
                             <tbody>
