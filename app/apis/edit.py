@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, g
 from flask_restx import Resource, Namespace
 import hashlib
 import gzip
@@ -13,9 +13,9 @@ import marshmallow.exceptions
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest
 
+from middleware.auth import jwt_required
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
-from resources.auth import get_user_email
 from resources.globals import Globals
 from resources.oci import OCI
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema, check_id_is_valid_filename
@@ -44,9 +44,6 @@ def check_batch_exists(gwas_id, study_indexes):
 @api.doc(description="Add new gwas metadata")
 class Add(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=True,
-        help=Globals.AUTHTEXT)
     parser.add_argument('id', type=str, required=False,
                         help='Provide your own study identifier or leave blank for next continuous id.')
     GwasInfoNodeSchema.populate_parser(parser,
@@ -54,23 +51,27 @@ class Add(Resource):
 
     @api.expect(parser)
     @api.doc(id='post_add_gwas_metadata')
+    @jwt_required
     def post(self):
         try:
             req = self.parser.parse_args()
-            user_uid = get_user_email(request.headers.get('X-Api-Token'))
+
+            try:
+                check_user_is_developer(g.user['uid'])
+            except PermissionError as e:
+                return {"message": str(e)}, 403
+
             if req['group_name'] is None:
                 req['group_name'] = 'public'
-            group_name = req['group_name']
 
             # use provided identifier if given
             gwas_id = req['id']
             check_id_is_valid_filename(gwas_id)
             check_batch_exists(gwas_id, Globals.all_batches)
 
-            req.pop('X-Api-Token')
             req.pop('id')
 
-            gwas_uid = add_new_gwas(user_uid, req, {group_name}, gwas_id=gwas_id)
+            gwas_uid = add_new_gwas(g.user['uid'], req, {req['group_name']}, gwas_id=gwas_id)
 
             # write metadata to json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
@@ -94,17 +95,12 @@ class Add(Resource):
             raise BadRequest("Could not validate payload: {}".format(e))
         except ValueError as e:
             raise BadRequest("Could not add study: {}".format(e))
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/edit')
 @api.doc(description="Edit existing GWAS metadata")
 class Edit(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=True,
-        help=Globals.AUTHTEXT)
     parser.add_argument('id', type=str, required=True,
                         help='ID to be edited')
     GwasInfoNodeSchema.populate_parser(parser,
@@ -112,16 +108,20 @@ class Edit(Resource):
 
     @api.expect(parser)
     @api.doc(id='post_edit_gwas_metadata')
+    @jwt_required
     def post(self):
         try:
             req = self.parser.parse_args()
-            user_uid = get_user_email(request.headers.get('X-Api-Token'))
+
+            try:
+                check_user_is_developer(g.user['uid'])
+            except PermissionError as e:
+                return {"message": str(e)}, 403
 
             # use provided identifier if given
             gwas_id = req['id']
             check_id_is_valid_filename(gwas_id)
 
-            req.pop('X-Api-Token')
             req.pop('id')
 
             gwas_uid = edit_existing_gwas(gwas_id, req)
@@ -160,46 +160,38 @@ class Edit(Resource):
             raise BadRequest("Could not validate payload: {}".format(e))
         except ValueError as e:
             raise BadRequest("Could not add study: {}".format(e))
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/check/<gwas_info_id>')
 @api.doc(description="Get metadata about specified GWAS summary datasets")
 class GetId(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_gwas_metadata')
+    @jwt_required
     def get(self, gwas_info_id):
         try:
-            user_email = get_user_email(request.headers.get('X-Api-Token'))
             recs = []
-            for uid in gwas_info_id.split(','):
+            for gwas_id in gwas_info_id.split(','):
                 try:
-                    recs.append(get_gwas_for_user(user_email, str(uid), datapass=False))
+                    recs.append(get_gwas_for_user(g.user['uid'], str(gwas_id), datapass=False))
+                    # TODO: Optimise using single query
                 except LookupError:
                     continue
             return recs
         except LookupError:
             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(gwas_info_id))
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
 
 
 @api.route('/status/<gwas_id>')
 @api.doc(description="Check on the progress of GWAS upload")
 class JobStatus(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(id='get_gwas_status')
+    @jwt_required
     def get(self, gwas_id):
         r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=dict(label="gwas_id:" + gwas_id), auth=Globals.CROMWELL_AUTH)
         return r.json(), r.status_code
@@ -209,21 +201,17 @@ class JobStatus(Resource):
 @api.doc(description="Delete gwas metadata")
 class Delete(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=True,
-        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(id='delete_gwas')
+    @jwt_required
     def delete(self, gwas_info_id):
         args = self.parser.parse_args()
+
         try:
-            user_uid = get_user_email(request.headers.get('X-Api-Token'))
-            check_user_is_developer(user_uid)
+            check_user_is_developer(g.user['uid'])
         except PermissionError as e:
             return {"message": str(e)}, 403
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
 
         delete_gwas(gwas_info_id)
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_info_id)
@@ -243,9 +231,6 @@ class Delete(Resource):
 @api.doc(description="Upload GWAS summary stats file to the IEU OpenGWAS database")
 class Upload(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=True,
-        help=Globals.AUTHTEXT)
     parser.add_argument('chr_col', type=int, required=True, help="Column index for chromosome")
     parser.add_argument('pos_col', type=int, required=True, help="Column index for base position")
     parser.add_argument('ea_col', type=int, required=True, help="Column index for effect allele")
@@ -342,10 +327,14 @@ class Upload(Resource):
 
     @api.expect(parser)
     @api.doc(id='upload_gwas')
+    @jwt_required
     def post(self):
         args = self.parser.parse_args()
 
-        user_email = get_user_email(request.headers.get('X-Api-Token'))
+        try:
+            check_user_is_developer(g.user['uid'])
+        except PermissionError as e:
+            return {"message": str(e)}, 403
 
         # convert to 0-based indexing
         args['chr_col'] = Upload.__convert_index(args['chr_col'])
@@ -376,7 +365,7 @@ class Upload(Resource):
         # create json payload
         j = dict()
         for k in args:
-            if args[k] is not None and k != 'gwas_file' and k != 'X-Api-Token' and k != 'gzipped':
+            if args[k] is not None and k != 'gwas_file' and k != 'gzipped':
                 j[k] = args[k]
 
         # get build
@@ -436,14 +425,14 @@ class Upload(Resource):
             gwas_id = str(j['id'])
 
             # write metadata to json
-            gi = get_gwas_for_user(user_email, gwas_id, datapass=False)
+            gi = get_gwas_for_user(g.user['uid'], gwas_id, datapass=False)
             with open(os.path.join(study_folder, gwas_id + '.json'), 'w') as f:
                 json.dump(gi, f)
             with open(os.path.join(study_folder, gwas_id + '.json'), 'rb') as f:
                 oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '.json', f)
 
             # write analyst data to json
-            an = {"upload_uid": user_email, "upload_epoch": time.time()}
+            an = {"upload_uid": g.user['uid'], "upload_epoch": time.time()}
             with open(os.path.join(study_folder, gwas_id + '_analyst.json'), 'w') as f:
                 json.dump(an, f)
             with open(os.path.join(study_folder, gwas_id + '_analyst.json'), 'rb') as f:

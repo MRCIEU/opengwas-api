@@ -1,15 +1,16 @@
-from flask import request, send_from_directory
+from flask import request, g, send_from_directory
 from flask_restx import Resource, Namespace
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
-import requests
-import logging
-import os
 import json
+import logging
+import shutil
+import os
+import requests
 import time
 
+from middleware.auth import jwt_required
 from queries.cql_queries import *
-from resources.auth import get_user_email
 from resources.globals import Globals
 from resources.oci import OCI
 
@@ -29,6 +30,7 @@ class List(Resource):
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='get_qc_todo')
+    @jwt_required
     def get(self):
         return get_todo_quality_control()
 
@@ -43,6 +45,7 @@ class GetId(Resource):
 
     @api.expect(parser)
     @api.doc(id='get_report')
+    @jwt_required
     def get(self, id):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
         htmlfile = id + "_report.html"
@@ -66,13 +69,13 @@ class Release(Resource):
 
     @api.expect(parser)
     @api.doc(id='post_release')
+    @jwt_required
     def post(self):
         try:
             req = self.parser.parse_args()
-            user_uid = get_user_email(request.headers.get('X-Api-Token'))
 
             try:
-                check_user_is_developer(user_uid)
+                check_user_is_developer(g.user['uid'])
             except PermissionError as e:
                 return {"message": str(e)}, 403
 
@@ -89,7 +92,7 @@ class Release(Resource):
                 raise ValueError("Cannot release data; the qc workflow failed!")
 
             # update graph
-            add_quality_control(user_uid, req['id'], req['passed_qc'] == "True", comment=req['comments'])
+            add_quality_control(g.user['uid'], req['id'], req['passed_qc'] == "True", comment=req['comments'])
 
             # update json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
@@ -100,7 +103,7 @@ class Release(Resource):
             f = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json').data.text
             analyst = json.loads(f)
 
-            analyst['release_uid'] = user_uid
+            analyst['release_uid'] = g.user['uid']
             analyst['release_epoch'] = time.time()
             analyst['release_comments'] = req['comments']
             analyst['passed_qc'] = req['passed_qc']
@@ -139,8 +142,6 @@ class Release(Resource):
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
         except ValueError as e:
             raise BadRequest("Could not process request: {}".format(e))
 
@@ -155,6 +156,7 @@ class GetId(Resource):
 
     @api.expect(parser)
     @api.doc(id='get_qc_files')
+    @jwt_required
     def get(self, id):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
         if os.path.isdir(study_folder):
@@ -175,12 +177,11 @@ class Delete(Resource):
 
     @api.expect(parser)
     @api.doc(id='delete_qc')
+    @jwt_required
     def delete(self, id):
         try:
-            user_uid = get_user_email(request.headers.get('X-Api-Token'))
-
             try:
-                check_user_is_developer(user_uid)
+                check_user_is_developer(g.user['uid'])
             except PermissionError as e:
                 return {"message": str(e)}, 403
 
@@ -188,5 +189,3 @@ class Delete(Resource):
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
-        except requests.exceptions.HTTPError as e:
-            raise BadRequest("Could not authenticate: {}".format(e))
