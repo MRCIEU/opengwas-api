@@ -1,6 +1,4 @@
 import flask
-from flask import request
-from flask_session.sessions import RedisSessionInterface, NullSessionInterface
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
@@ -10,31 +8,13 @@ from os import path, walk
 from datetime import datetime
 
 from resources.globals import Globals
-from resources.neo4j import Neo4j
 from resources.logging_middleware import LoggerMiddleWare
+from resources.neo4j import Neo4j
+from resources.sessions import CustomRedisSessionInterface
 from middleware.limiter import limiter
 from apis import api_bp
 from apis.status import check_ld_ref, check_1000g_vcf
 from profile import profile_bp, login_manager
-
-
-# Disable sessions
-# https://stackoverflow.com/questions/50162502/disable-session-cookie-generation-in-python-flask-login
-class CustomRedisSessionInterface(RedisSessionInterface):
-    def __init__(self):
-        super(CustomRedisSessionInterface, self).__init__(Globals.SESSION_REDIS, 'session:',False, False, 32)
-
-    @staticmethod
-    def _path_requires_session():
-        if request.path.startswith('/probe') or request.path.startswith('/api'):
-            return False
-        return True
-
-    def should_set_cookie(self, *args, **kwargs):
-        return True if self._path_requires_session() else False
-
-    def save_session(self, *args, **kwargs):
-        return super(CustomRedisSessionInterface, self).save_session(*args, **kwargs) if self._path_requires_session() else False
 
 
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
