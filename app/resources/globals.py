@@ -82,8 +82,6 @@ class Globals:
 
     variant_index = "snp-base-v0.2"
 
-    SESSION_REDIS = redis.from_url('redis://:' + app_config['redis']['pass'] + '@' + app_config['redis']['host'] + ':' + app_config['redis']['port'] + '/0')
-
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
     # USER_TIERS = {

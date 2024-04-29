@@ -4,6 +4,7 @@ from flask_limiter.util import get_remote_address
 import datetime
 
 from resources.globals import Globals
+from resources.redis import Redis
 from middleware.auth import get_user_source, get_uid
 
 
@@ -24,7 +25,10 @@ limiter = Limiter(
         HEADERS.RESET: "X-Allowance-Reset"
     },
     on_breach=make_429_response,
-    storage_uri='redis://:' + Globals.app_config['redis']['pass'] + '@' + Globals.app_config['redis']['host'] + ':' + Globals.app_config['redis']['port'] + '/1'
+    storage_uri='redis://:' + Globals.app_config['redis']['pass'] + '@' + Globals.app_config['redis']['host'] + ':' + Globals.app_config['redis']['port'] + '/1',
+    storage_options={
+        "connection_pool": Redis().conn['limiter'].connection_pool
+    }
 )
 
 

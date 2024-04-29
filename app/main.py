@@ -1,4 +1,5 @@
 import flask
+from flask_session.sessions import NullSessionInterface
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
