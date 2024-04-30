@@ -120,9 +120,9 @@ class Globals:
 
     # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
     ALLOWANCE_BY_USER_SOURCE = {
-        'UOB': '200000 per 10 minutes',
-        'MS': '50000 per 10 minutes',
-        'GH': '50000 per 10 minutes',
+        'UOB': '400000 per 10 minutes',
+        'MS': '100000 per 10 minutes',
+        'GH': '100000 per 10 minutes',
         'EM': '20000 per 10 minutes',
         'NONE': '5000 per 10 minutes'
     }
