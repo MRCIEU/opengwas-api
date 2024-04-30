@@ -50,7 +50,7 @@ class Add(Resource):
                                        ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
-    @api.doc(id='post_add_gwas_metadata')
+    @api.doc(id='edit_add_metadata')
     @jwt_required
     def post(self):
         try:
@@ -107,7 +107,7 @@ class Edit(Resource):
                                        ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
-    @api.doc(id='post_edit_gwas_metadata')
+    @api.doc(id='edit_edit_metadata')
     @jwt_required
     def post(self):
         try:
@@ -168,7 +168,7 @@ class GetId(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='get_gwas_metadata')
+    @api.doc(model=gwas_info_model, id='edit_get_metadata')
     @jwt_required
     def get(self, gwas_info_id):
         try:
@@ -190,7 +190,7 @@ class JobStatus(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(id='get_gwas_status')
+    @api.doc(id='edit_get_status')
     @jwt_required
     def get(self, gwas_id):
         r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=dict(label="gwas_id:" + gwas_id), auth=Globals.CROMWELL_AUTH)
@@ -203,7 +203,7 @@ class Delete(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(id='delete_gwas')
+    @api.doc(id='edit_delete_gwas')
     @jwt_required
     def delete(self, gwas_info_id):
         args = self.parser.parse_args()
@@ -326,7 +326,7 @@ class Upload(Resource):
             return val
 
     @api.expect(parser)
-    @api.doc(id='upload_gwas')
+    @api.doc(id='edit_upload_gwas')
     @jwt_required
     def post(self):
         args = self.parser.parse_args()

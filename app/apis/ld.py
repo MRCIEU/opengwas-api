@@ -31,7 +31,7 @@ class Clump(Resource):
     parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
 
     @api.expect(parser)
-    @api.doc(id='post_ld_clump')
+    @api.doc(id='ld_clump_post')
     @jwt_required
     def post(self):
         args = self.parser.parse_args()
@@ -62,7 +62,7 @@ class LdMatrix(Resource):
     parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
     
     @api.expect(parser)
-    @api.doc(id='post_ld_matrix')
+    @api.doc(id='ld_matrix_post')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=20)
     def post(self):
@@ -86,7 +86,7 @@ class RefLookup(Resource):
     parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
 
     @api.expect(parser)
-    @api.doc(id='post_ld_reflookup')
+    @api.doc(id='ld_reflookup_post')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=2)
     def post(self):

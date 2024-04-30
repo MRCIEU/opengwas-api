@@ -24,7 +24,7 @@ class AssocGet(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(id='get_variants_gwas')
+    @api.doc(id='assoc_get')
     @jwt_required
     def get(self, id='', variant=''):
         ids = id.split(',')  # ''.split(',') == ['']
@@ -62,7 +62,7 @@ class AssocPost(Resource):
                          help="Maximum MAF allowed for a palindromic variant")
 
     @api.expect(parser)
-    @api.doc(id='post_variants_gwas')
+    @api.doc(id='assoc_post')
     @jwt_required
     def post(self):
         args = self.parser.parse_args()

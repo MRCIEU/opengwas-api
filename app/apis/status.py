@@ -14,7 +14,7 @@ api = Namespace('status', description="Status of API and linked resources")
 @api.route('')
 @api.doc(description="Check services are running")
 class Status(Resource):
-    @api.doc(id='get_status', security=[])
+    @api.doc(id='status_get', security=[])
     @limiter.limit('30 per hour')  # Max number of requests per IP
     def get(self):
         # print(str(count_elastic_calls()))

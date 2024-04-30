@@ -20,7 +20,7 @@ class Info(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='get_gicache')
+    @api.doc(model=gwas_info_model, id='gicache_get')
     def get(self):
         n = save_gwasinfo_cache()
         return {'nrecords': n}

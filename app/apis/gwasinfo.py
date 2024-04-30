@@ -28,7 +28,7 @@ class Info(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='get_gwas')
+    @api.doc(model=gwas_info_model, id='gwasinfo_get_all')
     @jwt_required
     def get(self):
         with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost()):
@@ -40,7 +40,7 @@ class Info(Resource):
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='get_gwas_post')
+    @api.doc(model=gwas_info_model, id='gwasinfo_post')
     @jwt_required
     def post(self):
         args = self.parser.parse_args()
@@ -67,7 +67,7 @@ class GetById(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='get_gwas_by_id')
+    @api.doc(model=gwas_info_model, id='gwasinfo_get')
     @jwt_required
     def get(self, id):
         ids = id.split(',')

@@ -29,7 +29,7 @@ class List(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='get_qc_todo')
+    @api.doc(model=gwas_info_model, id='qc_get_todo')
     @jwt_required
     def get(self):
         return get_todo_quality_control()
@@ -44,7 +44,7 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(id='get_report')
+    @api.doc(id='qc_get_report')
     @jwt_required
     def get(self, id):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
@@ -68,7 +68,7 @@ class Release(Resource):
     parser.add_argument('passed_qc', type=str, required=True, choices=("True", "False"), help='Did the data meet QC?')
 
     @api.expect(parser)
-    @api.doc(id='post_release')
+    @api.doc(id='qc_post_release')
     @jwt_required
     def post(self):
         try:
@@ -155,7 +155,7 @@ class GetId(Resource):
         help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(id='get_qc_files')
+    @api.doc(id='qc_get_files')
     @jwt_required
     def get(self, id):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
@@ -176,7 +176,7 @@ class Delete(Resource):
     parser.add_argument('id', type=str, required=True, help='Identifier for the gwas info.')
 
     @api.expect(parser)
-    @api.doc(id='delete_qc')
+    @api.doc(id='qc_delete')
     @jwt_required
     def delete(self, id):
         try:

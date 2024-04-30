@@ -18,7 +18,7 @@ api = Namespace('variants', description="Retrieve variant information")
     }
 )
 class VariantGet(Resource):
-    @api.doc(id='get_variant_rsid')
+    @api.doc(id='variants_get_rsid')
     @jwt_required
     def get(self, rsid=None):
         if rsid is None:
@@ -54,7 +54,7 @@ class VariantPost(Resource):
     parser.add_argument('rsid', required=False, type=str, action='append', default=[], help="List of variant rs IDs")
 
     @api.expect(parser)
-    @api.doc(id='post_variant_rsid')
+    @api.doc(id='variants_post_rsid')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def post(self):
@@ -83,7 +83,7 @@ class ChrposGet(Resource):
     parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
 
     @api.expect(parser)
-    @api.doc(id='get_chrpos')
+    @api.doc(id='variants_chrpos_get')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, chrpos):
@@ -120,7 +120,7 @@ class ChrposPost(Resource):
                          help="Range to search either side of target locus")
 
     @api.expect(parser)
-    @api.doc(id='post_chrpos')
+    @api.doc(id='variants_chrpos_post')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def post(self):
@@ -147,7 +147,7 @@ class GeneGet(Resource):
     parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
 
     @api.expect(parser)
-    @api.doc(id='get_gene')
+    @api.doc(id='variants_gene_get')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, gene=None):
@@ -170,7 +170,7 @@ class GeneGet(Resource):
     }
 )
 class VariantGet(Resource):
-    @api.doc(id='get_afl2_rsid')
+    @api.doc(id='variants_afl2_rsid_get')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, rsid=None):
@@ -202,7 +202,7 @@ class ChrposGet(Resource):
     parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
 
     @api.expect(parser)
-    @api.doc(id='get_afl2_chrpos')
+    @api.doc(id='variants_afl2_chrpos_get')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def get(self, chrpos=None):
@@ -238,7 +238,7 @@ class Afl2Post(Resource):
     parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus (for chrpos only)")
 
     @api.expect(parser)
-    @api.doc(id='post_afl2')
+    @api.doc(id='variants_afl2_post')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=1)
     def post(self):
@@ -274,7 +274,7 @@ class Afl2Post(Resource):
 @api.route('/afl2/snplist')
 @api.doc(description="Get list of rsids that are variable across populations for ancestry analyses")
 class Afl2Snplist(Resource):
-    @api.doc(id='get_afl2_snplist')
+    @api.doc(id='variants_afl2_snplist_get')
     @jwt_required
     @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=10)
     def get(self):

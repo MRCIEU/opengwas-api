@@ -27,7 +27,7 @@ class PhewasGet(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(id='get_phewas')
+    @api.doc(id='phewas_get')
     @jwt_required
     def get(self, variant='', pval=1e-3):
         variants = variant.split(',')
@@ -56,7 +56,7 @@ class PhewasPost(Resource):
     parser.add_argument('index_list', required=False, type=str, action='append', default=[], help="List of study indexes. If empty then searches across all indexes.")
 
     @api.expect(parser)
-    @api.doc(id='post_phewas')
+    @api.doc(id='phewas_post')
     @jwt_required
     def post(self):
         args = self.parser.parse_args()

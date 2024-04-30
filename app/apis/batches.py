@@ -9,7 +9,7 @@ api = Namespace('batches', description="Data batches")
 @api.route('')
 @api.doc(description="List existing data batches")
 class Status(Resource):
-    @api.doc(id='get_batches', security=[])
+    @api.doc(id='batches_get', security=[])
     @limiter.limit('30 per hour')  # Max number of requests per IP
     def get(self):
         try:

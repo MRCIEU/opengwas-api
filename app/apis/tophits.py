@@ -48,7 +48,7 @@ class Tophits(Resource):
     parser.add_argument('pop', type=str, required=False, default="EUR", choices=Globals.LD_POPULATIONS)
 
     @api.expect(parser)
-    @api.doc(id='post_tophits')
+    @api.doc(id='tophits_post')
     @jwt_required
     def post(self):
         args = self.parser.parse_args()
