@@ -124,5 +124,5 @@ class Globals:
         'MS': '100000 per 10 minutes',
         'GH': '100000 per 10 minutes',
         'EM': '20000 per 10 minutes',
-        'NONE': '5000 per 10 minutes'
+        'NONE': '0 per 10 minutes'
     }

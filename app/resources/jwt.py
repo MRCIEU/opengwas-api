@@ -41,5 +41,4 @@ def validate_jwt(token):
         # TODO: reset jwt_timestamp?
         raise Unauthorized("Please generate a new token.")
 
-    # TODO: add counter
     return user
