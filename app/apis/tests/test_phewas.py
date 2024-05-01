@@ -1,9 +1,7 @@
-import pytest
 import requests
 
 
 # Anonymous
-@pytest.mark.skip
 def test_phewas_get0(url, headers):
     headers = headers.copy()
     del headers['Authorization']
@@ -12,16 +10,15 @@ def test_phewas_get0(url, headers):
 
 
 def test_phewas_get1(url, headers):
-    r = requests.get(url + "/phewas/rs234/0.001", headers={})
+    r = requests.get(url + "/phewas/rs234/0.001", headers=headers)
     assert r.status_code == 200 and len(r.json()) > 20
 
 
 def test_phewas_get2(url, headers):
-    r = requests.get(url + "/phewas/rs234/0.01", headers={})
+    r = requests.get(url + "/phewas/rs234/0.01", headers=headers)
     assert r.status_code == 200 and len(r.json()) > 200
 
 
-@pytest.mark.skip
 def test_phewas_post0(url, headers):
     headers = headers.copy()
     del headers['Authorization']

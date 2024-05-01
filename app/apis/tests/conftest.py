@@ -29,6 +29,5 @@ def url(request):
 def headers():
     return {
         'X-TEST-MODE-KEY': Globals.app_config['test']['test_mode_key'],
-        # 'Authorization': 'Bearer ' + get_token()
-        'X-API-TOKEN': get_token()
+        'Authorization': 'Bearer ' + get_token()
     }

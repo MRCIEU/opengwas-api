@@ -1,9 +1,7 @@
-import pytest
 import requests
 
 
 # Anonymous
-@pytest.mark.skip
 def test_assoc_get0(url, headers):
     headers = headers.copy()
     del headers['Authorization']
@@ -12,30 +10,30 @@ def test_assoc_get0(url, headers):
 
 
 def test_assoc_get1(url, headers):
-    r = requests.get(url + "/associations/ieu-a-2/rs234", headers={})
+    r = requests.get(url + "/associations/ieu-a-2/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
 def test_assoc_get2(url, headers):
-    r = requests.get(url + "/associations/ieu-a-300/rs4988235", headers={})
+    r = requests.get(url + "/associations/ieu-a-300/rs4988235", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
 # No result for ieu-a-998 because it's in the 'developer' group
 def test_assoc_get3(url, headers):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998/rs234", headers={})
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-998/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
 # No result for ieu-a-998 because it's in the 'developer' group
 def test_assoc_get4(url, headers):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-a-998/rs234", headers={})
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-a-998/rs234", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
 # No result for ieu-a-998 because it's in the 'developer' group
 def test_assoc_get5(url, headers):
-    r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-a-998/rs234,rs123", headers={})
+    r = requests.get(url + "/associations/ieu-a-2,ieu-a-7,ieu-a-998/rs234,rs123", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
@@ -45,7 +43,6 @@ def test_assoc_get6(url, headers):
     assert r.status_code == 200 and len(r.json()) == 6
 
 
-@pytest.mark.skip
 def test_assoc_post0(url):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
     r = requests.post(url + "/associations", data=payload)
@@ -54,7 +51,7 @@ def test_assoc_post0(url):
 
 def test_assoc_post1(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
-    r = requests.post(url + "/associations", data=payload, headers={})
+    r = requests.post(url + "/associations", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
