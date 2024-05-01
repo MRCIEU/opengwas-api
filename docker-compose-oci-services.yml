@@ -2,7 +2,7 @@ version: '3.4'
 services:
 
   og-neo4j:
-    image: neo4j:5.17
+    image: neo4j:5.19
     restart: always
     ports:
       - "7474:7474"
@@ -30,9 +30,18 @@ services:
     command: redis-server --requirepass ${REDIS_PASS}
 
   og-fileserve:
-    image: nginx:1.25.4
+    image: nginx:1.25.5
     restart: always
     ports:
       - "8080:80"
     volumes:
       - /data/fileserve:/usr/share/nginx/html
+
+  og-logstash:
+    image: logstash:7.17.20
+    network_mode: host
+    restart: always
+    volumes:
+      - /data/logstash-v7/pipeline:/usr/share/logstash/pipeline
+    environment:
+      - XPACK_MONITORING_ELASTICSEARCH_HOSTS=${ES_HOSTS}
