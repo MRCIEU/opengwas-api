@@ -1,9 +1,11 @@
-from flask import request, g
+from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
+import time
 
 from queries.es import *
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.logger import logger as logger_middleware
 
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
 
@@ -38,11 +40,17 @@ class PhewasGet(Resource):
         if variants == ['']:
             abort(400)
 
+        start_time = time.time()
+
         try:
-            return run_phewas(user_email=g.user['uid'], variants=variants, pval=float(pval), index_list=[])
+            result = run_phewas(user_email=g.user['uid'], variants=variants, pval=float(pval), index_list=[])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
+
+        logger_middleware.log(g.user['uid'], 'phewas_get', start_time, {'variant': len(variants)},
+                              len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+        return result
 
 
 @api.route('')
@@ -64,12 +72,17 @@ class PhewasPost(Resource):
         with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['variant'])):
             pass
 
+        start_time = time.time()
+
         try:
-            return run_phewas(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
+            result = run_phewas(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
 
+        logger_middleware.log(g.user['uid'], 'phewas_post', start_time, {'variant': len(args['variant'])},
+                              len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+        return result
 
 def run_phewas(user_email, variants, pval, index_list=None):
     variants = organise_variants(variants)

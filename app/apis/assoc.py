@@ -1,8 +1,10 @@
-from flask import request, g
+from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
+import time
 
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.logger import logger as logger_middleware
 from queries.es import *
 
 api = Namespace('associations', description="Retrieve GWAS associations")
@@ -36,12 +38,18 @@ class AssocGet(Resource):
         if ids == [''] or variants == ['']:
             abort(400)
 
+        start_time = time.time()
+
         try:
-            return get_assoc(g.user['uid'], variants, ids, 1, 0.8, 1, 1, 0.3)
+            result = get_assoc(g.user['uid'], variants, ids, 1, 0.8, 1, 1, 0.3)
         except Exception as e:
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
 
+        logger_middleware.log(g.user['uid'], 'assoc_get', start_time,
+                              {'id': len(ids), 'variant': len(variants), 'proxies': 1},
+                              len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+        return result
 
 @api.route('')
 @api.doc(
@@ -73,8 +81,15 @@ class AssocPost(Resource):
         if len(args['id']) == 0 or len(args['variant']) == 0:
             abort(400)
 
+        start_time = time.time()
+
         try:
-            return get_assoc(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+            result = get_assoc(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
         except Exception as e:
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
+
+        logger_middleware.log(g.user['uid'], 'assoc_post', start_time,
+                              {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
+                              len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+        return result

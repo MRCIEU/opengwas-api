@@ -1,10 +1,12 @@
-from flask import request
+from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
+import time
 
 from resources.ld import *
 from resources.globals import Globals
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.logger import logger as logger_middleware
 
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
 
@@ -42,12 +44,16 @@ class Clump(Resource):
         if len(args['rsid']) == 0 or len(args['pval']) == 0 or len(args['rsid']) != len(args['pval']):
             abort(400)
 
+        start_time = time.time()
+
         try:
-            return plink_clumping_rs(Globals.TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'],
-                                    args['r2'], args['kb'], args['pop'])
+            result = plink_clumping_rs(Globals.TMP_FOLDER, args['rsid'], args['pval'], args['pthresh'], args['pthresh'], args['r2'], args['kb'], args['pop'])
         except Exception as e:
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
+
+        logger_middleware.log(g.user['uid'], 'ld_clump_post', start_time, {'rsid': len(args['rsid'])}, len(result))
+        return result
 
 
 @api.route('/matrix')
@@ -68,11 +74,16 @@ class LdMatrix(Resource):
     def post(self):
         args = self.parser.parse_args()
 
+        start_time = time.time()
+
         try:
-            return plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'], args['pop'])
+            result = plink_ldsquare_rs(Globals.TMP_FOLDER, args['rsid'], args['pop'])
         except Exception as e:
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
+
+        logger_middleware.log(g.user['uid'], 'ld_matrix_post', start_time, {'rsid': len(args['rsid'])}, len(result['snplist']))
+        return result
 
 
 @api.route('/reflookup')
@@ -92,8 +103,13 @@ class RefLookup(Resource):
     def post(self):
         args = self.parser.parse_args()
 
+        start_time = time.time()
+
         try:
-            return ld_ref_lookup(Globals.TMP_FOLDER, args['rsid'], args['pop'])
+            result = ld_ref_lookup(Globals.TMP_FOLDER, args['rsid'], args['pop'])
         except Exception as e:
             logger.error("Could not lookup SNPs: {}".format(e))
             abort(503)
+
+        logger_middleware.log(g.user['uid'], 'ld_reflookup_post', start_time, {'rsid': len(args['rsid'])}, len(result))
+        return result

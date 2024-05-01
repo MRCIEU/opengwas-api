@@ -1,7 +1,10 @@
+import json
+
 from flask_limiter.util import get_remote_address
 import time
 
 
+from resources.globals import Globals
 from resources.redis import Redis
 
 
@@ -11,15 +14,18 @@ class Logger:
         self.r = Redis().conn['log']
         return
 
-    def log(self, uid, endpoint, gwas_id, start_time):
-        self.r.xadd('log_api_request', {
+    def log(self, uid, endpoint, start_time, cost_params=None, n_records=0, gwas_id=None, n_snps=0):
+        subscribers = self.r.publish('log.api.' + Globals.app_config['env'], json.dumps({
             'uid': uid,
             'ip': get_remote_address(),
             'endpoint': endpoint,
+            'cost_params': cost_params,
+            'time': int((time.time() - start_time) * 1000),
+            'n_records': n_records,
             'gwas_id': gwas_id,
-            'time_ms': int((time.time() - start_time) * 1000)
-        })
-        print(self.r.xlen('log_api_request'))
-        return
+            'n_snps': n_snps
+        }))
+        return subscribers
+
 
 logger = Logger()

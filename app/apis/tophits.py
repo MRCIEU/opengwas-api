@@ -1,12 +1,14 @@
-from flask import request, g
+from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
 import logging
+import time
 
 from queries.es import *
 from resources.ld import *
 from resources.globals import Globals
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.logger import logger as logger_middleware
 
 
 logger = logging.getLogger('debug-log')
@@ -59,11 +61,18 @@ class Tophits(Resource):
         if len(args['id']) == 0:
             abort(400)
 
+        start_time = time.time()
+
         try:
-            return extract_instruments(g.user['uid'], args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])
+            result = extract_instruments(g.user['uid'], args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])
         except Exception as e:
             logger.error("Could not obtain tophits: {}".format(e))
             abort(503)
+
+        logger_middleware.log(g.user['uid'], 'tophits_post', start_time,
+                              {'id': len(args['id']), 'preclumped': args['preclumped'], 'clump': args['clump']},
+                              len(result), list(set([r['id'] for r in result])))
+        return result
 
 
 def extract_instruments(user_email, id, preclumped, clump, bychr, pval, r2, kb, pop="EUR"):

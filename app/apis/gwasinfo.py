@@ -1,11 +1,13 @@
-from flask import request, send_file, g
+from flask import send_file, g
 from flask_restx import Resource, Namespace
 from werkzeug.exceptions import BadRequest
 import logging
 import os
+import time
 
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.logger import logger as logger_middleware
 from queries.cql_queries import *
 from resources.globals import Globals
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
@@ -35,7 +37,13 @@ class Info(Resource):
             pass
         # if g.user['uid'] is None and os.path.exists(Globals.STATIC_GWASINFO):
         #     return send_file(Globals.STATIC_GWASINFO)
-        return get_all_gwas_for_user(g.user['uid'])
+
+        start_time = time.time()
+
+        result = get_all_gwas_for_user(g.user['uid'])
+
+        logger_middleware.log(g.user['uid'], 'gwasinfo_get_all', start_time, {'id': 0}, len(result))
+        return result
 
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
 
@@ -48,8 +56,12 @@ class Info(Resource):
         with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['id'])):
             pass
 
+        start_time = time.time()
+
         if 'id' not in args or args['id'] is None or len(args['id']) == 0:
-            return get_all_gwas_for_user(g.user['uid'])
+            result = get_all_gwas_for_user(g.user['uid'])
+            logger_middleware.log(g.user['uid'], 'gwasinfo_post', start_time, {'id': 0}, len(result))
+            return result
 
         recs = []
         for gwas_info_id in args['id']:
@@ -58,6 +70,9 @@ class Info(Resource):
             except LookupError as e:
                 logger.warning("Could not locate study: {}".format(e))
                 continue
+
+        logger_middleware.log(g.user['uid'], 'gwasinfo_post', start_time, {'id': len(args['id'])},
+                              len(recs), [r['id'] for r in recs])
         return recs
 
 
@@ -75,6 +90,8 @@ class GetById(Resource):
         with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(ids)):
             pass
 
+        start_time = time.time()
+
         try:
             recs = []
             for gwas_info_id in ids:
@@ -82,6 +99,8 @@ class GetById(Resource):
                     recs.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
                 except LookupError:
                     continue
-            return recs
         except LookupError:
             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
+
+        logger_middleware.log(g.user['uid'], 'gwasinfo_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
+        return recs
