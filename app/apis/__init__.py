@@ -26,19 +26,13 @@ api_bp.add_url_rule('/', view_func=index)
 api = Api(api_bp, version=Globals.VERSION, title='IEU OpenGWAS database',
           description='A RESTful API for querying tens of thousands of GWAS summary datasets', docExpansion='full',
           doc='/docs', authorizations={
-              'token_google': {
-                  'type': 'apiKey',
-                  'in': 'header',
-                  'name': 'X-API-TOKEN',
-                  'description': '[To be deprecated soon] Please provide your token, which can be obtained via <code>ieugwasr::get_access_token()</code> in R.'
-              },
               'token_jwt': {
                   'type': 'apiKey',
                   'in': 'header',
                   'name': 'Authorization',
-                  'description': '[New - now rolling out] Prepend "<code>Bearer(whitespace)</code>" to your token. The entire value provided for this header should be like: <code>Bearer ey******.**********.*********</code>. Read more at https://api.opengwas.io/api/#authentication'
+                  'description': 'Prepend "<code>Bearer(whitespace)</code>" to your token. The entire value provided for this header should be like: <code>Bearer ey******.**********.*********</code>. Read more at https://api.opengwas.io/api/#authentication'
               }
-          }, security=['token_google', 'token_jwt'])
+          }, security=['token_jwt'])
 
 # public
 api.add_namespace(status)
