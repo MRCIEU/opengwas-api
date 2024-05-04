@@ -1,10 +1,10 @@
-from flask import request
+from flask import g
 from flask_restx import Namespace, Resource
 import datetime
 
+from middleware.auth import jwt_required
 from middleware.limiter import limiter
 from resources.globals import Globals
-from resources.jwt import validate_jwt
 
 
 api = Namespace('user', description="User zone")
@@ -15,14 +15,14 @@ api = Namespace('user', description="User zone")
 class User(Resource):
     @api.doc(id='user_get', security=['token_jwt'])
     @limiter.limit('30 per hour')  # Max number of requests per IP
+    @jwt_required
     def get(self):
-        user = validate_jwt(request.headers.get('Authorization', '').replace("Bearer ", ""))
         return {
             'user': {
-                'uid': user['uid'],
-                'first_name': user['first_name'],
-                'last_name': user['last_name'],
-                'most_recent_signin_method': Globals.USER_SOURCES[user['source']],
-                'jwt_valid_until': datetime.datetime.strftime(datetime.datetime.fromtimestamp(user['jwt_timestamp'] + Globals.JWT_VALIDITY).astimezone(), '%Y-%m-%d %H:%M %Z')
+                'uid': g.user['uid'],
+                'first_name': g.user['first_name'],
+                'last_name': g.user['last_name'],
+                'most_recent_signin_method': Globals.USER_SOURCES[g.user['source']],
+                'jwt_valid_until': datetime.datetime.strftime(datetime.datetime.fromtimestamp(g.user['jwt_timestamp'] + Globals.JWT_VALIDITY).astimezone(), '%Y-%m-%d %H:%M %Z')
             }
         }

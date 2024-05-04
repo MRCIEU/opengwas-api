@@ -5,7 +5,7 @@ import datetime
 
 from resources.globals import Globals
 from resources.redis import Redis
-from middleware.auth import get_user_source, get_uid
+from .auth import get_user_source, get_uid
 
 
 def make_429_response(request_limit: RequestLimit):
@@ -49,4 +49,7 @@ def get_key_func_uid():
 
 @limiter.request_filter
 def header_whitelist():
-    return request.headers.get('X-TEST-MODE-KEY', None) == Globals.app_config['test']['test_mode_key']
+    return any([
+        request.headers.get('X-TEST-MODE-KEY', 'default_value') == Globals.app_config['test']['static_token'],
+        request.headers.get('X-TEST-NO-RATE-LIMIT-KEY', 'default_value') == Globals.app_config['test']['no_rate_limit_key']
+    ])
