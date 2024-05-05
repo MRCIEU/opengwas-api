@@ -1,8 +1,7 @@
-import json
-
+from flask import request
 from flask_limiter.util import get_remote_address
 import time
-
+import json
 
 from resources.globals import Globals
 from resources.redis import Redis
@@ -23,7 +22,8 @@ class Logger:
             'time': int((time.time() - start_time) * 1000),
             'n_records': n_records,
             'gwas_id': gwas_id,
-            'n_snps': n_snps
+            'n_snps': n_snps,
+            'source': request.headers.get('X-API-SOURCE', None)
         }))
         return subscribers
 
