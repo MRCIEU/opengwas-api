@@ -65,11 +65,6 @@ def probe_readiness():
     return {'message': "LD files unavailable"}, 503
 
 
-# Let's Encrypt ACME challenge
-def acme():
-    return "mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k.zDm77IFw4JnpIjshtRK4waD-ibCJOaVSKngPHpp3teQ"
-
-
 setup_event_logger('event-log', Globals.LOG_FILE)
 setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=True)
 setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=True)
