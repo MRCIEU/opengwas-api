@@ -38,7 +38,7 @@ services:
       - /data/fileserve:/usr/share/nginx/html
 
   og-logstash:
-    image: logstash:7.17.20
+    image: logstash:7.17.21
     network_mode: host
     restart: always
     volumes:
