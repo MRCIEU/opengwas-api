@@ -20,7 +20,7 @@ services:
       - ACCESS=private
     volumes:
       - ./app:/app
-    command: ["gunicorn", "--bind", "0.0.0.0:8019", "main:app"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8019", "--workers", "2", "main:app"]
     networks:
       - og-api
     depends_on:

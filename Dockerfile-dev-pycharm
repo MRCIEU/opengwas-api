@@ -7,4 +7,6 @@ ENV PYTHONUNBUFFERED=1
 COPY app/requirements.txt .
 RUN python -m pip install -r requirements.txt
 
+COPY ./vault /app/vault
+
 WORKDIR /app
