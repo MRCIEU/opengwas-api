@@ -3,12 +3,11 @@ import json
 import platform
 import os
 from neo4j import GraphDatabase
-import redis
 import requests
 
 
 class Globals:
-    VERSION = '3.8.7'
+    VERSION = '4.0.0'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'vault/app_conf.json')
     AUTHTEXT = 'See the Authentication section of API tutorial page for details on how to authenticate.'
