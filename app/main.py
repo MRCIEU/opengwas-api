@@ -86,9 +86,6 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
 
-# Let's Encrypt ACME challenge
-app.add_url_rule('/.well-known/acme-challenge/mdwmQ9KELEMI3-T3kqCL4HLBiKOSRllC3PUkaTkQr6k', '/acme', acme)
-
 app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
 if os.environ.get('ENV') == 'production':
