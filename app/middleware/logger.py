@@ -4,17 +4,12 @@ import time
 import json
 
 from resources.globals import Globals
-from resources.redis import Redis
+from queries.redis_queries import RedisQueries
 
 
 class Logger:
-
-    def __init__(self):
-        self.r = Redis().conn['log']
-        return
-
     def log(self, uid, endpoint, start_time, cost_params=None, n_records=0, gwas_id=None, n_snps=0):
-        subscribers = self.r.publish('log.api.' + Globals.app_config['env'], json.dumps({
+        return RedisQueries('log').publish_log('log.api.' + Globals.app_config['env'], json.dumps({
             'uid': uid,
             'ip': get_remote_address(),
             'endpoint': endpoint,
@@ -25,7 +20,6 @@ class Logger:
             'n_snps': n_snps,
             'source': request.headers.get('X-API-SOURCE', None)
         }))
-        return subscribers
 
 
 logger = Logger()
