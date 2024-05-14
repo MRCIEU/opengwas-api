@@ -11,5 +11,7 @@ def raise_error(key):
         raise Unauthorized("Unable to get uid. Please provide your token.")
     elif key == 'NO_UID_OR_SOURCE':
         raise Unauthorized("Unable to get user source. Please provide your token.")
+    elif key == 'NO_PRIVILEGE':
+        raise Unauthorized("You do not have the privilege to access this resource.")
 
     raise ServiceUnavailable()

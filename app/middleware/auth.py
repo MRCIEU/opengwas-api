@@ -1,6 +1,5 @@
 from flask import request, g
 from functools import wraps
-from werkzeug.exceptions import Unauthorized
 
 from queries.cql_queries import get_user_by_email
 from resources.jwt import validate_jwt
@@ -18,6 +17,17 @@ def jwt_required(f):
         else:
             return raise_error('MISSING_TOKEN')
         return f(*args, **kwargs)
+    return _decorator
+
+
+def check_role(role):
+    def _decorator(f):
+        @wraps(f)
+        def _check_role(*args, **kwargs):
+            if 'user' not in g or 'role' not in g.user or role not in g.user['role']:
+                return raise_error('NO_PRIVILEGE')
+            return f(*args, **kwargs)
+        return _check_role
     return _decorator
 
 
