@@ -90,25 +90,21 @@ app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
 if os.environ.get('ENV') == 'production':
     print('POOL', os.environ.get('POOL'))
-    if os.environ.get('POOL') == 'api':
+    if os.environ.get('POOL') == 'api' or os.environ.get('POOL') == 'api-priv':
         app.session_interface = NoCookieSessionInterface()
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
-    elif os.environ.get('POOL') == 'profile':
+    elif os.environ.get('POOL') == 'ui':
         app.session_interface = CustomRedisSessionInterface()
-        app.add_url_rule('/', '/', view_func=show_index)
-        app.register_blueprint(profile_bp, url_prefix='/profile')
-        login_manager.init_app(app)
-    elif os.environ.get('POOL') == 'admin':
         app.add_url_rule('/', '/', view_func=show_index)
         app.register_blueprint(profile_bp, url_prefix='/profile')
         app.register_blueprint(admin_bp, url_prefix='/admin')
         login_manager.init_app(app)
 else:
     app.session_interface = CustomRedisSessionInterface()
-    app.add_url_rule('/', '/', view_func=show_index)
     app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
     app.register_blueprint(api_bp, url_prefix='/api')
+    app.add_url_rule('/', '/', view_func=show_index)
     app.register_blueprint(profile_bp, url_prefix='/profile')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     login_manager.init_app(app)
