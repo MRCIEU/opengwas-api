@@ -87,7 +87,13 @@ class Globals:
         'MS': "Microsoft",
         'GH': "GitHub",
         'EM': "Email verification",
-        'NONE': "Anonymous"
+        'NONE': "Anonymous (legacy)"
+    }
+
+    USER_TIERS = {
+        'ORG': "Organisational",
+        'PER': "Personal",
+        'NONE': "Unknown (legacy)"
     }
 
     MS_ENTRA_ID_AUTHORITY = "https://login.microsoftonline.com/common"
