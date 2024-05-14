@@ -12,7 +12,8 @@ api = Namespace('stats', description="Get statistics from logs")
 
 
 @api.route('/overall')
-@api.doc(description="Get the overall stats of datasets and users")
+@api.hide
+# Get the overall stats of datasets and users
 class Overall(Resource):
     @api.doc(id='mvd_get', security=['token_jwt'])
     @jwt_required
@@ -42,7 +43,8 @@ class Overall(Resource):
 
 
 @api.route('/mvd')
-@api.doc(description="Get the list of most valued datasets")
+@api.hide
+# Get the list of most valued datasets
 class MostValuedDatasets(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('year', required=False, type=str, default="*", help="Year of the time period of interest")
@@ -70,7 +72,8 @@ class MostValuedDatasets(Resource):
 
 
 @api.route('/mau')
-@api.doc(description="Get the list of most active users")
+@api.hide
+# Get the list of most active users
 class MostValuedDatasets(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('year', required=False, type=str, default="*", help="Year of the time period of interest")
