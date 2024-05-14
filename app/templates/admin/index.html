@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link href="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">Admin area</h2>
+    <p class="fs-5 text-muted">...</p>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col-5">
+        <h6>Datasets</h6>
+        <table class="table table-sm table-borderless">
+            <thead><tr><td>Total</td><td>Public</td><td>Private</td></tr></thead>
+            <tbody><tr id="overallDatasetTr"></tr></tbody>
+        </table>
+    </div>
+    <div class="col-7">
+        <h6>Users</h6>
+        <table class="table table-sm table-borderless">
+            <thead><tr><td>All</td><td>With a valid token</td><td>Online (10 mins)</td></tr></thead>
+            <tbody><tr id="overallUserTr"></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="userCompositionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User composition</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p>By method of last sign-in:</p>
+                    <table class="table table-sm table-borderless">
+                        <thead><tr><td>Sign-in</td><td>Count</td></tr></thead>
+                        <tbody id="overallUserModalBySourceTbody"></tbody>
+                    </table>
+                </div>
+                <div>
+                    <p>By group - inferred from domain name of email address, or Microsoft organisational profile (if any):</p>
+                    <table class="table table-sm table-borderless">
+                        <thead><tr><td>Group</td><td>Count</td></tr></thead>
+                        <tbody id="overallUserModalByTierTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<div class="row p-1">
+    <div class="col d-flex justify-content-center">
+        <div class="dropdown">
+            Show report of
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" id="timespanButton">All (since May 2024)</button>
+            <ul class="dropdown-menu" id="timespanDropdown">
+                <li><a class="dropdown-item timespan-dropdown-item" href="#" data-year="*" data-month="*">All (since May 2024)</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row p-1">
+    <div class="col">
+        <ul class="nav nav-pills nav-fill" id="reportNav">
+            <li class="nav-item"><a class="nav-link" href="#mvdDiv" data-report-name="mvd">Most Valued Datasets</a></li>
+            <li class="nav-item"><a class="nav-link" href="#mauDiv" data-report-name="mau">Most Active Users</a></li>
+        </ul>
+        <div class="tab-content p-2">
+            <div class="tab-pane fade" id="mvdDiv">
+                <p>
+                    Showing the top 50 datasets based on the number of users during the selected time span.
+                </p>
+                <table class="table table-sm table-striped" id="mvdTable">
+                    <thead><tr>
+                            <th scope="col">#</th>
+                            <th scope="col">ID</th>
+                            <th scope="col" width="50%">Trait</th>
+                            <th scope="col">N<sub>Users</sub></th>
+                            <th scope="col">N<sub>Requests</sub></th>
+                        </tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="mauDiv">
+                <p>
+                    Showing the top 50 users based on the number of requests they made during the selected time span.
+                    <br><b>Sign-in</b> is the method of their last sign-in. <b>Location</b> and <b>Client</b> are retrieved from their last request.
+                </p>
+                <table class="table table-sm table-striped" id="mauTable">
+                    <thead><tr>
+                            <th scope="col">#</th>
+                            <th scope="col">UID</th>
+                            <th scope="col">N<sub>Reqs</sub></th>
+                            <th scope="col">&#931;<sub>ProcTime</sub>(h)</th>
+                            <th scope="col">Sign-in</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Client</th>
+                        </tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.js"></script>
+
+<script>
+    var overallDatasetTr, overallUserTr, overallUserModalBySourceTbody, overallUserModalByTierTbody, timespanDropdown, mvdTable, mauTable;
+    var focusedReport, focusedYear = "*", focusedMonth = "*";
+    var jwt, gwasinfo;
+
+    $(document).ready(() => {
+        bind_events();
+        get_token();
+        overallDatasetTr = $("#overallDatasetTr");
+        overallUserTr = $("#overallUserTr");
+        overallUserModalBySourceTbody = $("#overallUserModalBySourceTbody");
+        overallUserModalByTierTbody = $("#overallUserModalByTierTbody");
+        timespanDropdown = $("#timespanDropdown");
+        populate_dropdown();
+    });
+
+    // Bind event listeners
+    function bind_events() {
+        $(document).on("click", ".timespan-dropdown-item", function () {
+            $("#timespanButton").html($(this)[0].getInnerHTML());
+            focusedYear = $(this)[0].getAttribute("data-year");
+            focusedMonth = $(this)[0].getAttribute("data-month")
+            load_report();
+        });
+        $("#reportNav a").on("click", function (e) {
+            e.preventDefault();
+            focusedReport = $(this)[0].getAttribute("data-report-name");
+            load_report();
+            $(this).tab('show');
+        });
+    }
+
+    function load_report() {
+        switch (focusedReport) {
+            case "mvd":
+                load_mvd_data(focusedYear, focusedMonth);
+                break;
+            case "mau":
+                load_mau_data(focusedYear, focusedMonth);
+                break;
+            default:
+        }
+    }
+
+    // Populate dropdown with month and year combinations since May 2024
+    function populate_dropdown() {
+        var start = new Date(2024, 4)
+        for (let date = start; date < (new Date()); date.setMonth(start.getMonth() + 1)) {
+            timespanDropdown.append(`<li><a class="dropdown-item timespan-dropdown-item" href="#" data-year="${date.getFullYear()}" data-month="${(date.getMonth() + 1).toString().padStart(2, '0')}">${date.toLocaleString('en-GB', {month: 'short'})} ${date.getFullYear()}</a></li>`);
+        }
+    }
+
+    // Get token
+    function get_token() {
+        $.ajax({
+            url: "/admin/token?random=" + Math.random(),
+            error: function (xhr) {
+                alert("You need to have a valid token to access the admin area. If you haven't, generate one on the user profile page, then go back here and refresh.");
+            },
+            success: function (response) {
+                jwt = response.token;
+                load_overall_stats();
+                init_mvd_table();
+                init_mau_table();
+            }
+        });
+    }
+
+    function load_overall_stats() {
+        $.ajax({
+            url: "/api/stats/overall",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            }
+        }).done(function (response) {
+            populate_overall_stats(response.datasets, response.users);
+        });
+    }
+
+    function populate_overall_stats(datasets, users) {
+        overallDatasetTr.append(`<td>${datasets['public'] + datasets['private']}</td><td>${datasets['public']}</td><td>${datasets['private']}</td>`);
+        for (let source in users['by_source']) {
+            overallUserModalBySourceTbody.append(`<tr><td>${source}</td><td>${users['by_source'][source]}</td></tr>`);
+        }
+        for (let tier in users['by_tier']) {
+            overallUserModalByTierTbody.append(`<tr><td>${tier}</td><td>${users['by_tier'][tier]}</td></tr>`)
+        }
+        overallUserTr.append(`<td>${users['all']}
+            <i class="bi bi-info-circle" data-bs-toggle="modal" data-bs-target="#userCompositionModal"></i>
+            </td><td>${users['has_valid_token']}</td><td>${users['online']}</td>`);
+    }
+
+    function init_mvd_table() {
+        mvdTable = $("#mvdTable").DataTable({
+            autoWidth: false,
+            paging: false,
+            searching: false,
+            info: false,
+            language: {
+                emptyTable: "Loading...<br>(this may take up to 60 seconds)"
+            },
+            columns: [
+                {
+                    render: (data, type, row, meta) => {
+                        return meta.row + 1;
+                    }
+                },
+                {data: "key"},
+                {
+                    render: (data, type, row, meta) => {
+                        return gwasinfo[row['key']]['trait'];
+                    }
+                },
+                {data: "group_by_uid"},
+                {data: "doc_count"}
+            ]
+        });
+    }
+
+    function init_mau_table() {
+        mauTable = $("#mauTable").DataTable({
+            autoWidth: false,
+            paging: false,
+            searching: false,
+            info: false,
+            language: {
+                emptyTable: "Loading...<br>(this may take up to 60 seconds)"
+            },
+            columns: [
+                {
+                    render: (data, type, row, meta) => {
+                        return meta.row + 1;
+                    }
+                },
+                {data: "key"},
+                {data: "doc_count"},
+                {data: "total_hours"},
+                {data: "source"},
+                {data: "location"},
+                {data: "client"}
+            ]
+        });
+    }
+
+    function load_mvd_data(year, month) {
+        mvdTable.clear().draw();
+        $.ajax({
+            url: "/api/stats/mvd",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            },
+            data: {
+                "year": year,
+                "month": month
+            }
+        }).done(function (response) {
+            gwasinfo = response.gwasinfo
+            populate_mvd_table(response.mvd);
+        });
+    }
+
+    function populate_mvd_table(mvd){
+        mvdTable.clear();
+        mvdTable.rows.add(mvd).draw();
+    }
+
+    function load_mau_data(year, month) {
+        mauTable.clear().draw();
+        $.ajax({
+            url: "/api/stats/mau",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            },
+            data: {
+                "year": year,
+                "month": month
+            }
+        }).done(function (response) {
+            populate_mau_table(response.mau);
+        });
+    }
+
+    function populate_mau_table(mau){
+        mauTable.clear();
+        mauTable.rows.add(mau).draw();
+    }
+</script>
+{% endblock %}

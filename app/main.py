@@ -15,6 +15,7 @@ from middleware.limiter import limiter
 from apis import api_bp
 from apis.status import check_ld_ref, check_1000g_vcf
 from profile import profile_bp, login_manager
+from admin import admin_bp
 
 
 def setup_logger(name, log_file, level=logging.INFO, disabled=False):
@@ -93,10 +94,15 @@ if os.environ.get('ENV') == 'production':
         app.session_interface = NoCookieSessionInterface()
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
-    else:
+    elif os.environ.get('POOL') == 'profile':
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
         app.register_blueprint(profile_bp, url_prefix='/profile')
+        login_manager.init_app(app)
+    elif os.environ.get('POOL') == 'admin':
+        app.add_url_rule('/', '/', view_func=show_index)
+        app.register_blueprint(profile_bp, url_prefix='/profile')
+        app.register_blueprint(admin_bp, url_prefix='/admin')
         login_manager.init_app(app)
 else:
     app.session_interface = CustomRedisSessionInterface()
@@ -104,6 +110,7 @@ else:
     app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(profile_bp, url_prefix='/profile')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
     login_manager.init_app(app)
 
 
