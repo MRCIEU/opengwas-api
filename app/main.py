@@ -1,5 +1,4 @@
 import flask
-from flask_session.sessions import NullSessionInterface
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
@@ -11,7 +10,7 @@ from datetime import datetime
 from resources.globals import Globals
 from resources.logging_middleware import LoggerMiddleWare
 from resources.neo4j import Neo4j
-from resources.sessions import CustomRedisSessionInterface
+from resources.sessions import NoCookieSessionInterface, CustomRedisSessionInterface
 from middleware.limiter import limiter
 from apis import api_bp
 from apis.status import check_ld_ref, check_1000g_vcf
@@ -91,7 +90,7 @@ app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 if os.environ.get('ENV') == 'production':
     print('POOL', os.environ.get('POOL'))
     if os.environ.get('POOL') == 'api':
-        app.session_interface = NullSessionInterface()
+        app.session_interface = NoCookieSessionInterface()
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
     else:

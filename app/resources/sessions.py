@@ -1,7 +1,13 @@
-from flask import request
+from flask import request, Flask
+from flask.sessions import SecureCookieSessionInterface, SessionMixin
 from flask_session.sessions import RedisSessionInterface
 
 from .redis import Redis
+
+
+class NoCookieSessionInterface(SecureCookieSessionInterface):
+    def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
+        return False
 
 
 # Disable sessions
