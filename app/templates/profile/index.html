@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
 {% block header %}
 <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
     <h2 class="fw-normal">My OpenGWAS API Account</h2>
@@ -131,10 +135,6 @@
 </div>
 {% endblock %}
 
-{% block styles %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-{% endblock %}
-
 {% block scripts %}
 <script>
     var noTokenDiv, tokenValueTextarea, tokenGenerationResultP;
@@ -206,7 +206,6 @@
                 populate_token_info(response.expiry, response.token);
                 tokenGenerationResultP.html("Please save your token now. You will not be able to see it again.");
                 tokenValueTextarea.removeAttr('disabled').attr('rows', 3);
-
             }
         });
     }
