@@ -283,7 +283,7 @@ def get_user_by_emails(emails: List[str]):
         "MATCH (u:User) WHERE u.uid IN $emails RETURN u;",
         emails=emails
     )
-    return [r['u'] for r in results.data()]
+    return {r['u']['uid']: r['u'] for r in results.data()}
 
 
 def set_user_jwt_timestamp(email, timestamp):

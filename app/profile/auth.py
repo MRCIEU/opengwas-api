@@ -97,10 +97,10 @@ def _search_user_by_github():
         flash("Error in parsing email addresses from GitHub. " + str(e), 'danger')
         return redirect(url_for('/'))
 
-    og_users = get_user_by_emails(gh_emails)
-    for u in og_users:
-        if u['uid'] in gh_emails:  # Found existing user
-            return {'existing': [u['uid']]}
+    existing_uids = get_user_by_emails(gh_emails).keys()
+    for uid in gh_emails:
+        if uid in existing_uids:  # Found existing user
+            return {'existing': [uid]}
 
     return {'new': gh_emails}
 
