@@ -9,6 +9,7 @@ from .index import index
 from .status import api as status
 from .batches import api as batches
 from .user import api as user
+
 from .gwasinfo import api as gwasinfo
 from .gicache import api as gicache
 from .assoc import api as assoc
@@ -16,6 +17,8 @@ from .tophits import api as tophits
 from .phewas import api as phewas
 from .variants import api as variants
 from .ld import api as ld
+
+from .stats import api as stats
 from .quality_control import api as quality_control
 from .edit import api as edit
 from .utilities import api as utilities
@@ -50,6 +53,7 @@ if Globals.app_config['access'] == 'private':
     api.add_namespace(gicache)
     api.add_namespace(quality_control)
     api.add_namespace(edit)
+    api.add_namespace(stats)
 
 if os.environ.get('ENV') == 'local':
     api.add_namespace(utilities)

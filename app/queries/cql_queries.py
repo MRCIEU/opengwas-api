@@ -16,6 +16,19 @@ from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 """Return all available GWAS summary datasets"""
 
 
+def get_gwas_as_admin(gwas_ids):
+    result = {}
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (gi:GwasInfo) WHERE gi.id IN $gwas_ids RETURN distinct(gi) as gi;",
+        gwas_ids=list(gwas_ids)
+    )
+    for r in results:
+        result[r['gi']['id']] = GwasInfo(r['gi'])
+
+    return result
+
+
 def get_all_gwas_for_user(uid):
     group_names = get_groups_for_user(uid)
     res = {}
@@ -122,6 +135,19 @@ def edit_existing_gwas(gwas_id, gwas_info_dict):
         access_to_rel.create_rel(group_node, gwas_info_node)
 
     return gwas_info_dict['id']
+
+
+def count_gwas_by_group():
+    result = {}
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (gi:GwasInfo) RETURN gi.group_name as group, count(gi) as count;",
+    )
+
+    for r in results:
+        result[r['group']] = r['count']
+
+    return result
 
 
 def add_new_user(email, first_name, last_name, tier, source, org_uuid=None, user_org_info=None, group_names=frozenset(['public']), admin=False):
@@ -284,6 +310,38 @@ def get_user_by_emails(emails: List[str]):
         emails=emails
     )
     return {r['u']['uid']: r['u'] for r in results.data()}
+
+
+def count_users(jwt_timestamp):
+    result = {
+        'by_source': {},
+        'by_tier': {},
+        'has_valid_token': 0
+    }
+    tx = Neo4j.get_db()
+
+    results = tx.run(
+        "MATCH (u:User) RETURN u.source as source, count(u) as count;"
+    )
+    for r in results:
+        result['by_source'][r['source']] = r['count']
+    result['by_source']['NONE'] = result['by_source'][None]
+    del result['by_source'][None]
+
+    results = tx.run(
+        "MATCH (u:User) RETURN u.tier as tier, count(u) as count;"
+    )
+    for r in results:
+        result['by_tier'][r['tier']] = r['count']
+    result['by_tier']['NONE'] = result['by_tier'][None]
+    del result['by_tier'][None]
+
+    result['has_valid_token'] = tx.run(
+        "MATCH (u:User) WHERE u.jwt_timestamp >= $timestamp RETURN count(u) as count;",
+        timestamp=jwt_timestamp
+    ).single()['count']
+
+    return result
 
 
 def set_user_jwt_timestamp(email, timestamp):
