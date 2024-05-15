@@ -107,7 +107,10 @@ def get_geoip_using_pipeline(ips):
     )
 
     for doc in geoip['hits']['hits']:
-        result[doc['_source']['ip']] = doc['_source']['geoip'].get('country_name', '(?)')
+        if 'geoip' in doc['_source']:
+            result[doc['_source']['ip']] = doc['_source']['geoip'].get('country_name', '(?)')
+        else:
+            result[doc['_source']['ip']] = '(?)'
 
     Globals.es.delete_by_query(
         index=geoip_converter_index,
