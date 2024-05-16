@@ -226,7 +226,11 @@
                         return meta.row + 1;
                     }
                 },
-                {data: "key"},
+                {
+                    render: (data, type, row, meta) => {
+                        return `<a href="https://gwas.mrcieu.ac.uk/datasets/${row['key']}" target="_blank">${row['key']}</a>` ;
+                    }
+                },
                 {
                     render: (data, type, row, meta) => {
                         return gwasinfo[row['key']]['trait'];
