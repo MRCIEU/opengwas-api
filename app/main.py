@@ -3,8 +3,8 @@ from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
 import os
+import shutil
 import time
-from os import path, walk
 from datetime import datetime
 
 from resources.globals import Globals
@@ -54,9 +54,17 @@ def show_index():
 
 
 def probe_health():
-    return {
-        'time': int(time.time())
-    }
+    disk_free_space = 0
+    try:
+        disk_free_space = shutil.disk_usage('/').free / 1048576
+    except Exception:
+        pass
+    if disk_free_space >= 512:
+        return {
+            'time': int(time.time()),
+            'disk_free_space_megabytes': disk_free_space
+        }
+    return {'message': "Disk free space too low"}, 503
 
 
 def probe_readiness():
@@ -114,10 +122,10 @@ if __name__ == "__main__":
     extra_dirs = ['templates','static']
     extra_files = extra_dirs[:]
     for extra_dir in extra_dirs:
-        for dirname, dirs, files in walk(extra_dir):
+        for dirname, dirs, files in os.walk(extra_dir):
             for filename in files:
-                filename = path.join(dirname, filename)
-                if path.isfile(filename):
+                filename = os.path.join(dirname, filename)
+                if os.path.isfile(filename):
                     extra_files.append(filename)
     app.run(host='0.0.0.0', port=Globals.app_config['flask']['port'], extra_files=extra_files)
 
