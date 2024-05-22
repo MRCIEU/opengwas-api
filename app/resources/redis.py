@@ -19,24 +19,25 @@ class Singleton(type):
 
 class Redis(metaclass=Singleton):
     def __init__(self):
-        host = Globals.app_config['redis']['host']
-        port = Globals.app_config['redis']['port']
-        password = Globals.app_config['redis']['pass']
+        conf = Globals.app_config['redis']
         self.pool = {
-            'session': redis.ConnectionPool(host=host, port=port, password=password, db=0),
-            'limiter': redis.ConnectionPool(host=host, port=port, password=password, db=1),
-            'log': redis.ConnectionPool(host=host, port=port, password=password, db=2)
+            'session': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=0),
+            'limiter': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=1),
+            'phewas_tasks': redis.ConnectionPool(host=conf['ieu-db']['host'], port=conf['ieu-db']['port'], password=conf['ieu-db']['pass'], db=0),
+            'phewas_indices': redis.ConnectionPool(host=conf['ieu-db']['host'], port=conf['ieu-db']['port'], password=conf['ieu-db']['pass'], db=1)
         }
 
     @property
     def conn(self):
         if not hasattr(self, '_conn'):
-            self.getConnection()
+            self.get_connection()
         return self._conn
 
-    def getConnection(self):
+    def get_connection(self):
         self._conn = {
             'session': redis.Redis(connection_pool=self.pool['session']),
             'limiter': redis.Redis(connection_pool=self.pool['limiter']),
-            'log': redis.Redis(connection_pool=self.pool['log'])
+            'log': redis.Redis(connection_pool=self.pool['session']),
+            'phewas_tasks': redis.Redis(connection_pool=self.pool['phewas_tasks']),
+            'phewas_indices': redis.Redis(connection_pool=self.pool['phewas_indices'])
         }
