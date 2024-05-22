@@ -1,13 +1,15 @@
-from flask import request
 from flask_restx import Resource, Namespace
 import logging
 import os
 import json
 import time
+from collections import defaultdict
 
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
-from resources.globals import Globals
+from queries.redis_queries import RedisQueries
+from resources.neo4j import Neo4j
+from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 
 logger = logging.getLogger('debug-log')
@@ -104,3 +106,39 @@ class ImportMetadataFromJSON(Resource):
             'outcome': {outcome: len(results[outcome]) for outcome in results},
             'stats': stats
         }, 200
+
+
+@api.route('/sample_datasets')
+@api.doc(description="Sample from datasets across all batches using the odds specified, and add to the pending tasks list in Redis")
+class ImportMetadataFromJSON(Resource):
+    def get(self):
+        # Settings
+        skip_completed_tasks = True
+        odds = 1
+
+        n_skipped = 0
+        if skip_completed_tasks:
+            completed = RedisQueries('phewas_tasks').get_completed_phewas_tasks()
+            completed = set([id.decode('ascii') for id in completed])
+        batches = defaultdict(int)
+        for gi in Neo4j.get_db().run("MATCH (gi:GwasInfo) RETURN gi.id").data():
+            batches['-'.join(gi['gi.id'].split('-', 2)[:2])] += 1
+        samples = defaultdict(list)
+        for batch, size in batches.items():
+            for gi in Neo4j.get_db().run("MATCH (gi:GwasInfo) WHERE gi.id=~$batch RETURN gi.id, rand() as r ORDER BY r LIMIT $limit", batch=batch + ".*", limit=round(size * odds)).data():
+                if skip_completed_tasks:
+                    if gi['gi.id'] in completed:
+                        n_skipped += 1
+                    else:
+                        samples[batch].append(gi['gi.id'])
+        samples_size = defaultdict(int)
+        for batch, samples_in_batch in samples.items():
+            samples_size[batch] = len(samples_in_batch)
+            r = RedisQueries('phewas_tasks').add_phewas_tasks(samples_in_batch)
+
+        return {
+            'skipped': n_skipped,
+            'batches': batches,
+            'samples_size': samples_size,
+            'samples': samples
+        }

@@ -19,3 +19,9 @@ class RedisQueries:
         for _ in self.r.scan_iter(match="*allowance_by_user_source*", count=1000):
             result += 1
         return result
+
+    def add_phewas_tasks(self, tasks: list):
+        return self.r.rpush('pending', *tasks)
+
+    def get_completed_phewas_tasks(self):
+        return self.r.zrange('completed', 0, -1)
