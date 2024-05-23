@@ -113,7 +113,7 @@ class ImportMetadataFromJSON(Resource):
 class ImportMetadataFromJSON(Resource):
     def get(self):
         # Settings
-        skip_completed_tasks = True
+        skip_completed_tasks = False
         odds = 1
 
         n_skipped = 0
@@ -126,11 +126,10 @@ class ImportMetadataFromJSON(Resource):
         samples = defaultdict(list)
         for batch, size in batches.items():
             for gi in Neo4j.get_db().run("MATCH (gi:GwasInfo) WHERE gi.id=~$batch RETURN gi.id, rand() as r ORDER BY r LIMIT $limit", batch=batch + ".*", limit=round(size * odds)).data():
-                if skip_completed_tasks:
-                    if gi['gi.id'] in completed:
-                        n_skipped += 1
-                    else:
-                        samples[batch].append(gi['gi.id'])
+                if skip_completed_tasks and gi['gi.id'] in completed:
+                    n_skipped += 1
+                else:
+                    samples[batch].append(gi['gi.id'])
         samples_size = defaultdict(int)
         for batch, samples_in_batch in samples.items():
             samples_size[batch] = len(samples_in_batch)
