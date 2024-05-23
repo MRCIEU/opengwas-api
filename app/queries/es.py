@@ -42,16 +42,6 @@ def organise_variants(variants):
     return out
 
 
-def organise_payload(res, index):
-    x = [o['_source'] for o in res['hits']['hits']]
-    for i in range(len(x)):
-        x[i]['id'] = index + '-' + x[i].pop('gwas_id')
-        x[i]['rsid'] = x[i].pop('snp_id')
-        x[i]['ea'] = x[i].pop('effect_allele')
-        x[i]['nea'] = x[i].pop('other_allele')
-        x[i]['eaf'] = x[i].pop('effect_allele_freq')
-    return x
-
 def organise_payload_multi(hit):
     reg = r'^([\w]+-[\w]+)-([\w]+)'
     x = [o['_source'] for o in hit['hits']['hits']]
@@ -165,11 +155,21 @@ def elastic_search(filterData, index_name):
         })
     return res
 
+
 def elastic_search_multi(bodyText):
     logger.debug(bodyText)
 
     res = Globals.es.msearch(
         body=bodyText, request_timeout=es_timeout)
+    return res
+
+
+def elastic_mget(body_text):
+    logger.debug(body_text)
+    res = Globals.es.mget(
+        request_timeout=es_timeout,
+        body=body_text
+    )
     return res
 
 
@@ -299,6 +299,39 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
     return res
 
 
+def elastic_query_phewas_by_doc_ids(doc_ids_by_index: dict[list[str]], user_email, index_list=[]):
+    study_indexes = Globals.public_batches
+    if len(index_list) > 0:
+        for index in doc_ids_by_index.keys():
+            if index not in index_list:
+                del doc_ids_by_index[doc_ids_by_index]
+    res = []
+    body_text = {
+        "docs": []
+    }
+    for index, doc_ids in doc_ids_by_index.items():
+        for doc_id in doc_ids:
+            body_text['docs'].append({
+                '_index': index,
+                '_id': doc_id
+            })
+    start = time.time()
+    e = elastic_mget(body_text)
+    res = organise_payload_multi({'hits': {'hits': e['docs']}})
+    end = time.time()
+    t = round((end - start), 4)
+    query_logger.debug("\t".join(['name:phewas_fast', f'time:{t}', f'hits:{len(res)}', f'indexes:{study_indexes}', f'es:{body_text}']))
+    logger.debug("Time taken: " + str(t) + " seconds")
+    logger.debug('ES returned ' + str(len(res)) + ' records')
+    # REMOVE DISALLOWED STUDIES
+    foundids = [x['id'] for x in res]
+    study_data = get_permitted_studies(user_email, foundids)
+    id_access = list(study_data.keys())
+    res = [x for x in res if x['id'] in id_access]
+    res = add_trait_to_result(res, study_data)
+    return res
+
+
 def elastic_query_chrpos(studies, chrpos):
     study_indexes = match_study_to_index(studies)
     res = []
@@ -358,6 +391,7 @@ def elastic_query_cprange(studies, cprange):
     logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
 
+
 def elastic_query_rsid(studies,rsid):
     study_indexes = match_study_to_index(studies)
     res = []
@@ -383,6 +417,7 @@ def elastic_query_rsid(studies,rsid):
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(res)) + ' records')
     return res
+
 
 def elastic_query_pval(studies, pval, tophits=False, bychr=False):
     study_indexes = match_study_to_index(studies)

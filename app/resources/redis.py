@@ -24,7 +24,8 @@ class Redis(metaclass=Singleton):
             'session': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=0),
             'limiter': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=1),
             'phewas_tasks': redis.ConnectionPool(host=conf['ieu-db']['host'], port=conf['ieu-db']['port'], password=conf['ieu-db']['pass'], db=0),
-            'phewas_indices': redis.ConnectionPool(host=conf['ieu-db']['host'], port=conf['ieu-db']['port'], password=conf['ieu-db']['pass'], db=1)
+            'phewas_cpalleles': redis.ConnectionPool(host=conf['ieu-db']['host'], port=conf['ieu-db']['port'], password=conf['ieu-db']['pass'], db=1),
+            'phewas_docids': redis.ConnectionPool(host=conf['ieu-db']['host'], port=conf['ieu-db']['port'], password=conf['ieu-db']['pass'], db=2)
         }
 
     @property
@@ -39,5 +40,6 @@ class Redis(metaclass=Singleton):
             'limiter': redis.Redis(connection_pool=self.pool['limiter']),
             'log': redis.Redis(connection_pool=self.pool['session']),
             'phewas_tasks': redis.Redis(connection_pool=self.pool['phewas_tasks']),
-            'phewas_indices': redis.Redis(connection_pool=self.pool['phewas_indices'])
+            'phewas_cpalleles': redis.Redis(connection_pool=self.pool['phewas_cpalleles']),
+            'phewas_docids': redis.Redis(connection_pool=self.pool['phewas_docids'])
         }

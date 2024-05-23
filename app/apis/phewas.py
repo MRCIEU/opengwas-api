@@ -3,6 +3,8 @@ from flask_restx import Resource, reqparse, abort, Namespace
 import time
 
 from queries.es import *
+from queries.redis_queries import RedisQueries
+from queries.variants import *
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 from middleware.logger import logger as logger_middleware
@@ -84,6 +86,41 @@ class PhewasPost(Resource):
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
         return result
 
+
+@api.route('/fast')
+@api.doc(
+    description="Perform PheWAS of specified variants across all available GWAS datasets. This endpoint is faster, also accepts rsid, chrpos and cprange, but only accepts p <= 0.01"
+)
+class PhewasFastPost(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('variant', required=False, type=str, action='append', default=[], help="List of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135")
+    parser.add_argument('pval', type=float, required=False, default=0.01, help='P-value threshold (must <= 0.01)')
+    parser.add_argument('index_list', required=False, type=str, action='append', default=[], help="List of study indexes. If empty then searches across all indexes.")
+
+    @api.expect(parser)
+    @api.doc(id='phewas_fast_post')
+    @jwt_required
+    def post(self):
+        args = self.parser.parse_args()
+        if args['pval'] > 0.01:
+            abort(400)
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['variant'])):
+            pass
+
+        start_time = time.time()
+
+        try:
+            result = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
+        except Exception as e:
+            logger.error("Could not query summary stats: {}".format(e))
+            abort(503)
+
+        logger_middleware.log(g.user['uid'], 'phewas_fast_post', start_time, {'variant': len(args['variant'])},
+                              len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+        return result
+
+
 def run_phewas(user_email, variants, pval, index_list=None):
     variants = organise_variants(variants)
 
@@ -116,7 +153,47 @@ def run_phewas(user_email, variants, pval, index_list=None):
             logging.error("Could not obtain summary stats: {}".format(e))
             flask.abort(503, e)
 
-    logger.debug('Size before filtering: '+str(len(allres)))
-    #allres = [x for x in allres if x['p'] < float(pval)]
-    logger.debug('Size after filtering: '+str(len(allres)))
     return allres
+
+
+def run_phewas_fast(user_email, variants, pval, index_list=None):
+    variants = organise_variants(variants)
+
+    rsid = variants['rsid']
+    chrpos = variants['chrpos']
+    cprange = variants['cprange']
+
+    chr_pos = set()
+    cpalleles = set()
+    doc_ids_by_index = set()
+    result = []
+
+    try:
+        if len(rsid) > 0:
+            total, hits = snps(rsid)
+            for doc in hits:
+                chr_pos.add((doc['_source']['CHROM'], doc['_source']['POS'], doc['_source']['POS']))
+        if len(chrpos) > 0:
+            for cp in chrpos:
+                chr_pos.add((str(cp['chr']), cp['start'], cp['end']))
+        if len(cprange) > 0:
+            for cpr in cprange:
+                chr_pos.add((str(cpr['chr']), cpr['start'], cpr['end']))
+        cpalleles = RedisQueries('phewas_cpalleles').get_cpalleles_of_chr_pos(chr_pos)
+    except Exception as e:
+        logging.error("Could not obtain cpalleles from fast index (first tier): {}".format(e))
+        flask.abort(503, e)
+
+    try:
+        doc_ids_by_index = RedisQueries('phewas_docids').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
+    except Exception as e:
+        logging.error("Could not obtain doc IDs from fast index (second tier): {}".format(e))
+        flask.abort(503, e)
+
+    try:
+        result = elastic_query_phewas_by_doc_ids(doc_ids_by_index, user_email=user_email, index_list=index_list)
+    except Exception as e:
+        logging.error("Could not obtain docs from database: {}".format(e))
+        flask.abort(503, e)
+
+    return result

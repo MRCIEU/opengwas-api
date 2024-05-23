@@ -110,7 +110,7 @@ class ImportMetadataFromJSON(Resource):
 
 @api.route('/sample_datasets')
 @api.doc(description="Sample from datasets across all batches using the odds specified, and add to the pending tasks list in Redis")
-class ImportMetadataFromJSON(Resource):
+class SampleDatasetsByBatches(Resource):
     def get(self):
         # Settings
         skip_completed_tasks = False

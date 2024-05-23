@@ -1,0 +1,22 @@
+version: '3.4'
+services:
+
+  og-redis-ieu-ssd:
+    image: redis:7.2.4
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - /data/opengwas-ieu-ssd-services/redis-v7/data:/data
+    command: redis-server --save 300 10 --loglevel warning --requirepass ${REDIS_PASS}
+
+  og-phewas-indexing:
+    build:
+      context: opengwas-phewas-indexing
+      dockerfile: Dockerfile
+    network_mode: host
+    restart: always
+    env_file:
+      - /data/opengwas-ieu-ssd-services/opengwas-phewas-indexing/.env # This is the .env file for opengwas-phewas-indexing, not opengwas-api
+    environment:
+      - ENV=PRODUCTION
