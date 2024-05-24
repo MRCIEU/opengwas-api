@@ -1,4 +1,4 @@
-from flask import request, g, send_from_directory
+from flask import g, send_from_directory
 from flask_restx import Resource, Namespace
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
@@ -24,9 +24,6 @@ gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 @api.doc(description="Return all GWAS summary datasets requiring QC")
 class List(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='qc_get_todo')
@@ -39,9 +36,6 @@ class List(Resource):
 @api.doc(description="View html report on QC process for specified ID")
 class GetId(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(id='qc_get_report')
@@ -59,9 +53,6 @@ class GetId(Resource):
 @api.doc(description="Release data from quality control process")
 class Release(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=True,
-        help=Globals.AUTHTEXT)
 
     parser.add_argument('id', type=str, required=True, help='Identifier for the gwas info.')
     parser.add_argument('comments', type=str, required=False, help='Comments.')
@@ -150,9 +141,6 @@ class Release(Resource):
 @api.doc(description="View files generated for a dataset")
 class GetId(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
     @api.doc(id='qc_get_files')
@@ -170,9 +158,6 @@ class GetId(Resource):
 @api.doc(description="Delete quality control relationship (does not delete metadata or data files)")
 class Delete(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=True,
-        help=Globals.AUTHTEXT)
     parser.add_argument('id', type=str, required=True, help='Identifier for the gwas info.')
 
     @api.expect(parser)
