@@ -20,3 +20,5 @@ services:
       - /data/opengwas-ieu-ssd-services/opengwas-phewas-indexing/.env # This is the .env file for opengwas-phewas-indexing, not opengwas-api
     environment:
       - ENV=PRODUCTION
+    depends_on:
+      - og-redis-ieu-ssd
