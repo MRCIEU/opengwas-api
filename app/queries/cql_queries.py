@@ -1,7 +1,7 @@
 import time
+from collections import defaultdict
 from typing import List
 
-from resources.neo4j import Neo4j
 from queries.user_node import User
 from queries.gwas_info_node import GwasInfo
 from queries.added_by_rel import AddedByRel
@@ -11,9 +11,24 @@ from queries.member_of_rel import MemberOfRel
 from queries.member_of_org_rel import MemberOfOrgRel
 from queries.group_node import Group
 from queries.org_node import Org
+from resources.neo4j import Neo4j
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 """Return all available GWAS summary datasets"""
+
+
+def update_batches_stats():
+    batches = defaultdict(int)
+    tx = Neo4j.get_db()
+    for gi in tx.run("MATCH (gi:GwasInfo) RETURN gi.id").data():
+        batches['-'.join(gi['gi.id'].split('-', 2)[:2])] += 1
+    for batch, size in batches.items():
+        tx.run("MERGE (b:Batches {id: $id}) SET b.count = $count",
+               id=batch,
+               count=size
+        )
+    result = tx.run("MATCH (b:Batches) RETURN b")
+    return [r['b'].__dict__['_properties'] for r in result]
 
 
 def get_gwas_as_admin(gwas_ids):

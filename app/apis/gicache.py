@@ -1,29 +1,32 @@
 from flask_restx import Resource, Namespace
-from queries.cql_queries import *
-from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 import logging
 import json
+
+from middleware.auth import jwt_required
+from queries.cql_queries import *
 from resources.globals import Globals
+
 
 logger = logging.getLogger('debug-log')
 
 api = Namespace('gicache', description="Manually update the gwasinfo cache")
-gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
 
 @api.route('')
-@api.doc(description="Update cache for default public GWAS info")
+@api.doc(description="Update cache for default public GWAS info and update stats for all batches")
 class Info(Resource):
     parser = api.parser()
-    parser.add_argument(
-        'X-Api-Token', location='headers', required=False, default='null',
-        help=Globals.AUTHTEXT)
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='gicache_get')
+    @api.doc(id='gicache_get')
+    @jwt_required
     def get(self):
         n = save_gwasinfo_cache()
-        return {'nrecords': n}
+        batches = update_batches_stats()
+        return {
+            'n_gwasinfo': n,
+            'batches': batches
+        }
 
 
 def save_gwasinfo_cache():
