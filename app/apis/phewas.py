@@ -12,11 +12,15 @@ from middleware.logger import logger as logger_middleware
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
 
 
-def _get_cost(variants):
+def _get_cost(variants, fast=False):
     if len(variants) == 0:
         return 1
     variants = organise_variants(variants)
-    return (len(variants['rsid']) + len(variants['chrpos'])) * 75 + len(variants['cprange']) * 750
+    return len(variants) * 20 if fast else (len(variants['rsid']) + len(variants['chrpos'])) * 75 + len(variants['cprange']) * 750
+
+
+def _get_response_cost(result):
+    return len(result)
 
 
 @api.route('/<variant>/<pval>')
@@ -115,6 +119,9 @@ class PhewasFastPost(Resource):
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_response_cost(args['variant'])):
+            pass
 
         logger_middleware.log(g.user['uid'], 'phewas_fast_post', start_time, {'variant': len(args['variant'])},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
