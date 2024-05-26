@@ -105,7 +105,7 @@ class PhewasFastPost(Resource):
         if args['pval'] > 0.01:
             abort(400)
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['variant'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['variant'], fast=True)):
             pass
 
         start_time = time.time()
@@ -179,13 +179,13 @@ def run_phewas_fast(user_email, variants, pval, index_list=None):
         if len(cprange) > 0:
             for cpr in cprange:
                 chr_pos.add((str(cpr['chr']), cpr['start'], cpr['end']))
-        cpalleles = RedisQueries('phewas_cpalleles').get_cpalleles_of_chr_pos(chr_pos)
+        cpalleles = RedisQueries('phewas_cpalleles', provider='webdis').get_cpalleles_of_chr_pos(chr_pos)
     except Exception as e:
         logging.error("Could not obtain cpalleles from fast index (first tier): {}".format(e))
         flask.abort(503, e)
 
     try:
-        doc_ids_by_index = RedisQueries('phewas_docids').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
+        doc_ids_by_index = RedisQueries('phewas_docids', provider='webdis').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
     except Exception as e:
         logging.error("Could not obtain doc IDs from fast index (second tier): {}".format(e))
         flask.abort(503, e)
