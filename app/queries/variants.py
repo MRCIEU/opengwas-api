@@ -33,6 +33,7 @@ def es_search(filterData,routing):
     print("Time taken:",t, "seconds")
     return res['hits']['total']['value'],res['hits']['hits']
 
+
 def snps(snp_list):
     print('snps',len(snp_list))
     filterData=[
@@ -71,9 +72,9 @@ def parse_chrpos(chrpos, radius=0):
     for i in range(len(chrpos)):
         temp = chrpos2[i][1].split("-")
         if len(temp) == 2:
-            out.append({"chr": int(chrpos2[i][0].replace("chr", "")), "start": max(0, int(temp[0])-radius),"end": int(temp[1])+radius, "type": 'range', 'orig': chrpos[i]})
+            out.append({"chr": chrpos2[i][0].replace("chr", ""), "start": max(0, int(temp[0])-radius),"end": int(temp[1])+radius, "type": 'range', 'orig': chrpos[i]})
         elif len(temp) == 1:
-            out.append({"chr": int(chrpos2[i][0].replace("chr", "")), "start": max(0, int(temp[0])-radius), "end": int(temp[0])+radius, "type": 'position', 'orig': chrpos[i]})
+            out.append({"chr": chrpos2[i][0].replace("chr", ""), "start": max(0, int(temp[0])-radius), "end": int(temp[0])+radius, "type": 'position', 'orig': chrpos[i]})
         else:
             raise Exception('Malformed chrpos')
     return out

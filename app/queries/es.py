@@ -32,8 +32,8 @@ def make_multi_body_text(filterData,pval=''):
 
 def organise_variants(variants):
     rsreg = r'^rs\d+$'
-    crreg = r'^\d+:\d+$'
-    cpreg = r'^\d+:\d+-\d+$'
+    crreg = r'^(\d+|X|Y|MT):\d+$'
+    cpreg = r'^(\d+|X|Y|MT):\d+-\d+$'
     out = {
         'rsid': [x for x in variants if re.match(rsreg, x)],
         'chrpos': parse_chrpos([x for x in variants if re.match(crreg, x)]),
