@@ -299,7 +299,9 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
     return res
 
 
-def elastic_query_phewas_by_doc_ids(doc_ids_by_index: dict[list[str]], user_email, index_list=[]):
+def elastic_query_phewas_by_doc_ids(doc_ids_by_index: dict[list[str]], user_email: str, index_list=[]) -> list:
+    if len(doc_ids_by_index) == 0:
+        return []
     study_indexes = Globals.public_batches
     if len(index_list) > 0:
         for index in doc_ids_by_index.keys():
