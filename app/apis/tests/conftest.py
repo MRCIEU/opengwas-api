@@ -22,7 +22,7 @@ def pytest_addoption(parser):
 
 @pytest.fixture
 def url(request):
-    return request.config.getoption("--url")
+    return request.config.getoption("--url").rstrip("/")
 
 
 @pytest.fixture(scope="session")
