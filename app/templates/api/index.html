@@ -150,7 +150,7 @@
                         </table>
                         <h5>Cost (per request)</h5>
                         <p><table class="table table-sm">
-                            <thead><tr><td><b>Endpoint</b></td><td width="40%"><b>Cost per request</b></td><td><b>Condition</b></td></tr></thead>
+                            <thead><tr><td><b>Endpoint</b></td><td width="40%"><b>Cost per request</b></td><td><b>Conditions and notes</b></td></tr></thead>
                             <tbody>
                                 <tr><td>/status, /batches, /users</td><td>0 (no cost, but still subject to fair-use policy)</td><td></td></tr>
                                 <tr><td>/gwasinfo</td><td>1<br>50</td><td>1 &le; N<sub>id</sub> &le; 100<br>100 &lt; N<sub>id</sub> or no id is specified</td></tr>
@@ -158,6 +158,7 @@
                                 <tr><td>/tophits</td><td>N<sub>id</sub><br>N<sub>id</sub> &times; 10<br>N<sub>id</sub> &times; 30</td><td>clump = 1 (use preclumped data)<br>clump = 0 (return all records)<br>clump = 1 (requires new clumping)</td></tr>
                                 <tr><td>/ld/clumping<br>/ld/matrix<br>/ld/reflookup</td><td>N<sub>rsid</sub> &times; 10<br>20<br>2</td><td></td></tr>
                                 <tr><td>/phewas</td><td>(N<sub>variant_rsid</sub> + N<sub>variant_chrpos</sub>) &times; 75 + N<sub>variant_cprange</sub> &times; 750</td><td></td></tr>
+                                <tr><td>/phewas/fast</td><td>(N<sub>variant_rsid</sub> + N<sub>variant_chrpos</sub> + N<sub>variant_cprange</sub>) &times; 20 + N<sub>results</sub></td><td></td></tr>
                                 <tr><td>/variants<br>/variants/afl2/snplist</td><td>1<br>10</td><td></td></tr>
                             </tbody>
                         </table></p>
