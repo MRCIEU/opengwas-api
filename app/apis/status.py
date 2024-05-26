@@ -22,21 +22,16 @@ class Status(Resource):
 
 
 def check_all():
-    try:
-        Cromwell.get_version()
-        cromwell_status = 'Available'
-    except Exception:
-        cromwell_status = 'Unavailable'
-
     out = {
         'API version': Globals.VERSION,
         'Access': Globals.app_config['access'],
         'Neo4j status': Neo4j.check_running(),
         'ElasticSearch status': check_elastic(),
+        'PheWAS Fast status': check_phewas_fast(),
         'LD reference panel': check_ld_ref(),
         '1000 genomes annotation VCF': check_1000g_vcf(),
         'PLINK executable': check_plink(),
-        'Cromwell': cromwell_status,
+        'Cromwell': check_cromwell(),
         'Total associations': count_elastic_records(),
         'Total complete datasets': count_neo4j_datasets(),
         'Total public datasets': count_cache_datasets()
@@ -96,6 +91,7 @@ def count_neo4j_datasets():
     except Exception as e:
         return None
 
+
 def count_cache_datasets():
     try:
         with open(Globals.STATIC_GWASINFO, 'r') as f:
@@ -103,6 +99,7 @@ def count_cache_datasets():
         return (len(gi))
     except Exception as e:
         return None
+
 
 def check_elastic():
     url = 'http://' + Globals.app_config['es']['host'] + ':' + str(
@@ -116,3 +113,26 @@ def check_elastic():
             return "Available"
     except Exception as e:
         return "Error"
+
+
+def check_cromwell():
+    try:
+        r = requests.get(Globals.CROMWELL_URL + '/engine/v1/version', auth=Globals.CROMWELL_AUTH, timeout=15)
+        if r.status_code == 200:
+            return "Available"
+    except requests.exceptions.Timeout:
+        pass
+    return "Unavailable"
+
+
+def check_phewas_fast():
+    url = 'http://' + Globals.app_config['redis']['webdis']['host'] + ":" + str(Globals.app_config['redis']['webdis']['port'])
+    auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis']['webdis']['basic_auth_username'], Globals.app_config['redis']['webdis']['basic_auth_passwd'])
+
+    try:
+        r = requests.get(url + '/PING', auth=auth, timeout=15)
+        if r.status_code == 200:
+            return "Available"
+    except requests.exceptions.Timeout:
+        pass
+    return "Unavailable"
