@@ -81,7 +81,7 @@ class RedisQueries:
         # When using webdis, where pipelining is unavailable
         doc_ids = defaultdict(set)
         for chr_pos_alleles in cpalleles:
-            for doc_id in self.r.query(['ZRANGE', chr_pos_alleles, 0, pval, 'BYSCORE'])['ZRANGE']:
+            for doc_id in self.r.query(['ZRANGE', chr_pos_alleles, 0, '(' + str(pval), 'BYSCORE'])['ZRANGE']:
                 index_and_doc_id = doc_id.split(':')
                 doc_ids[index_and_doc_id[0]].add(index_and_doc_id[1])
         return doc_ids
