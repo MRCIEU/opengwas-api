@@ -1,4 +1,6 @@
 import requests
+from urllib3.util import Retry
+from requests.adapters import HTTPAdapter
 
 from .globals import Globals
 
@@ -13,6 +15,11 @@ class Webdis:
         self.url = 'http://' + Globals.app_config['redis']['webdis']['host'] + ":" + str(Globals.app_config['redis']['webdis']['port'])
         self.auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis']['webdis']['basic_auth_username'], Globals.app_config['redis']['webdis']['basic_auth_passwd'])
         self.session = requests.Session()
+        self.session.mount('http://', HTTPAdapter(max_retries=Retry(
+            total=5,
+            backoff_factor=1,
+            status_forcelist=[502, 503, 504]
+        )))
         self.db = dbs[db_name]
 
     def query(self, command: list):
