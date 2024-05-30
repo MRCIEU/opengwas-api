@@ -115,6 +115,7 @@ class PhewasFastPost(Resource):
         start_time = time.time()
 
         try:
+            # result, timestamps = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
             result = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
@@ -125,6 +126,7 @@ class PhewasFastPost(Resource):
 
         logger_middleware.log(g.user['uid'], 'phewas_fast_post', start_time, {'variant': len(args['variant'])},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+        # return result, 200, {'X-PROCESSING-TIME': ','.join([str(t) for t in timestamps])}
         return result
 
 
@@ -174,6 +176,7 @@ def run_phewas_fast(user_email, variants, pval, index_list=None):
     cpalleles = set()
     doc_ids_by_index = set()
     result = []
+    # timestamps = [time.time()]
 
     try:
         if len(rsid) > 0:
@@ -186,21 +189,30 @@ def run_phewas_fast(user_email, variants, pval, index_list=None):
         if len(cprange) > 0:
             for cpr in cprange:
                 chr_pos.add((str(cpr['chr']), cpr['start'], cpr['end']))
+        # timestamps.append(time.time())
         cpalleles = RedisQueries('phewas_cpalleles', provider='webdis').get_cpalleles_of_chr_pos(chr_pos)
+        # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain cpalleles from fast index (first tier): {}".format(e))
         flask.abort(503, e)
 
     try:
         doc_ids_by_index = RedisQueries('phewas_docids', provider='webdis').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
+        # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain doc IDs from fast index (second tier): {}".format(e))
         flask.abort(503, e)
 
     try:
         result = elastic_query_phewas_by_doc_ids(doc_ids_by_index, user_email=user_email, index_list=index_list)
+        # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain docs from database: {}".format(e))
         flask.abort(503, e)
 
+    # for i in [4, 3, 2, 1]:
+    #     timestamps[i] = round((timestamps[i] - timestamps[i - 1]) * 1000)
+    # timestamps.pop(0)
+
+    # return result, timestamps
     return result
