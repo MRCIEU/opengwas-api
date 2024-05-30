@@ -27,10 +27,10 @@ class RedisQueries:
         return result
 
     def add_phewas_tasks(self, tasks: list):
-        return self.r.rpush('pending', *tasks)
+        return self.r.query(['RPUSH', 'pending'] + tasks)
 
     def get_completed_phewas_tasks(self):
-        return self.r.zrange('completed', 0, -1)
+        return self.r.query(['ZRANGE', 'completed', 0, -1])['ZRANGE']
 
     def get_cpalleles_of_chr_pos(self, chr_pos: set[tuple]) -> set:
         """

@@ -118,8 +118,7 @@ class SampleDatasetsByBatches(Resource):
 
         n_skipped = 0
         if skip_completed_tasks:
-            completed = RedisQueries('phewas_tasks').get_completed_phewas_tasks()
-            completed = set([id.decode('ascii') for id in completed])
+            completed = RedisQueries('phewas_tasks', provider='webdis').get_completed_phewas_tasks()
         batches = defaultdict(int)
         for gi in Neo4j.get_db().run("MATCH (gi:GwasInfo) RETURN gi.id").data():
             batches['-'.join(gi['gi.id'].split('-', 2)[:2])] += 1
@@ -133,7 +132,8 @@ class SampleDatasetsByBatches(Resource):
         samples_size = defaultdict(int)
         for batch, samples_in_batch in samples.items():
             samples_size[batch] = len(samples_in_batch)
-            r = RedisQueries('phewas_tasks').add_phewas_tasks(samples_in_batch)
+            r = RedisQueries('phewas_tasks', provider='webdis').add_phewas_tasks(samples_in_batch)
+            time.sleep(2)  # Avoid premature connection closure by webdis (bug?)
 
         return {
             'skipped': n_skipped,
