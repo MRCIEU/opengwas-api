@@ -74,7 +74,7 @@ class MostValuedDatasets(Resource):
 @api.route('/mau')
 @api.hide
 # Get the list of most active users
-class MostValuedDatasets(Resource):
+class MostValuedUsers(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('year', required=False, type=str, default="*", help="Year of the time period of interest")
     parser.add_argument('month', required=False, type=str, choices=["*"] + [str(m).rjust(2, '0') for m in range(1, 13)], default="*", help="Month in the year of the time period of interest")
