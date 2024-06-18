@@ -1,3 +1,4 @@
+from flask import make_response
 from flask_restx import Resource, Namespace
 import logging
 import os
@@ -8,6 +9,7 @@ from collections import defaultdict
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
 from queries.redis_queries import RedisQueries
+from resources.globals import Globals
 from resources.neo4j import Neo4j
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
@@ -141,3 +143,36 @@ class SampleDatasetsByBatches(Resource):
             'samples_size': samples_size,
             'samples': samples
         }
+
+
+@api.route('/export_users')
+@api.doc(description="Export users info")
+class ExportUsers(Resource):
+    def get(self):
+        users = []
+        for r in Neo4j.get_db().run("MATCH (u:User) WHERE u.source IS NOT NULL OPTIONAL MATCH (u)-[m]->(o:Org) RETURN u, o").data():
+            uid = r['u']['uid'].split('@')
+            u = [
+                uid[0][:4].ljust(len(uid[0]), '*') + '@' + uid[1],
+                r['u']['last_name'],
+                Globals.USER_SOURCES[r['u']['source']],
+                Globals.USER_TIERS[r['u'].get('tier', 'NONE')],
+                "1" if (r['u'].get('jwt_timestamp', 0) + Globals.JWT_VALIDITY - time.time()) > 0 else "0"
+            ]
+            if r['o']:
+                u.extend([
+                    r['o']['uuid'],
+                    r['o'].get('ms_name', ""),
+                    r['o'].get('gh_name', "")
+                ])
+            else:
+                u.extend(["", "", ""])
+            users.append(u)
+
+        result = "uid;last_name;source;tier;has_valid_jwt;org_uuid;org_name_microsoft;org_name_github\n"
+        for u in users:
+            result = result + ";".join(u) + "\n"
+
+        response = make_response(result, 200)
+        response.mimetype = "text/plain"
+        return response
