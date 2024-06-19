@@ -146,7 +146,7 @@ class SampleDatasetsByBatches(Resource):
 
 
 @api.route('/export_users')
-@api.doc(description="Export users info")
+@api.doc(description="Export list of users")
 class ExportUsers(Resource):
     def get(self):
         users = []
