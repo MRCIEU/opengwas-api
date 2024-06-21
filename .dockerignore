@@ -23,6 +23,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/app/.pytest_cache
 **/app/data
 **/app/ld_files
 **/app/igd-metadata
