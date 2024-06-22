@@ -1,10 +1,12 @@
-from resources.globals import *
 import uuid
 import time
-from resources.globals import Globals
+import os.path
 import logging
 
+from resources.globals import Globals
+
 logger = logging.getLogger('debug-log')
+
 
 def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb, pop="EUR"):
     try:
@@ -30,10 +32,12 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb, pop="EUR"):
         os.system(command)
 
         filename_c = filename + ".clumped"
-        f = open(filename_c, "r")
-        f.readline()
-        words = f.read().split("\n")
-        f.close()
+        words = []
+        if os.path.exists(filename_c):
+            f = open(filename_c, "r")
+            f.readline()
+            words = f.read().split("\n")
+            f.close()
 
         logger.debug("matching clumps to original query")
         out = []
