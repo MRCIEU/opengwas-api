@@ -130,7 +130,7 @@ def check_phewas_fast():
     auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis']['webdis']['basic_auth_username'], Globals.app_config['redis']['webdis']['basic_auth_passwd'])
 
     try:
-        r = requests.get(url + '/PING', auth=auth, timeout=15)
+        r = requests.post(url + '/', data='INFO', auth=auth, timeout=15)
         if r.status_code == 200:
             return "Available"
     except requests.exceptions.Timeout:
