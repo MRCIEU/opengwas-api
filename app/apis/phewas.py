@@ -95,12 +95,12 @@ class PhewasPost(Resource):
 
 @api.route('/')
 @api.doc(
-    description="Perform PheWAS of specified variants across all available GWAS datasets. This endpoint is faster, also accepts rsid, chrpos and cprange, but only accepts p <= 0.01"
+    description="Perform PheWAS of specified variants across all available GWAS datasets. This endpoint is faster, also accepts rsid, chrpos and cprange, but only accepts p < 0.01"
 )
 class PhewasFastPost(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('variant', required=False, type=str, action='append', default=[], help="List of rs IDs, chr:pos or chr:pos range  (hg19/b37). e.g rs1205,7:105561135,7:105561135-105563135")
-    parser.add_argument('pval', type=float, required=False, default=0.01, help='P-value threshold (must <= 0.01)')
+    parser.add_argument('pval', type=float, required=False, default=0.01, help='P-value threshold (must < 0.01)')
     parser.add_argument('index_list', required=False, type=str, action='append', default=[], help="List of study indexes. If empty then searches across all indexes.")
 
     @api.expect(parser)
