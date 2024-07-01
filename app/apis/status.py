@@ -27,7 +27,7 @@ def check_all():
         'Access': Globals.app_config['access'],
         'Neo4j status': Neo4j.check_running(),
         'ElasticSearch status': check_elastic(),
-        'PheWAS Fast status': check_phewas_fast(),
+        'PheWAS status': check_phewas_fast(),
         'LD reference panel': check_ld_ref(),
         '1000 genomes annotation VCF': check_1000g_vcf(),
         'PLINK executable': check_plink(),
