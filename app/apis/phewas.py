@@ -61,7 +61,7 @@ class PhewasGet(Resource):
 
 
 @api.route('/slow')
-@api.hide
+@api.deprecated
 @api.doc(
     description="Perform PheWAS of specified variants across all available GWAS datasets."
 )
