@@ -93,7 +93,7 @@ class PhewasPost(Resource):
         return result
 
 
-@api.route('/')
+@api.route('')
 @api.doc(
     description="Perform PheWAS of specified variants across all available GWAS datasets. This endpoint is faster, also accepts rsid, chrpos and cprange, but only accepts p < 0.01"
 )
