@@ -1,12 +1,11 @@
 from flask import current_app, Blueprint, url_for, request, redirect, flash,session
-from cryptography.fernet import Fernet
 import time
 import json
 import datetime
 
 from middleware import limiter, Validator
 from queries.cql_queries import *
-from resources import microsoft, github, GitHubUniversities
+from resources import CryptographyTool, microsoft, github, GitHubUniversities
 from resources.email import Email
 from resources.globals import Globals
 from .login_manager import *
@@ -197,14 +196,14 @@ def send_email(email, first_name=None, last_name=None):
 
 
 def _generate_email_signin_link(email, first_name=None, last_name=None):
-    fernet = Fernet(Globals.app_config['fernet']['key'])
     expiry = int(time.time()) + Globals.EMAIL_VERIFICATION_LINK_VALIDITY
-    message = fernet.encrypt(json.dumps({
+    ct = CryptographyTool()
+    message = ct.encrypt(json.dumps({
         'email': email,
         'first_name': first_name,
         'last_name': last_name,
         'expiry': expiry
-    }).encode())
+    }))
     with current_app.test_request_context(base_url=Globals.app_config['root_url']):
         link = url_for('profile.auth.signin_via_email', _external=True, message=message.decode())
     return link, expiry
@@ -229,9 +228,9 @@ def signin_via_email():
 
 
 def _decrypt_email_link(message):
-    fernet = Fernet(Globals.app_config['fernet']['key'])
+    ct = CryptographyTool()
     try:
-        message = json.loads(fernet.decrypt(message.encode()).decode())
+        message = json.loads(ct.decrypt(message))
         email = message['email']
         first_name = message['first_name']
         last_name = message['last_name']
