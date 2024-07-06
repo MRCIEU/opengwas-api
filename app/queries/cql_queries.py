@@ -165,13 +165,10 @@ def count_gwas_by_group():
     return result
 
 
-def add_new_user(email, first_name, last_name, tier, source, org_uuid=None, user_org_info=None, group_names=frozenset(['public']), admin=False):
+def add_new_user(email, first_name, last_name, tier, source, org_uuid=None, user_org_info=None, group_names=frozenset(['public'])):
     email = email.strip().lower()
     u = User(uid=email, first_name=first_name, last_name=last_name, tier=tier, source=source)
     u.create_node()
-
-    if admin:
-        User.set_admin(email)
 
     if org_uuid:
         o = Org.get_node(org_uuid)
