@@ -60,6 +60,7 @@ task upload {
         curl -X PUT --data-binary '@~{StudyId}_labels.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_labels.json
         curl -X PUT --data-binary '@~{StudyId}_data.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_data.json
         curl -X PUT --data-binary '@~{StudyId}_wdl.json' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_wdl.json
+        curl -X PUT --data-binary '@~{StudyId}_report.html' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}_report.html
         curl -X PUT --data-binary '@clump.txt' ${OCI_PAR_URL_DATA}~{StudyId}/clump.txt
         curl -X PUT --data-binary '@~{StudyId}.vcf.gz' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}.vcf.gz
         curl -X PUT --data-binary '@~{StudyId}.vcf.gz.tbi' ${OCI_PAR_URL_DATA}~{StudyId}/~{StudyId}.vcf.gz.tbi
