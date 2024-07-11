@@ -147,7 +147,7 @@ def check_doi(data):
 def check_id_is_valid_filename(data):
     if data is not None and not re.match(r'^[\w-]+$', data) is not None:
         raise ValidationError(
-            "Identifier can only contain alphanumeric, hash and underscore. {} is invalid".format(data)
+            "Identifier can only contain alphanumeric, dash and underscore. {} is invalid".format(data)
         )
 
 
