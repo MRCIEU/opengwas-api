@@ -68,6 +68,13 @@ workflow qc {
             MetaJsonIn=BaseDir + "/" + StudyId + "/" + StudyId + ".json",
             OutDirPath=BaseDir + "/" + StudyId
     }
+    call upload_report {
+        input:
+            StudyId=StudyId,
+            OCIObjectStoragePAR=OCIObjectStoragePAR,
+            BaseDir=BaseDir,
+            ReportFileIn=report.ReportFile
+    }
 
 }
 
@@ -231,4 +238,27 @@ task report {
         rm -rf ~{OutDirPath}/intermediate
     >>>
 
+    output {
+        File ReportFile = "~{BaseDir}/~{StudyId}/~{StudyId}_report.html"
+    }
+}
+
+task upload_report {
+    input {
+        String OCIObjectStoragePAR
+        String BaseDir
+        String StudyId
+        File ReportFileIn
+    }
+
+    command <<<
+        set -e
+        source ~{OCIObjectStoragePAR}
+        cd ~{BaseDir}/~{StudyId}
+        curl -X PUT --data-binary '@~{StudyId}_report.html' ${OCI_PAR_URL_UPLOAD}~{StudyId}/~{StudyId}_report.html
+    >>>
+
+    output {
+        String UploadDone = StudyId
+    }
 }
