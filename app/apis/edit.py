@@ -370,8 +370,8 @@ class Upload(Resource):
                 j[k] = args[k]
 
         # get build
-        g = GwasInfo.get_node(j['id'])
-        j['build'] = g['build']
+        g_node = GwasInfo.get_node(j['id'])
+        j['build'] = g_node['build']
 
         # convert text to bool
         if j['header'] == "True":
@@ -463,11 +463,11 @@ class Upload(Resource):
             }
 
             # conditionally add ncase & ncontrol
-            if g.get('ncase') is not None:
-                wdl['qc.Cases'] = g['ncase']
+            if g_node.get('ncase') is not None:
+                wdl['qc.Cases'] = g_node['ncase']
 
-            if g.get('ncontrol') is not None:
-                wdl['qc.Controls'] = g['ncontrol']
+            if g_node.get('ncontrol') is not None:
+                wdl['qc.Controls'] = g_node['ncontrol']
 
             with open(os.path.join(study_folder, gwas_id + '_wdl.json'), 'w') as f:
                 json.dump(wdl, f)
