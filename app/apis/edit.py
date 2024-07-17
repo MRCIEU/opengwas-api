@@ -40,6 +40,7 @@ def check_batch_exists(gwas_id, study_indexes):
         raise BadRequest("Please use pre-existing batch or contact developers: {}".format(study_prefix))
     return study_prefix
 
+
 @api.route('/add')
 @api.doc(description="Add new gwas metadata")
 class Add(Resource):
@@ -65,13 +66,13 @@ class Add(Resource):
                 req['group_name'] = 'public'
 
             # use provided identifier if given
-            gwas_id = req['id']
-            check_id_is_valid_filename(gwas_id)
-            check_batch_exists(gwas_id, Globals.all_batches)
+            gwas_id_req = req['id']
+            check_id_is_valid_filename(gwas_id_req)
+            check_batch_exists(gwas_id_req, Globals.all_batches)
 
             req.pop('id')
 
-            gwas_uid = add_new_gwas(g.user['uid'], req, {req['group_name']}, gwas_id=gwas_id)
+            gwas_id = add_new_gwas(g.user['uid'], req, {req['group_name']}, gwas_id=gwas_id_req)
 
             # write metadata to json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
@@ -81,7 +82,7 @@ class Add(Resource):
                 logger.error("Could not create study folder: {}".format(e))
                 raise e
 
-            gi = GwasInfo.get_node(gwas_uid)
+            gi = GwasInfo.get_node(gwas_id)
             output_path = os.path.join(study_folder, str(gwas_id) + '.json')
             with open(output_path, 'w') as f:
                 json.dump(gi, f)
@@ -89,7 +90,7 @@ class Add(Resource):
                 oci_upload = OCI().object_storage_upload('upload', str(gwas_id) + '/' + str(gwas_id) + '.json', f)
             shutil.rmtree(study_folder)
 
-            return {"id": gwas_uid, "oci_upload": {'status': oci_upload.status, 'headers': dict(oci_upload.headers)}}, 200
+            return {"id": gwas_id, "oci_upload": {'status': oci_upload.status, 'headers': dict(oci_upload.headers)}}, 200
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
