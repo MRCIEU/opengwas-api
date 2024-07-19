@@ -239,7 +239,7 @@ task report {
     >>>
 
     output {
-        File ReportFile = "~{BaseDir}/~{StudyId}/~{StudyId}_report.html"
+        File ReportFile = "~{OutDirPath}/~{StudyId}_report.html"
     }
 }
 
