@@ -75,9 +75,8 @@ class Globals:
     ES_PORT=app_config['es']['port']
     es = Elasticsearch([f"{ES_HOST}:{ES_PORT}"])
 
-    all_batches = list(set(['-'.join(b['n.id'].split('-',2)[:2]) for b in dbConnection.session().run("match (n:GwasInfo) return n.id").data()]))
-
-    public_batches = list(set(['-'.join(b['n.id'].split('-',2)[:2]) for b in dbConnection.session().run("match (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) return n.id").data()]))
+    all_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
+    public_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
 
     variant_index = "snp-base-v0.2"
 
