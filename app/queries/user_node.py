@@ -20,9 +20,10 @@ class User(UniqueNode, UserMixin):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":'" + self.get(self._UID_KEY) + "'}) " +
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) " +
             "ON CREATE SET n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.source=$source, n.created=$timestamp " +
             "ON MATCH SET n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.source=$source, n.updated=$timestamp;",
+            uid=self.get(self._UID_KEY),
             first_name=d['first_name'], last_name=d['last_name'], tier=d['tier'], source=d['source'], timestamp=int(time.time())
         )
 

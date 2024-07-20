@@ -17,7 +17,8 @@ class Org(UniqueNode):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ":'" + self.get(self._UID_KEY) + "'});"
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid});",
+            uid=self.get(self._UID_KEY)
         )
 
     @classmethod
