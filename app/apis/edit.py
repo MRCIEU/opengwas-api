@@ -66,12 +66,13 @@ class Add(Resource):
                 req['group_name'] = 'public'
 
             # use provided identifier if given
-            check_id_is_valid_filename(req['id'])
-            check_batch_exists(req['id'], Globals.all_batches)
+            gwas_id_req = req['id']
+            check_id_is_valid_filename(gwas_id_req)
+            check_batch_exists(gwas_id_req, Globals.all_batches)
 
             req.pop('id')
 
-            gwas_id = add_new_gwas(g.user['uid'], req, {req['group_name']}, gwas_id=req['id'])
+            gwas_id = add_new_gwas(g.user['uid'], req, {req['group_name']}, gwas_id=gwas_id_req)
 
             # write metadata to json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
