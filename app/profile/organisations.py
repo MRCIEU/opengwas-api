@@ -26,7 +26,7 @@ def get_or_add_org(provider=None, domain=None, new_org=None):
             cql_queries.set_org_properties_from_github(existing_org['uuid'], new_org['gh_name'], new_org['gh_domains'])
             return existing_org
         elif new_org:
-            org_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, domain))
+            org_uuid = str(uuid.uuid3(uuid.NAMESPACE_DNS, domain))
             cql_queries.add_org_github(org_uuid, new_org['gh_name'], new_org['gh_domains'])
             return get_existing_org_by_id_or_domain(id_name='uuid', id_value=org_uuid)
         else:
