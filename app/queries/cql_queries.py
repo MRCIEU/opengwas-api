@@ -165,28 +165,35 @@ def count_gwas_by_group():
     return result
 
 
-def add_new_user(email, first_name, last_name, tier, source, org_uuid=None, user_org_info=None, group_names=frozenset(['public'])):
+def create_or_update_user_and_membership(email, tier, source, first_name=None, last_name=None, org=None, user_org_info=None, group_names=frozenset(['public'])):
     email = email.strip().lower()
-    u = User(uid=email, first_name=first_name, last_name=last_name, tier=tier, source=source)
+    if first_name:
+        u = User(uid=email, first_name=first_name, last_name=last_name, tier=tier, source=source)
+    else:
+        existing_user = get_user_by_email(email).data()['u']
+        u = User(uid=email, first_name=existing_user['first_name'], last_name=existing_user['last_name'], tier=tier, source=source)
     u.create_node()
 
-    if org_uuid:
-        o = Org.get_node(org_uuid)
-        if user_org_info:
-            MemberOfOrgRel({'job_title': user_org_info['jobTitle'], 'department': user_org_info['department']}).create_rel(u, o)
-        else:
-            MemberOfOrgRel().create_rel(u, o)
+    user = get_user_by_email(email)
+    if not user:
+        raise Exception("Failed to create or update user information.")
+
+    if tier == 'ORG':
+        existing_org, membership = get_org_and_membership_from_user(email)
+        if not existing_org or existing_org['uuid'] != org['uuid']:
+            o = Org.get_node(org['uuid'])
+            if user_org_info:
+                MemberOfOrgRel({'job_title': user_org_info['jobTitle'], 'department': user_org_info['department']}).create_rel(u, o)
+            else:
+                MemberOfOrgRel().create_rel(u, o)
+    else:
+        delete_membership_of_user(email)
 
     for group_name in group_names:
         g = Group.get_node(group_name)
         MemberOfRel().create_rel(u, g)
 
-    user = get_user_by_email(email)
-
-    if not user:
-        raise Exception("Failed to find the user.")
-
-    return user
+    return user.data()['u']
 
 
 def add_group_to_user(email, group_name):
@@ -407,6 +414,19 @@ def get_org_and_membership_from_user(uid):
     result = tx.run(
         "MATCH (u:User {uid: $uid})-[r:MEMBER_OF_ORG]->(o:Org) RETURN PROPERTIES(r) as r, o;",
         uid=uid
-    ).single().data()
+    ).single()
+
+    if not result:
+        return None, None
+
+    result = result.data()
 
     return result['o'], result['r']
+
+
+def delete_membership_of_user(uid):
+    tx = Neo4j.get_db()
+    tx.run(
+        "MATCH (u:User {uid: $uid})-[r:MEMBER_OF_ORG]->(:Org) DELETE r;",
+        uid=uid
+    )

@@ -36,14 +36,14 @@ def signin_via_microsoft():
         flash(str(e), 'danger')
         return redirect(url_for('/'))
 
-    user = _add_user_from_microsoft()
+    user = _create_or_update_user_from_microsoft()
 
-    signin_user(user, 'MS')
+    signin_user(user)
 
     return redirect(url_for('profile.index.index'))
 
 
-def _add_user_from_microsoft():
+def _create_or_update_user_from_microsoft():
     try:  # Parse Microsoft Graph API responses
         user_org_info = microsoft.get_user_and_org_info()
     except Exception as e:
@@ -56,20 +56,25 @@ def _add_user_from_microsoft():
             # Create/merge Org node
             org = organisations.get_or_add_org(provider='MS', domain=domain, new_org=user_org_info['organization'])
             # Create/merge User node as well as MEMBER_OF and MEMBER_OF_ORG relationships
-            user = add_new_user(email=user_org_info['user']['mail'],
+            user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], tier='ORG', source='MS',
                          first_name=user_org_info['user']['givenName'], last_name=user_org_info['user']['surname'],
-                         tier='ORG', source='MS', org_uuid=org['uuid'], user_org_info=user_org_info['user_org'])
+                         org=org, user_org_info=user_org_info['user_org'])
 
         else:
             # Just create/merge User node
-            user = add_new_user(email=user_org_info['user']['mail'],
-                         first_name=user_org_info['user']['givenName'], last_name=user_org_info['user']['surname'],
-                         tier='PER', source='MS')
+            user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], tier='PER', source='MS',
+                         first_name=user_org_info['user']['givenName'], last_name=user_org_info['user']['surname'])
     except Exception as e:
         flash(str(e), 'danger')
         return redirect(url_for('/'))
 
-    return user.data()['u']
+    return user
+
+
+def _infer_tier_and_org_by_email(email):
+    domain = email.split("@")[1]
+    org = organisations.get_or_add_org(provider='GH', domain=domain, new_org=GitHubUniversities().search_by_domain(domain))
+    return 'ORG' if org else 'PER', org
 
 
 @profile_auth_bp.route('/github/redirect')
@@ -81,8 +86,11 @@ def signin_via_github():
         return redirect(url_for('/'))
 
     gh_emails = _search_user_by_github()
-    if 'existing' in gh_emails:
-        signin_user({'uid': gh_emails['existing'][0]}, 'GH')
+    if 'existing' in gh_emails:  # If one of the email addresses on their GitHub account matches our record
+        tier, org = _infer_tier_and_org_by_email(gh_emails['existing'][0])
+        user = create_or_update_user_and_membership(email=gh_emails['existing'][0], tier=tier, source='GH', org=org)
+
+        signin_user(user)
         return redirect(url_for('profile.index.index'))
     else:
         session['github_emails'] = gh_emails['new']
@@ -130,12 +138,11 @@ def signup_via_github():
 
     user = get_user_by_email(req['email'])
     if user is None:
-        return signup_via_email(req["email"], req['first_name'], req['last_name'], 'GH', False)
+        return signup_via_user_input(req["email"], req['first_name'], req['last_name'], 'GH', False)
 
-    signin_user(user.data()['u'], 'GH')
-
+    # Fallback for phantom read - when user just created their account in another session
     return {
-        'message': "Signing in existing user.",
+        'message': "It seems like you already have an account with us. Please try to sign in.",
         'redirect': url_for('profile.index.index', _external=True)
     }
 
@@ -154,7 +161,7 @@ def check_email_and_names():
     except Exception as e:
         return {'message': "Please provide a valid email address."}, 400
 
-    # For existing user, send one-time sign-in link
+    # For existing user, send one-time sign-in link without names
     user = get_user_by_email(req['email'])
     if user:
         return send_email(req['email'])
@@ -197,20 +204,19 @@ def send_email(email, first_name=None, last_name=None):
 
 def _generate_email_signin_link(email, first_name=None, last_name=None):
     expiry = int(time.time()) + Globals.EMAIL_VERIFICATION_LINK_VALIDITY
-    ct = CryptographyTool()
-    message = ct.encrypt(json.dumps({
+    message = CryptographyTool().encrypt(json.dumps({
         'email': email,
         'first_name': first_name,
         'last_name': last_name,
         'expiry': expiry
     }))
     with current_app.test_request_context(base_url=Globals.app_config['root_url']):
-        link = url_for('profile.auth.signin_via_email', _external=True, message=message.decode())
+        link = url_for('profile.auth.signin_via_link', _external=True, message=message.decode())
     return link, expiry
 
 
 @profile_auth_bp.route('/email/signin')
-def signin_via_email():
+def signin_via_link():
     req = request.args.to_dict()
     try:
         email, first_name, last_name = _decrypt_email_link(req["message"])
@@ -220,32 +226,34 @@ def signin_via_email():
 
     user = get_user_by_email(email)
     if user is None:
-        return signup_via_email(email, first_name, last_name)
+        return signup_via_user_input(email, first_name, last_name, 'EM')
 
-    signin_user(user.data()['u'], 'EM')
+    tier, org = _infer_tier_and_org_by_email(email)
+    user = create_or_update_user_and_membership(email=email, tier=tier, source='EM', org=org)
+
+    signin_user(user)
 
     return redirect(url_for('profile.index.index'))
 
 
 def _decrypt_email_link(message):
-    ct = CryptographyTool()
     try:
-        message = json.loads(ct.decrypt(message))
+        message = json.loads(CryptographyTool().decrypt(message))
         email = message['email']
         first_name = message['first_name']
         last_name = message['last_name']
         expiry = message['expiry']
     except Exception as e:
-        raise Exception("Invalid sign in link. Please get a new one.")
+        raise Exception("Invalid sign-in link. Please get a new one.")
 
     if int(time.time()) > expiry:
-        raise Exception("Sign in link expired. Please get a new one.")
+        raise Exception("Sign-in link expired. Please get a new one.")
 
     return email, first_name, last_name
 
 
 @profile_auth_bp.route('/email/signup')
-def signup_via_email(email, first_name, last_name, source='EM', return_redirect=True):
+def signup_via_user_input(email, first_name, last_name, source, return_redirect=True):
     try:
         Validator('UserNodeSchema', partial=True).validate({
             'uid': email, 'first_name': first_name, 'last_name': last_name
@@ -254,8 +262,8 @@ def signup_via_email(email, first_name, last_name, source='EM', return_redirect=
         return {'message': "Please provide valid first name and last name."}, 400
 
     try:
-        user = _add_user_from_email(email, first_name, last_name, source, return_redirect=False)
-        signin_user(user, source)
+        user = _create_or_update_user_from_user_input(email, first_name, last_name, source, return_redirect=False)
+        signin_user(user)
     except Exception as e:
         return {'message': str(e)}, 400
 
@@ -267,14 +275,13 @@ def signup_via_email(email, first_name, last_name, source='EM', return_redirect=
     }
 
 
-def _add_user_from_email(email, first_name, last_name, source, return_redirect=True):
+def _create_or_update_user_from_user_input(email, first_name, last_name, source, return_redirect=True):
     try:
-        domain = email.split("@")[1]
-        org = organisations.get_or_add_org(provider='GH', domain=domain, new_org=GitHubUniversities().search_by_domain(domain))
+        tier, org = _infer_tier_and_org_by_email(email)
         if org:
-            user = add_new_user(email=email, first_name=first_name, last_name=last_name, tier='ORG', source=source, org_uuid=org['uuid'])
+            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, first_name=first_name, last_name=last_name, org=org)
         else:
-            user = add_new_user(email=email, first_name=first_name, last_name=last_name, tier='PER', source=source)
+            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, first_name=first_name, last_name=last_name)
     except Exception as e:
         if return_redirect:
             flash(str(e), 'danger')
@@ -282,7 +289,7 @@ def _add_user_from_email(email, first_name, last_name, source, return_redirect=T
         else:
             raise e
 
-    return user.data()['u']
+    return user
 
 
 @profile_auth_bp.route('/signout')
