@@ -1,3 +1,5 @@
+import uuid
+
 from elasticsearch import Elasticsearch
 import json
 import platform
@@ -81,6 +83,8 @@ class Globals:
     variant_index = "snp-base-v0.2"
 
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
+
+    USER_UUID_NAMESPACE = uuid.UUID('99999999-9999-9999-9999-999999999999')
 
     USER_SOURCES = {
         'MS': "Microsoft",

@@ -1,4 +1,5 @@
 import time
+import uuid
 from collections import defaultdict
 from typing import List
 
@@ -11,6 +12,7 @@ from queries.member_of_rel import MemberOfRel
 from queries.member_of_org_rel import MemberOfOrgRel
 from queries.group_node import Group
 from queries.org_node import Org
+from resources.globals import Globals
 from resources.neo4j import Neo4j
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
@@ -167,11 +169,11 @@ def count_gwas_by_group():
 
 def create_or_update_user_and_membership(email, tier, source, first_name=None, last_name=None, org=None, user_org_info=None, group_names=frozenset(['public'])):
     email = email.strip().lower()
-    if first_name:
-        u = User(uid=email, first_name=first_name, last_name=last_name, tier=tier, source=source)
-    else:
-        existing_user = get_user_by_email(email).data()['u']
-        u = User(uid=email, first_name=existing_user['first_name'], last_name=existing_user['last_name'], tier=tier, source=source)
+    uuid_str = str(uuid.uuid3(Globals.USER_UUID_NAMESPACE, email))
+    if first_name:  # This *might* be the first time the user signs in
+        u = User(uid=email, uuid=uuid_str, first_name=first_name, last_name=last_name, tier=tier, source=source)
+    else:  # This is definitely a returning user
+        u = User(uid=email, uuid=uuid_str, tier=tier, source=source)
     u.create_node()
 
     user = get_user_by_email(email)

@@ -1,3 +1,4 @@
+import neo4j.debug
 from flask_login import UserMixin
 import time
 
@@ -11,20 +12,32 @@ class User(UniqueNode, UserMixin):
     _SCHEMA = UserNodeSchema
 
     def create_node(self):
+        partial_fields = ['first_name', 'last_name', 'tier', 'source']
         # map using schema; fail when violates
         schema = self._SCHEMA()
-        d = schema.load(self)
+        d = schema.load(self, partial=partial_fields)
 
         if d.get(self._UID_KEY) is None:
             raise KeyError("You must provide a value for the unique key.")
 
+        params_common = {
+            'uid': self.get(self._UID_KEY),
+            'uuid': self.get('uuid'),
+            'created': int(time.time()),
+            'updated': int(time.time())
+        }
+
+        params_specific = {}
+        for field_name in partial_fields:
+            if field_name in self:
+                params_specific[field_name] = self.get(field_name)
+
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) " +
-            "ON CREATE SET n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.source=$source, n.created=$timestamp " +
-            "ON MATCH SET n.first_name=$first_name, n.last_name=$last_name, n.tier=$tier, n.source=$source, n.updated=$timestamp;",
-            uid=self.get(self._UID_KEY),
-            first_name=d['first_name'], last_name=d['last_name'], tier=d['tier'], source=d['source'], timestamp=int(time.time())
+            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific.keys()) + ['created']]) + " " +
+            "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific.keys()) + ['updated']]) + ";",
+            parameters={**params_common, **params_specific}
         )
 
     @classmethod
