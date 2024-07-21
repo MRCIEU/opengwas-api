@@ -133,6 +133,17 @@
         <input type="text" readonly class="form-control-plaintext" id="allowanceRemainingInput" value="">
     </div>
 </div>
+<hr>
+<h4>Debug </h4>
+<div class="row">
+    <div class="col-auto">
+        <label for="allowanceLimitInput" class="col-form-label">Account ID</label>
+    </div>
+    <div class="col">
+        <input type="text" readonly class="form-control-plaintext" id="uuid" value="{{ user['uuid'] }}">
+        <small>Provide this ID when seeking for support.</small>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
