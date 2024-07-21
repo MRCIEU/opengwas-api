@@ -1,6 +1,7 @@
-from flask import g
+from flask import g, request
 from flask_restx import Namespace, Resource
 import datetime
+from flask_limiter.util import get_remote_address
 
 from middleware.auth import jwt_required
 from middleware.limiter import limiter
@@ -20,9 +21,14 @@ class User(Resource):
         return {
             'user': {
                 'uid': g.user['uid'],
+                'uuid': g.user['uuid'],
                 'first_name': g.user['first_name'],
                 'last_name': g.user['last_name'],
                 'most_recent_signin_method': Globals.USER_SOURCES[g.user['source']],
                 'jwt_valid_until': datetime.datetime.strftime(datetime.datetime.fromtimestamp(g.user['jwt_timestamp'] + Globals.JWT_VALIDITY).astimezone(), '%Y-%m-%d %H:%M %Z')
+            },
+            'client': {
+                'client': request.headers.get('X-API-SOURCE', None),
+                'your_ip': get_remote_address()
             }
         }
