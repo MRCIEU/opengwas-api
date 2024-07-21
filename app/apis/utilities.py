@@ -1,3 +1,5 @@
+import uuid
+
 from flask import make_response
 from flask_restx import Resource, Namespace
 import logging
@@ -176,3 +178,19 @@ class ExportUsers(Resource):
         response = make_response(result, 200)
         response.mimetype = "text/plain"
         return response
+
+
+@api.route('/init_user_uuid')
+@api.doc(description="Initialise uuid for users")
+class InitUUIDForUsers(Resource):
+    def get(self):
+        tx = Neo4j.get_db()
+        uids = tx.run("MATCH (u:User) RETURN COLLECT(u.uid)").single()[0]
+        data = []
+        for uid in uids:
+            data.append({
+                'uid': uid,
+                'uuid': str(uuid.uuid3(Globals.USER_UUID_NAMESPACE, uid))
+            })
+        tx.run("UNWIND $data AS p MATCH (u:User) WHERE u.uid = p.uid SET u.uuid = p.uuid", data=data)
+        return data
