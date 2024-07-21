@@ -21,7 +21,7 @@ class User(Resource):
         return {
             'user': {
                 'uid': g.user['uid'],
-                'uuid': g.user['uuid'],
+                'account_id': g.user['uuid'],
                 'first_name': g.user['first_name'],
                 'last_name': g.user['last_name'],
                 'most_recent_signin_method': Globals.USER_SOURCES[g.user['source']],
