@@ -57,13 +57,13 @@ def _create_or_update_user_from_microsoft():
             org = organisations.get_or_add_org(provider='MS', domain=domain, new_org=user_org_info['organization'])
             # Create/merge User node as well as MEMBER_OF and MEMBER_OF_ORG relationships
             user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], tier='ORG', source='MS',
-                         first_name=user_org_info['user']['givenName'], last_name=user_org_info['user']['surname'],
+                         names=[user_org_info['user']['givenName'], user_org_info['user']['surname']],
                          org=org, user_org_info=user_org_info['user_org'])
 
         else:
             # Just create/merge User node
             user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], tier='PER', source='MS',
-                         first_name=user_org_info['user']['givenName'], last_name=user_org_info['user']['surname'])
+                         names=[user_org_info['user']['givenName'], user_org_info['user']['surname']])
     except Exception as e:
         flash(str(e), 'danger')
         return redirect(url_for('/'))
@@ -279,9 +279,9 @@ def _create_or_update_user_from_user_input(email, first_name, last_name, source,
     try:
         tier, org = _infer_tier_and_org_by_email(email)
         if org:
-            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, first_name=first_name, last_name=last_name, org=org)
+            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, names=[first_name, last_name], org=org)
         else:
-            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, first_name=first_name, last_name=last_name)
+            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, names=[first_name, last_name])
     except Exception as e:
         if return_redirect:
             flash(str(e), 'danger')

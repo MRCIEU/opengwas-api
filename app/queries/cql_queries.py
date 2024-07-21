@@ -167,12 +167,12 @@ def count_gwas_by_group():
     return result
 
 
-def create_or_update_user_and_membership(email, tier, source, first_name=None, last_name=None, org=None, user_org_info=None, group_names=frozenset(['public'])):
+def create_or_update_user_and_membership(email, tier, source, names=[], org=None, user_org_info=None, group_names=frozenset(['public'])):
     email = email.strip().lower()
     uuid_str = str(uuid.uuid3(Globals.USER_UUID_NAMESPACE, email))
-    if first_name:  # This *might* be the first time the user signs in
-        u = User(uid=email, uuid=uuid_str, first_name=first_name, last_name=last_name, tier=tier, source=source)
-    else:  # This is definitely a returning user
+    if len(names) > 0:  # [first_name, last_name]
+        u = User(uid=email, uuid=uuid_str, first_name=names[0], last_name=names[1], tier=tier, source=source)
+    else:
         u = User(uid=email, uuid=uuid_str, tier=tier, source=source)
     u.create_node()
 
