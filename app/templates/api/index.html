@@ -135,7 +135,9 @@
                         <h3 id="allowance">Allowance and cost</h3>
                         <h5>Allowance (free credits)</h5>
                         <p>As part of our fair use policy, users will be given allowance for the cost of the requests they make in each time span. The allowance is provided <u>free of charge</u>.</p>
-                        <p>The allowance is reset periodically. The clock starts at your first request. E.g. if the allowance is "1000 per 10 minutes" and you made your first request at 09:41, your allowance will be reset to 1000 at 09:51. Your real-time allowance information is available on your <a href="{{ root_url }}/profile">account</a> page, or in the response header (X-Allowance-* and Retry-After) of every request, except for those endpoints of which the cost is 0.</p>
+                        <p>The allowance is reset periodically and the clock starts at your first request. E.g. if the allowance is "1000 per 10 minutes" and you made your first request at 09:41:19, your allowance will be reset to 1000 at 09:51:19. Your real-time allowance information is available on your <a href="{{ root_url }}/profile">account</a> page, or in the response header (X-Allowance-* and Retry-After) of every request, except for those endpoints of which the cost is 0.</p>
+                        <p><u>Resetting your token (JWT) will not reset your allowance.</u> If you have run out of allowance, you have to wait until the next period. If you insist sending requests and accumulate '429 Too Many Requests' errors, you account and IP address may be blocked for up to a week.</p>
+                        <p>Read our <a href="https://blog.opengwas.io/posts/user-auth-spring-2024/" target="_blank">blog post</a> for more info.</p>
                         <p><u>Note</u>: University of Bristol users (who signed in using Microsoft, GitHub or email verification, as long as the email address on your OpenGWAS profile ends with @bristol.ac.uk) will be given higher allowance than displayed below. Please check your <a href="{{ root_url }}/profile">account</a> page for details.</p>
                         <table class="table table-sm">
                             <thead><tr><td><b>Method of most recent sign-in</b></td><td><b>Allowance (free credits)</b></td></tr></thead>
@@ -154,7 +156,6 @@
                                 <tr><td>/associations</td><td>max(N<sub>id</sub>, N<sub>variant</sub>)<br>max(N<sub>id</sub>, N<sub>variant</sub>) &times; 5</td><td><br>proxies = 1</td></tr>
                                 <tr><td>/tophits</td><td>N<sub>id</sub><br>N<sub>id</sub> &times; 10<br>N<sub>id</sub> &times; 30</td><td>clump = 1 (use preclumped data)<br>clump = 0 (return all records)<br>clump = 1 (requires new clumping)</td></tr>
                                 <tr><td>/ld/clumping<br>/ld/matrix<br>/ld/reflookup</td><td>12<br>18<br>2</td><td></td></tr>
-<!--                                <tr><td>/phewas</td><td>(N<sub>variant_rsid</sub> + N<sub>variant_chrpos</sub>) &times; 75 + N<sub>variant_cprange</sub> &times; 750</td><td></td></tr>-->
                                 <tr><td>/phewas</td><td>(N<sub>variant_rsid</sub> + N<sub>variant_chrpos</sub> + N<sub>variant_cprange</sub>) &times; 20 + N<sub>results</sub></td><td></td></tr>
                                 <tr><td>/variants<br>/variants/afl2/snplist</td><td>1<br>10</td><td></td></tr>
                             </tbody>
