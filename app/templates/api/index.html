@@ -103,33 +103,30 @@
 
                     <section>
                         <h3 id="authentication">Authentication</h3>
-                        <br>Methods of authentication:
                         <table class="table table-sm">
-                            <thead><tr><td><b>Endpoint</b></td><td width="50%"><b>Until 30th April 2024</b></td><td><b>From 1st May 2024</b></td></tr></thead>
+                            <thead><tr><td><b>Endpoint</b></td><td width="70%"><b>Authentication</b></td></tr></thead>
                             <tbody>
-                                <tr><td>/status, /batches</td><td>None</td><td>None</td></tr>
-                                <tr><td>All other endpoints</td><td>Google OAuth token (optional*), or <br>JWT (optional*)<br> (*: only necessary if you want to use private datasets or benefit from higher allowance)</td><td>JWT (required)</td></tr>
+                                <tr><td>/status, /batches</td><td>None</td></tr>
+                                <tr><td>All other endpoints</td><td>JWT (required)</td></tr>
                             </tbody>
                         </table>
 
-                        <hr><h5><b>To be deprecated soon</b> - Token obtained from Google OAuth</h5>
-                        <p>The <a href="http://gwas-api.mrcieu.ac.uk/docs/" target="_blank">documentation</a> provides a list of endpoints, the parameters they require, descriptions of the data that is returned, and an interactive way to try out each of the endpoints.</p>
-                        <p>The database of GWAS summary data mostly contains public data, however there are some 'private' datasets, which can only be accessed by authorised users.</p>
-                        <s><p>Authentication is managed using <a href="https://developers.google.com/identity/protocols/OAuth2WebServer">Google OAuth 2.0</a>. In order to authenticate, you will need to generate a 'token' for each session in which private access is required.</p>
-                        <p>The simplest way to obtain an authentication token is to use a browser to authenticate with your gmail account at <a href="https://accounts.google.com/o/oauth2/auth?client_id=906514199468-m9thhcept50gu26ng494376iipt125d6.apps.googleusercontent.com&redirect_uri=urn:ietf:wg:oauth:2.0:oob&scope=https://www.googleapis.com/auth/userinfo.email&response_type=code">this link</a>.</p>
-                        <p>The access token can also be obtained using the <code>ieugwasr::get_access_token()</code> function, more information about that <a href="https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication">here</a>.</p></s>
+                        <hr><h5>JSON Web Token (JWT)</h5>
+                        <p>You need to prove your identity (authenticate) to use our service, even if you are querying a public dataset.</p>
+                        <p>JSON Web Token (JWT) is used for authentication. The token is required for most endpoints. To obtain a token, sign in to the <a href="{{ root_url }}/profile">account</a> page. You will be prompted to generate a token which is valid for {{ jwt_validity }} days.</p>
 
-                        <hr><h5><b>Now rolling out</b> - JSON Web Token (JWT) issued by us</h5>
-                        <p>From Wednesday 1st May 2024, you need to prove your identity (authenticate) to use our service, even if you are querying a public dataset.</p>
-                        <p>JSON Web Token (JWT) is used for authentication. The token is required for most endpoints. To obtain a token, sign in to the <a href="{{ root_url }}/profile">account</a> page. You will be prompted to generate a token, which is valid for {{ jwt_validity }} days. To use your token, add it into your request header under the key <code>Authorization</code> with value <code>Bearer <i>your_token</i></code>. Note that there is a whitespace between <code>Bearer</code> and your token.</p>
+                        <hr><h5>If you are using packages developed by us</h5>
+                        <p>The ieugwasr and ieugwaspy packages are updated regularly to keep abreast of the changes of OpenGWAS API. If you use ieugwasr or TwoSampleMR etc. (which depends on ieugwasr), read <a href="https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication" target="_blank">ieugwasr tutorial</a> about how to set up JWT. For ieugwaspy, refer to the  <a href="https://mrcieu.github.io/ieugwaspy/api.html" target="_blank">ieugwaspy docs</a>.</p>
+
+                        <hr><h5>If you are building you own packages</h5>
                         <p>The <a href="{{ url_for('api.doc') }}" target="_blank">API documentation</a> provides a list of endpoints, whether they are protected (require authentication), the parameters and responses, and an interactive way to try out. To try the protected endpoints, click the green 'Authorize' button in API docs and provide your token as instructed.</p>
-
-                        <hr><h5>Transition period (from now until May 2024)</h5>
-                        <p>You will still be able to use our service anonymously until 30th April 2024.</p>
-                        <p>All the endpoints can work anonymously, except for one endpoint that we created to help you validate your implementation of the new authentication process. You may want to visit the <a href="{{ url_for('api.doc') }}" target="_blank">API docs</a> and find the <code>/user</code> endpoint.
+                        <p><u><i>IMPORTANT - In either circumstances below you must cite OpenGWAS properly - OpenGWAS must not be provided as "white label" software or service by any means.</i></u></p>
+                        <p>(1) If you package depends on ieugwasr or ieugwaspy, make sure your end users are aware of OpenGWAS JWT, preferably by including a link to this page in your product docs.</p>
+                        <p>(2) If you are building from scratch i.e. writing your own code to make API calls to OpenGWAS, in addition to (1), you also need to implement something that adds JWT into the request header under the key <code>Authorization</code> with value <code>Bearer <i>your_token</i></code>. Note that there is a whitespace between <code>Bearer</code> and your token.</p>
+                        <p>You may want to visit the <a href="{{ url_for('api.doc') }}" target="_blank">API docs</a> and find the <code>/user</code> endpoint, which is created to help you validate your implementation of the authentication process.
                             <br>- <b>What will happen without a valid token?</b><br>If you just click 'Try it out' then 'Execute', you will get a '401 Unauthorized' error.
                             <br>- <b>What if I have a valid token?</b><br>If you focus on the upper right corner of the /user area, you will see a lock icon. Click the lock icon and you will find 'token_jwt' as available authorizations. Follow the instruction, click 'Authorize', and finally try to execute on the /user endpoint again. This time you will get '200 OK' and you can see your user information in the response body.
-                            <br>- <b>Is there any other errors?</b><br>Yes. You may see other errors (e.g. if you go beyond the rate limit you will get the '429 Too Many Requests' error), so you should only use the 200 status code as the indicator of success, although you may also want to check the response body.</p>
+                            <br>- <b>Is there any other error?</b><br>Yes. You may see other errors (e.g. if you go beyond the rate limit you will get the '429 Too Many Requests' error), so when you are using the 200 status code as the indication of success, you may also want to check the response body.</p>
                     </section>
 
                     <hr class='my-4'>
