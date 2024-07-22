@@ -24,7 +24,7 @@ class User(UniqueNode, UserMixin):
             'uid': self.get(self._UID_KEY),
             'uuid': self.get('uuid'),
             'created': int(time.time()),
-            'updated': int(time.time())
+            'last_signin': int(time.time())
         }
 
         params_specific = {}
@@ -36,7 +36,7 @@ class User(UniqueNode, UserMixin):
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) " +
             "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific.keys()) + ['created']]) + " " +
-            "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific.keys()) + ['updated']]) + ";",
+            "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific.keys()) + ['last_signin']]) + ";",
             parameters={**params_common, **params_specific}
         )
 

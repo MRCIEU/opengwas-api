@@ -14,7 +14,7 @@ class UserNodeSchema(FRPMSchema):
     source = fields.Str(required=True, allow_none=False, validate=validate.OneOf(['MS', 'GH', 'EM']), metadata={"description": "Source of user info"})
     jwt_timestamp = fields.Int(required=False, metadata={"description": "JWT timestamp"})
     created = fields.Int(required=False, metadata={"description": "Timestamp of node creation"})
-    updated = fields.Int(required=False, metadata={"description": "Timestamp of node update"})
+    last_signin = fields.Int(required=False, metadata={"description": "Timestamp most recent sign-in (refresh of personal information)"})
     uuid = fields.Str(required=False, metadata={"description": "UUID of user"})
 
     @post_load
