@@ -11,12 +11,6 @@ from middleware.logger import logger as logger_middleware
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
 
 
-def _get_cost(rsids):
-    if len(rsids) == 0:
-        return 1
-    return len(rsids) * 10
-
-
 @api.route('/clump')
 @api.doc(
     description="""
@@ -38,7 +32,7 @@ class Clump(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['rsid'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=12):
             pass
 
         if len(args['rsid']) == 0 or len(args['pval']) == 0 or len(args['rsid']) != len(args['pval']):
@@ -70,7 +64,7 @@ class LdMatrix(Resource):
     @api.expect(parser)
     @api.doc(id='ld_matrix_post')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=20)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=18)
     def post(self):
         args = self.parser.parse_args()
 
