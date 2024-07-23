@@ -133,6 +133,6 @@ def check_phewas_fast():
         r = requests.post(url + '/', data='INFO', auth=auth, timeout=15)
         if r.status_code == 200:
             return "Available"
-    except requests.exceptions.Timeout:
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         pass
     return "Unavailable"
