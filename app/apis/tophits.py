@@ -84,7 +84,7 @@ def extract_instruments(user_email, id, preclumped, clump, bychr, pval, r2, kb, 
     logger.debug(str(outcomes_access))
     if len(outcomes_access) == 0:
         logger.debug('No outcomes left after permissions check')
-        return json.dumps([], ensure_ascii=False)
+        return []
 
     res = elastic_query_pval(studies=outcomes_access, pval=pval, tophits=preclumped, bychr=bychr)
     for i in range(len(res)):
