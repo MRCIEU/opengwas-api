@@ -5,6 +5,7 @@ from schemas.frpm_schema import FRPMSchema
 valid_group_names = {
     "public",
     "developer",
+    "Bristol",
     "charge_igf",
     "immunobase_users",
     "SpiroMetaplusCHARGE",
