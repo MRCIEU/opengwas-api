@@ -321,7 +321,8 @@ def qc():
     test_input_files = PythonSensor(
         task_id='test_input_files',
         soft_fail=False,
-        poke_interval=15,
+        poke_interval=60,
+        mode='reschedule',
         timeout=timeouts['command_poll'] + timeouts['create_instance'] + timeouts['download_files'],
         python_callable=_test_command_execution,
         op_args=[compute_instance_agent_client, 'download']
