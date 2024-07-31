@@ -303,7 +303,7 @@ def qc():
         poke_interval=10,
         timeout=timeouts['test_files'],
         python_callable=_test_files_on_oci_object_storage,
-        op_args=[['upload.txt.gz', '{GWAS_ID}.json']]
+        op_args=[['upload.txt.gz', '{GWAS_ID}.json', '{GWAS_ID}_data.json']]
     )
 
     create_instance = PythonOperator(
