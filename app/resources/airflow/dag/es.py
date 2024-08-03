@@ -62,7 +62,7 @@ def _task_index(agent_client, timeout, **context):
     command = _utils.wrap_command(
         {
             "ID": conf['gwas_id'],
-            "INDEX": '-'.join(conf['gwas_id'].split('-', 2)[:2]),
+            "INDEX": conf['index'],
             "URL": conf['url'],
             "ES_HOST": conf['es_host'],
             "ES_PORT": conf['es_port']
