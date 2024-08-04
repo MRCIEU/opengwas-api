@@ -9,8 +9,11 @@ import os
 import requests
 import time
 
+from .edit import check_batch_exists
+
 from middleware.auth import jwt_required
 from queries.cql_queries import *
+from resources.airflow import Airflow
 from resources.globals import Globals
 from resources.oci import OCI
 
@@ -71,65 +74,82 @@ class Release(Resource):
                 return {"message": str(e)}, 403
 
             # check first stage workflow completed successfully
-            payload = {'label': 'gwas_id:' + req['id']}
-            r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=payload, auth=Globals.CROMWELL_AUTH)
-            assert r.status_code == 200
-            first_stage_passed = False
-            for result in r.json()["results"]:
-                if "name" in result and result["name"] == "qc" and result["status"] == "Succeeded":
-                    first_stage_passed = True
-                    break
-            if req['passed_qc'] == "True" and not first_stage_passed:
-                raise ValueError("Cannot release data; the qc workflow failed!")
+            # payload = {'label': 'gwas_id:' + req['id']}
+            # r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=payload, auth=Globals.CROMWELL_AUTH)
+            # assert r.status_code == 200
+            # first_stage_passed = False
+            # for result in r.json()["results"]:
+            #     if "name" in result and result["name"] == "qc" and result["status"] == "Succeeded":
+            #         first_stage_passed = True
+            #         break
+            # if req['passed_qc'] == "True" and not first_stage_passed:
+            #     raise ValueError("Cannot release data; the qc workflow failed!")
+
+            airflow = Airflow().get_dag_run('qc', req['id'])
+            if airflow['state'] != 'success':
+                raise ValueError("Dataset cannot be released - the QC workflow is in the state of: " + airflow['state'])
+
+            index = study_prefix = check_batch_exists(req['id'], Globals.all_batches)
 
             # update graph
             add_quality_control(g.user['uid'], req['id'], req['passed_qc'] == "True", comment=req['comments'])
 
             # update json
-            study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
-            os.makedirs(study_folder, exist_ok=True)
-
+            # study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
+            # os.makedirs(study_folder, exist_ok=True)
+            #
             oci = OCI()
-
-            f = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json').data.text
-            analyst = json.loads(f)
-
-            analyst['release_uid'] = g.user['uid']
-            analyst['release_epoch'] = time.time()
-            analyst['release_comments'] = req['comments']
-            analyst['passed_qc'] = req['passed_qc']
-
-            with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'w') as f:
-                json.dump(analyst, f)
-            with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'rb') as f:
-                oci_upload = oci.object_storage_upload('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json', f)
-
-            shutil.rmtree(study_folder)
-
-            labels_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_labels.json').data.text
-            wdl_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_wdl.json').data.text
+            #
+            # f = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json').data.text
+            # analyst = json.loads(f)
+            #
+            # analyst['release_uid'] = g.user['uid']
+            # analyst['release_epoch'] = time.time()
+            # analyst['release_comments'] = req['comments']
+            # analyst['passed_qc'] = req['passed_qc']
+            #
+            # with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'w') as f:
+            #     json.dump(analyst, f)
+            # with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'rb') as f:
+            #     oci_upload = oci.object_storage_upload('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json', f)
+            #
+            # shutil.rmtree(study_folder)
+            #
+            # labels_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_labels.json').data.text
+            # wdl_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_wdl.json').data.text
 
             # insert new data to elastic
             if req['passed_qc'] == "True":
                 # find WDL params
                 # add to workflow queue
-                r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
-                                  files={
-                                      'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
-                                      'labels': labels_str,
-                                      'workflowInputs': json.dumps(dict(filter(lambda item: item[0].startswith('elastic.'), json.loads(wdl_str).items())))
-                                  }, auth=Globals.CROMWELL_AUTH)
-                assert r.status_code == 201
-                assert r.json()['status'] == "Submitted"
-                logger.info("Submitted {} to workflow".format(r.json()['id']))
+                # r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
+                #                   files={
+                #                       'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
+                #                       'labels': labels_str,
+                #                       'workflowInputs': json.dumps(dict(filter(lambda item: item[0].startswith('elastic.'), json.loads(wdl_str).items())))
+                #                   }, auth=Globals.CROMWELL_AUTH)
+                # assert r.status_code == 201
+                # assert r.json()['status'] == "Submitted"
+                # logger.info("Submitted {} to workflow".format(r.json()['id']))
+
+                airflow = Airflow().post_dag_run('es', req['id'], {
+                    'url': oci.object_storage_par_create('upload', req['id'], 'AnyObjectReadWrite', 'Deny', 3600 * 4, req['id'] + '.es'),
+                    'gwas_id': req['id'],
+                    'index': index,
+                    'es_host': Globals.ES_HOST,
+                    'es_port': Globals.ES_PORT
+                })
+                assert airflow['dag_run_id'] == req['id']
+                logger.info("Submitted {} to es workflow".format(req['id']))
+
+                for file_name in [req['id'] + '.vcf.gz', req['id'] + '.vcf.gz.tbi', req['id'] + '_report.html']:
+                    oci_copy = oci.object_storage_copy('upload', req['id'] + '/' + file_name, 'data', req['id'] + '/' + file_name)
 
                 if Globals.app_config['env'] == 'production':
                     # update GI cache
                     requests.get(Globals.app_config['root_url'] + "/api/gicache")
 
-                # oci.object_storage_delete_by_prefix('upload', req['id'] + '/')
-
-                return {'message': 'Added to elastic import queue successful', 'job_id': r.json()['id']}, 200
+                return {'message': 'Dataset has been added to the pipeline', 'dag_id': 'es', 'run_id': req['id']}, 200
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
