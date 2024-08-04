@@ -1,3 +1,5 @@
+import datetime
+
 from flask_restx import Resource, Namespace
 import logging
 import json
@@ -5,6 +7,7 @@ import json
 from middleware.auth import jwt_required
 from queries.cql_queries import *
 from resources.globals import Globals
+from resources.oci import OCI
 
 
 logger = logging.getLogger('debug-log')
@@ -30,7 +33,15 @@ class Info(Resource):
 
 
 def save_gwasinfo_cache():
-    g = get_all_gwas_for_user(None)
+    datasets = get_all_gwas_for_user(None)
     with open(Globals.STATIC_GWASINFO, 'w') as f:
-        json.dump(g, f)
-    return len(g)
+        json.dump({
+            'metadata': {
+                'updated_at': datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S %Z'),
+                'size': len(datasets)
+            },
+            'datasets': datasets
+        }, f)
+    with open(Globals.STATIC_GWASINFO, 'rb') as f:
+        oci_upload = OCI().object_storage_upload('data', 'gwasinfo.json', f)
+    return len(datasets)
