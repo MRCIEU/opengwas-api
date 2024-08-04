@@ -10,7 +10,7 @@ from .globals import Globals
 class Airflow:
     def __init__(self):
         configuration = airflow_client.client.Configuration(
-            host= 'http://' + Globals.app_config['airflow']['host'] + ':' + str(Globals.app_config['airflow']['port']) + '/api/v1',
+            host='http://' + Globals.app_config['airflow']['host'] + ':' + str(Globals.app_config['airflow']['port']) + '/api/v1',
             username=Globals.app_config['airflow']['basic_auth_username'],
             password=Globals.app_config['airflow']['basic_auth_passwd']
         )
