@@ -161,6 +161,7 @@ def es():
 
     delete_instance = PythonOperator(
         task_id='delete_instance',
+        trigger_rule='none_skipped',  # Delete the instance even when upstream_failed (upstream will not fail until it times out)
         python_callable=_task_delete_instance,
         op_args=[compute_instances_client]
     )
