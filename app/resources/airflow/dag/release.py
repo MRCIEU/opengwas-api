@@ -101,7 +101,7 @@ def _task_delete_instance(instance_client, **context):
 
 
 @dag(schedule=None, tags=['gwas'])
-def es():
+def release():
     compute_instances_client = _oci.init_compute_instance_client()
     compute_instance_agent_client = _oci.init_compute_instance_agent_client()
 
@@ -169,4 +169,4 @@ def es():
     test_files_on_oci >> create_instance >> download >> test_input_files >> index >> test_index_log >> delete_instance
 
 
-es()
+release()
