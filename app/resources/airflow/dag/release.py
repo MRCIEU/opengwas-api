@@ -166,7 +166,13 @@ def release():
         op_args=[compute_instances_client]
     )
 
-    test_files_on_oci >> create_instance >> download >> test_input_files >> index >> test_index_log >> delete_instance
+    check_states = PythonSensor(
+        task_id='check_states',
+        trigger_rule='all_done',
+        python_callable=_utils.check_states_of_all_tasks
+    )
+
+    test_files_on_oci >> create_instance >> download >> test_input_files >> index >> test_index_log >> delete_instance >> check_states
 
 
 release()

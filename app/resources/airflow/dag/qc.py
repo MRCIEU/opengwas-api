@@ -69,7 +69,7 @@ def _task_gwas2vcf(agent_client, timeout, **context):
             "conda activate gwas2vcf",
             "cd ~/work",
             "python ../gwas2vcf/main.py --id ${ID} --json ${ID}_data.json --data upload.txt.gz --out ./${ID}.vcf.gz --ref ~/ref/reference_genomes/human_g1k_v37.fasta --dbsnp ~/ref/dbsnp/dbsnp.v153.b37.vcf.gz --alias ~/gwas2vcf/alias-b37.txt",
-            "conda deactivate",
+            "conda deactivate", # TODO: check file existence
             "curl -X PUT --data-binary '@${ID}.vcf.gz' ${URL}${ID}/${ID}.vcf.gz",
             "curl -X PUT --data-binary '@${ID}.vcf.gz.tbi' ${URL}${ID}/${ID}.vcf.gz.tbi"
         ]
@@ -280,7 +280,13 @@ def qc():
         op_args=[compute_instances_client]
     )
 
-    test_files_on_oci >> create_instance >> download >> test_input_files >> gwas2vcf >> test_vcf_files >> clump >> test_clump_file >> ldsc >> test_ldsc_file >> report >> test_report_files >> delete_instance
+    check_states = PythonSensor(
+        task_id='check_states',
+        trigger_rule='all_done',
+        python_callable=_utils.check_states_of_all_tasks
+    )
+
+    test_files_on_oci >> create_instance >> download >> test_input_files >> gwas2vcf >> test_vcf_files >> clump >> test_clump_file >> ldsc >> test_ldsc_file >> report >> test_report_files >> delete_instance >> check_states
 
 
 qc()
