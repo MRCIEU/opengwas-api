@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import airflow_client.client
 
 from airflow_client.client.api import dag_run_api, task_instance_api
@@ -15,6 +17,28 @@ class Airflow:
             password=Globals.app_config['airflow']['basic_auth_passwd']
         )
         self.api_client = airflow_client.client.ApiClient(configuration)
+        self.task_description = {
+            'test_files_on_oci': 'Check whether necessary files exist in storage',
+            'create_instance': 'Create compute instance',
+            'download': 'Start to download files to compute instance',
+            'test_input_files': 'Check whether files are ready on compute instance',
+            'gwas2vcf': 'Start gwas2vcf',
+            'test_vcf_files': 'Check whether VCF files are ready',
+            'clump': 'Start clump',
+            'test_clump_file': 'Check whether clump file is ready',
+            'ldsc': 'Start LDSC',
+            'test_ldsc_file': 'Check whether ldsc file is ready',
+            'report': 'Start report generation',
+            'test_report_files': 'Check whether report files are ready',
+            'delete_instance': 'Delete compute instance',
+            'check_states': 'Check states of all tasks',
+            'index': 'Start data transfer from files to database',
+            'test_index_log': 'Check whether all data have been added to database'
+        }
+
+    @staticmethod
+    def _convert_iso_date(isodate):
+        return datetime.strftime(datetime.fromisoformat(isodate), '%Y-%m-%d %H:%M:%S %Z')
 
     def post_dag_run(self, dag_id: str, dag_run_id: str, conf: dict):
         try:
@@ -75,8 +99,8 @@ class Airflow:
                 'task_id': t['task_id'],
                 'priority': t['priority_weight'],
                 'state': t['state']['value'] if t['state'] else '',
-                'start_date': t['start_date'] if t['start_date'] else '',
+                'start_date': self._convert_iso_date(t['start_date']) if t['start_date'] else '',
                 'try_number': t['try_number'] if t['try_number'] else '',
-                'end_date': t['end_date'] if t['end_date'] else ''
+                'end_date': self._convert_iso_date(t['end_date']) if t['end_date'] else ''
             } for t in response['task_instances']], key=lambda t: t.__getitem__('priority'), reverse=True)}
         }
