@@ -31,6 +31,17 @@ def check_role(role):
     return _decorator
 
 
+def key_required(f):
+    @wraps(f)
+    def _decorator(*args, **kwargs):
+        if request.headers.get('X-SERVICE-KEY', 'default_value') in Globals.app_config['service_keys'].values():
+            pass
+        else:
+            return raise_error('MISSING_KEY')
+        return f(*args, **kwargs)
+    return _decorator
+
+
 def get_uid(error_on_none=False):
     if 'user' not in g:
         return raise_error('NO_UID') if error_on_none else None
