@@ -341,6 +341,20 @@ def check_user_is_developer(uid):
         raise PermissionError("You must be a developer to complete this function")
 
 
+def check_gwasinfo_is_added_by_user(gwas_id, uid):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (gi:GwasInfo {id: $gwas_id})-[r:ADDED_BY]->(u:User {uid: $uid}) RETURN PROPERTIES(r) as r;",
+        gwas_id=gwas_id,
+        uid=uid
+    ).data()
+
+    if len(result) == 0:
+        raise PermissionError("Dataset does not exist or you are not the person who added it")
+
+    return result[0]['r']['state']
+
+
 def get_todo_quality_control():
     res = []
     tx = Neo4j.get_db()

@@ -146,31 +146,30 @@ class Add(Resource):
 @api.route('/edit')
 @api.doc(description="Edit existing GWAS metadata")
 class Edit(Resource):
-    parser = api.parser()
-    parser.add_argument('id', type=str, required=True,
-                        help='ID to be edited')
-    GwasInfoNodeSchema.populate_parser(parser,
-                                       ignore={GwasInfo.get_uid_key()})
+    parser = reqparse.RequestParser(bundle_errors=True)
+    parser.add_argument('id', type=str, required=True, help='ID to be edited')
+    GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
     @api.doc(id='edit_edit_metadata')
     @jwt_required
+    @check_role('contributor')
     def post(self):
         try:
             req = self.parser.parse_args()
 
             try:
-                check_user_is_developer(g.user['uid'])
+                state = check_gwasinfo_is_added_by_user(req['id'], g.user['uid'])
             except PermissionError as e:
                 return {"message": str(e)}, 403
 
+            if state is None or state != 0:
+                return {"message": "Metadata cannot be modified once the QC pipeline has started"}, 400
+
             # use provided identifier if given
-            gwas_id = req['id']
-            check_id_is_valid_filename(gwas_id)
+            check_id_is_valid_filename(req['id'])
 
-            req.pop('id')
-
-            gwas_uid = edit_existing_gwas(gwas_id, req)
+            gwas_id = edit_existing_gwas(req['id'], req)
 
             # write metadata to json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
@@ -186,26 +185,27 @@ class Edit(Resource):
             json_path = os.path.join(study_folder, str(gwas_id) + '.json')
             with open(json_path, 'w') as f:
                 json.dump(gi, f)
+
+            oci_response = {}
             with open(json_path, 'rb') as f:
                 prefix = str(gwas_id) + '/' + str(gwas_id) + '.json'
                 if len(oci.object_storage_list('upload', prefix)) > 0:
                     oci_upload_upload = oci.object_storage_upload('upload', prefix, f)
+                    oci_response['upload'] = {'status': oci_upload_upload.status, 'headers': dict(oci_upload_upload.headers)}
                 if len(oci.object_storage_list('data', prefix)) > 0:
                     oci_upload_data = oci.object_storage_upload('data', prefix, f)
+                    oci_response['data'] = {'status': oci_upload_data.status, 'headers': dict(oci_upload_data.headers)}
             shutil.rmtree(study_folder)
 
             return {
                 "gwas_info": gi,
-                "oci": {
-                    'upload': {'status': oci_upload_upload.status, 'headers': dict(oci_upload_upload.headers)},
-                    'data': {'status': oci_upload_data.status, 'headers': dict(oci_upload_data.headers)}
-                }
+                "oci": oci_response
             }, 200
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
         except ValueError as e:
-            raise BadRequest("Could not add study: {}".format(e))
+            raise BadRequest("Could not edit study: {}".format(e))
 
 
 @api.route('/check/<gwas_info_id>')
