@@ -378,13 +378,19 @@ def check_gwasinfo_is_added_by_user(gwas_id, uid):
 
 
 def get_todo_quality_control():
-    res = []
+    res = {}
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (gi:GwasInfo) WHERE NOT (gi)-[:DID_QC]->(:User) RETURN gi;"
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User) WHERE NOT (gi)-[:DID_QC]->(:User) AND r.state = 3 RETURN gi, PROPERTIES(r) as r, u;"
     )
     for result in results:
-        res.append(GwasInfo(result['gi']))
+        gi = GwasInfo(result['gi'])
+        u = User(result['u'])
+        res[gi['id']] = {
+            'gwasinfo': gi,
+            'added_by': result['r'],
+            'user': {k: u[k] for k in ['uid', 'first_name', 'last_name']}
+        }
 
     return res
 

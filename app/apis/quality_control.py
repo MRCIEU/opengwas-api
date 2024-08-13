@@ -1,7 +1,10 @@
+import base64
+
 from flask import g, send_from_directory
 from flask_restx import Resource, Namespace
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
+
 import json
 import logging
 import shutil
@@ -11,7 +14,7 @@ import time
 
 from .edit import check_batch_exists
 
-from middleware.auth import jwt_required
+from middleware.auth import jwt_required, check_role
 from queries.cql_queries import *
 from resources.airflow import Airflow
 from resources.globals import Globals
@@ -31,6 +34,7 @@ class List(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='qc_get_todo')
     @jwt_required
+    @check_role('admin')
     def get(self):
         return get_todo_quality_control()
 
