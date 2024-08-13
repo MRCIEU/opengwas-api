@@ -102,6 +102,18 @@ def get_gwas_for_user(uid, gwasid, datapass=True):
     return schema.load(GwasInfo(result['gi']))
 
 
+def count_draft_gwas_of_user(uid):
+    tx = Neo4j.get_db()
+
+    # state will be removed when it is None
+    result = tx.run(
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid: $uid}) WHERE r.state IS NOT NULL RETURN count(gi) as `count`;",
+        uid=uid
+    ).single()
+
+    return result.data()['count']
+
+
 def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), gwas_id=None):
     if gwas_id is not None:
         try:
@@ -111,12 +123,15 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), 
             # check node does not already exist
             gwas_info_dict['id'] = str(gwas_id)
     else:
+        existing_gwas_ids = search_duplicate_gwas(gwas_info_dict['trait'], gwas_info_dict['author'], gwas_info_dict['year'])
+        if len(existing_gwas_ids) > 0:
+            raise Exception("It looks like we already have similar studies: " + ', '.join(existing_gwas_ids))
         # get new id
         gwas_info_dict['id'] = str(GwasInfo.get_next_numeric_id())
 
     # populate nodes
     gwas_info_node = GwasInfo(gwas_info_dict)
-    added_by_rel = AddedByRel({'epoch': time.time()})
+    added_by_rel = AddedByRel({'epoch': int(time.time()), 'state': 0})
     access_to_rel = AccessToRel()
 
     # persist or update
@@ -129,6 +144,17 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), 
         access_to_rel.create_rel(group_node, gwas_info_node)
 
     return gwas_info_dict['id']
+
+
+def search_duplicate_gwas(trait, author, year):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (gi:GwasInfo) WHERE (gi.trait=~$trait AND gi.author=~$author) OR (gi.trait=~$trait AND gi.year=~$year) RETURN gi;",
+        trait='.*{}.*'.format(trait),
+        author='.*{}.*'.format(author),
+        year='.*{}.*'.format(year)
+    )
+    return [r['gi']['id'] for r in result.data()]
 
 
 def edit_existing_gwas(gwas_id, gwas_info_dict):

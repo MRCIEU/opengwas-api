@@ -42,38 +42,47 @@ def check_batch_exists(gwas_id, study_indexes):
     return study_prefix
 
 
+def get_quota_by_roles(roles):
+    # if 'admin' in roles:
+    #     return 9999
+    if 'contributor' in roles:
+        return 3
+    return 0
+
+
 @api.route('/add')
 @api.doc(description="Add new gwas metadata")
 class Add(Resource):
-    parser = api.parser()
-    parser.add_argument('id', type=str, required=False,
-                        help='Provide your own study identifier or leave blank for next continuous id.')
-    GwasInfoNodeSchema.populate_parser(parser,
-                                       ignore={GwasInfo.get_uid_key()})
+    parser = reqparse.RequestParser(bundle_errors=True)
+    # Overwrite required=False for id
+    parser.add_argument('id', type=str, required=False, help='Provide your own study identifier or leave blank for next continuous id.')
+    GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
     @api.doc(id='edit_add_metadata')
     @jwt_required
+    @check_role('contributor')
     def post(self):
         try:
             req = self.parser.parse_args()
 
-            try:
-                check_user_is_developer(g.user['uid'])
-            except PermissionError as e:
-                return {"message": str(e)}, 403
+            count = count_draft_gwas_of_user(g.user['uid'])
+            quota = get_quota_by_roles(g.user.get('role', []))
+
+            if count >= quota:
+                return {"message": "You have reach your limit of adding metadata. You are allowed {} datasets but you already have {} that have not been released yet.".format(quota, count)}, 400
 
             if req['group_name'] is None:
                 req['group_name'] = 'public'
 
             # use provided identifier if given
-            gwas_id_req = req['id']
-            check_id_is_valid_filename(gwas_id_req)
-            check_batch_exists(gwas_id_req, Globals.all_batches)
+            check_id_is_valid_filename(req['id'])
+            check_batch_exists(req['id'], Globals.all_batches)
 
-            req.pop('id')
-
-            gwas_id = add_new_gwas(g.user['uid'], req, {req['group_name']}, gwas_id=gwas_id_req)
+            try:
+                gwas_id = add_new_gwas(g.user['uid'], req, {req['group_name']}, gwas_id=req['id'])
+            except Exception as e:
+                return {"message": str(e)}, 400
 
             # write metadata to json
             study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
