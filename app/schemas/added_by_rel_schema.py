@@ -1,5 +1,6 @@
+from marshmallow import fields, validate, ValidationError
+
 from schemas.frpm_schema import FRPMSchema
-from marshmallow import fields, ValidationError
 
 
 def check_epoch_is_valid(data):
@@ -9,4 +10,5 @@ def check_epoch_is_valid(data):
 
 class AddedByRelSchema(FRPMSchema):
     epoch = fields.Float(required=True, allow_none=False,
-                       metadata={"description": "Unix timestamp: time recorded as number of miliseconds past 01.01.1970"})
+                       metadata={"description": "Unix timestamp: time recorded as number of milliseconds past 01.01.1970"})
+    state = fields.Int(required=False, validate=validate.OneOf([0, 1, 2, 3, 4]), metadata={"description": "State of the dataset (released dataset will not have this field)"})
