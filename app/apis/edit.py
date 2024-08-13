@@ -1,5 +1,5 @@
 from flask import request, g
-from flask_restx import Resource, Namespace
+from flask_restx import Resource, Namespace, reqparse
 import hashlib
 import gzip
 import json
@@ -13,7 +13,7 @@ import marshmallow.exceptions
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest
 
-from middleware.auth import jwt_required
+from middleware.auth import jwt_required, check_role, key_required
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
 from resources.airflow import Airflow
@@ -48,6 +48,41 @@ def get_quota_by_roles(roles):
     if 'contributor' in roles:
         return 3
     return 0
+
+
+@api.route('/list')
+@api.doc(description="List metadata and DAG runs of all datasets that are added by the user")
+class List(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
+    @api.doc(id='edit_list_metadata')
+    @jwt_required
+    @check_role('contributor')
+    def get(self):
+        gwasinfo = get_gwas_added_by_user(g.user['uid'])
+
+        dag_run = {
+            'qc': {},
+            'release': {}
+        }
+        airflow = Airflow()
+        for id, gi_and_added_by in gwasinfo.items():
+            if 'state' in gi_and_added_by['added_by']:
+                if gi_and_added_by['added_by']['state'] >= 1:
+                    dag_run['qc'][id] = airflow.get_dag_run('qc', id, True)
+                    if gi_and_added_by['added_by']['state'] >= 3:
+                        dag_run['release'][id] = airflow.get_dag_run('release', id, True)
+
+        return {
+            'definition': {
+                'added_by_state': Globals.DATASET_ADDED_BY_STATE
+            },
+            'gwasinfo': gwasinfo,
+            'dag_run': dag_run,
+            'count': count_draft_gwas_of_user(g.user['uid']),
+            'quota': get_quota_by_roles(g.user.get('role', []))
+        }
 
 
 @api.route('/add')

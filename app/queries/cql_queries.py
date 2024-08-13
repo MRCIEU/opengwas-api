@@ -102,6 +102,24 @@ def get_gwas_for_user(uid, gwasid, datapass=True):
     return schema.load(GwasInfo(result['gi']))
 
 
+def get_gwas_added_by_user(uid):
+    res = {}
+    tx = Neo4j.get_db()
+
+    results = tx.run(
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid:$uid}) WHERE gi.id=~'ieu-b-.*' RETURN distinct(gi) as gi, r LIMIT 100;",
+        uid=uid
+    )
+
+    for result in results:
+        res[result['gi']['id']] = {
+            'gwasinfo': GwasInfo(result['gi']),
+            'added_by': AddedByRel(result['r'])
+        }
+
+    return res
+
+
 def count_draft_gwas_of_user(uid):
     tx = Neo4j.get_db()
 
