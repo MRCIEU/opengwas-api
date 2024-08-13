@@ -120,7 +120,7 @@ def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), 
     access_to_rel = AccessToRel()
 
     # persist or update
-    gwas_info_node.create_node()
+    gwas_info_node.create_node(gwas_info_dict['id'])
     added_by_rel.create_rel(gwas_info_node, User.get_node(user_email))
 
     # add grps
@@ -142,7 +142,7 @@ def edit_existing_gwas(gwas_id, gwas_info_dict):
     # populate nodes
     # gwas_info_dict['priority'] = 0
     gwas_info_node = GwasInfo(gwas_info_dict)
-    gwas_info_node.edit_node()
+    gwas_info_node.edit_node(gwas_info_dict['id'])
 
     # update grps
     if gwas_info_dict['group_name'] is not None:
@@ -205,14 +205,8 @@ def add_group_to_user(email, group_name):
     member_of_rel.create_rel(u, g)
 
 
-def delete_gwas(gwasid):
-    tx = Neo4j.get_db()
-    tx.run(
-        "MATCH (gi:GwasInfo {id:$gwasid}) "
-        "OPTIONAL MATCH (gi)-[rel]-() "
-        "DELETE rel, gi;",
-        gwasid=gwasid
-    )
+def delete_gwas(gwas_id):
+    GwasInfo.delete_node(gwas_id)
 
 
 def delete_groups(gwasid):

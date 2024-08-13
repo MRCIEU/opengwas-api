@@ -21,7 +21,7 @@ class UniqueNode(dict):
     def get_uid_key(cls):
         return cls._UID_KEY
 
-    def create_node(self):
+    def create_node(self, uid):
         # map using schema; fail when violates
         schema = self._SCHEMA()
         d = schema.load(self)
@@ -31,17 +31,18 @@ class UniqueNode(dict):
 
         tx = Neo4j.get_db()
         tx.run(
-            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) SET n += $params;",
+            "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) SET n += $params;",
+            uid=uid,
             params=d
         )
-    
-    def edit_node(self):
+
+    def edit_node(self, uid):
         schema = self._SCHEMA()
         d = schema.load(self)
         tx = Neo4j.get_db()
         tx.run(
-            "MATCH (n:" + self.get_node_label() + " {" + self._UID_KEY + ": '" + self._UID_KEY + "'}) "
-            "SET n = $params;",
+            "MATCH (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) SET n = $params;",
+            uid=uid,
             params=d
         )
 
@@ -51,7 +52,8 @@ class UniqueNode(dict):
             raise KeyError("You must provide a value for the unique key.")
         tx = Neo4j.get_db()
         tx.run(
-            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": '" + uid + "'}) OPTIONAL MATCH (n)-[r]-() DELETE n, r;"
+            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": $uid}) OPTIONAL MATCH (n)-[r]-() DELETE n, r;",
+            uid=uid
         )
 
     @classmethod
