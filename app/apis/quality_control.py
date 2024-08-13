@@ -39,7 +39,7 @@ class List(Resource):
         return get_todo_quality_control()
 
 
-@api.route('/report/<id>')
+@api.route('/report/<gwas_id>')
 @api.doc(description="View html report on QC process for specified ID")
 class GetId(Resource):
     parser = api.parser()
@@ -47,13 +47,21 @@ class GetId(Resource):
     @api.expect(parser)
     @api.doc(id='qc_get_report')
     @jwt_required
-    def get(self, id):
-        study_folder = os.path.join(Globals.UPLOAD_FOLDER, id)
-        htmlfile = id + "_report.html"
+    def get(self, gwas_id):
         try:
-            return send_from_directory(study_folder, htmlfile)
-        except LookupError:
-            raise BadRequest("GWAS ID {} does not have a html report file.".format(id))
+            gwasinfo = get_gwas_for_user(g.user['uid'], gwas_id, datapass=False)
+        except Exception as e:
+            return {"message": str(e)}, 403
+
+        try:
+            report_str = OCI().object_storage_download('upload', '{}/{}_report.html'.format(gwas_id, gwas_id)).data.text
+        except Exception as e:
+            return {"message": "The report may not have been generated yet. Please check QC pipeline state."}, 404
+
+        return {
+            'filename': gwas_id + '_report.html',
+            'content': str(base64.b64encode(report_str.encode('utf-8')), 'utf-8')
+        }
 
 
 @api.route('/release')
