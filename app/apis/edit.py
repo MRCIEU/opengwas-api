@@ -291,38 +291,49 @@ class PullStatus(Resource):
             'gwas_id_and_state': gwas_id_and_state
         }
 
-@api.route('/delete/<gwas_info_id>')
-@api.doc(description="Delete gwas metadata")
+
+@api.route('/delete/<gwas_id>')
+@api.doc(description="Delete everything related to the GWAS ID including metadata, uploaded files, any pipeline proudct etc.")
 class Delete(Resource):
     parser = api.parser()
+    parser.add_argument('delete_metadata', type=int, required=True, help='Whether to delete metadata (1) or only to delete files and pipeline products (0)')
 
-    @api.expect(parser)
     @api.doc(id='edit_delete_gwas')
     @jwt_required
-    def delete(self, gwas_info_id):
+    @check_role('contributor')
+    def delete(self, gwas_id):
         args = self.parser.parse_args()
 
         try:
-            check_user_is_developer(g.user['uid'])
+            state = check_gwasinfo_is_added_by_user(gwas_id, g.user['uid'])
         except PermissionError as e:
             return {"message": str(e)}, 403
 
-        delete_gwas(gwas_info_id)
-        study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_info_id)
+        if state is None or state not in [0, 2]:
+            return {"message": "Dataset cannot be deleted when the QC pipeline is still running or after it has been submitted for approval"}, 400
+
+        study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
         if os.path.isdir(study_folder):
             shutil.rmtree(study_folder)
 
         oci = OCI()
-        oci.object_storage_delete_by_prefix('upload', gwas_info_id + '/')
-        oci.object_storage_delete_by_prefix('data', gwas_info_id + '/')
+        oci.object_storage_delete_by_prefix('upload', gwas_id + '/')
+        oci.object_storage_delete_by_prefix('data', gwas_id + '/')
 
         airflow = Airflow()
-        airflow.delete_dag_run('qc', gwas_info_id)
-        airflow.delete_dag_run('es', gwas_info_id)
+        airflow.delete_dag_run('qc', gwas_id)
+        airflow.delete_dag_run('release', gwas_id)
+
+        if args['delete_metadata'] == 1:
+            delete_gwas(gwas_id)
+            return {"message": "Deleted everything about " + gwas_id}, 200
+        else:
+            set_added_by_state_of_any_gwas(gwas_id, 0)
+            return {"message": "Deleted uploaded file and QC products of " + gwas_id}, 200
 
         # TODO: Add workflow to delete from ieu-db-interface
 
-        return {"message": "Dataset deleted from object storage and pipeline."}, 200
+
 
 
 @api.route('/upload')
