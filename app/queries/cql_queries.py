@@ -120,6 +120,28 @@ def get_gwas_added_by_user(uid):
     return res
 
 
+def get_added_by_state_of_all_gwas():
+    tx = Neo4j.get_db()
+    results = tx.run(
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User) WHERE r.state IS NOT NULL RETURN gi.id, PROPERTIES(r).state as state;"
+    )
+
+    return {r['gi.id']: r['state'] for r in results.data()}
+
+
+def set_added_by_state_of_any_gwas(gwas_id, state=None):
+    tx = Neo4j.get_db()
+
+    # state will be removed when it is None
+    result = tx.run(
+        "MATCH (gi:GwasInfo {id: $gwas_id})-[r:ADDED_BY]->(u:User) SET r.state=$state RETURN gi, r, u;",
+        gwas_id=gwas_id,
+        state=state
+    ).single()
+
+    return result
+
+
 def count_draft_gwas_of_user(uid):
     tx = Neo4j.get_db()
 
