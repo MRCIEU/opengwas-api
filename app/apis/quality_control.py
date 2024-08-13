@@ -64,6 +64,36 @@ class GetId(Resource):
         }
 
 
+@api.route('/submit/<gwas_id>')
+@api.doc(description="Submit dataset for approval")
+class TaskStatus(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
+    @api.doc(id='qc_post_submit')
+    @jwt_required
+    @check_role('contributor')
+    def get(self, gwas_id):
+        try:
+            status = check_gwasinfo_is_added_by_user(gwas_id, g.user['uid'])
+        except PermissionError as e:
+            return {"message": str(e)}, 403
+
+        if status is None or status != 2:
+            return {"message": "The QC pipeline must have been completed before the dataset can be submitted for approval"}, 400
+
+        airflow = Airflow()
+        dag_run = airflow.get_dag_run('qc', gwas_id)
+        if dag_run['state'] != 'success':
+            return {"message": "The QC has failed so the dataset cannot be submitted for approval"}
+
+        set_added_by_status_of_any_gwas(gwas_id, 3)
+
+        return {
+            'message': 'Submitted for approval'
+        }
+
+
 @api.route('/release')
 @api.doc(description="Release data from quality control process")
 class Release(Resource):
