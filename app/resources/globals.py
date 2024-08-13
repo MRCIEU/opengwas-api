@@ -134,3 +134,11 @@ class Globals:
         'EM': '20000 per 10 minutes',
         'NONE': '0 per 10 minutes'
     }
+
+    DATASET_ADDED_BY_STATE = {  # No state for released dataset
+        0: 'Metadata created',
+        1: 'QC in progress',  # crontab to update this field to 3 and send email
+        2: 'QC completed',
+        3: 'Pending approval',
+        4: 'Release in progress'  # crontab to clear this field and send email
+    }
