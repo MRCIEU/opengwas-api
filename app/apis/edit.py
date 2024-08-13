@@ -208,7 +208,7 @@ class Edit(Resource):
             raise BadRequest("Could not edit study: {}".format(e))
 
 
-@api.route('/check/<gwas_info_id>')
+@api.route('/check/<gwas_id>')
 @api.doc(description="Get metadata about specified GWAS summary datasets")
 class GetId(Resource):
     parser = api.parser()
@@ -216,18 +216,20 @@ class GetId(Resource):
     @api.expect(parser)
     @api.doc(model=gwas_info_model, id='edit_get_metadata')
     @jwt_required
-    def get(self, gwas_info_id):
+    @check_role('contributor')
+    def get(self, gwas_id):
         try:
             recs = []
-            for gwas_id in gwas_info_id.split(','):
+            for gwas_id in gwas_id.split(','):
                 try:
                     recs.append(get_gwas_for_user(g.user['uid'], str(gwas_id), datapass=False))
                     # TODO: Optimise using single query
+                    # TODO: WARNING - this is used by GwasDataImport to check whether a GWAS ID exists. It should not hide private datasets entirely.
                 except LookupError:
                     continue
             return recs
         except LookupError:
-            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(gwas_info_id))
+            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(gwas_id))
 
 
 @api.route('/status/<gwas_id>')
