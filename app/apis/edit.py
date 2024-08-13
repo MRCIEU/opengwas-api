@@ -233,16 +233,38 @@ class GetId(Resource):
 
 
 @api.route('/status/<gwas_id>')
-@api.doc(description="Check on the progress of GWAS upload")
-class JobStatus(Resource):
+@api.doc(description="Check the task instances of the DAG runs related to the dataset")
+class TaskStatus(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(id='edit_get_status')
+    @api.doc(id='edit_get_state')
     @jwt_required
+    @check_role('contributor')
     def get(self, gwas_id):
-        r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=dict(label="gwas_id:" + gwas_id), auth=Globals.CROMWELL_AUTH)
-        return r.json(), r.status_code
+        try:
+            check_gwasinfo_is_added_by_user(gwas_id, g.user['uid'])
+        except PermissionError as e:
+            return {"message": str(e)}, 403
+
+        airflow = Airflow()
+
+        return {
+            'definition': {
+                'airflow_task_description': airflow.task_description
+            },
+            'dags': {
+                'qc': {
+                    'dag_run': airflow.get_dag_run('qc', gwas_id, True),
+                    'task_instances': airflow.get_task_instances('qc', gwas_id)['tasks']
+                },
+                'release': {
+                    'dag_run': airflow.get_dag_run('release', gwas_id, True),
+                    'task_instances': airflow.get_task_instances('release', gwas_id)['tasks']
+                }
+            }
+        }
+
 
 
 @api.route('/delete/<gwas_info_id>')
