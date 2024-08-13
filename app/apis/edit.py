@@ -370,7 +370,8 @@ class Upload(Resource):
     parser.add_argument('gzipped', type=str, required=True, help="Is the file compressed with gzip?",
                         choices=('True', 'False'))
     parser.add_argument('md5', type=str, required=False,
-                        help="MD5 checksum of upload file")
+                        help="MD5 checksum of the uploaded file")
+    parser.add_argument('nsnp', type=int, required=False, help="Number of snps in the uploaded file")
 
     @staticmethod
     def read_gzip(p, sep, args):
@@ -437,13 +438,17 @@ class Upload(Resource):
     @api.expect(parser)
     @api.doc(id='edit_upload_gwas')
     @jwt_required
+    @check_role('contributor')
     def post(self):
         args = self.parser.parse_args()
 
         try:
-            check_user_is_developer(g.user['uid'])
+            state = check_gwasinfo_is_added_by_user(args['id'], g.user['uid'])
         except PermissionError as e:
             return {"message": str(e)}, 403
+
+        if state is None or state != 0:
+            return {"message": "Files cannot be re-uploaded once the QC pipeline has started"}, 400
 
         # convert to 0-based indexing
         args['chr_col'] = Upload.__convert_index(args['chr_col'])
@@ -472,19 +477,26 @@ class Upload(Resource):
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, args['id'])
 
         # create json payload
-        j = dict()
+        data = dict()
         for k in args:
-            if args[k] is not None and k != 'gwas_file' and k != 'gzipped':
-                j[k] = args[k]
+            if args[k] is not None and k not in ['id', 'gwas_file', 'gzipped', 'nsnp']:
+                data[k] = args[k]
 
         # get build
-        g_node = GwasInfo.get_node(j['id'])
-        j['build'] = g_node['build']
+        gwas_id = args['id']
+        g_node = GwasInfo.get_node(gwas_id)
+        data['build'] = g_node['build']
 
         # convert text to bool
-        j['header'] = True if j['header'] == "True" else False
+        data['header'] = True if data['header'] == "True" else False
 
         if args['gwas_file'] is not None:
+
+            if args['nsnp'] is not None:
+                g_node['nsnp'] = args['nsnp']
+                edit_existing_gwas(args['id'], g_node)
+            elif g_node.get('nsnp', 0) == 0:
+                return {"message": "The 'nsnp' (the number of SNPs in the uploaded file) field in metadata appears to be 0."}
 
             try:
                 os.makedirs(study_folder, exist_ok=True)
@@ -528,8 +540,6 @@ class Upload(Resource):
                 return {'message': 'Check file upload: {}'.format(e)}, 400
 
             oci = OCI()
-            gwas_id = str(j['id'])
-            del j['id']
 
             # write metadata to json
             gi = get_gwas_for_user(g.user['uid'], gwas_id, datapass=False)
@@ -553,7 +563,7 @@ class Upload(Resource):
 
             # write mappings, build, md5 etc. for pipeline
             with open(os.path.join(study_folder, gwas_id + '_data.json'), 'w') as f:
-                json.dump(j, f)
+                json.dump(data, f)
             with open(os.path.join(study_folder, gwas_id + '_data.json'), 'rb') as f:
                 oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '_data.json', f)
 
@@ -601,10 +611,12 @@ class Upload(Resource):
                 'cohort_controls': g_node.get('ncontrol', None)
             })
             assert airflow['dag_run_id'] == args['id']
-            logger.info("Submitted {} to qc workflow".format(airflow['dag_run_id']))
+            logger.info("Submitted {} to qc workflow, nsnp = {}".format(airflow['dag_run_id'], g_node['nsnp']))
 
             shutil.rmtree(study_folder)
 
+            set_added_by_state_of_any_gwas(args['id'], 1)
+
             return {'message': 'Dataset has been added to the pipeline', 'dag_id': 'qc', 'run_id': airflow['dag_run_id']}, 201
         else:
-            return j, 200
+            return data, 200
