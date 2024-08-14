@@ -87,7 +87,7 @@ class TaskStatus(Resource):
         if dag_run['state'] != 'success':
             return {"message": "The QC has failed so the dataset cannot be submitted for approval"}
 
-        set_added_by_status_of_any_gwas(gwas_id, 3)
+        set_added_by_state_of_any_gwas(gwas_id, 3)
 
         return {
             'message': 'Submitted for approval'
@@ -183,6 +183,8 @@ class Release(Resource):
                 })
                 assert airflow['dag_run_id'] == req['id']
                 logger.info("Submitted {} to es workflow".format(req['id']))
+
+                set_added_by_state_of_any_gwas(req['id'], 4)
 
                 for file_name in [req['id'] + '.vcf.gz', req['id'] + '.vcf.gz.tbi', req['id'] + '_report.html']:
                     oci_copy = oci.object_storage_copy('upload', req['id'] + '/' + file_name, 'data', req['id'] + '/' + file_name)
