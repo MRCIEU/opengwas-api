@@ -120,22 +120,24 @@ class Add(Resource):
                 return {"message": str(e)}, 400
 
             # write metadata to json
-            study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
-            try:
-                os.makedirs(study_folder, exist_ok=True)
-            except FileExistsError as e:
-                logger.error("Could not create study folder: {}".format(e))
-                raise e
+            # study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
+            # try:
+            #     os.makedirs(study_folder, exist_ok=True)
+            # except FileExistsError as e:
+            #     logger.error("Could not create study folder: {}".format(e))
+            #     raise e
+            #
+            # gi = GwasInfo.get_node(gwas_id)
+            # json_path = os.path.join(study_folder, str(gwas_id) + '.json')
+            # with open(json_path, 'w') as f:
+            #     json.dump(gi, f)
+            # with open(json_path, 'rb') as f:
+            #     oci_upload = OCI().object_storage_upload('upload', str(gwas_id) + '/' + str(gwas_id) + '.json', f)
+            # shutil.rmtree(study_folder)
+            #
+            # return {"id": gwas_id, "oci_upload": {'status': oci_upload.status, 'headers': dict(oci_upload.headers)}}, 200
 
-            gi = GwasInfo.get_node(gwas_id)
-            json_path = os.path.join(study_folder, str(gwas_id) + '.json')
-            with open(json_path, 'w') as f:
-                json.dump(gi, f)
-            with open(json_path, 'rb') as f:
-                oci_upload = OCI().object_storage_upload('upload', str(gwas_id) + '/' + str(gwas_id) + '.json', f)
-            shutil.rmtree(study_folder)
-
-            return {"id": gwas_id, "oci_upload": {'status': oci_upload.status, 'headers': dict(oci_upload.headers)}}, 200
+            return {'id': gwas_id}, 200
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
