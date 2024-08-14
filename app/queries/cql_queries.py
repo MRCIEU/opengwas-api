@@ -2,6 +2,7 @@ import time
 import uuid
 from collections import defaultdict
 from typing import List
+from neo4j.debug import watch
 
 from queries.user_node import User
 from queries.gwas_info_node import GwasInfo
@@ -338,8 +339,8 @@ def add_quality_control(user_email, gwas_info_id, data_passed, comment=None):
 def delete_quality_control(gwas_info_id):
     tx = Neo4j.get_db()
     tx.run(
-        "MATCH (gi:GwasInfo {id:$uid})-[r:DID_QC]->(:User) DELETE r;",
-        uid=str(gwas_info_id)
+        "MATCH (gi:GwasInfo {id:$gwas_id})-[r:DID_QC]->(:User) DELETE r;",
+        gwas_id=str(gwas_info_id)
     )
 
 
