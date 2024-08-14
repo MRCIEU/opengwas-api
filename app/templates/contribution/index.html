@@ -1,0 +1,975 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link href="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.css" rel="stylesheet"
+      xmlns="http://www.w3.org/1999/html">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">Dataset contributions</h2>
+    <p class="fs-5 text-muted">...</p>
+</div>
+{% endblock %}
+
+{% block main %}
+
+<h5>Step 1: Prepare metadata</h5>
+<div class="row">
+    <p>Provide the metadata of each dataset you would like to upload. Each of them will be assigned a GWAS ID, which expires after one month if you don't upload the data files for QC.
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMetadataModal" id="addMetadataToggle">Checking quota...</button>
+    </p>
+    <div><table class="table table-sm table-striped" id="metadataTable">
+        <thead><tr>
+                <th>GWAS ID</th>
+                <th width="50%">Trait</th>
+                <th>Created at</th>
+                <th>Actions</th>
+            </tr></thead>
+        <tbody></tbody>
+    </table></div>
+    <br>
+</div>
+
+<hr>
+<h5>Step 2: Upload for QC</h5>
+<div class="row">
+    <p>Use the R/GwasDataImport package to convert the raw data file to an acceptable format and upload it for QC. Each file must be accompanied by the corresponding GWAS ID assigned in Step 1.</p>
+    <p>QC is a fully automated process and usually takes 4 - 24 hours. Once you have received the QC report you may submit the dataset for approval.</p>
+    <div><table class="table table-sm table-striped" id="qcTable">
+        <thead><tr>
+                <th>GWAS ID</th>
+                <th width="50%">Trait</th>
+                <th>State</th>
+                <th>Actions</th>
+            </tr></thead>
+        <tbody></tbody>
+    </table></div>
+    <br>
+</div>
+
+<hr>
+<h5>Step 3: Wait for approval and then release</h5>
+<div class="row">
+    <p>Datasets here are pending review. Once approved they will be added to the database (released). We may contact you via email.</p>
+    <div><table class="table table-sm table-striped" id="approvalTable">
+        <thead><tr>
+                <th>GWAS ID</th>
+                <th width="50%">Trait</th>
+                <th>State</th>
+                <th>Actions</th>
+            </tr></thead>
+        <tbody></tbody>
+    </table></div>
+    <br>
+</div>
+
+<hr>
+<h5>Datasets you uploaded <small></small></h5>
+<div class="row">
+    <p>Here is a list of approved datasets you uploaded. They can now be queried by the relevant group.</p>
+    <div>
+        <table class="table table-sm table-striped" id="releasedTable">
+        <thead><tr>
+                <th>GWAS ID</th>
+                <th>Group</th>
+                <th width="50%">Trait</th>
+                <th>Metadata provided at</th>
+            </tr></thead>
+        <tbody></tbody>
+    </table></div>
+</div>
+
+<div class="modal modal-lg fade" id="addMetadataModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add metadata</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body"><form id="metadataForm">
+                <p>Mandatory fields</p>
+                <div class="form-group row mb-2">
+                    <label for="traitInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Trait *</label>
+                    <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="traitInput" name="trait" required></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="buildInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Build *</label>
+                    <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="buildInput" name="build" value="HG19/GRCh37" readonly required></div>
+                    <label for="groupInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Group name *</label>
+                    <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="groupInput" name="group_name" value="public" readonly required></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="categorySelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Category *</label>
+                    <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="categorySelect" name="category" required><option selected disabled>(Please select)</option></select></div>
+                    <label for="subcategorySelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Subcategory *</label>
+                    <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="subcategorySelect" name="subcategory" required><option selected disabled>(Please select)</option></select></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="populationSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Population *</label>
+                    <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="populationSelect" name="population" required><option selected disabled>(Please select)</option></select></div>
+                    <label for="sexSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Sex *</label>
+                    <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="sexSelect" name="sex" required><option selected disabled>(Please select)</option></select></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty *</label>
+                    <div class="col-sm-3"><input type="text" class="form-control form-control-sm" id="ontologyInput" name="ontology" required></div>
+                    <label for="unitInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Unit *</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="unitInput" name="unit" required></div>
+                    <label for="samplesizeInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Sample size *</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="samplesizeInput" name="sample_size" required></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="authorInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Author *</label>
+                    <div class="col-sm-7"><input type="text" class="form-control form-control-sm" id="authorInput" name="author" required></div>
+                    <label for="YearInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Year *</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="YearInput" name="year" required></div>
+                    <input type="hidden" name="nsnp" value="0">
+                </div>
+                <hr>
+                <p>Optional fields (leave/select blank if not applicable)</p>
+                <div class="row mb-2">
+                    <label for="ncaseInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N case</label>
+                    <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="ncaseInput" name="ncase"></div>
+                    <label for="ncontrolInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N control</label>
+                    <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="ncontrolInput" name="ncontrol"></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="studydesignSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Study design</label>
+                    <div class="col-sm-3"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="studydesignSelect" name="study_design"><option selected></option></select></div>
+                    <label for="covariatesInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Covariates</label>
+                    <div class="col-sm-5"><input type="text" class="form-control form-control-sm" id="covariatesInput" name="covariates"></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="coverageSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Coverage</label>
+                    <div class="col-sm-2"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="coverageSelect" name="study_design"><option selected></option></select></div>
+                    <label for="qcInput" class="col-sm-3 col-form-label col-form-label-sm text-end">QC prior to upload</label>
+                    <div class="col-sm-5"><input type="text" class="form-control form-control-sm" id="qcInput" name="qc_prior_to_upload"></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="imputationSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Imp. panel</label>
+                    <div class="col-sm-2"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="imputationSelect" name="imputation_panel"><option selected></option></select></div>
+                    <label for="betatransformationInput" class="col-sm-3 col-form-label col-form-label-sm text-end">Beta transformation</label>
+                    <div class="col-sm-5"><input type="text" class="form-control form-control-sm" id="betatransformationInput" name="beta_transformation"></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="doiInput" class="col-sm-2 col-form-label col-form-label-sm text-end">DOI</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="doiInput" name="doi"></div>
+                    <label for="consortiumInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Consortium</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="consortiumInput" name="consortium"></div>
+                    <label for="pmidInput" class="col-sm-2 col-form-label col-form-label-sm text-end">PubMed ID</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="pmidInput" name="pmid"></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="sdInput" class="col-sm-2 col-form-label col-form-label-sm text-end">SD</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="sdInput" name="sd"></div>
+                    <label for="mrInput" class="col-sm-2 col-form-label col-form-label-sm text-end">MR</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="mrInput" name="mr"></div>
+                    <label for="priorityInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Priority</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="priorityInput" name="priority"></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="noteInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Note</label>
+                    <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="noteInput" name="note"></div>
+                </div>
+            </form></div>
+            <div class="modal-footer d-flex justify-content-end">
+                <div><button type="button" class="btn btn-primary" id="addMetadataBtn" onclick="submit_metadata()">Submit </button></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-lg fade" id="gwasinfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="gi_idH"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="giTab" data-bs-toggle="tab" data-bs-target="#giTabPane" type="button" role="tab">1. Metadata</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="qcTab" data-bs-toggle="tab" data-bs-target="#qcTabPane" type="button" role="tab">2. QC</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="approvalTab" data-bs-toggle="tab" data-bs-target="#approvalTabPane" type="button" role="tab">3. Approval & Release</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3">
+                    <div class="tab-pane fade" id="giTabPane" role="tabpanel" tabindex="0">
+                        <div id="deleteDatasetDiv">
+                            <p>Before you submit the dataset for approval you can either <a href="#" class="text-danger" onclick="delete_gwasinfo(1)"><u>delete everything</u></a> (including <a data-bs-toggle="tooltip" data-bs-title="Note: If you go down this route, you may not be assigned the same GWAS ID even if you submit the identical metadata again."><u>metadata(!)</u></a>, uploaded files and QC products) or just <a href="#" class="text-danger" onclick="delete_gwasinfo()"><u>delete uploaded files and QC products</u></a> but keep the metadata (if you wish the re-upload the file for QC). <br></p>
+                        </div>
+                        <form id="gwasinfoForm">
+                            <div class="form-group row mb-1">
+                                <label for="gi_traitInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Trait *</label>
+                                <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="gi_traitInput" name="gi_trait"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_buildInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Build *</label>
+                                <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="gi_buildInput" name="gi_build"></div>
+                                <label for="gi_groupInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Group name *</label>
+                                <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="gi_groupInput" name="gi_group_name"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_categorySelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Category *</label>
+                                <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_categorySelect" name="gi_category"><option selected></option></select></div>
+                                <label for="gi_subcategorySelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Subcategory *</label>
+                                <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_subcategorySelect" name="gi_subcategory"><option selected></option></select></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_populationSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Population *</label>
+                                <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_populationSelect" name="gi_population"><option selected></option></select></div>
+                                <label for="gi_sexSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Sex *</label>
+                                <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_sexSelect" name="gi_sex"><option selected></option></select></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty *</label>
+                                <div class="col-sm-3"><input type="text" class="form-control form-control-sm" id="gi_ontologyInput" name="gi_ontology"></div>
+                                <label for="gi_unitInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Unit *</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_unitInput" name="gi_unit"></div>
+                                <label for="gi_samplesizeInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Sample size *</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_samplesizeInput" name="gi_sample_size"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_authorInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Author *</label>
+                                <div class="col-sm-7"><input type="text" class="form-control form-control-sm" id="gi_authorInput" name="gi_author"></div>
+                                <label for="gi_YearInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Year *</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_YearInput" name="gi_year"></div>
+                                <input type="hidden" name="gi_nsnp" value="0">
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_ncaseInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N case</label>
+                                <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="gi_ncaseInput" name="gi_ncase"></div>
+                                <label for="gi_ncontrolInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N control</label>
+                                <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="gi_ncontrolInput" name="gi_ncontrol"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_studydesignSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Study design</label>
+                                <div class="col-sm-3"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_studydesignSelect" name="gi_study_design"><option selected></option></select></div>
+                                <label for="gi_covariatesInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Covariates</label>
+                                <div class="col-sm-5"><input type="text" class="form-control form-control-sm" id="gi_covariatesInput" name="gi_covariates"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_coverageSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Coverage</label>
+                                <div class="col-sm-2"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_coverageSelect" name="gi_study_design"><option selected></option></select></div>
+                                <label for="gi_qcInput" class="col-sm-3 col-form-label col-form-label-sm text-end">QC prior to upload</label>
+                                <div class="col-sm-5"><input type="text" class="form-control form-control-sm" id="gi_qcInput" name="gi_qc_prior_to_upload"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_imputationSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Imp. panel</label>
+                                <div class="col-sm-2"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_imputationSelect" name="gi_imputation_panel"><option selected></option></select></div>
+                                <label for="gi_betatransformationInput" class="col-sm-3 col-form-label col-form-label-sm text-end">Beta transformation</label>
+                                <div class="col-sm-5"><input type="text" class="form-control form-control-sm" id="gi_betatransformationInput" name="gi_beta_transformation"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_doiInput" class="col-sm-2 col-form-label col-form-label-sm text-end">DOI</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_doiInput" name="gi_doi"></div>
+                                <label for="gi_consortiumInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Consortium</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_consortiumInput" name="gi_consortium"></div>
+                                <label for="gi_pmidInput" class="col-sm-2 col-form-label col-form-label-sm text-end">PubMed ID</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_pmidInput" name="gi_pmid"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_sdInput" class="col-sm-2 col-form-label col-form-label-sm text-end">SD</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_sdInput" name="gi_sd"></div>
+                                <label for="gi_mrInput" class="col-sm-2 col-form-label col-form-label-sm text-end">MR</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_mrInput" name="gi_mr"></div>
+                                <label for="gi_priorityInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Priority</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_priorityInput" name="gi_priority"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_noteInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Note</label>
+                                <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="gi_noteInput" name="gi_note"></div>
+                            </div>
+                        </form>
+                        <div class="d-flex justify-content-between mt-3" id="editMetadataDiv">
+                            <small>You can make changes to metadata until you upload the file for QC.</small>
+                            <button class="btn btn-sm btn-outline-primary btn-block" id="editMetadataBtn" onclick="edit_metadata()">Save metadata </button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="qcTabPane" role="tabpanel" tabindex="0">
+                        <div id="uploadFileDiv">
+                            <p>Use the R/GwasDataImport package to upload the file for QC. The pipeline will start as soon as the file has been received and may take 4-24 hours to complete. <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('qc')">Refresh pipeline state</a>
+                                <br>Once finished the report can be downloaded here.
+                            </p>
+                        </div>
+                        <div id="downloadReportDiv" class="mb-3">
+                            <p>The QC report is now ready. If you are satisfied, go to the <b>3. Approval & Release</b> tab to submit for approval, otherwise, delete the metadata and/or files and QC products under the <b>1. Metadata</b> tab. and upload again if necessary.</p>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="downloadBtn" onclick="download_report()">Download QC report (may take a while) </button>
+                        </div>
+                        <div id="qcPipelineDiv">
+                            <table class="table table-sm table-striped mb-0" style="font-size: 0.9rem">
+                                <thead><tr><th>Pipeline started at</th><th>Pipeline state</th><th>Pipeline ended at</th></tr></thead>
+                                <tbody><tr id="qcPipelineTr"></tr></tbody>
+                            </table>
+                            <table class="table table-sm table-striped" id="qcPipelineTable" style="font-size: 0.9rem">
+                                <thead><tr>
+                                        <th>Task</th>
+                                        <th>Description</th>
+                                        <th>State</th>
+                                        <th>Reported at</th>
+                                    </tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="approvalTabPane" role="tabpanel" tabindex="0">
+                        <p>When the QC report is ready you can submit the dataset for approval, and once approved the dataset will be added to the database (released).</p>
+                        <div id="submitForApprovalDiv">
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="submitForApprovalBtn" onclick="submit_for_approval()">Submit the dataset for approval </button>
+                            <p><small><i>By clicking the button above you consent your information (including names, email address, organisational affiliation etc.) to be made visible to the reviewers, who may then contact you via email.</i></small></p>
+                        </div>
+                        <div id="pendingApprovalDiv">
+                            <p>You dataset is now pending approval. We may contact you via email.</p>
+                        </div>
+                        <div id="releasePipelineDiv">
+                            <p>Congratulations - you dataset has been approved and will be added to the database via the Release pipeline, which may take 0.5-4 hours. <span class="badge text-bg-primary" onclick="reload_gwasinfo_and_pipeline_state('approval')">Refresh</span></p>
+                            <table class="table table-sm table-striped mb-0" style="font-size: 0.9rem">
+                                <thead><tr><th>Pipeline started at</th><th>Pipeline state</th><th>Pipeline ended at</th></tr></thead>
+                                <tbody><tr id="releasePipelineTr"></tr></tbody>
+                            </table>
+                            <table class="table table-sm table-striped" id="releasePipelineTable" style="font-size: 0.9rem">
+                                <thead><tr>
+                                        <th>Task</th>
+                                        <th>Description</th>
+                                        <th>State</th>
+                                        <th>Reported at</th>
+                                    </tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.js"></script>
+
+<script>
+    var addMetadataToggle, metadataTable, addMetadataModal, gwasinfoModal, gwasinfoTabs, gwasinfoTabsByTableId, gwasinfoDivs, qcTable, approvalTable, releasedTable, qcPipelineTr, qcPipelineTable, releasePipelineTr, releasePipelineTable;
+    var jwt, definition = {}, gwasinfo, dagrun, swagger, gwasidFocused;
+    const visibleDivsByState = {
+        0: ['deleteDatasetDiv', 'uploadFileDiv'],
+        1: ['uploadFileDiv', 'qcPipelineDiv'],
+        2: ['deleteDatasetDiv', 'downloadReportDiv', 'qcPipelineDiv', 'submitForApprovalDiv'],
+        3: ['downloadReportDiv', 'qcPipelineDiv', 'pendingApprovalDiv'],
+        4: ['downloadReportDiv', 'qcPipelineDiv', 'releasePipelineDiv']
+    }
+
+    $(document).ready(() => {
+        addMetadataToggle = $('#addMetadataToggle');
+        addMetadataModal = new bootstrap.Modal($('#addMetadataModal'));
+        gwasinfoModal = new bootstrap.Modal($('#gwasinfoModal'));
+        gwasinfoTabs = {
+            'giTab': new bootstrap.Tab('#giTab'),
+            'qcTab': new bootstrap.Tab('#qcTab'),
+            'approvalTab': new bootstrap.Tab('#approvalTab')
+        }
+        gwasinfoTabsByTableId = {
+            'metadataTable': gwasinfoTabs.giTab,
+            'qcTable': gwasinfoTabs.qcTab,
+            'approvalTable': gwasinfoTabs.approvalTab
+        }
+        gwasinfoDivs = {
+            'editMetadataDiv': $('#editMetadataDiv'),
+            'deleteDatasetDiv': $('#deleteDatasetDiv'),
+            'uploadFileDiv': $('#uploadFileDiv'),
+            'downloadReportDiv': $('#downloadReportDiv'),
+            'qcPipelineDiv': $('#qcPipelineDiv'),
+            'submitForApprovalDiv': $('#submitForApprovalDiv'),
+            'pendingApprovalDiv': $('#pendingApprovalDiv'),
+            'releasePipelineDiv': $('#releasePipelineDiv')
+        }
+        init_tables();
+        bind_events();
+        get_token();
+    });
+
+    // Bind event listeners
+    function bind_events() {
+        $.each([metadataTable, qcTable, approvalTable], function (i, t) {
+            t.on('click', 'tr', function () {
+                if (t.row(this).data() !== undefined) {
+                    gwasidFocused = t.row(this).data()['gwasinfo']['id'];
+                    show_gwasinfo_modal(gwasinfoTabsByTableId[$(this).closest('table').attr('id')]);
+                }
+            });
+        });
+    }
+
+    function button_loading(id, loading=true) {
+        let btn = $('#' + id);
+        if (loading){
+            btn.append(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`);
+            btn.prop('disabled', 'disabled');
+        } else {
+            btn.children('span').remove();
+            btn.prop('disabled', false);
+        }
+    }
+
+    function init_tables() {
+        metadataTable = $("#metadataTable").DataTable({
+            autoWidth: false,
+            paging: false,
+            searching: false,
+            info: false,
+            language: {
+                emptyTable: "No record"
+            },
+            columns: [
+                {data: "gwasinfo.id"},
+                {data: "gwasinfo.trait"},
+                {
+                    render: (data, type, row, meta) => {
+                        return (new Date(row['added_by']['epoch'] * 1000)).toLocaleString();
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return "";
+                    }
+                }
+            ]
+        });
+        qcTable = $("#qcTable").DataTable({
+            autoWidth: false,
+            paging: false,
+            searching: false,
+            info: false,
+            language: {
+                emptyTable: "No record"
+            },
+            columns: [
+                {data: "gwasinfo.id"},
+                {data: "gwasinfo.trait"},
+                {
+                    render: (data, type, row, meta) => {
+                        return definition['added_by_state'][row['added_by']['state']];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return "";
+                    }
+                }
+            ]
+        });
+        approvalTable = $("#approvalTable").DataTable({
+            autoWidth: false,
+            paging: false,
+            searching: false,
+            info: false,
+            language: {
+                emptyTable: "No record"
+            },
+            columns: [
+                {data: "gwasinfo.id"},
+                {data: "gwasinfo.trait"},
+                {
+                    render: (data, type, row, meta) => {
+                        return definition['added_by_state'][row['added_by']['state']];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return "";
+                    }
+                }
+            ]
+        });
+        releasedTable = $("#releasedTable").DataTable({
+            autoWidth: false,
+            layout: {
+                topEnd: 'paging'
+            },
+            searching: false,
+            info: false,
+            language: {
+                emptyTable: "No record"
+            },
+            columns: [
+                {data: "gwasinfo.id"},
+                {data: "gwasinfo.group_name"},
+                {data: "gwasinfo.trait"},
+                {
+                    render: (data, type, row, meta) => {
+                        return (new Date(row['added_by']['epoch'] * 1000)).toLocaleString();
+                    }
+                }
+            ]
+        });
+        qcPipelineTr = $('#qcPipelineTr');
+        qcPipelineTable = $("#qcPipelineTable").DataTable({
+            autoWidth: false,
+            searching: false,
+            paging: false,
+            info: false,
+            ordering: false,
+            language: {
+                emptyTable: "No record"
+            },
+            columns: [
+                {
+                    render: (data, type, row, meta) => {
+                        return meta.row + 1;
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return definition['airflow_task_description'][row['task_id']];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return row['state'];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return row['end_date'] ? row['end_date'] : row['start_date'];
+                    }
+                }
+            ]
+        });
+        releasePipelineTr = $('#releasePipelineTr');
+        releasePipelineTable = $("#releasePipelineTable").DataTable({
+            autoWidth: false,
+            searching: false,
+            paging: false,
+            info: false,
+            ordering: false,
+            language: {
+                emptyTable: "No record"
+            },
+            columns: [
+                {
+                    render: (data, type, row, meta) => {
+                        return meta.row + 1;
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return definition['airflow_task_description'][row['task_id']];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return row['state'];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return row['end_date'] ? row['end_date'] : row['start_date'];
+                    }
+                }
+            ]
+        });
+    }
+
+    // Get token
+    function get_token() {
+        $.ajax({
+            url: "/contribution/token?random=" + Math.random(),
+        }).fail(function () {
+            alert("You need to have a valid token to access this page. If you haven't, generate one on the user profile page, then go back here and refresh.");
+        }).done(function (response) {
+            jwt = response.token;
+            load_gwasinfo_and_dagrun();
+            get_swagger();
+        });
+    }
+
+    // Load gwasinfo added by the user
+    function load_gwasinfo_and_dagrun(reset_gwasid=false) {
+        console.log('load_gwasinfo_and_dagrun');
+        if (reset_gwasid) {
+            gwasidFocused = undefined;
+            console.log('unset gwasid');
+        }
+
+        return $.ajax({
+            url: "/api/edit/list",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            }
+        }).done(function (response) {
+            console.log('load_gwasinfo_and_dagrun save');
+            definition = Object.assign(definition, response.definition);
+            gwasinfo = response.gwasinfo;
+            dagrun = response.dagrun;
+            populate_add_metadata_span(response.count, response.quota);
+        }).done(function () {
+            console.log('load_gwasinfo_and_dagrun populate');
+            populate_tables(gwasinfo);
+        });
+    }
+
+    function populate_add_metadata_span(count, quota) {
+        if (count < quota) {
+            addMetadataToggle.html(`Add new metadata (${count}/${quota})`);
+            addMetadataToggle.prop('disabled', false);
+        } else {
+            addMetadataToggle.html(`<s>Add new metadata</s> (you have reached your limit: ${count}/${quota})`);
+            addMetadataToggle.prop('disabled', true);
+        }
+    }
+
+    // Populate tables
+    function populate_tables(gwasinfo) {
+        metadataTable.clear();
+        qcTable.clear();
+        approvalTable.clear();
+        releasedTable.clear();
+
+        $.each(gwasinfo, function (id, gi_and_added_by) {
+            if (gi_and_added_by['added_by'].hasOwnProperty('state')) {
+                switch (gi_and_added_by['added_by']['state']) {
+                    case 0:
+                        metadataTable.row.add(gi_and_added_by);
+                        break;
+                    case 1:
+                    case 2:
+                        qcTable.row.add(gi_and_added_by);
+                        break;
+                    case 3:
+                    case 4:
+                        approvalTable.row.add(gi_and_added_by);
+                }
+            } else {
+                releasedTable.row.add(gi_and_added_by);
+            }
+        });
+
+        metadataTable.draw();
+        qcTable.draw();
+        approvalTable.draw();
+        releasedTable.draw();
+    }
+
+
+    function get_swagger() {
+        $.ajax({
+            url: "/api/swagger.json",
+        }).fail(function () {
+            alert("Unable to load the schema of dataset metadata");
+        }).done(function (response) {
+            console.log('get_swagger save');
+            swagger = {};
+            $.each(response['paths']['/edit/add']['post']['parameters'], function (i, field) {
+                swagger[field['name']] = field
+            });
+        }).done(function () {
+            console.log('get_swagger populate');
+            populate_metadata_modal();
+        });
+    }
+
+    function populate_metadata_modal() {
+        $.each({
+            'category': 'categorySelect',
+            'subcategory': 'subcategorySelect',
+            'population': 'populationSelect',
+            'sex': 'sexSelect',
+            'study_design': 'studydesignSelect',
+            'coverage': 'coverageSelect',
+            'imputation_panel': 'imputationSelect'
+        }, function (field_name, element_id) {
+            let e1 = $('#' + element_id)[0];
+            let e2 = $('#gi_' + element_id)[0]
+            $.each(swagger[field_name]['enum'], function (i, choice) {
+                e1.add(new Option(choice));
+                e2.add(new Option(choice));
+            });
+        });
+        $.each(swagger, function (field_name, field) {
+            $('[name=' + field_name + ']').attr('data-bs-toggle', 'tooltip').attr('data-bs-title', field['description']);
+            $('[name=gi_' + field_name + ']').attr('data-bs-toggle', 'tooltip').attr('data-bs-title', field['description']);
+        });
+        $(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip()
+        })
+    }
+
+    // Show metadata and pipeline info of a dataset
+    function show_gwasinfo_modal(tab=null) {
+        console.log('show_gwasinfo_modal')
+        if (tab != null) {
+            tab.show();
+        }
+        populate_gwasinfo();
+        load_pipeline_state();
+    }
+
+    // Populate gwasinfo
+    function populate_gwasinfo() {
+        console.log('populate_gwasinfo', gwasidFocused);
+        $.each(swagger, function (field_name, field) {
+            $('[name=gi_' + field_name + ']').prop('disabled', null);
+        });
+        gwasinfoDivs.editMetadataDiv.addClass('d-none');
+        $.each(gwasinfoDivs, function (i, e) {
+            e.css('display', 'none');
+        });
+        gwasinfoModal.show();
+
+        // Populate metadata form
+        $.each(gwasinfo[gwasidFocused]['gwasinfo'], function (key, value) {
+            if (key !== 'id') {
+                $('[name=gi_' + key + ']')[0].value = value;
+            } else {
+                $('#gi_idH')[0].innerHTML = value;
+            }
+        });
+
+
+        // Change behaviour of metadata form and show or hide instructions
+        if (gwasinfo[gwasidFocused]['added_by'].hasOwnProperty('state')) {
+            let state = gwasinfo[gwasidFocused]['added_by']['state'];
+
+            if (state === 0) {
+                // Allow edit
+                gwasinfoDivs.editMetadataDiv.removeClass('d-none');
+                $('[name=gi_build]').prop('readonly', true);
+                $('[name=gi_group_name]').prop('readonly', true);
+            } else {
+                // Disallow edit
+                $.each(swagger, function (field_name, field) {
+                    $('[name=gi_' + field_name + ']').prop('disabled', true);
+                });
+            }
+
+            // Show divs that should be visible
+            $.each(visibleDivsByState[state], function (i, key) {
+                gwasinfoDivs[key].css('display', 'block');
+            });
+        }
+        console.log('populate_gwasinfo end');
+    }
+
+    function clear_pipeline_state() {
+        qcPipelineTr.empty();
+        qcPipelineTable.clear().draw();
+        releasePipelineTr.empty();
+        releasePipelineTable.clear().draw();
+    }
+
+    // Load DAG runs and task instances of a dataset
+    function load_pipeline_state() {
+        clear_pipeline_state();
+
+        $.ajax({
+            url: "/api/edit/status/" + gwasidFocused,
+            headers: {
+                "Authorization": "Bearer " + jwt
+            }
+        }).fail(function () {
+            alert("Unable to load pipeline state");
+        }).done(function (response) {
+            console.log('load_pipeline_state save');
+            definition = Object.assign(definition, response.definition);
+        }).done(function (response) {
+            console.log('load_pipeline_state populate');
+            populate_pipeline_state(response['dags']);
+        });
+    }
+
+    function populate_pipeline_state(dags) {
+        console.log('populate_pipeline_state start');
+        clear_pipeline_state();
+
+        if (dags['qc']['dag_run'].hasOwnProperty('state')) {
+            qcPipelineTr.append(`<td>${dags['qc']['dag_run']['start_date']}</td><td>${dags['qc']['dag_run']['state']}</td><td>${dags['qc']['dag_run']['end_date']}</td>`);
+        } else {
+            qcPipelineTr.append(`<td colspan="3" align="center">No record</td>`);
+        }
+        $.each(dags['qc']['task_instances'], function (id, task) {
+            qcPipelineTable.row.add(task);
+        });
+        qcPipelineTable.draw();
+
+        if (dags['release']['dag_run'].hasOwnProperty('state')) {
+            releasePipelineTr.append(`<td>${dags['release']['dag_run']['start_date']}</td><td>${dags['release']['dag_run']['state']}</td><td>${dags['release']['dag_run']['end_date']}</td>`);
+        } else {
+            releasePipelineTr.append(`<td colspan="3" align="center">No record</td>`);
+        }
+        $.each(dags['release']['task_instances'], function (id, task) {
+            releasePipelineTable.row.add(task);
+        });
+        releasePipelineTable.draw();
+
+        console.log('populate_pipeline_state end');
+    }
+
+    function submit_metadata() {
+        button_loading('addMetadataBtn', true);
+
+        let metadata = {}
+        $.each($('#metadataForm').serializeArray(), function (i, field) {
+            if (field['value'] !== '') {
+                metadata[field['name']] = field['value'];
+            }
+        });
+
+        $.ajax({
+            url: "/api/edit/add",
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            },
+            data: metadata,
+        }).fail(function (xhr) {
+            if (xhr.responseJSON.hasOwnProperty('errors')) {
+                alert(`Failed to submit metadata. Values of the following fields are denied [${Object.keys(xhr.responseJSON.errors).join(', ')}]. Please read the tooltips carefully.`);
+            } else {
+                alert(xhr.responseJSON.message);
+            }
+        }).done(function (response) {
+            console.log('submit_metadata save');
+            clear_and_hide_add_metadata_modal();
+            gwasidFocused = response['id'];
+            // https://stackoverflow.com/questions/42167396/nesting-asynchronous-jquery-promises
+            return load_gwasinfo_and_dagrun().then(function () {
+                console.log('submit_metadata show');
+                show_gwasinfo_modal(gwasinfoTabs.giTab);
+            });
+        }).always(function () {
+            button_loading('addMetadataBtn', false);
+        });
+    }
+
+    function clear_and_hide_add_metadata_modal() {
+        addMetadataModal.hide();
+        $('#metadataForm')[0].reset()
+    }
+
+    function edit_metadata() {
+        button_loading('editMetadataBtn', true);
+        let metadata = {
+            'id': gwasidFocused
+        }
+        $.each($('#gwasinfoForm').serializeArray(), function (i, field) {
+            if (field['value'] !== '') {
+                metadata[field['name'].substring(3)] = field['value'];
+            }
+        });
+        $.ajax({
+            url: "/api/edit/edit",
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            },
+            data: metadata,
+        }).fail(function (xhr) {
+            if (xhr.responseJSON.hasOwnProperty('errors')) {
+                alert(`Failed to submit metadata. Values of the following fields are denied [${Object.keys(xhr.responseJSON.errors).join(', ')}]. Please read the tooltips carefully.`);
+            } else {
+                alert(xhr.responseJSON.message);
+            }
+        }).done(function () {
+            console.log('edit_metadata save');
+            alert(`Saved metadata of ${gwasidFocused}`);
+            return load_gwasinfo_and_dagrun().then(function () {
+                console.log('edit_metadata show');
+                show_gwasinfo_modal(gwasinfoTabs.giTab);
+            });
+        }).always(function () {
+            button_loading('editMetadataBtn', false);
+        });
+    }
+
+    // Delete dataset
+    function delete_gwasinfo(delete_matadata=0) {
+        if (confirm("Are you sure you want to delete data related to " + gwasidFocused + "?")) {
+            $.ajax({
+                url: "/api/edit/delete/" + gwasidFocused,
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + jwt
+                },
+                data: {
+                    'delete_metadata': delete_matadata
+                }
+            }).fail(function (xhr) {
+                alert(xhr.responseJSON['message']);
+            }).done(function () {
+                console.log('delete_metadata save');
+                alert("Deleted");
+                return load_gwasinfo_and_dagrun(!!delete_matadata).then(function () {
+                    console.log('delete_metadata hide modal if necessary');
+                    if (delete_matadata) {
+                        gwasinfoModal.hide();
+                    } else {
+                        show_gwasinfo_modal(gwasinfoTabs.giTab);
+                    }
+                });
+            });
+        }
+    }
+
+    // Download QC report
+    function download_report() {
+        button_loading('downloadBtn', true);
+
+        $.ajax({
+            url: "/api/quality_control/report/" + gwasidFocused,
+            headers: {
+                "Authorization": "Bearer " + jwt
+            }
+        }).fail(function (xhr) {
+            alert(xhr.responseJSON['message']);
+        }).done(function (response) {
+            let report = document.createElement('a');
+            document.body.appendChild(report);
+            report.setAttribute('type', 'hidden');
+            report.href = "data:text/plain;base64," + response['content']
+            report.download = response['filename'];
+            report.click();
+            document.body.removeChild(report);
+        }).always(function () {
+            button_loading('downloadBtn', false);
+        });
+    }
+
+    // Submit for approval
+    function submit_for_approval() {
+        button_loading('submitForApprovalBtn', true);
+
+        $.ajax({
+            url: "/api/quality_control/submit/" + gwasidFocused,
+            headers: {
+                "Authorization": "Bearer " + jwt
+            }
+        }).fail(function (xhr) {
+            alert(xhr.responseJSON['message']);
+        }).done(function (response) {
+            alert(`Dataset ${gwasidFocused} has been submitted for approval`);
+            return load_gwasinfo_and_dagrun().then(function () {
+                console.log('submit_for_approval show');
+                show_gwasinfo_modal(gwasinfoTabs.approvalTab);
+            });
+        }).always(function () {
+            button_loading('submitForApprovalBtn', false);
+        });
+    }
+
+    function reload_gwasinfo_and_pipeline_state(pipeline) {
+        return load_gwasinfo_and_dagrun().then(function () {
+            console.log('submit_metadata show');
+            show_gwasinfo_modal(gwasinfoTabs[pipeline === 'qc' ? 'qcTab' : 'approvalTab']);
+        });
+    }
+</script>
+{% endblock %}

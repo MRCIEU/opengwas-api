@@ -15,6 +15,7 @@ from middleware.limiter import limiter
 from apis import api_bp
 from apis.status import check_ld_ref, check_1000g_vcf
 from profile import profile_bp, login_manager
+from contribution import contribution_bp
 from admin import admin_bp
 
 
@@ -106,6 +107,7 @@ if os.environ.get('ENV') == 'production':
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
         app.register_blueprint(profile_bp, url_prefix='/profile')
+        app.register_blueprint(contribution_bp, url_prefix='/contribution')
         app.register_blueprint(admin_bp, url_prefix='/admin')
         login_manager.init_app(app)
 else:
@@ -114,6 +116,7 @@ else:
     app.register_blueprint(api_bp, url_prefix='/api')
     app.add_url_rule('/', '/', view_func=show_index)
     app.register_blueprint(profile_bp, url_prefix='/profile')
+    app.register_blueprint(contribution_bp, url_prefix='/contribution')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     login_manager.init_app(app)
 
