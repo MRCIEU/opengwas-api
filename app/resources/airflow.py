@@ -4,6 +4,8 @@ import airflow_client.client
 
 from airflow_client.client.api import dag_run_api, task_instance_api
 from airflow_client.client.model.dag_run import DAGRun
+from airflow_client.client.model.update_task_instance import UpdateTaskInstance
+from airflow_client.client.model.update_task_state import UpdateTaskState
 from werkzeug.exceptions import InternalServerError, Conflict
 
 from .globals import Globals
@@ -49,7 +51,7 @@ class Airflow:
         except airflow_client.client.ApiException as e:
             if e.status == 409:
                 raise Conflict("A pipeline for {} already exists".format(dag_run_id))
-            raise InternalServerError("An error occurred when creating the pipeline %s" % e)
+            raise InternalServerError("An error occurred when creating the pipeline: %s" % e)
 
         return {
             'dag_run_id': response['dag_run_id']
@@ -63,7 +65,7 @@ class Airflow:
         except airflow_client.client.ApiException as e:
             if e.status == 404 and allow_not_found:
                 return {}
-            raise InternalServerError("An error occurred retrieving the pipeline details %s" % e)
+            raise InternalServerError("An error occurred retrieving the pipeline details: %s" % e)
 
         return {
             'dag_id': response['dag_id'],
@@ -79,7 +81,7 @@ class Airflow:
             dag_run_api.DAGRunApi(self.api_client).delete_dag_run(dag_id, dag_run_id)
         except airflow_client.client.ApiException as e:
             if e.status != 404:
-                raise InternalServerError("An error occurred retrieving the pipeline details %s" % e)
+                raise InternalServerError("An error occurred when retrieving the pipeline details: %s" % e)
 
         validate = self.get_dag_run(dag_id, dag_run_id, allow_not_found=True)
         if validate == {}:
@@ -90,7 +92,7 @@ class Airflow:
         try:
             response = task_instance_api.TaskInstanceApi(self.api_client).get_task_instances(dag_id, dag_run_id)
         except airflow_client.client.ApiException as e:
-            raise InternalServerError("An error occurred retrieving the pipeline details %s" % e)
+            raise InternalServerError("An error occurred when retrieving the pipeline details: %s" % e)
 
         return {
             'dag_id': dag_id,
@@ -104,3 +106,27 @@ class Airflow:
                 'end_date': self._convert_iso_date(t['end_date']) if t['end_date'] else ''
             } for t in response['task_instances']], key=lambda t: t.__getitem__('priority'), reverse=True)}
         }
+
+    def patch_task_instances(self, dag_id: str, dag_run_id: str, task_id: str, new_state: str):
+        try:
+            response = task_instance_api.TaskInstanceApi(self.api_client).patch_task_instance(dag_id, dag_run_id, task_id, UpdateTaskInstance(
+                dry_run=False,
+                new_state=UpdateTaskState(new_state))
+            )
+        except airflow_client.client.ApiException as e:
+            raise InternalServerError("An error occurred when updating task instance state: %s" % e)
+
+        return {
+            'dag_id': response['dag_id'],
+            'dag_run_id': response['dag_run_id'],
+            'task_id': response['task_id'],
+            'execution_date': self._convert_iso_date(response['execution_date']),
+        }
+
+    def fail_dag_run(self, dag_id: str, dag_run_id: str):
+        tasks = self.get_task_instances(dag_id, dag_run_id)['tasks']
+        for _, t in tasks.items():
+            # Look for the first substantial task that is still running
+            if t['state'] not in ['success', 'upstream_failed', 'failed'] and t['task_id'] not in ['delete_instance', 'check_states']:
+                return self.patch_task_instances(dag_id, dag_run_id, t['task_id'], 'failed')
+        raise InternalServerError("It's too late to fail a DAG run. All substantial tasks have either succeeded or failed.")
