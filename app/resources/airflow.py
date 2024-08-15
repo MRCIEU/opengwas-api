@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 
 import airflow_client.client
@@ -117,16 +118,36 @@ class Airflow:
             raise InternalServerError("An error occurred when updating task instance state: %s" % e)
 
         return {
-            'dag_id': response['dag_id'],
-            'dag_run_id': response['dag_run_id'],
-            'task_id': response['task_id'],
-            'execution_date': self._convert_iso_date(response['execution_date']),
+            'dag_id': dag_id,
+            'dag_run_id': dag_run_id,
+            'task_id': task_id
         }
 
     def fail_dag_run(self, dag_id: str, dag_run_id: str):
         tasks = self.get_task_instances(dag_id, dag_run_id)['tasks']
+        if len(tasks) == 0:
+            raise InternalServerError("No task instance found.")
         for _, t in tasks.items():
             # Look for the first substantial task that is still running
             if t['state'] not in ['success', 'upstream_failed', 'failed'] and t['task_id'] not in ['delete_instance', 'check_states']:
                 return self.patch_task_instances(dag_id, dag_run_id, t['task_id'], 'failed')
         raise InternalServerError("It's too late to fail a DAG run. All substantial tasks have either succeeded or failed.")
+
+    # Fail the first substantial remaining task of the given DAG run so that the compute instance can be terminated properly
+    def fail_then_delete_dag_run(self, dag_id: str, dag_run_id: str, interval=10, n_retries=9):
+        try:
+            self.fail_dag_run(dag_id, dag_run_id)
+        except InternalServerError as e:
+            return {
+                'dag_run_id': dag_run_id,
+                'message': str(e)
+            }
+
+        for i in range(n_retries):
+            if self.get_dag_run(dag_id, dag_run_id)['state'] in ['failed', 'success']:
+                self.delete_dag_run(dag_id, dag_run_id)
+                return {
+                    'dag_run_id': dag_run_id
+                }
+            time.sleep(interval)
+        raise InternalServerError("Timed out when waiting for tasks to fail.")

@@ -240,7 +240,7 @@ class TaskStatus(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(id='edit_get_state')
+    @api.doc(id='edit_get_status')
     @jwt_required
     @check_role('contributor')
     def get(self, gwas_id):
@@ -295,10 +295,11 @@ class PullStatus(Resource):
 
 
 @api.route('/delete/<gwas_id>')
-@api.doc(description="Delete everything related to the GWAS ID including metadata, uploaded files, any pipeline proudct etc.")
+@api.doc(description="For the given GWAS ID, delete metadata, uploaded files, QC proudct etc. BUT NOT `release` DAG and records in ES")
 class Delete(Resource):
     parser = api.parser()
-    parser.add_argument('delete_metadata', type=int, required=True, help='Whether to delete metadata (1) or only to delete files and pipeline products (0)')
+    parser.add_argument('fail_remaining_tasks', type=int, required=False, help='Whether to set the remaining tasks in DAG run as `failed` (which may take up to 90 secs) so that the instance can be terminated properly (1) or not (0)')
+    parser.add_argument('delete_metadata', type=int, required=False, help='Whether to delete metadata (1) or only to delete files and pipeline products (0)')
 
     @api.doc(id='edit_delete_gwas')
     @jwt_required
@@ -311,7 +312,7 @@ class Delete(Resource):
         except PermissionError as e:
             return {"message": str(e)}, 403
 
-        if state is None or state not in [0, 2]:
+        if args.get('fail_remaining_tasks', 0) == 0 and (state is None or state not in [0, 2]):
             return {"message": "Dataset cannot be deleted when the QC pipeline is still running or after it has been submitted for approval"}, 400
 
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
@@ -320,13 +321,14 @@ class Delete(Resource):
 
         oci = OCI()
         oci.object_storage_delete_by_prefix('upload', gwas_id + '/')
-        oci.object_storage_delete_by_prefix('data', gwas_id + '/')
 
         airflow = Airflow()
-        airflow.delete_dag_run('qc', gwas_id)
-        airflow.delete_dag_run('release', gwas_id)
+        if args.get('fail_remaining_tasks', 0) == 1:
+            airflow.fail_then_delete_dag_run('qc', gwas_id)
+        else:
+            airflow.delete_dag_run('qc', gwas_id)
 
-        if args['delete_metadata'] == 1:
+        if args.get('delete_metadata', 0) == 1:
             delete_gwas(gwas_id)
             return {"message": "Deleted everything about " + gwas_id}, 200
         else:
@@ -334,8 +336,6 @@ class Delete(Resource):
             return {"message": "Deleted uploaded file and QC products of " + gwas_id}, 200
 
         # TODO: Add workflow to delete from ieu-db-interface
-
-
 
 
 @api.route('/upload')
