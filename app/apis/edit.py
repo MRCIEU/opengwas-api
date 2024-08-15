@@ -268,32 +268,6 @@ class TaskStatus(Resource):
         }
 
 
-@api.route('/refresh_state')
-@api.doc(description="Pull update ADDED_BY state for all datasets")
-class PullStatus(Resource):
-    parser = api.parser()
-
-    @api.expect(parser)
-    @api.doc(id='edit_get_state_all')
-    @key_required
-    def get(self):
-        gwas_id_and_state = get_added_by_state_of_all_gwas()
-
-        airflow = Airflow()
-
-        for gwas_id, state in gwas_id_and_state.items():
-            if state == 1 and airflow.get_dag_run('qc', gwas_id, True)['state'] != '':
-                set_added_by_state_of_any_gwas(gwas_id, 2)
-                gwas_id_and_state[gwas_id] = 2
-            elif state == 4 and airflow.get_dag_run('release', gwas_id, True)['state'] != '':
-                set_added_by_state_of_any_gwas(gwas_id, None)
-                del gwas_id_and_state[gwas_id]
-
-        return {
-            'gwas_id_and_state': gwas_id_and_state
-        }
-
-
 @api.route('/delete/<gwas_id>')
 @api.doc(description="For the given GWAS ID, delete metadata, uploaded files, QC proudct etc. BUT NOT `release` DAG and records in ES")
 class Delete(Resource):

@@ -6,6 +6,7 @@ import json
 
 from middleware.auth import key_required
 from queries.cql_queries import *
+from resources.airflow import Airflow
 from resources.globals import Globals
 from resources.oci import OCI
 
@@ -44,4 +45,30 @@ class Info(Resource):
         return {
             'n_gwasinfo': n,
             'batches': batches
+        }
+
+
+@api.route('/refresh_added_by_status')
+@api.doc(description="Pull update ADDED_BY state for all datasets")
+class Info(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
+    @api.doc(id='maintenance_refresh_added_by_status_get')
+    @key_required
+    def get(self):
+        gwas_id_and_state = get_added_by_state_of_all_draft_gwas()
+
+        airflow = Airflow()
+
+        for gwas_id, state in gwas_id_and_state.items():
+            if state == 1 and airflow.get_dag_run('qc', gwas_id, True)['state'] != '':
+                set_added_by_state_of_any_gwas(gwas_id, 2)
+                gwas_id_and_state[gwas_id] = 2
+            elif state == 4 and airflow.get_dag_run('release', gwas_id, True)['state'] != '':
+                set_added_by_state_of_any_gwas(gwas_id, None)
+                del gwas_id_and_state[gwas_id]
+
+        return {
+            'gwas_id_and_state': gwas_id_and_state
         }

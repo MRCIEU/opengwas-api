@@ -121,7 +121,7 @@ def get_gwas_added_by_user(uid):
     return res
 
 
-def get_added_by_state_of_all_gwas():
+def get_added_by_state_of_all_draft_gwas():
     tx = Neo4j.get_db()
     results = tx.run(
         "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User) WHERE r.state IS NOT NULL RETURN gi.id, PROPERTIES(r).state as state;"
