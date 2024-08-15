@@ -113,27 +113,27 @@
                     <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="sexSelect" name="sex" required><option selected disabled>(Please select)</option></select></div>
                 </div>
                 <div class="row mb-2">
-                    <label for="ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty *</label>
-                    <div class="col-sm-3"><input type="text" class="form-control form-control-sm" id="ontologyInput" name="ontology" required></div>
-                    <label for="unitInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Unit *</label>
-                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="unitInput" name="unit" required></div>
-                    <label for="samplesizeInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Sample size *</label>
-                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="samplesizeInput" name="sample_size" required></div>
-                </div>
-                <div class="row mb-2">
                     <label for="authorInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Author *</label>
-                    <div class="col-sm-7"><input type="text" class="form-control form-control-sm" id="authorInput" name="author" required></div>
-                    <label for="YearInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Year *</label>
-                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="YearInput" name="year" required></div>
+                    <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="authorInput" name="author" required></div>
                     <input type="hidden" name="nsnp" value="0">
                 </div>
                 <hr>
                 <p>Optional fields (leave/select blank if not applicable)</p>
                 <div class="row mb-2">
+                    <label for="yearInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Year</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="yearInput" name="year"></div>
+                    <label for="ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="ontologyInput" name="ontology"></div>
+                    <label for="unitInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Unit</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="unitInput" name="unit"></div>
+                </div>
+                <div class="row mb-2">
+                    <label for="samplesizeInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Sample size</label>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="samplesizeInput" name="sample_size"></div>
                     <label for="ncaseInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N case</label>
-                    <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="ncaseInput" name="ncase"></div>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="ncaseInput" name="ncase"></div>
                     <label for="ncontrolInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N control</label>
-                    <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="ncontrolInput" name="ncontrol"></div>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="ncontrolInput" name="ncontrol"></div>
                 </div>
                 <div class="row mb-2">
                     <label for="studydesignSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Study design</label>
@@ -230,25 +230,25 @@
                                 <div class="col-sm-4"><select type="text" class="form-control form-control-sm form-select form-select-sm" id="gi_sexSelect" name="gi_sex"><option selected></option></select></div>
                             </div>
                             <div class="row mb-1">
-                                <label for="gi_ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty *</label>
-                                <div class="col-sm-3"><input type="text" class="form-control form-control-sm" id="gi_ontologyInput" name="gi_ontology"></div>
-                                <label for="gi_unitInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Unit *</label>
-                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_unitInput" name="gi_unit"></div>
-                                <label for="gi_samplesizeInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Sample size *</label>
-                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_samplesizeInput" name="gi_sample_size"></div>
-                            </div>
-                            <div class="row mb-1">
                                 <label for="gi_authorInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Author *</label>
-                                <div class="col-sm-7"><input type="text" class="form-control form-control-sm" id="gi_authorInput" name="gi_author"></div>
-                                <label for="gi_YearInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Year *</label>
-                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_YearInput" name="gi_year"></div>
+                                <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="gi_authorInput" name="gi_author"></div>
                                 <input type="hidden" name="gi_nsnp" value="0">
                             </div>
                             <div class="row mb-1">
+                                <label for="gi_yearInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Year</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_yearInput" name="gi_year"></div>
+                                <label for="gi_ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_ontologyInput" name="gi_ontology"></div>
+                                <label for="gi_unitInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Unit</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_unitInput" name="gi_unit"></div>
+                            </div>
+                            <div class="row mb-1">
+                                <label for="gi_samplesizeInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Sample size</label>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_samplesizeInput" name="gi_sample_size"></div>
                                 <label for="gi_ncaseInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N case</label>
-                                <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="gi_ncaseInput" name="gi_ncase"></div>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_ncaseInput" name="gi_ncase"></div>
                                 <label for="gi_ncontrolInput" class="col-sm-2 col-form-label col-form-label-sm text-end">N control</label>
-                                <div class="col-sm-4"><input type="text" class="form-control form-control-sm" id="gi_ncontrolInput" name="gi_ncontrol"></div>
+                                <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_ncontrolInput" name="gi_ncontrol"></div>
                             </div>
                             <div class="row mb-1">
                                 <label for="gi_studydesignSelect" class="col-sm-2 col-form-label col-form-label-sm text-end">Study design</label>

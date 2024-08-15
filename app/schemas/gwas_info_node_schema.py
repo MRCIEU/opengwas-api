@@ -171,14 +171,14 @@ class GwasInfoNodeSchema(FRPMSchema):
     subcategory = fields.Str(required=True, validate=validate.OneOf(valid_subcategories), metadata={"description": "Select the option that best describes your phenotype", "choices": sorted(valid_subcategories)})
     population = fields.Str(required=True, validate=validate.OneOf(valid_populations), metadata={"description": "Describe the geographic origins of your population", "choices": sorted(valid_populations)})
     sex = fields.Str(required=True, validate=validate.OneOf(valid_sex), metadata={"description": "Indicate whether males or females are included in the study", "choices": sorted(valid_sex)})
-    ontology = fields.Str(required=True, metadata={"description": "Ontology mapping, semi-colon separated (e.g. MONDO:0003274;EFO:0000311)"})
-    unit = fields.Str(required=True, metadata={"description": "How do you interpret a 1-unit change in the phenotype? (e.g. log odds ratio, mmol/L, SD)"})
-    sample_size = fields.Int(required=True, metadata={"description": "Provide the sample size of your study"})
     author = fields.Str(required=True, metadata={"description": "Provide the last name and initials of the first author of your study (e.g. Mendel GJ)"})
-    year = fields.Int(required=True, validate=validate.Range(2000, datetime.datetime.now().year + 1), metadata={"description": "In which year was this GWAS published?"})
 
     nsnp = fields.Int(allow_none=True, metadata={"description": "How many SNPs are in your results file that you are uploading?"})
 
+    sample_size = fields.Int(allow_none=True, metadata={"description": "Provide the sample size of your study"})
+    year = fields.Int(allow_none=True, validate=validate.Range(2000, datetime.datetime.now().year + 1), metadata={"description": "In which year was this GWAS published?"})
+    ontology = fields.Str(allow_none=True, metadata={"description": "Ontology mapping, semi-colon separated (e.g. MONDO:0003274;EFO:0000311)"})
+    unit = fields.Str(allow_none=True, metadata={"description": "How do you interpret a 1-unit change in the phenotype? (e.g. log odds ratio, mmol/L, SD)"})
     ncase = fields.Int(allow_none=True, metadata={"description": "Provide number of cases in the dataset (if applicable)"})
     ncontrol = fields.Int(allow_none=True, metadata={"description": "Provide number of controls in the dataset (if applicable)"})
     study_design = fields.Str(allow_none=True, validate=validate.OneOf(valid_study_designs), metadata={"description": "Which best describes the design of the study?", "choices": sorted(valid_study_designs)})
