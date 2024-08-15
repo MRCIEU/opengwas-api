@@ -12,7 +12,7 @@ certifi==2024.7.4
 cffi==1.17.0
 chardet==5.2.0
 charset-normalizer==3.3.2
-circuitbreaker==1.4.0
+circuitbreaker==2.0.0
 click==8.1.7
 cryptography==42.0.8
 Cython==3.0.11
@@ -34,7 +34,7 @@ gunicorn==23.0.0
 identity==0.9.0
 idna==3.7
 importlib_metadata==8.2.0
-importlib_resources==6.4.0
+importlib_resources==6.4.2
 iniconfig==2.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.4
@@ -81,4 +81,4 @@ Werkzeug==3.0.3
 wrapt==1.16.0
 zipp==3.20.0
 zope.event==5.0
-zope.interface==6.4.post2
+zope.interface==7.0.1
