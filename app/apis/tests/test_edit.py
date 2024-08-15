@@ -4,8 +4,7 @@ import requests
 import os
 
 
-def test_gwasinfo_add_delete(url, headers):
-    payload = {
+metadata_template = {
         'pmid': 1234,
         'year': 2010,
         'mr': 1,
@@ -28,6 +27,15 @@ def test_gwasinfo_add_delete(url, headers):
         'author': 'Randall JC',
         'consortium': 'GIANT'
     }
+
+
+def test_edit_permission(url):
+    r = requests.post(url + "/edit/add", data=metadata_template)
+    assert r.status_code == 401
+
+
+def test_edit_add_delete(url, headers):
+    payload = metadata_template.copy()
 
     # add record
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
@@ -75,30 +83,8 @@ def test_gwasinfo_add_delete(url, headers):
     assert r.status_code == 200 and len(r.json()) == 1
 
 
-def test_gwasinfo_upload_gzip(url, headers):
-    payload = {
-        'pmid': 1234,
-        'year': 2010,
-        'mr': 1,
-        'note': 'test',
-        'build': 'HG19/GRCh37',
-        'trait': 'TEST - DO NOT USE (Hip circumference)',
-        'category': 'Risk factor',
-        'subcategory': 'Anthropometric',
-        'ontology': 'EFO:000000',
-        'population': 'European',
-        'sex': 'Males',
-        'ncase': None,
-        'ncontrol': None,
-        'sample_size': 60586,
-        'nsnp': 2725796,
-        'unit': 'SD (cm)',
-        'group_name': "public",
-        'sd': 8.4548,
-        'priority': 15,
-        'author': 'Randall JC',
-        'consortium': 'GIANT'
-    }
+def test_edit_upload_gzip(url, headers):
+    payload = metadata_template.copy()
 
     # make new metadata
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
