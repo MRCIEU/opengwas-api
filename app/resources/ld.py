@@ -19,13 +19,14 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb, pop="EUR"):
             for i in range(len(rsid)):
                 tfile.write(str(rsid[i]) + " " + str(pval[i]) + "\n")
 
-        command = "{0} " \
-                  " --bfile {1} " \
-                  " --clump {2} " \
-                  " --clump-p1 {3} " \
-                  " --clump-p2 {4} " \
-                  " --clump-r2 {5} " \
-                  " --clump-kb {6} " \
+        command = "{0}" \
+                  " --silent" \
+                  " --bfile {1}" \
+                  " --clump {2}" \
+                  " --clump-p1 {3}" \
+                  " --clump-p2 {4}" \
+                  " --clump-r2 {5}" \
+                  " --clump-kb {6}" \
                   " --out {7}".format(Globals.PLINK, Globals.LD_REF[pop], filename, p1, p2, r2, kb, filename)
 
         logger.debug(command)
@@ -73,10 +74,11 @@ def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
         # Find which SNPs are present
         logger.debug("Finding which snps are available")
         # cmd = "fgrep -wf " + filename + " ./ld_files/data_maf0.01_rs.bim > " + filenameb
-        cmd = "{0} " \
-              "--bfile {1} " \
-              " --extract {2} " \
-              " --make-just-bim " \
+        cmd = "{0}" \
+              " --silent" \
+              " --bfile {1}" \
+              " --extract {2}" \
+              " --make-just-bim" \
               " --out {3}".format(Globals.PLINK, Globals.LD_REF[pop], filename, filename)
         logger.debug(cmd)
         os.system(cmd)
@@ -87,10 +89,11 @@ def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
         logger.debug(cmd)
         os.system(cmd)
         logger.debug("found")
-        command = "{0} " \
-                  "--bfile {1} " \
-                  " --extract {2} " \
-                  " --r square " \
+        command = "{0}" \
+                  " --silent" \
+                  " --bfile {1}" \
+                  " --extract {2}" \
+                  " --r square" \
                   " --out {3}".format(Globals.PLINK, Globals.LD_REF[pop], filenamek, filename)
 
         logger.debug(command)
@@ -100,7 +103,6 @@ def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
             logger.debug("no file found")
             [os.remove(os.path.join(upload_folder, f)) for f in os.listdir(upload_folder) if f.startswith(fn)]
             return {'snplist': [], 'matrix': []}
-
 
         f = open(filenameka, "r")
         out["snplist"] = list(filter(None, f.read().split("\n")))
