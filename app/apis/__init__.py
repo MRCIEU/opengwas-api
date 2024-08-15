@@ -11,7 +11,7 @@ from .batches import api as batches
 from .user import api as user
 
 from .gwasinfo import api as gwasinfo
-from .gicache import api as gicache
+from .maintenance import api as maintenance
 from .assoc import api as assoc
 from .tophits import api as tophits
 from .phewas import api as phewas
@@ -53,7 +53,7 @@ api.add_namespace(stats)
 
 # private
 if Globals.app_config['access'] == 'private':
-    api.add_namespace(gicache)
+    api.add_namespace(maintenance)
 
 if os.environ.get('ENV') == 'local':
     api.add_namespace(utilities)
