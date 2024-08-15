@@ -6,7 +6,7 @@ from resources.globals import Globals
 from apis.tests.token import get_token
 
 
-collect_ignore = ["test_edit.py", "test_quality_control.py"]
+collect_ignore = ["test_quality_control.py"]
 
 
 def pytest_configure():

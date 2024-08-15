@@ -1,21 +1,20 @@
-import requests
-from apis.tests.token import get_mrbase_access_token
-import os
-import shutil
-import tempfile
 import time
 
-token = get_mrbase_access_token()
+import requests
+import os
 
 
-def test_gwasinfo_add_delete(url):
+def test_gwasinfo_add_delete(url, headers):
     payload = {
         'pmid': 1234,
         'year': 2010,
         'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
-        'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
+        'trait': 'TEST - DO NOT USE (Hip circumference)',
+        'category': 'Risk factor',
+        'subcategory': 'Anthropometric',
+        'ontology': 'EFO:000000',
         'population': 'European',
         'sex': 'Males',
         'ncase': None,
@@ -29,51 +28,64 @@ def test_gwasinfo_add_delete(url):
         'author': 'Randall JC',
         'consortium': 'GIANT'
     }
-    headers = {'X-API-TOKEN': token}
 
     # add record
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
-    print(r.json())
-    uid = str(r.json()['id'])
-    assert r.status_code == 200 and isinstance(int(uid.replace('ieu-b-', '')), int)
+    gwas_id = str(r.json()['id'])
+    assert r.status_code == 200 and isinstance(int(gwas_id.replace('ieu-b-', '')), int)
 
     # check present
-    r = requests.get(url + "/edit/check/" + uid, headers=headers)
+    r = requests.get(url + "/edit/check/" + gwas_id, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
     # edit metadata
     payload['pmid'] = '12345'
-    payload['id'] = uid
+    payload['id'] = gwas_id
     r = requests.post(url + "/edit/edit", data=payload, headers=headers)
     assert r.status_code == 200
 
+    # cannot edit other's metadata
+    payload['pmid'] = '12345'
+    payload['id'] = 'ieu-a-2'
+    r = requests.post(url + "/edit/edit", data=payload, headers=headers)
+    assert r.status_code == 403
+
     # check metadata
-    r = requests.get(url + "/edit/check/" + uid, headers=headers)
+    r = requests.get(url + "/edit/check/" + gwas_id, headers=headers)
     assert r.status_code == 200
 
-    # delete record
-    r = requests.delete(url + "/edit/delete/" + uid, headers=headers)
+    # delete metadata
+    r = requests.delete(url + "/edit/delete/" + gwas_id, data={
+        'delete_metadata': 1
+    }, headers=headers)
     assert r.status_code == 200
+
+    # cannot delete other's metadata
+    r = requests.delete(url + "/edit/delete/" + 'ieu-a-2', data={
+        'delete_metadata': 1
+    }, headers=headers)
+    assert r.status_code == 403
 
     # check deleted
-    payload = {'id': [uid]}
-    r = requests.get(url + "/edit/check/" + uid, headers=headers)
+    r = requests.get(url + "/edit/check/" + gwas_id, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 0
 
     # check not deleted everything else
-    payload = {'id': ["ieu-a-2"]}
-    r = requests.post(url + "/gwasinfo", data=payload)
+    r = requests.post(url + "/gwasinfo", data={'id': ["ieu-a-2"]}, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
 
-def test_gwasinfo_upload_plain_text(url):
+def test_gwasinfo_upload_gzip(url, headers):
     payload = {
         'pmid': 1234,
         'year': 2010,
         'mr': 1,
         'note': 'test',
         'build': 'HG19/GRCh37',
-        'trait': 'Hip circumference', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
+        'trait': 'TEST - DO NOT USE (Hip circumference)',
+        'category': 'Risk factor',
+        'subcategory': 'Anthropometric',
+        'ontology': 'EFO:000000',
         'population': 'European',
         'sex': 'Males',
         'ncase': None,
@@ -87,84 +99,18 @@ def test_gwasinfo_upload_plain_text(url):
         'author': 'Randall JC',
         'consortium': 'GIANT'
     }
-    headers = {'X-API-TOKEN': token}
 
     # make new metadata
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
-    uid = str(r.json()['id'])
-    assert isinstance(int(uid.replace('ieu-b-', '')), int)
-
-    file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt')
-
-    # upload file for this study
-    r = requests.post(url + "/edit/upload", data={
-        'id': uid,
-        'chr_col': 1,
-        'pos_col': 2,
-        'snp_col': 3,
-        'ea_col': 4,
-        'oa_col': 5,
-        'eaf_col': 10,
-        'beta_col': 6,
-        'se_col': 7,
-        'pval_col': 9,
-        'ncontrol_col': 8,
-        'delimiter': 'tab',
-        'header': 'True',
-        'gzipped': 'False'
-    }, files={'gwas_file': open(file_path, 'rb')}, headers=headers)
-
-    assert r.status_code == 201
-
-    # obtain cromwell ID from output
-    #job_id = r.json()["job_id"]
-
-    # poll for successful job completion
-    #while True:
-    #    r = requests.get(url + "/edit/status/" + job_id)
-    #    r.raise_for_status()
-    #    assert r.json()["status"] != "Failed"
-    #    if r.json()["status"] == "Succeeded":
-    #        break
-    #    time.sleep(5)
-
-
-def test_gwasinfo_upload_gzip(url):
-    payload = {
-        'pmid': 1234,
-        'year': 2010,
-        'mr': 1,
-        'note': 'test',
-        'build': 'HG19/GRCh37',
-        'trait': 'Hip circumference',
-        'category': 'Risk factor', 'subcategory': 'Anthropometric',
-        'population': 'European',
-        'sex': 'Males',
-        'ncase': None,
-        'ncontrol': None,
-        'sample_size': 60586,
-        'nsnp': 2725796,
-        'unit': 'SD (cm)',
-        'group_name': "public",
-        'sd': 8.4548,
-        'priority': 15,
-        'author': 'Randall JC',
-        'consortium': 'GIANT'
-    }
-    headers = {'X-API-TOKEN': token}
-
-    # make new metadata
-    r = requests.post(url + "/edit/add", data=payload, headers=headers)
-    assert r.status_code == 200
-    uid = str(r.json()['id'])
-    assert isinstance(int(uid.replace('ieu-b-', '')), int)
+    gwas_id = str(r.json()['id'])
+    assert isinstance(int(gwas_id.replace('ieu-b-', '')), int)
 
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt.gz')
 
     # upload file for this study
     r = requests.post(url + "/edit/upload", data={
-        'id': uid,
+        'id': gwas_id,
         'chr_col': 1,
         'pos_col': 2,
         'snp_col': 3,
@@ -179,70 +125,19 @@ def test_gwasinfo_upload_gzip(url):
         'header': 'True',
         'gzipped': 'True'
     }, files={'gwas_file': open(file_path, 'rb')}, headers=headers)
-
     assert r.status_code == 201
 
-
-def test_gwasinfo_upload_large(url):
-    file_url = 'https://zenodo.org/record/1251813/files/bmi.giant-ukbb.meta-analysis.combined.23May2018.txt.gz?download=1'
-
-    payload = {
-        'pmid': 1234,
-        'year': 2010,
-        'mr': 1,
-        'note': 'test',
-        'build': 'HG19/GRCh37',
-        'trait': 'BMI', 'category': 'Risk factor', 'subcategory': 'Anthropometric',
-        'population': 'European',
-        'sex': 'Males',
-        'ncase': None,
-        'ncontrol': None,
-        'sample_size': 60586,
-        'nsnp': 2725796,
-        'unit': 'SD (cm)',
-        'group_name': "public",
-        'sd': 8.4548,
-        'priority': 15,
-        'author': 'Randall JC',
-        'consortium': 'GIANT'
-    }
-    headers = {'X-API-TOKEN': token}
-
-    # make new metadata
-    r = requests.post(url + "/edit/add", data=payload, headers=headers)
+    # Check DAG run and task instances have been created
+    r = requests.get(url + '/edit/status/' + gwas_id, headers=headers)
     assert r.status_code == 200
-    uid = str(r.json()['id'])
-    assert isinstance(int(uid.replace('ieu-b-', '')), int)
+    rj = r.json()
+    assert rj['dags']['qc']['dag_run']['dag_run_id'] == gwas_id
+    assert len(rj['dags']['qc']['task_instances']) > 10
 
-    # make tmp file
-    tmp = tempfile.NamedTemporaryFile()
-    assert os.path.isfile(tmp.name)
+    time.sleep(30)
 
-    # save downloaded file to tmp
-    with open(tmp.name, 'bw') as f:
-        with requests.get(file_url, stream=True, allow_redirects=True) as r:
-            shutil.copyfileobj(r.raw, f)
-
-    # upload file for this study
-    r = requests.post(url + "/edit/upload", data={
-        'id': uid,
-        'chr_col': 1,
-        'pos_col': 2,
-        'snp_col': 3,
-        'ea_col': 4,
-        'oa_col': 5,
-        'eaf_col': 6,
-        'beta_col': 7,
-        'se_col': 8,
-        'pval_col': 9,
-        'ncontrol_col': 10,
-        'delimiter': 'space',
-        'header': 'True',
-        'gzipped': 'True'
-    }, files={'gwas_file': open(tmp.name, 'rb')}, headers=headers)
-
-    assert r.status_code == 201
-
-    # delete GWAS file
-    tmp.close()
-    assert not os.path.isfile(tmp.name)
+    r = requests.delete(url + "/edit/delete/" + gwas_id, data={
+        'fail_remaining_tasks': 1
+    }, headers=headers)
+    print(r.json())
+    assert r.status_code == 200
