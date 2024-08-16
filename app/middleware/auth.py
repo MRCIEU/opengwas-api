@@ -7,6 +7,14 @@ from resources.globals import Globals
 from .errors import raise_error
 
 
+def check_role_is_sufficient(user_roles: list, requested_role: str):
+    if requested_role in user_roles:  # Exact match
+        return True
+    if 'admin' in user_roles:  # Admin can do anything
+        return True
+    return False
+
+
 def jwt_required(f):
     @wraps(f)
     def _decorator(*args, **kwargs):
@@ -24,7 +32,7 @@ def check_role(role):
     def _decorator(f):
         @wraps(f)
         def _check_role(*args, **kwargs):
-            if 'user' not in g or 'role' not in g.user or role not in g.user['role']:
+            if 'user' not in g or not check_role_is_sufficient(g.user.get('role', []), role):
                 return raise_error('NO_PRIVILEGE')
             return f(*args, **kwargs)
         return _check_role
