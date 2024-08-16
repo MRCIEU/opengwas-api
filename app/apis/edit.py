@@ -43,10 +43,10 @@ def check_batch_exists(gwas_id, study_indexes):
 
 
 def get_quota_by_roles(roles):
-    # if 'admin' in roles:
-    #     return 9999
+    if 'admin' in roles:
+        return 10000
     if 'contributor' in roles:
-        return 3
+        return 20
     return 0
 
 
