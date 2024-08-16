@@ -25,7 +25,7 @@
                 <th>GWAS ID</th>
                 <th width="50%">Trait</th>
                 <th>Created at</th>
-                <th>Actions</th>
+                <th></th>
             </tr></thead>
         <tbody></tbody>
     </table></div>
@@ -42,7 +42,7 @@
                 <th>GWAS ID</th>
                 <th width="50%">Trait</th>
                 <th>State</th>
-                <th>Actions</th>
+                <th></th>
             </tr></thead>
         <tbody></tbody>
     </table></div>
@@ -58,7 +58,7 @@
                 <th>GWAS ID</th>
                 <th width="50%">Trait</th>
                 <th>State</th>
-                <th>Actions</th>
+                <th></th>
             </tr></thead>
         <tbody></tbody>
     </table></div>
@@ -75,7 +75,7 @@
                 <th>GWAS ID</th>
                 <th>Group</th>
                 <th width="50%">Trait</th>
-                <th>Metadata provided at</th>
+                <th>Metadata created at</th>
             </tr></thead>
         <tbody></tbody>
     </table></div>
@@ -409,6 +409,7 @@
         });
     }
 
+    // Add/remove spinner and disable/enable the button
     function button_loading(id, loading=true) {
         let btn = $('#' + id);
         if (loading){
@@ -420,6 +421,7 @@
         }
     }
 
+    // Initialise datatables and <tr> without data
     function init_tables() {
         metadataTable = $("#metadataTable").DataTable({
             autoWidth: false,
@@ -438,8 +440,9 @@
                     }
                 },
                 {
+                    orderable: false,
                     render: (data, type, row, meta) => {
-                        return "";
+                        return `<i class="bi bi-zoom-in""></i>`;
                     }
                 }
             ]
@@ -461,8 +464,9 @@
                     }
                 },
                 {
+                    orderable: false,
                     render: (data, type, row, meta) => {
-                        return "";
+                        return `<i class="bi bi-zoom-in""></i>`;
                     }
                 }
             ]
@@ -484,8 +488,9 @@
                     }
                 },
                 {
+                    orderable: false,
                     render: (data, type, row, meta) => {
-                        return "";
+                        return `<i class="bi bi-zoom-in""></i>`;
                     }
                 }
             ]
@@ -493,7 +498,8 @@
         releasedTable = $("#releasedTable").DataTable({
             autoWidth: false,
             layout: {
-                topEnd: 'paging'
+                topEnd: 'paging',
+                bottomEnd: null
             },
             searching: false,
             info: false,
@@ -659,7 +665,7 @@
         releasedTable.draw();
     }
 
-
+    // Get field specs from swagger
     function get_swagger() {
         $.ajax({
             url: "/api/swagger.json",
@@ -677,6 +683,7 @@
         });
     }
 
+    // Populate options in <select> and add tooltips
     function populate_metadata_modal() {
         $.each({
             'category': 'categorySelect',
@@ -759,6 +766,7 @@
         console.log('populate_gwasinfo end');
     }
 
+    // Clear pipeline info from gwasinfo modal
     function clear_pipeline_state() {
         qcPipelineTr.empty();
         qcPipelineTable.clear().draw();
@@ -786,6 +794,7 @@
         });
     }
 
+    // Populate pipeline states in gwasinfo modal
     function populate_pipeline_state(dags) {
         console.log('populate_pipeline_state start');
         clear_pipeline_state();
@@ -813,6 +822,7 @@
         console.log('populate_pipeline_state end');
     }
 
+    // Submit metadata in metadata modal
     function submit_metadata() {
         button_loading('addMetadataBtn', true);
 
@@ -855,6 +865,7 @@
         $('#metadataForm')[0].reset()
     }
 
+    // Send modified metadata from gwasinfo modal
     function edit_metadata() {
         button_loading('editMetadataBtn', true);
         let metadata = {
@@ -890,7 +901,7 @@
         });
     }
 
-    // Delete dataset
+    // Delete dataset (keep or delete metadata)
     function delete_gwasinfo(delete_matadata=0) {
         if (confirm("Are you sure you want to delete data related to " + gwasidFocused + "?")) {
             $.ajax({
