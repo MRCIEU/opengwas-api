@@ -107,14 +107,15 @@ class Release(Resource):
     @api.expect(parser)
     @api.doc(id='qc_post_release')
     @jwt_required
+    @check_role('admin')
     def post(self):
         try:
             req = self.parser.parse_args()
 
-            try:
-                check_user_is_developer(g.user['uid'])
-            except PermissionError as e:
-                return {"message": str(e)}, 403
+            # try:
+            #     check_user_is_developer(g.user['uid'])
+            # except PermissionError as e:
+            #     return {"message": str(e)}, 403
 
             # check first stage workflow completed successfully
             # payload = {'label': 'gwas_id:' + req['id']}
