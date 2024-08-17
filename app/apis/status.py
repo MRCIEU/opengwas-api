@@ -126,11 +126,11 @@ def check_cromwell():
 
 
 def check_phewas_fast():
-    url = 'http://' + Globals.app_config['redis']['webdis']['host'] + ":" + str(Globals.app_config['redis']['webdis']['port'])
-    auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis']['webdis']['basic_auth_username'], Globals.app_config['redis']['webdis']['basic_auth_passwd'])
+    url = 'http://' + Globals.app_config['redis']['ieu-ssd-proxy']['host'] + ":" + str(Globals.app_config['redis']['ieu-ssd-proxy']['port'])
+    auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_username'], Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_passwd'])
 
     try:
-        r = requests.post(url + '/', data='INFO', auth=auth, timeout=15)
+        r = requests.post(url + '/', auth=auth, timeout=15)
         if r.status_code == 200:
             return "Available"
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):

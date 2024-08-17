@@ -1,15 +1,15 @@
 from collections import defaultdict
 
 from resources.redis import Redis
-from resources.webdis import Webdis
+from resources.redis_proxy import RedisProxy
 
 
 class RedisQueries:
     def __init__(self, db_name, provider='redis'):
         if provider == 'redis':
             self.r = Redis().conn[db_name]
-        elif provider == 'webdis':
-            self.r = Webdis(db_name)
+        elif provider == 'ieu-ssd-proxy':
+            self.r = RedisProxy(db_name)
         return
 
     def publish_log(self, channel, data):
@@ -38,7 +38,7 @@ class RedisQueries:
         :param chr_pos: list of (chr(str), pos_start, pos_end) tuples e.g. [('1', 12345, 12345), ('1', 12345, 12400)]
         :return: set of cpalleles e.g. {'1:12345:G:C', '1:12398:AT:G'}
         """
-        # When using redis-py, which supports pipelining
+        # When using redis-py, which supports native pipelining
         # chr_pos = list(chr_pos)  # Should be sequential as pipeline will be used
         # pipe = self.r.pipeline()
         # chrs = []
@@ -52,11 +52,23 @@ class RedisQueries:
         #         cpalleles.add(chrs[i] + ':' + pos_alleles.decode('ascii'))
         # return cpalleles
 
-        # When using webdis, where pipelining is unavailable
+        # When using redis proxy, where pipelining is implemented at proxy level
+        chr_pos = list(chr_pos)
         cpalleles = set()
+        cmds = []
         for cp in chr_pos:
-            for pos_alleles in self.r.query(['ZRANGE', cp[0], cp[1], cp[2], 'BYSCORE'])['ZRANGE']:
-                cpalleles.add(cp[0] + ':' + pos_alleles)
+            cmds.append({
+                'cmd': 'zrange',
+                'args': {
+                    "name": cp[0],
+                    "start": cp[1],
+                    "end": cp[2],
+                    "byscore": "True"
+                }
+            })
+        for seq, pos_alleles_of_chr_pos in enumerate(self.r.query(cmds)):
+            for pos_alleles in pos_alleles_of_chr_pos:
+                cpalleles.add(chr_pos[seq][0] + ':' + pos_alleles)
         return cpalleles
 
     def get_doc_ids_of_cpalleles_and_pval(self, cpalleles: set, pval: float) -> dict[set]:
@@ -66,7 +78,7 @@ class RedisQueries:
         :param pval:
         :return:
         """
-        # When using redis-py, which supports pipelining
+        # When using redis-py, which supports native pipelining
         # pipe = self.r.pipeline()
         # for chr_pos_alleles in cpalleles:
         #     pipe.zrange(chr_pos_alleles, start=0, end=pval, byscore=True)
@@ -78,10 +90,21 @@ class RedisQueries:
         #         doc_ids[index_and_doc_id[0]].add(index_and_doc_id[1])
         # return doc_ids
 
-        # When using webdis, where pipelining is unavailable
+        # When using redis proxy, where pipelining is implemented at proxy level
         doc_ids = defaultdict(set)
+        cmds = []
         for chr_pos_alleles in cpalleles:
-            for doc_id in self.r.query(['ZRANGE', chr_pos_alleles, 0, '(' + str(pval), 'BYSCORE'])['ZRANGE']:
+            cmds.append({
+                'cmd': 'zrange',
+                'args': {
+                    "name": chr_pos_alleles,
+                    "start": 0,
+                    "end": '(' + str(pval),
+                    "byscore": "True"
+                }
+            })
+        for seq, doc_ids_of_chr_pos_alleles in enumerate(self.r.query(cmds)):
+            for doc_id in doc_ids_of_chr_pos_alleles:
                 index_and_doc_id = doc_id.split(':')
                 doc_ids[index_and_doc_id[0]].add(index_and_doc_id[1])
         return doc_ids

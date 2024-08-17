@@ -192,14 +192,14 @@ def run_phewas_fast(user_email, variants, pval, index_list=None):
             for cpr in cprange:
                 chr_pos.add((str(cpr['chr']), cpr['start'], cpr['end']))
         # timestamps.append(time.time())
-        cpalleles = RedisQueries('phewas_cpalleles', provider='webdis').get_cpalleles_of_chr_pos(chr_pos)
+        cpalleles = RedisQueries('phewas_cpalleles', provider='ieu-ssd-proxy').get_cpalleles_of_chr_pos(chr_pos)
         # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain cpalleles from fast index (first tier): {}".format(e))
         flask.abort(503, e)
 
     try:
-        doc_ids_by_index = RedisQueries('phewas_docids', provider='webdis').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
+        doc_ids_by_index = RedisQueries('phewas_docids', provider='ieu-ssd-proxy').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
         # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain doc IDs from fast index (second tier): {}".format(e))
