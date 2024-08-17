@@ -14,21 +14,26 @@ class RedisProxy:
         }
         self.url = 'http://' + Globals.app_config['redis']['ieu-ssd-proxy']['host'] + ":" + str(Globals.app_config['redis']['ieu-ssd-proxy']['port'])
         self.auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_username'], Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_passwd'])
-        self.session = requests.Session()
-        self.session.mount('http://', HTTPAdapter(max_retries=Retry(
-            total=5,
+
+        self.session_with_retry = requests.Session()
+        self.session_with_retry.mount('http://', HTTPAdapter(max_retries=Retry(
+            total=10,
             backoff_factor=1,
-            status_forcelist=[502, 503, 504]
+            allowed_methods=None  # Retry on any verb
         )))
+
+        self.session = requests.Session()
+
         self.db = dbs[db_name]
 
-    def query(self, commands: list[dict]):
+    def query(self, commands: list[dict], retry=True):
         """
         Make POST request to Redis proxy
         :param commands: list of a Redis command and its arguments, e.g. [{'cmd': 'zrange', 'args': {'name': 1, 'start': 12345, 'end': 13000, 'byscore': 'True'}}]
+        :param retry: True to retry (WARNING! consider idempotence)
         :return: result object
         """
-        r = self.session.post(self.url, json={
+        r = getattr(self, 'session_with_retry' if retry else 'session').post(self.url, json={
             'db': self.db,
             'cmds': commands
         }, auth=self.auth, timeout=60)
