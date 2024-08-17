@@ -5,7 +5,7 @@ import json
 
 from resources.globals import Globals
 from resources.neo4j import Neo4j
-from resources.cromwell import Cromwell
+# from resources.cromwell import Cromwell
 from middleware.limiter import limiter
 
 api = Namespace('status', description="Status of API and linked resources")
@@ -25,13 +25,14 @@ def check_all():
     out = {
         'API version': Globals.VERSION,
         'Access': Globals.app_config['access'],
-        'Neo4j status': Neo4j.check_running(),
-        'ElasticSearch status': check_elastic(),
-        'PheWAS status': check_phewas_fast(),
+        'Neo4j': Neo4j.check_running(),
+        'ElasticSearch': check_elastic(),
+        'Airflow': check_airflow(),
+        'PheWAS': check_phewas_fast(),
         'LD reference panel': check_ld_ref(),
         '1000 genomes annotation VCF': check_1000g_vcf(),
         'PLINK executable': check_plink(),
-        'Cromwell': check_cromwell(),
+        # 'Cromwell': check_cromwell(),
         'Total associations': count_elastic_records(),
         'Total complete datasets': count_neo4j_datasets(),
         'Total public datasets': count_cache_datasets()
@@ -119,6 +120,19 @@ def check_cromwell():
     try:
         r = requests.get(Globals.CROMWELL_URL + '/engine/v1/version', auth=Globals.CROMWELL_AUTH, timeout=15)
         if r.status_code == 200:
+            return "Available"
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+        pass
+    return "Unavailable"
+
+
+def check_airflow():
+    url = 'http://' + Globals.app_config['airflow']['host'] + ':' + str(Globals.app_config['airflow']['port']) + '/api/v1/health'
+
+    try:
+        r = requests.get(url, timeout=15)
+        rj = r.json()
+        if r.status_code == 200 and rj['metadatabase']['status'] == 'healthy' and rj['scheduler']['status'] == 'healthy' and rj['triggerer']['status'] == 'healthy':
             return "Available"
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         pass
