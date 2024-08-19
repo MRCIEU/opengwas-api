@@ -123,7 +123,8 @@ def test_edit_upload_gzip(url, headers):
     time.sleep(30)
 
     r = requests.delete(url + "/edit/delete/" + gwas_id, data={
-        'fail_remaining_tasks': 1
+        'fail_remaining_tasks': 1,
+        'delete_metadata': 1
     }, headers=headers)
     print(r.json())
     assert r.status_code == 200
