@@ -17,7 +17,7 @@ class RedisProxy:
 
         self.session_with_retry = requests.Session()
         self.session_with_retry.mount('http://', HTTPAdapter(max_retries=Retry(
-            total=10,
+            total=30,
             backoff_factor=1,
             allowed_methods=None  # Retry on any verb
         )))
