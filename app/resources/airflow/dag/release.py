@@ -17,12 +17,12 @@ import _utils
 def _task_create_instance(instance_client, **context) -> str:
     gwas_id = context['dag_run'].conf['gwas_id']
 
-    existing_instances = _oci.list_instance(instance_client, gwas_id + '.es')
+    existing_instances = _oci.list_instance(instance_client, gwas_id + '.release')
     for instance in existing_instances:
         if instance.lifecycle_state not in ['STOPPING', 'STOPPED', 'TERMINATING', 'TERMINATED']:
             raise AirflowException('An instance already exists for the same task. ' + instance.id)
 
-    instance_ocid = _oci.launch_instance(instance_client, gwas_id + '.es')
+    instance_ocid = _oci.launch_instance(instance_client, gwas_id + '.release')
     return instance_ocid
 
 
