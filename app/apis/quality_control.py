@@ -176,7 +176,7 @@ class Release(Resource):
                 # assert r.json()['status'] == "Submitted"
                 # logger.info("Submitted {} to workflow".format(r.json()['id']))
 
-                airflow = Airflow().post_dag_run('es', req['id'], {
+                airflow = Airflow().post_dag_run('release', req['id'], {
                     'url': oci.object_storage_par_create('upload', req['id'], 'AnyObjectReadWrite', 'Deny', 3600 * 4, req['id'] + '.es'),
                     'gwas_id': req['id'],
                     'index': index,
@@ -195,7 +195,7 @@ class Release(Resource):
                     # update GI cache
                     requests.get(Globals.app_config['root_url'] + "/api/gicache")
 
-                return {'message': 'Dataset has been added to the pipeline', 'dag_id': 'es', 'run_id': req['id']}, 200
+                return {'message': 'Dataset has been added to the pipeline', 'dag_id': 'release', 'run_id': req['id']}, 200
 
         except marshmallow.exceptions.ValidationError as e:
             raise BadRequest("Could not validate payload: {}".format(e))
