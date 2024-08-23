@@ -36,7 +36,12 @@ class List(Resource):
     @jwt_required
     @check_role('admin')
     def get(self):
-        return get_todo_quality_control()
+        return {
+            'definition': {
+                'added_by_state': Globals.DATASET_ADDED_BY_STATE
+            },
+            'gwasinfo': get_todo_quality_control()
+        }
 
 
 @api.route('/report/<gwas_id>')
@@ -133,7 +138,8 @@ class Release(Resource):
             if airflow['state'] != 'success':
                 raise ValueError("Dataset cannot be released - the QC workflow is in the state of: " + airflow['state'])
 
-            index = study_prefix = check_batch_exists(req['id'], Globals.all_batches)
+            # Check submission status
+            index = check_batch_exists(req['id'], Globals.all_batches)
 
             # update graph
             add_quality_control(g.user['uid'], req['id'], req['passed_qc'] == "True", comment=req['comments'])
