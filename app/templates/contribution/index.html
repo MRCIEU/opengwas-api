@@ -4,6 +4,8 @@
 <link href="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.css" rel="stylesheet"
       xmlns="http://www.w3.org/1999/html">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.datatables.net/select/2.0.5/css/select.bootstrap5.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.1/css/buttons.dataTables.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endblock %}
 
 {% block header %}
@@ -39,6 +41,7 @@
     <p>QC is a fully automated process and usually takes 4 - 24 hours. Once you have received the QC report you may submit the dataset for approval.</p>
     <div><table class="table table-sm table-striped" id="qcTable">
         <thead><tr>
+                <th></th>
                 <th>GWAS ID</th>
                 <th width="50%">Trait</th>
                 <th>State</th>
@@ -52,7 +55,7 @@
 <hr>
 <h5>Step 3: Wait for approval and then release</h5>
 <div class="row">
-    <p>Datasets here are pending review. Once approved they will be added to the database (released). We may contact you via email.</p>
+    <p>Datasets here are pending review. Once approved they will be added (released) to OpenGWAS. We may contact you via email.</p>
     <div><table class="table table-sm table-striped" id="approvalTable">
         <thead><tr>
                 <th>GWAS ID</th>
@@ -66,7 +69,7 @@
 </div>
 
 <hr>
-<h5>Datasets you uploaded <small></small></h5>
+<h5>Datasets you uploaded</h5>
 <div class="row">
     <p>Here is a list of approved datasets you uploaded. They can now be queried by the relevant group.</p>
     <div>
@@ -86,7 +89,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Add metadata</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body"><form id="metadataForm">
                 <p>Mandatory fields</p>
@@ -186,7 +189,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="gi_idH"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-tabs" role="tablist">
@@ -321,16 +324,16 @@
                         </div>
                     </div>
                     <div class="tab-pane fade" id="approvalTabPane" role="tabpanel" tabindex="0">
-                        <p>When the QC report is ready you can submit the dataset for approval, and once approved the dataset will be added to the database (released).</p>
+                        <p>When the QC report is ready you can submit the dataset for approval, and once approved the dataset will be added (released) to OpenGWAS.</p>
                         <div id="submitForApprovalDiv">
                             <button type="button" class="btn btn-sm btn-outline-primary" id="submitForApprovalBtn" onclick="submit_for_approval()">Submit the dataset for approval </button>
-                            <p><small><i>By clicking the button above you consent your information (including names, email address, organisational affiliation etc.) to be made visible to the reviewers, who may then contact you via email.</i></small></p>
+                            <p><small><i>By clicking the button above you consent your information (including names, email address, organisational affiliation etc.) to be made visible to the reviewers, who may then contact you via email if they have questions.</i></small></p>
                         </div>
                         <div id="pendingApprovalDiv">
-                            <p>You dataset is now pending approval. We may contact you via email.</p>
+                            <p>Your dataset is now pending approval. We may contact you via email.</p>
                         </div>
                         <div id="releasePipelineDiv">
-                            <p>Congratulations - you dataset has been approved and will be added to the database via the Release pipeline, which may take 0.5-4 hours. <span class="badge text-bg-primary" onclick="reload_gwasinfo_and_pipeline_state('approval')">Refresh</span></p>
+                            <p>Congratulations - you dataset has been approved and will be added to the database via the Release pipeline, which may take 0.5-4 hours. <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('approval')">Refresh pipeline state</a></p>
                             <table class="table table-sm table-striped mb-0" style="font-size: 0.9rem">
                                 <thead><tr><th>Pipeline started at</th><th>Pipeline state</th><th>Pipeline ended at</th></tr></thead>
                                 <tbody><tr id="releasePipelineTr"></tr></tbody>
@@ -352,14 +355,49 @@
     </div>
 </div>
 
+<div class="modal fade" id="bulkApprovalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Submit for approval (in bulk)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text text-sm"><small><i>By submitting the datasets for approval you consent your information (including names, email address, organisational affiliation etc.) to be made visible to the reviewers, who may then contact you via email if they have questions.</i></small></p>
+                <div class="progress-stacked mb-3" id="bulkApprovalProgressbar">
+                    <div class="progress" role="progressbar">
+                        <div class="progress-bar bg-primary"></div>
+                    </div>
+                    <div class="progress" role="progressbar">
+                        <div class="progress-bar bg-danger"></div>
+                    </div>
+                    <div class="progress" role="progressbar">
+                        <div class="progress-bar bg-secondary"></div>
+                    </div>
+                </div>
+                <p class="text text-sm text-danger" id="bulkApprovalResultP"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" id="bulkApprovalBtn" onclick="submit_for_approval_in_bulk()"></button>
+                <button class="btn btn-outline-dark" id="bulkApprovalExitBtn" style="display: none" onclick="window.location.reload()">Exit and reload the page</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.js"></script>
+<script src="https://cdn.datatables.net/select/2.0.5/js/dataTables.select.min.js"></script>
+<script src="https://cdn.datatables.net/select/2.0.5/js/select.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.bootstrap5.min.js"></script>
 
 <script>
-    var addMetadataToggle, metadataTable, addMetadataModal, gwasinfoModal, gwasinfoTabs, gwasinfoTabsByTableId, gwasinfoDivs, qcTable, approvalTable, releasedTable, qcPipelineTr, qcPipelineTable, releasePipelineTr, releasePipelineTable;
-    var jwt, definition = {}, gwasinfo, dagrun, swagger, gwasidFocused;
+    var addMetadataToggle, metadataTable, addMetadataModal, gwasinfoModal, gwasinfoTabs, gwasinfoTabsByTableId, gwasinfoDivs, qcTable, approvalTable, releasedTable, qcPipelineTr, qcPipelineTable, releasePipelineTr, releasePipelineTable, bulkApprovalResultP;
+    var jwt, definition = {}, gwasinfo, dagrun, swagger, gwasidFocused, gwasidsForBulkApproval;
     const visibleDivsByState = {
         0: ['deleteDatasetDiv', 'uploadFileDiv'],
         1: ['uploadFileDiv', 'qcPipelineDiv'],
@@ -392,6 +430,11 @@
             'pendingApprovalDiv': $('#pendingApprovalDiv'),
             'releasePipelineDiv': $('#releasePipelineDiv')
         }
+        bulkApprovalModal = new bootstrap.Modal('#bulkApprovalModal', {
+            backdrop: 'static',
+            keyboard: false
+        });
+        bulkApprovalResultP = $('#bulkApprovalResultP');
         init_tables();
         bind_events();
         get_token();
@@ -399,11 +442,28 @@
 
     // Bind event listeners
     function bind_events() {
-        $.each([metadataTable, qcTable, approvalTable], function (i, t) {
+        $.each([metadataTable, approvalTable], function (i, t) {
             t.on('click', 'tr', function () {
                 if (t.row(this).data() !== undefined) {
                     gwasidFocused = t.row(this).data()['gwasinfo']['id'];
                     show_gwasinfo_modal(gwasinfoTabsByTableId[$(this).closest('table').attr('id')]);
+                }
+            });
+        });
+        $.each([qcTable], function (i, t) {
+            t.on('click', 'tr td:not(:first-child)', function () {
+                if (t.row(this).data() !== undefined) {
+                    gwasidFocused = t.row(this).data()['gwasinfo']['id'];
+                    show_gwasinfo_modal(gwasinfoTabsByTableId[$(this).closest('table').attr('id')]);
+                }
+            });
+            t.on('select deselect', function (e, dt, type, indexes) {
+                if (type === 'row') {
+                    if (dt.rows({selected: true}).count() > 0) {
+                        dt.button(0).enable();
+                    } else {
+                        dt.button(0).disable();
+                    }
                 }
             });
         });
@@ -425,7 +485,10 @@
     function init_tables() {
         metadataTable = $("#metadataTable").DataTable({
             autoWidth: false,
-            paging: false,
+            layout: {
+                topEnd: 'paging',
+                bottomEnd: null
+            },
             searching: false,
             info: false,
             language: {
@@ -449,13 +512,44 @@
         });
         qcTable = $("#qcTable").DataTable({
             autoWidth: false,
-            paging: false,
+            layout: {
+                topEnd: 'paging',
+                bottomEnd: {
+                    buttons: [
+                        {
+                            text: 'Submit for approval (in bulk)',
+                            className: 'btn-sm',
+                            enabled: false,
+                            attr: {
+                                'data-bs-toggle': 'modal',
+                                'data-bs-target': '#bulkApprovalModal'
+                            },
+                            action: function (e, dt, node, config) {
+                                gwasidsForBulkApproval = Array.from(qcTable.rows({selected: true}).data().filter((e) => {
+                                    return e['added_by']['state'] === 2;
+                                }).map((e) => {
+                                    return e['gwasinfo']['id'];
+                                }));
+                                $('#bulkApprovalBtn').html(`Submit ${gwasidsForBulkApproval.length} datasets `);
+                            }
+                        }
+                    ]
+                }
+            },
             searching: false,
-            info: false,
+            info: true,
+            select: {
+                style: 'multi+shift',
+                selector: 'td:first-child'
+            },
             language: {
                 emptyTable: "No record"
             },
             columns: [
+                {
+                    orderable: false,
+                    render: DataTable.render.select()
+                },
                 {data: "gwasinfo.id"},
                 {data: "gwasinfo.trait"},
                 {
@@ -473,7 +567,10 @@
         });
         approvalTable = $("#approvalTable").DataTable({
             autoWidth: false,
-            paging: false,
+            layout: {
+                topEnd: 'paging',
+                bottomEnd: null
+            },
             searching: false,
             info: false,
             language: {
@@ -854,6 +951,7 @@
             return load_gwasinfo_and_dagrun().then(function () {
                 console.log('submit_metadata show');
                 show_gwasinfo_modal(gwasinfoTabs.giTab);
+                alert(`Success. You can double-check your metadata. If satisfied, go to step 2 for QC.`)
             });
         }).always(function () {
             button_loading('addMetadataBtn', false);
@@ -974,6 +1072,57 @@
         }).always(function () {
             button_loading('submitForApprovalBtn', false);
         });
+    }
+
+    // Submit for approval (in bulk)
+    function submit_for_approval_in_bulk() {
+        button_loading('bulkApprovalBtn', true);
+
+        if (gwasidsForBulkApproval.length === 0) {
+            alert("Only datasets in 'QC completed' state can be submitted for approval.");
+            button_loading('bulkApprovalBtn', false);
+            return;
+        }
+
+        let succeeded = [];
+        let failed = [];
+        let i = 0;
+        let worker = setInterval(() => {
+            if (i === gwasidsForBulkApproval.length - 1) {
+                clearInterval(worker);
+            }
+            let gwas_id = gwasidsForBulkApproval[i++];
+            console.log(gwas_id)
+            $.ajax({
+                url: "/api/quality_control/submit/" + gwas_id,
+                headers: {
+                    "Authorization": "Bearer " + jwt
+                }
+            }).fail(function (xhr) {
+                failed.push(gwas_id);
+                bulkApprovalResultP.append(`${gwas_id}: ${xhr.responseJSON['message']}<br>`);
+            }).done(function () {
+                succeeded.push(gwas_id);
+            });
+        }, 5000);
+
+        let observer = setInterval(() => {
+            update_progress_bar(gwasidsForBulkApproval.length, succeeded.length, failed.length);
+            if (succeeded.length + failed.length === gwasidsForBulkApproval.length) {
+                clearInterval(observer);
+                $('#bulkApprovalModal').find('.btn-close').hide();
+                $('#bulkApprovalBtn').css('display', 'none');
+                $('#bulkApprovalExitBtn').css('display', 'block');
+            }
+        }, 1000);
+    }
+
+    function update_progress_bar(full, succeed, failed) {
+        let p = $('#bulkApprovalProgressbar').children();
+        p.first().css('width', Math.round(succeed * 100 / full).toString() + '%').children().html(succeed);
+        p.first().next().css('width', Math.round(failed * 100 / full).toString() + '%').children().html(failed > 0 ? failed : '');
+        let remaining = full - succeed - failed;
+        p.last().css('width', Math.round(remaining * 100 / full).toString() + '%').children().html(remaining > 0 ? remaining : '');
     }
 
     function reload_gwasinfo_and_pipeline_state(pipeline) {
