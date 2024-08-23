@@ -13,7 +13,7 @@ import marshmallow.exceptions
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest
 
-from middleware.auth import jwt_required, check_role, key_required
+from middleware.auth import jwt_required, check_role
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
 from resources.airflow import Airflow
@@ -247,7 +247,8 @@ class TaskStatus(Resource):
         try:
             check_gwasinfo_is_added_by_user(gwas_id, g.user['uid'])
         except PermissionError as e:
-            return {"message": str(e)}, 403
+            if not check_role_is_sufficient(g.user.get('role', []), 'admin'):
+                return {"message": str(e)}, 403
 
         airflow = Airflow()
 
