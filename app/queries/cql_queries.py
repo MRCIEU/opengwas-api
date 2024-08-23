@@ -382,7 +382,7 @@ def get_todo_quality_control():
     res = {}
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User) WHERE NOT (gi)-[:DID_QC]->(:User) AND r.state = 3 RETURN gi, PROPERTIES(r) as r, u;"
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User) WHERE r.state IS NOT NULL RETURN gi, PROPERTIES(r) as r, u;"
     )
     for result in results:
         gi = GwasInfo(result['gi'])

@@ -21,3 +21,10 @@ def index():
 @role_required('admin')
 def get_token_plaintext():
     return get_token(preview=False)
+
+
+@admin_index_bp.route('/datasets/review')
+@login_required
+@role_required('admin')
+def dataset_review():
+    return render_template('admin/datasets/review.html')
