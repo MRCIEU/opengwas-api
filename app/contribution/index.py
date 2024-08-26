@@ -13,7 +13,7 @@ contribution_index_bp = Blueprint('index', __name__)
 @login_required
 @role_required('contributor')
 def index():
-    return render_template('contribution/index.html')
+    return render_template('contribution/index.html', container_width=1000)
 
 
 @contribution_index_bp.route('/token')

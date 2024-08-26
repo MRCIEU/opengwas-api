@@ -13,7 +13,7 @@ admin_index_bp = Blueprint('index', __name__)
 @login_required
 @role_required('admin')
 def index():
-    return render_template('admin/index.html')
+    return render_template('admin/index.html', container_width=1000)
 
 
 @admin_index_bp.route('/token')
@@ -27,4 +27,4 @@ def get_token_plaintext():
 @login_required
 @role_required('admin')
 def dataset_review():
-    return render_template('admin/datasets/review.html')
+    return render_template('admin/datasets/review.html', container_width=1200)

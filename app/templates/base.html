@@ -62,7 +62,7 @@
       </div>
     </nav>
 
-    <div class="container" style="max-width: 800px">
+    <div class="container" style="max-width: {{ container_width or 800 }}px">
         <main>
             {% block header %}{% endblock %}
             {% with messages = get_flashed_messages(with_categories=True) %}
