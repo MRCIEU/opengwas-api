@@ -36,7 +36,7 @@
 <hr>
 <h5>Other scratch datasets</h5>
 <div class="row">
-    <p>Here is a list of datasets uploaded by user (excl. those pending approval). They will disappear from below when the release is complete.</p>
+    <p>Here is a list of datasets uploaded by users (excl. those pending approval which are shown above). They will disappear from below when the release is complete.</p>
     <div>
         <table class="table table-sm table-striped" id="scratchTable">
         <thead><tr>
@@ -44,6 +44,8 @@
                 <th>Group</th>
                 <th width="50%">Trait</th>
                 <th>Metadata created at</th>
+                <th>State</th>
+                <th></th>
             </tr></thead>
         <tbody></tbody>
     </table></div>
@@ -400,6 +402,17 @@
                     render: (data, type, row, meta) => {
                         return (new Date(row['added_by']['epoch'] * 1000)).toLocaleString();
                     }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return definition['added_by_state'][row['added_by']['state']];
+                    }
+                },
+                {
+                    orderable: false,
+                    render: (data, type, row, meta) => {
+                        return `<i class="bi bi-zoom-in""></i>`;
+                    }
                 }
             ]
         });
@@ -747,7 +760,7 @@
             }).done(function () {
                 succeeded.push(gwas_id);
             });
-        }, 5000);
+        }, 200);
 
         let observer = setInterval(() => {
             update_progress_bar(gwasidsForBulkApproval.length, succeeded.length, failed.length);
