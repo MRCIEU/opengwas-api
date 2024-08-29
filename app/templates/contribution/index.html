@@ -37,7 +37,7 @@
 <hr>
 <h5>Step 2: Upload for QC</h5>
 <div class="row">
-    <p>Use the R/GwasDataImport package to convert the raw data file to an acceptable format and upload it for QC. Each file must be accompanied by the corresponding GWAS ID assigned in Step 1.</p>
+    <p>Use the R/GwasDataImport package to format the raw data file upload it for QC. Each file must be accompanied by the corresponding GWAS ID assigned in Step 1.</p>
     <p>QC is a fully automated process and usually takes 4 - 24 hours. Once you have received the QC report you may submit the dataset for approval.</p>
     <div><table class="table table-sm table-striped" id="qcTable">
         <thead><tr>
@@ -299,8 +299,7 @@
                     </div>
                     <div class="tab-pane fade" id="qcTabPane" role="tabpanel" tabindex="0">
                         <div id="uploadFileDiv">
-                            <p>Use the R/GwasDataImport package to upload the file for QC. The pipeline will start as soon as the file has been received and may take 4-24 hours to complete. <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('qc')">Refresh pipeline state</a>
-                                <br>Once finished the report can be downloaded here.
+                            <p>Use the R/GwasDataImport package to upload the file for QC, then <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('qc')">reload pipeline state</a>. The pipeline will start as soon as the file has been received and may take 4-24 hours to complete. Once finished the report can be downloaded here.
                             </p>
                         </div>
                         <div id="downloadReportDiv" class="mb-3">
@@ -333,7 +332,7 @@
                             <p>Your dataset is now pending approval. We may contact you via email.</p>
                         </div>
                         <div id="releasePipelineDiv">
-                            <p>Congratulations - you dataset has been approved and will be added to the database via the Release pipeline, which may take 0.5-4 hours. <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('approval')">Refresh pipeline state</a></p>
+                            <p>Congratulations - you dataset has been approved and will be added to the database via the Release pipeline, which may take 0.5-4 hours. <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('approval')">reload pipeline state</a></p>
                             <table class="table table-sm table-striped mb-0" style="font-size: 0.9rem">
                                 <thead><tr><th>Pipeline started at</th><th>Pipeline state</th><th>Pipeline ended at</th></tr></thead>
                                 <tbody><tr id="releasePipelineTr"></tr></tbody>
@@ -1104,7 +1103,7 @@
             }).done(function () {
                 succeeded.push(gwas_id);
             });
-        }, 5000);
+        }, 200);
 
         let observer = setInterval(() => {
             update_progress_bar(gwasidsForBulkApproval.length, succeeded.length, failed.length);
