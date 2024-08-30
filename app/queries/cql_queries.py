@@ -408,10 +408,14 @@ def get_user_by_email(email):
 def get_user_by_emails(emails: List[str]):
     tx = Neo4j.get_db()
     results = tx.run(
-        "MATCH (u:User) WHERE u.uid IN $emails RETURN u;",
+        "MATCH (u:User) OPTIONAL MATCH (u)-[r:MEMBER_OF_ORG]->(o:Org) WHERE u.uid IN $emails RETURN u, PROPERTIES(r) as r, o;",
         emails=emails
     )
-    return {r['u']['uid']: r['u'] for r in results.data()}
+    return {result['u']['uid']: {
+        'user': result['u'],
+        'org_membership': result['r'],
+        'org': result['o']
+    } for result in results.data()}
 
 
 def count_users(jwt_timestamp):

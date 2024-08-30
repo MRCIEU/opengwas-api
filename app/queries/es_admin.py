@@ -41,7 +41,7 @@ def get_most_valued_datasets(year, month):
             }
         }
     )
-    return res['aggregations']['n_uid_per_gwas_id']['buckets'][:50]
+    return res['aggregations']['n_uid_per_gwas_id']['buckets'][:200]
 
 
 def get_most_active_users(year, month):
@@ -50,16 +50,27 @@ def get_most_active_users(year, month):
         index=_get_index_by_year_month(year, month),
         body={
             "size": 0,
+            "runtime_mappings": {
+                "n_datasets": {
+                    "type": "double",
+                    "script": "emit(doc['gwas_id'].size())"
+                }
+            },
             "aggs": {
                 "uids": {
                     "terms": {
                         "field": "uid",
-                        "size": 10000
+                        "size": 20000
                     },
                     "aggs": {
                         "sum_of_time": {
                             "sum": {
                                 "field": "time"
+                            }
+                        },
+                        "stats_n_datasets": {
+                            "stats": {
+                                "field": "n_datasets"
                             }
                         },
                         "last_record": {
@@ -75,7 +86,7 @@ def get_most_active_users(year, month):
             }
         }
     )
-    return res['aggregations']['uids']['buckets'][:50]
+    return res['aggregations']['uids']['buckets'][:200]
 
 
 def get_geoip_using_pipeline(ips):
@@ -97,7 +108,7 @@ def get_geoip_using_pipeline(ips):
     geoip = Globals.es.search(
         index=geoip_converter_index,
         body={
-            "size": 100,
+            "size": 600,
             "query": {
                 "terms": {
                     "ip": ips

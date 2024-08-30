@@ -89,23 +89,34 @@ class MostValuedUsers(Resource):
         mau = get_most_active_users(args['year'], args['month'])
         ips = set()
         emails = set()
-        for k, u in enumerate(mau):
-            mau[k]['last_record'] = mau[k]['last_record']['hits']['hits'][0]['_source']
-            emails.add(u['key'])
-            ips.add(u['last_record']['ip'])
+        for i, r in enumerate(mau):
+            mau[i]['last_record'] = mau[i]['last_record']['hits']['hits'][0]['_source']
+            emails.add(r['key'])
+            ips.add(r['last_record']['ip'])
 
-        users = get_user_by_emails(list(emails))
+        users_and_orgs = get_user_by_emails(list(emails))
         geoip = get_geoip_using_pipeline(list(ips))
 
-        for k, u in enumerate(mau):
-            mau[k]['total_hours'] = round(u['sum_of_time']['value'] / 3600000, 2)
-            mau[k]['source'] = Globals.USER_SOURCES[users[u['key']]['source']]
-            mau[k]['location'] = geoip[u['last_record']['ip']]
-            mau[k]['client'] = u['last_record']['source']
-            email = u['key'].split('@')
-            mau[k]['key'] = email[0][:4].ljust(len(email[0]), '*') + '@' + email[1]
-            del mau[k]['last_record']
+        org = {}
+
+        for i, r in enumerate(mau):
+            uo = users_and_orgs[r['key']]
+            if uo['org'] is not None:
+                org[uo['org']['uuid']] = uo['org']
+            mau[i]['total_hours'] = round(r['sum_of_time']['value'] / 3600000, 2)
+            mau[i]['stats_n_datasets'] = r['stats_n_datasets']
+            mau[i]['source'] = Globals.USER_SOURCES[uo['user']['source']]
+            mau[i]['location'] = geoip[r['last_record']['ip']]
+            mau[i]['client'] = r['last_record']['source']
+            mau[i]['created'] = uo['user']['created'] if 'created' in uo['user'] else None
+            mau[i]['last_signin'] = uo['user']['last_signin'] if 'last_signin' in uo['user'] else None
+            mau[i]['org_membership'] = uo['org_membership']
+            mau[i]['org_uuid'] = uo['org']['uuid'] if uo['org'] is not None else None
+            email = r['key'].split('@')
+            mau[i]['key'] = email[0][:4].ljust(len(email[0]), '*') + '@' + email[1]
+            del mau[i]['last_record']
 
         return {
-            'mau': mau
+            'mau': mau,
+            'org': org
         }
