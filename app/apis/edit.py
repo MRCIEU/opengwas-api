@@ -234,8 +234,8 @@ class GetId(Resource):
             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(gwas_id))
 
 
-@api.route('/status/<gwas_id>')
-@api.doc(description="Check the task instances of the DAG runs related to the dataset")
+@api.route('/state/<gwas_id>')
+@api.doc(description="Check the DAG runs and task instances related to the dataset")
 class TaskStatus(Resource):
     parser = api.parser()
 
