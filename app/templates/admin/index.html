@@ -3,6 +3,7 @@
 {% block styles %}
 <link href="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.1/css/buttons.dataTables.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endblock %}
 
 {% block header %}
@@ -80,48 +81,88 @@
 
 <div class="row p-1">
     <div class="col">
-        <ul class="nav nav-pills nav-fill" id="reportNav">
-            <li class="nav-item"><a class="nav-link" href="#mvdDiv" data-report-name="mvd">Most Valued Datasets</a></li>
-            <li class="nav-item"><a class="nav-link" href="#mauDiv" data-report-name="mau">Most Active Users</a></li>
+        <ul class="nav nav-pills nav-fill p-2" id="reportNav">
+            <li class="nav-item"><a class="nav-link" href="#mvdDiv" data-report-name="mvd">Batches and Datasets</a></li>
+            <li class="nav-item"><a class="nav-link" href="#mauDiv" data-report-name="mau">Locations and Users</a></li>
         </ul>
         <div class="tab-content p-2">
             <div class="tab-pane fade" id="mvdDiv">
                 <p>
-                    Showing the top 200 datasets based on the number of users during the selected time span.
-                    <br>Table can be scrolled horizontally.
+                    <b>All Batches</b>
+                    <br>Showing all batches. Sorted by <b>&#931;(N<sub>Reqs</sub>)</b> by default.
+                    <br><b>&#931;(N<sub>Reqs</sub>)</b> is the sum of requests per dataset, by batch. E.g. if the same request touched both ieu-b-1 and ieu-b-2 then the <b>&#931;</b> of ieu-b here will increase by 2 while in the second table below N<sub>Reqs</sub> will increase by 1 respectively for both ieu-b-1 and ieu-b-2.
+                </p>
+                <table class="table table-sm table-striped" id="batchTable">
+                    <thead><tr>
+                            <th>#</th>
+                            <th>Batch</th>
+                            <th>Description</th>
+                            <th>N<sub>Datasets</sub></th>
+                            <th>N<sub>DatasetsUsed</sub></th>
+                            <th>%<sub>DatasetsUsed</sub></th>
+                            <th>&#931;(N<sub>Reqs</sub>)</th>
+                            <th>&#931;(N<sub>Reqs</sub>)/N<sub>DatasetsUsed</sub></th>
+                        </tr></thead>
+                    <tbody></tbody>
+                </table>
+                <hr style="border-top: dashed 2px">
+                <p>
+                    <b>Most Valued Datasets</b>
+                    <br>Showing the top 500 datasets based on the number of users during the selected time span.
+                    <br>An inexhaustive list of datasets that are used in tutorials or tests: ieu-a-2, ieu-a-7, ieu-a-299, ieu-a-300, ieu-a-302.
                 </p>
                 <table class="table table-sm table-striped" id="mvdTable">
                     <thead><tr>
-                            <th scope="col">#</th>
-                            <th scope="col">ID</th>
-                            <th scope="col" width="50%">Trait</th>
-                            <th scope="col">N<sub>Users</sub></th>
-                            <th scope="col">N<sub>Requests</sub></th>
+                            <th>#</th>
+                            <th>ID</th>
+                            <th width="40%">Trait</th>
+                            <th>Category</th>
+                            <th>Subcategory</th>
+                            <th>N<sub>Users</sub></th>
+                            <th>N<sub>Reqs</sub></th>
+                            <th>N<sub>Reqs</sub>/N<sub>Users</sub></th>
                         </tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
             <div class="tab-pane fade" id="mauDiv">
                 <p>
-                    Showing the top 200 users based on the number of requests they made during the selected time span.
+                    <b>Most Active Locations</b>
+                    <br>Showing all locations from which at least one request was made during the selected time span. Sorted by <b>N<sub>Users</sub></b> by default.
+                    <br>The IP address of each user's last request within the time span was used to determine the user's location. The <b>N<sub>Reqs</sub></b> and <b>&#931;<sub>ProcTime</sub></b> of that user were then added respectively to the location.
+                </p>
+                <table class="table table-sm table-striped" id="locTable">
+                    <thead><tr>
+                            <th>#</th>
+                            <th>Location</th>
+                            <th>N<sub>Users</sub></th>
+                            <th>N<sub>Reqs</sub></th>
+                            <th>&#931;<sub>ProcTime</sub>(h)</th>
+                        </tr></thead>
+                    <tbody></tbody>
+                </table>
+                <hr style="border-top: dashed 2px">
+                <p>
+                    <b>Most Active Users</b>
+                    <br>Showing all users that have made at least one request during the selected time span. Sorted by <b>N<sub>Reqs</sub></b> by default.
                     <br><b>N<sub>Datasets</sub></b> is the average number of datasets presented in all responses for that user. Note that 'all responses' include those of the requests that do not visit any dataset at all by nature e.g. <code>/ld</code>.
                     <br><b>Source</b> is the method of their last sign-in. <b>Location</b> and <b>Client</b> are retrieved from their last request.
-                    <br>Table can be scrolled horizontally.
+                    <br>Table may be scrolled horizontally.
                 </p>
                 <table class="table table-sm table-striped" id="mauTable">
                     <thead><tr>
-                            <th scope="col">#</th>
-                            <th scope="col">UID</th>
-                            <th scope="col">Org (Inferred)</th>
-                            <th scope="col">N<sub>Reqs</sub></th>
-                            <th scope="col">&#931;<sub>ProcTime</sub>(h)</th>
-                            <th scope="col">Avg(N<sub>Datasets</sub>)</th>
-                            <th scope="col">First sign-in</th>
-                            <th scope="col">Tenure(d)</th>
-                            <th scope="col">Last sign-in</th>
-                            <th scope="col">Source</th>
-                            <th scope="col">Location</th>
-                            <th scope="col">Client</th>
+                            <th>#</th>
+                            <th>UID</th>
+                            <th>Org (Inferred)</th>
+                            <th>N<sub>Reqs</sub></th>
+                            <th>&#931;<sub>ProcTime</sub>(h)</th>
+                            <th>Avg(N<sub>Datasets</sub>)</th>
+                            <th>First sign-in</th>
+                            <th>Tenure(d)</th>
+                            <th>Last sign-in</th>
+                            <th>Source</th>
+                            <th>Location</th>
+                            <th>Client</th>
                         </tr></thead>
                     <tbody></tbody>
                 </table>
@@ -133,9 +174,12 @@
 
 {% block scripts %}
 <script src="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
 
 <script>
-    var overallDatasetTr, overallUserTr, overallUserModalBySourceTbody, overallUserModalByTierTbody, timespanDropdown, mvdTable, mauTable;
+    var overallDatasetTr, overallUserTr, overallOrgTr, overallUserModalBySourceTbody, overallUserModalByTierTbody, timespanDropdown, mvdTable, batchTable, mauTable, locTable;
     var focusedReport, focusedYear = "*", focusedMonth = "*";
     var jwt, gwasinfo, org;
 
@@ -144,6 +188,7 @@
         get_token();
         overallDatasetTr = $("#overallDatasetTr");
         overallUserTr = $("#overallUserTr");
+        overallOrgTr = $("#overallOrgTr");
         overallUserModalBySourceTbody = $("#overallUserModalBySourceTbody");
         overallUserModalByTierTbody = $("#overallUserModalByTierTbody");
         timespanDropdown = $("#timespanDropdown");
@@ -196,8 +241,7 @@
             success: function (response) {
                 jwt = response.token;
                 load_overall_stats();
-                init_mvd_table();
-                init_mau_table();
+                init_tables();
             }
         });
     }
@@ -209,11 +253,11 @@
                 "Authorization": "Bearer " + jwt
             }
         }).done(function (response) {
-            populate_overall_stats(response.datasets, response.users);
+            populate_overall_stats(response['datasets'], response['users'], response['orgs']);
         });
     }
 
-    function populate_overall_stats(datasets, users) {
+    function populate_overall_stats(datasets, users, orgs) {
         overallDatasetTr.append(`<td>${datasets['public'] + datasets['private']}</td><td>${datasets['public']}</td><td>${datasets['private']}</td>`);
         for (let source in users['by_source']) {
             overallUserModalBySourceTbody.append(`<tr><td>${source}</td><td>${users['by_source'][source]}</td></tr>`);
@@ -224,17 +268,29 @@
         overallUserTr.append(`<td>${users['all']}
             <i class="bi bi-info-circle" data-bs-toggle="modal" data-bs-target="#userCompositionModal"></i>
             </td><td>${users['has_valid_token']}</td><td>${users['online']}</td>`);
+        overallOrgTr.append(`<td>${orgs}</td>`);
     }
 
-    function init_mvd_table() {
-        mvdTable = $("#mvdTable").DataTable({
+    function init_tables() {
+        batchTable = $("#batchTable").DataTable({
             autoWidth: false,
-            scrollX: true,
-            paging: false,
             searching: false,
-            info: false,
+            layout: {
+                topStart: null,
+                topEnd: 'paging',
+                bottomStart: 'info',
+                bottomEnd: {
+                    buttons: [{
+                        extend: 'copy',
+                        className: 'btn-sm'
+                    }, {
+                        extend: 'csv',
+                        className: 'btn-sm'
+                    }]
+                }
+            },
             language: {
-                emptyTable: "Loading...<br>(this may take up to 60 seconds)"
+                emptyTable: "Loading...<br>(this may take up to 120 seconds)"
             },
             columns: [
                 {
@@ -244,28 +300,158 @@
                 },
                 {
                     render: (data, type, row, meta) => {
-                        return `<a href="https://gwas.mrcieu.ac.uk/datasets/${row['key']}" target="_blank">${row['key']}</a>` ;
+                        return `<a href="${row['link']}" target="_blank">${row['id']}</a>`;
+                    }
+                },
+                {data: "description",},
+                {
+                    data: "count",
+                    type: 'numeric'
+                },
+                {
+                    data: "used",
+                    type: 'numeric'
+                },
+                {
+                    type: 'numeric',
+                    render: (data, type, row, meta) => {
+                        return Math.floor(row['used'] * 100 / row['count']) + '%';
+                    }
+                },
+                {
+                    data: "reqs",
+                    type: 'numeric'
+                },
+                {
+                    type: 'numeric',
+                    render: (data, type, row, meta) => {
+                        return Math.floor(row['reqs'] / row['used']);
+                    }
+                }
+            ]
+        });
+        mvdTable = $("#mvdTable").DataTable({
+            autoWidth: false,
+            layout: {
+                topStart: 'search',
+                topEnd: 'paging',
+                bottomStart: 'pageLength',
+                bottomEnd: {
+                    buttons: [{
+                        extend: 'copy',
+                        className: 'btn-sm'
+                    }, {
+                        extend: 'csv',
+                        className: 'btn-sm'
+                    }]
+                },
+                bottom2: 'info'
+            },
+            language: {
+                emptyTable: "Loading...<br>(this may take up to 120 seconds)"
+            },
+            columns: [
+                {
+                    render: (data, type, row, meta) => {
+                        return meta.row + 1;
                     }
                 },
                 {
                     render: (data, type, row, meta) => {
-                        return gwasinfo[row['key']]['trait'];
+                        return `<a href="https://gwas.mrcieu.ac.uk/datasets/${row['id']}" target="_blank">${row['id']}</a>`;
                     }
                 },
-                {data: "group_by_uid"},
-                {data: "doc_count"}
+                {
+                    render: (data, type, row, meta) => {
+                        return gwasinfo[row['id']]['trait'];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return gwasinfo[row['id']]['category'];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return gwasinfo[row['id']]['subcategory'];
+                    }
+                },
+                {
+                    data: "users",
+                    type: 'numeric'
+                },
+                {
+                    data: "reqs",
+                    type: 'numeric'
+                },
+                {
+                    type: 'numeric',
+                    render: (data, type, row, meta) => {
+                        return Math.floor(row['reqs'] / row['users']);
+                    }
+                },
             ]
         });
-    }
-
-    function init_mau_table() {
+        locTable = $("#locTable").DataTable({
+            autoWidth: false,
+            searching: false,
+            layout: {
+                topStart: null,
+                topEnd: 'paging',
+                bottomStart: 'info',
+                bottomEnd: {
+                    buttons: [{
+                        extend: 'copy',
+                        className: 'btn-sm'
+                    }, {
+                        extend: 'csv',
+                        className: 'btn-sm'
+                    }]
+                }
+            },
+            language: {
+                emptyTable: "Loading...<br>(this may take up to 120 seconds)"
+            },
+            columns: [
+                {
+                    render: (data, type, row, meta) => {
+                        return meta.row + 1;
+                    }
+                },
+                {data: "location"},
+                {
+                    data: "users",
+                    type: 'numeric'
+                },
+                {
+                    data: "reqs",
+                    type: 'numeric'
+                },
+                {
+                    data: "hours",
+                    type: 'numeric'
+                }
+            ]
+        });
         mauTable = $("#mauTable").DataTable({
             scrollX: true,
-            paging: false,
-            searching: false,
-            info: false,
+            layout: {
+                topStart: 'search',
+                topEnd: 'paging',
+                bottomStart: 'pageLength',
+                bottomEnd: {
+                    buttons: [{
+                        extend: 'copy',
+                        className: 'btn-sm'
+                    }, {
+                        extend: 'csv',
+                        className: 'btn-sm'
+                    }]
+                },
+                bottom2: 'info'
+            },
             language: {
-                emptyTable: "Loading...<br>(this may take up to 60 seconds)"
+                emptyTable: "Loading...<br>(this may take up to 120 seconds)"
             },
             columns: [
                 {
@@ -285,18 +471,16 @@
                     }
                 },
                 {
-                    data: "doc_count",
+                    data: "reqs",
                     type: 'numeric'
                 },
                 {
-                    data: "total_hours",
+                    data: "hours",
                     type: 'numeric'
                 },
                 {
-                    type: 'numeric',
-                    render: (data, type, row, meta) => {
-                        return Math.round((row['stats_n_datasets']['avg'] + Number.EPSILON) * 10) / 10;
-                    }
+                    data: "avg_n_datasets",
+                    type: 'numeric'
                 },
                 {
                     render: (data, type, row, meta) => {
@@ -327,13 +511,18 @@
                     }
                 },
                 {data: "source"},
-                {data: "location"},
+                {
+                    render: (data, type, row, meta) => {
+                        return row['location'] !== null ? row['location'] : '(?)';
+                    }
+                },
                 {data: "client"}
             ]
         });
     }
 
     function load_mvd_data(year, month) {
+        batchTable.clear().draw();
         mvdTable.clear().draw();
         $.ajax({
             url: "/api/stats/mvd",
@@ -346,8 +535,14 @@
             }
         }).done(function (response) {
             gwasinfo = response['gwasinfo']
+            populate_batch_table(response['stats_by_batch']);
             populate_mvd_table(response['mvd']);
         });
+    }
+
+    function populate_batch_table(stats_by_batch) {
+        batchTable.clear();
+        batchTable.rows.add(stats_by_batch).draw();
     }
 
     function populate_mvd_table(mvd){
@@ -356,6 +551,7 @@
     }
 
     function load_mau_data(year, month) {
+        locTable.clear().draw();
         mauTable.clear().draw();
         $.ajax({
             url: "/api/stats/mau",
@@ -368,11 +564,17 @@
             }
         }).done(function (response) {
             org = response['org'];
+            populate_loc_table(response['stats_by_location']);
             populate_mau_table(response['mau']);
         });
     }
 
-    function populate_mau_table(mau){
+    function populate_loc_table(stats_by_location) {
+        locTable.clear();
+        locTable.rows.add(stats_by_location).draw();
+    }
+
+    function populate_mau_table(mau) {
         mauTable.clear();
         mauTable.rows.add(mau).draw();
     }

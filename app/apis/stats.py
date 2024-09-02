@@ -1,11 +1,15 @@
+import json
+from collections import defaultdict
+
 from flask_restx import Namespace, reqparse, Resource
 import time
 
+from .edit import check_batch_exists
 from middleware.auth import jwt_required, check_role
 from queries.cql_queries import *
 from queries.es_admin import *
-from resources.globals import Globals
 from queries.redis_queries import RedisQueries
+from resources.globals import Globals
 
 
 api = Namespace('stats', description="Get statistics from logs")
@@ -58,17 +62,34 @@ class MostValuedDatasets(Resource):
     def get(self):
         args = self.parser.parse_args()
 
-        mvd = get_most_valued_datasets(args['year'], args['month'])
-        gwas_ids = []
-        for k, d in enumerate(mvd):
-            mvd[k]['group_by_uid'] = mvd[k]['group_by_uid']['value']
-            gwas_ids.append(mvd[k]['key'])
+        field = args['year'] + args['month']
 
-        gwasinfo = get_gwas_as_admin(gwas_ids)
+        mvd = json.loads(RedisQueries('stats').get_cache('stats_mvd', 'all' if field == '**' else field))
+
+        stats_by_batch = defaultdict(lambda: defaultdict(int))
+        for b in get_batches():
+            stats_by_batch[b['id']].update(b)
+        for d in mvd:
+            batch = check_batch_exists(d[0], Globals.all_batches)
+            stats_by_batch[batch]['used'] += 1
+            stats_by_batch[batch]['reqs'] += d[1]
+
+        gwas_ids = set()
+        mvd_list_of_dict = []
+        for d in mvd[:500]:
+            gwas_ids.add(d[0])
+            mvd_list_of_dict.append({
+                'id': d[0],
+                'reqs': d[1],
+                'users': d[2]
+            })
+
+        gwasinfo = get_gwas_as_admin(list(gwas_ids))
 
         return {
-            'mvd': mvd,
-            'gwasinfo': gwasinfo
+            'mvd': mvd_list_of_dict,
+            'gwasinfo': gwasinfo,
+            'stats_by_batch': sorted(stats_by_batch.values(), key=lambda l: l['reqs'], reverse=True)
         }
 
 
@@ -87,37 +108,53 @@ class MostValuedUsers(Resource):
     def get(self):
         args = self.parser.parse_args()
 
-        mau = get_most_active_users(args['year'], args['month'])
+        field = args['year'] + args['month']
+
+        mau = json.loads(RedisQueries('stats').get_cache('stats_mau', 'all' if field == '**' else field))
         ips = set()
         emails = set()
-        for i, r in enumerate(mau):
-            mau[i]['last_record'] = mau[i]['last_record']['hits']['hits'][0]['_source']
-            emails.add(r['key'])
-            ips.add(r['last_record']['ip'])
+        for u in mau:
+            emails.add(u[0])
+            ips.add(u[4])
 
         users_and_orgs = get_user_by_emails(list(emails))
         geoip = get_geoip_using_pipeline(list(ips))
 
+        mau_list_of_dict = []
         org = {}
+        stats_by_location = defaultdict(lambda: defaultdict(int))
 
         for i, r in enumerate(mau):
-            uo = users_and_orgs[r['key']]
+            uo = users_and_orgs[r[0]]
             if uo['org'] is not None:
                 org[uo['org']['uuid']] = uo['org']
-            mau[i]['total_hours'] = round(r['sum_of_time']['value'] / 3600000, 2)
-            mau[i]['stats_n_datasets'] = r['stats_n_datasets']
-            mau[i]['source'] = Globals.USER_SOURCES[uo['user']['source']]
-            mau[i]['location'] = geoip[r['last_record']['ip']]
-            mau[i]['client'] = r['last_record']['source']
-            mau[i]['created'] = uo['user']['created'] if 'created' in uo['user'] else None
-            mau[i]['last_signin'] = uo['user']['last_signin'] if 'last_signin' in uo['user'] else None
-            mau[i]['org_membership'] = uo['org_membership']
-            mau[i]['org_uuid'] = uo['org']['uuid'] if uo['org'] is not None else None
-            email = r['key'].split('@')
-            mau[i]['key'] = email[0][:4].ljust(len(email[0]), '*') + '@' + email[1]
-            del mau[i]['last_record']
+            email = r[0].split('@')
+            u = {
+                'key': email[0][:4].ljust(len(email[0]), '*') + '@' + email[1],
+                'reqs': r[1],
+                'hours': round(r[2] / 3600000, 2),
+                'avg_n_datasets': r[3],
+                'source': Globals.USER_SOURCES[uo['user']['source']],
+                'location': geoip.get(r[4], None),
+                'client': r[5],
+                'created': uo['user'].get('created', None),
+                'last_signin': uo['user'].get('last_signin', None),
+                'org_membership': uo['org_membership'],
+                'org_uuid': uo['org']['uuid'] if uo['org'] is not None else None
+            }
+            mau_list_of_dict.append(u)
+            location = geoip.get(r[4], '(?)')
+            stats_by_location[location]['users'] += 1
+            stats_by_location[location]['reqs'] += r[1]
+            stats_by_location[location]['ms'] += r[2]
+
+        for location, stats in stats_by_location.items():
+            stats_by_location[location]['location'] = location
+            stats_by_location[location]['hours'] = round(stats_by_location[location]['ms'] / 3600000)
+            del stats_by_location[location]['ms']
 
         return {
-            'mau': mau,
-            'org': org
+            'mau': mau_list_of_dict,
+            'org': org,
+            'stats_by_location': sorted(stats_by_location.values(), key=lambda l: l['users'], reverse=True)
         }
