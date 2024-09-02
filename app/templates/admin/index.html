@@ -14,7 +14,7 @@
 
 {% block main %}
 <div class="row">
-    <div class="col-5">
+    <div class="col-4">
         <h6>Datasets</h6>
         <table class="table table-sm table-borderless">
             <thead><tr><td>Total</td><td>Public</td><td>Private</td></tr></thead>
@@ -26,6 +26,13 @@
         <table class="table table-sm table-borderless">
             <thead><tr><td>All</td><td>With a valid token</td><td>Used token in the past 10 mins</td></tr></thead>
             <tbody><tr id="overallUserTr"></tr></tbody>
+        </table>
+    </div>
+    <div class="col-1">
+        <h6>Orgs</h6>
+        <table class="table table-sm table-borderless">
+            <thead><tr><td>Total</td></tr></thead>
+            <tbody><tr id="overallOrgTr"></tr></tbody>
         </table>
     </div>
 </div>

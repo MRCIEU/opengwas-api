@@ -38,7 +38,8 @@ class Overall(Resource):
 
         return {
             'datasets': datasets,
-            'users': users
+            'users': users,
+            'orgs': count_orgs()
         }
 
 

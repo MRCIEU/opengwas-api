@@ -457,6 +457,12 @@ def count_users(jwt_timestamp):
     return result
 
 
+def count_orgs():
+    return Neo4j.get_db().run(
+        "MATCH (o:Org) RETURN count(o) as count;"
+    ).single()['count']
+
+
 def set_user_jwt_timestamp(email, timestamp):
     User().set_jwt_timestamp(email, timestamp)
 
