@@ -20,6 +20,13 @@ from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 """Return all available GWAS summary datasets"""
 
 
+def get_batches():
+    res = []
+    for r in Neo4j.get_db().run("MATCH (n:Batches) return n"):
+        res.append(r['n'].__dict__['_properties'])
+    return res
+
+
 def update_batches_stats():
     batches = defaultdict(int)
     tx = Neo4j.get_db()
