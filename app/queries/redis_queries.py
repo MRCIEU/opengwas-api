@@ -108,3 +108,12 @@ class RedisQueries:
                 index_and_doc_id = doc_id.split(':')
                 doc_ids[index_and_doc_id[0]].add(index_and_doc_id[1])
         return doc_ids
+
+    def save_cache(self, key: str, field: str, value: str):
+        return self.r.hset(name=key, key=field, value=value)
+
+    def get_cache(self, key: str, field: str):
+        return self.r.hget(name=key, key=field)
+
+    def get_cache_all(self, key: str):
+        return self.r.hgetall(name=key)

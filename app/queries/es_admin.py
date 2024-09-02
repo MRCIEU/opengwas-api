@@ -3,6 +3,8 @@ from resources.globals import Globals
 
 logs_index_prefix_api = "og-logs-api-"
 gwas_id_size = 100000  # Should be larger than the number of datasets
+user_size = 100000  # Should be larger than the number of users
+max_int = 2147483647
 geoip_converter_index = "og-logs-geoip-converter"
 
 
@@ -17,7 +19,7 @@ def _get_index_by_year_month(year, month):
 
 def get_most_valued_datasets(year, month):
     res = Globals.es.search(
-        request_timeout=60,
+        request_timeout=120,
         index=_get_index_by_year_month(year, month),
         body={
             "size": 0,
@@ -41,12 +43,12 @@ def get_most_valued_datasets(year, month):
             }
         }
     )
-    return res['aggregations']['n_uid_per_gwas_id']['buckets'][:200]
+    return res['aggregations']['n_uid_per_gwas_id']['buckets']
 
 
 def get_most_active_users(year, month):
     res = Globals.es.search(
-        request_timeout=60,
+        request_timeout=120,
         index=_get_index_by_year_month(year, month),
         body={
             "size": 0,
@@ -60,7 +62,7 @@ def get_most_active_users(year, month):
                 "uids": {
                     "terms": {
                         "field": "uid",
-                        "size": 20000
+                        "size": user_size
                     },
                     "aggs": {
                         "sum_of_time": {
@@ -86,7 +88,7 @@ def get_most_active_users(year, month):
             }
         }
     )
-    return res['aggregations']['uids']['buckets'][:200]
+    return res['aggregations']['uids']['buckets']
 
 
 def get_geoip_using_pipeline(ips):
@@ -98,7 +100,7 @@ def get_geoip_using_pipeline(ips):
         body.append({"ip": ip})
 
     Globals.es.bulk(
-        request_timeout=60,
+        request_timeout=120,
         index=geoip_converter_index,
         pipeline="geoip",
         refresh="wait_for",
@@ -108,7 +110,7 @@ def get_geoip_using_pipeline(ips):
     geoip = Globals.es.search(
         index=geoip_converter_index,
         body={
-            "size": 600,
+            "size": max_int,
             "query": {
                 "terms": {
                     "ip": ips
