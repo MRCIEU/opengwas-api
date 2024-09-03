@@ -236,11 +236,11 @@ class GetId(Resource):
 
 @api.route('/state/<gwas_id>')
 @api.doc(description="Check the DAG runs and task instances related to the dataset")
-class TaskStatus(Resource):
+class TaskState(Resource):
     parser = api.parser()
 
     @api.expect(parser)
-    @api.doc(id='edit_get_status')
+    @api.doc(id='edit_get_state')
     @jwt_required
     @check_role('contributor')
     def get(self, gwas_id):
