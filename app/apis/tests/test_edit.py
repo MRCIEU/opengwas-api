@@ -114,7 +114,7 @@ def test_edit_upload_gzip(url, headers):
     assert r.status_code == 201
 
     # Check DAG run and task instances have been created
-    r = requests.get(url + '/edit/status/' + gwas_id, headers=headers)
+    r = requests.get(url + '/edit/state/' + gwas_id, headers=headers)
     assert r.status_code == 200
     rj = r.json()
     assert rj['dags']['qc']['dag_run']['dag_run_id'] == gwas_id
