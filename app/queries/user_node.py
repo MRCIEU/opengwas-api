@@ -35,7 +35,7 @@ class User(UniqueNode, UserMixin):
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) " +
-            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific.keys()) + ['created']]) + " " +
+            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific.keys()) + ['created', 'last_signin']]) + " " +
             "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific.keys()) + ['last_signin']]) + ";",
             parameters={**params_common, **params_specific}
         )
