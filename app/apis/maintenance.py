@@ -46,7 +46,7 @@ class CacheGwasInfo(Resource):
         batches = update_batches_stats()
         return {
             'n_gwasinfo': n,
-            'batches': batches
+            'batches': len(batches)
         }
 
 
@@ -95,11 +95,10 @@ class CacheStatsMVD(Resource):
         }
 
         def format_mvd(mvd):
-            return [[
-                mvd[i]['key'],
+            return {mvd[i]['key']: [
                 mvd[i]['doc_count'],
                 mvd[i]['group_by_uid']['value']
-            ] for i, r in enumerate(mvd)]
+            ] for i in range(len(mvd))}
 
         mvd = get_most_valued_datasets(args['year'], args['month'])
         result = format_mvd(mvd)
@@ -133,14 +132,13 @@ class CacheStatsMAU(Resource):
         }
 
         def format_mau(mau):
-            return [[
-                mau[i]['key'],
+            return {mau[i]['key']: [
                 mau[i]['doc_count'],
                 round(mau[i]['sum_of_time']['value']),
                 round(mau[i]['stats_n_datasets']['avg'], 1),
                 mau[i]['last_record']['hits']['hits'][0]['_source']['ip'],
                 mau[i]['last_record']['hits']['hits'][0]['_source']['source']
-            ] for i, r in enumerate(mau)]
+            ] for i in range(len(mau))}
 
         mau = get_most_active_users(args['year'], args['month'])
         result = format_mau(mau)
