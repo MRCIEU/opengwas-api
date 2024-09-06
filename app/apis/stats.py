@@ -40,10 +40,16 @@ class Overall(Resource):
             'online': RedisQueries("limiter").count_online_users()
         }
 
+        gwasinfo = get_all_gwas_as_admin(['trait', 'group_name', 'category', 'subcategory'])
+        for id, gi in gwasinfo.items():
+            gwasinfo[id] = [gi['trait'], gi['group_name'], gi['category'], gi['subcategory']]
+
         return {
             'datasets': datasets,
             'users': users,
             'orgs': count_orgs()
+            'orgs': count_orgs(),
+            'gwasinfo': gwasinfo
         }
 
 
@@ -65,30 +71,18 @@ class MostValuedDatasets(Resource):
         field = args['year'] + args['month']
 
         mvd = json.loads(RedisQueries('stats').get_cache('stats_mvd', 'all' if field == '**' else field))
+        # {'id': [reqs, users], ...}
 
         stats_by_batch = defaultdict(lambda: defaultdict(int))
         for b in get_batches():
             stats_by_batch[b['id']].update(b)
-        for d in mvd:
-            batch = check_batch_exists(d[0], Globals.all_batches)
+        for id, stats in mvd.items():
+            batch = check_batch_exists(id, Globals.all_batches)
             stats_by_batch[batch]['used'] += 1
-            stats_by_batch[batch]['reqs'] += d[1]
-
-        gwas_ids = set()
-        mvd_list_of_dict = []
-        for d in mvd[:500]:
-            gwas_ids.add(d[0])
-            mvd_list_of_dict.append({
-                'id': d[0],
-                'reqs': d[1],
-                'users': d[2]
-            })
-
-        gwasinfo = get_gwas_as_admin(list(gwas_ids))
+            stats_by_batch[batch]['reqs'] += stats[0]
 
         return {
-            'mvd': mvd_list_of_dict,
-            'gwasinfo': gwasinfo,
+            'mvd': mvd,
             'stats_by_batch': sorted(stats_by_batch.values(), key=lambda l: l['reqs'], reverse=True)
         }
 

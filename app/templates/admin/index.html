@@ -90,7 +90,7 @@
                 <p>
                     <b>All Batches</b>
                     <br>Showing all batches. Sorted by <b>&#931;(N<sub>Reqs</sub>)</b> by default.
-                    <br><b>&#931;(N<sub>Reqs</sub>)</b> is the sum of requests per dataset, by batch. E.g. if the same request touched both ieu-b-1 and ieu-b-2 then the <b>&#931;</b> of ieu-b here will increase by 2 while in the second table below N<sub>Reqs</sub> will increase by 1 respectively for both ieu-b-1 and ieu-b-2.
+                    <br><b>&#931;(N<sub>Reqs</sub>)</b> is the sum of requests per dataset, by batch. E.g. if the same request touched both ieu-b-1 and ieu-b-2 then the <b>&#931;</b> of ieu-b here will increase by 2 while in the second table below <b>N<sub>Reqs</sub></b> will increase by 1 respectively for both ieu-b-1 and ieu-b-2.
                 </p>
                 <table class="table table-sm table-striped" id="batchTable">
                     <thead><tr>
@@ -107,15 +107,16 @@
                 </table>
                 <hr style="border-top: dashed 2px">
                 <p>
-                    <b>Most Valued Datasets</b>
-                    <br>Showing the top 500 datasets based on the number of users during the selected time span.
-                    <br>An inexhaustive list of datasets that are used in tutorials or tests: ieu-a-2, ieu-a-7, ieu-a-299, ieu-a-300, ieu-a-302.
+                    <b>All Datasets</b>
+                    <br>Showing all datasets incl. those that have never been touched in the selected time span and those private (non-"public"). Sorted by <b>N<sub>Users</sub></b> by default.
+                    <br>An inexhaustive list of datasets used by tutorials or tests: ieu-a-2, ieu-a-7, ieu-a-299, ieu-a-300, ieu-a-302.
                 </p>
                 <table class="table table-sm table-striped" id="mvdTable">
                     <thead><tr>
                             <th>#</th>
                             <th>ID</th>
-                            <th width="40%">Trait</th>
+                            <th>Trait</th>
+                            <th>Group</th>
                             <th>Category</th>
                             <th>Subcategory</th>
                             <th>N<sub>Users</sub></th>
@@ -173,6 +174,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js" integrity="sha512-eYSzo+20ajZMRsjxB6L7eyqo5kuXuS2+wEbbOkpaur+sA2shQameiJiWEzCIDwJqaB0a4a6tCuEvCOBHUg3Skg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.bootstrap5.min.js"></script>
@@ -184,6 +186,7 @@
     var jwt, gwasinfo, org;
 
     $(document).ready(() => {
+        $.blockUI({message: '<h5 class="p-2"><div class="spinner-border spinner-border-sm" role="status"></div> Loading metadata of all datasets</h5>'});
         bind_events();
         get_token();
         overallDatasetTr = $("#overallDatasetTr");
@@ -253,7 +256,18 @@
                 "Authorization": "Bearer " + jwt
             }
         }).done(function (response) {
-            populate_overall_stats(response['datasets'], response['users'], response['orgs']);
+            gwasinfo = response['gwasinfo'];
+            $.each(gwasinfo, function (id, gi) {
+                gwasinfo[id] = {
+                    'trait': gi[0],
+                    'group_name': gi[1],
+                    'category': gi[2],
+                    'subcategory': gi[3]
+                };
+            });
+            user_sources = response['user_sources'];
+            populate_overall_stats(response['datasets'], response['users'], response['user_sources'], response['user_tiers'], response['orgs']);
+            $.unblockUI();
         });
     }
 
@@ -290,7 +304,7 @@
                 }
             },
             language: {
-                emptyTable: "Loading...<br>(this may take up to 120 seconds)"
+                emptyTable: "Loading...<br>(this may take up to 60 seconds)"
             },
             columns: [
                 {
@@ -348,7 +362,7 @@
                 bottom2: 'info'
             },
             language: {
-                emptyTable: "Loading...<br>(this may take up to 120 seconds)"
+                emptyTable: "Loading...<br>(this may take up to 60 seconds)"
             },
             columns: [
                 {
@@ -364,6 +378,11 @@
                 {
                     render: (data, type, row, meta) => {
                         return gwasinfo[row['id']]['trait'];
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        return gwasinfo[row['id']]['group_name'];
                     }
                 },
                 {
@@ -387,7 +406,7 @@
                 {
                     type: 'numeric',
                     render: (data, type, row, meta) => {
-                        return Math.floor(row['reqs'] / row['users']);
+                        return row['reqs'] > 0 ? Math.floor(row['reqs'] / row['users']) : 0;
                     }
                 },
             ]
@@ -534,7 +553,6 @@
                 "month": month
             }
         }).done(function (response) {
-            gwasinfo = response['gwasinfo']
             populate_batch_table(response['stats_by_batch']);
             populate_mvd_table(response['mvd']);
         });
@@ -546,8 +564,24 @@
     }
 
     function populate_mvd_table(mvd){
+        let mvd_array = Object.keys(mvd).map((id) => {
+            return {
+                'id': id,
+                'reqs': mvd[id][0],
+                'users': mvd[id][1]
+            };
+        });
+        $.each(gwasinfo, function (id) {
+            if (! mvd.hasOwnProperty(id)) {
+                mvd_array.push({
+                   'id': id,
+                   'reqs': 0,
+                   'users': 0
+               });
+            }
+        });
         mvdTable.clear();
-        mvdTable.rows.add(mvd).draw();
+        mvdTable.rows.add(mvd_array).draw();
     }
 
     function load_mau_data(year, month) {

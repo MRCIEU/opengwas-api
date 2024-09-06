@@ -41,15 +41,23 @@ def update_batches_stats():
     return [r['b'].__dict__['_properties'] for r in result]
 
 
-def get_gwas_as_admin(gwas_ids):
+def get_all_gwas_as_admin(return_subset_properties=[]):
     result = {}
     tx = Neo4j.get_db()
-    results = tx.run(
-        "MATCH (gi:GwasInfo) WHERE gi.id IN $gwas_ids RETURN distinct(gi) as gi;",
-        gwas_ids=list(gwas_ids)
-    )
-    for r in results:
-        result[r['gi']['id']] = GwasInfo(r['gi'])
+    if return_subset_properties:
+        # https://neo4j.com/docs/python-manual/current/query-advanced/#_dynamic_values_in_property_keys_relationship_types_and_labels
+        properties = ",".join(["." + p.replace("\\u0060", "`").replace("`", "``") for p in return_subset_properties])
+        results = tx.run(
+            f"MATCH (gi:GwasInfo) RETURN distinct(gi.id) as id, gi{{{properties}}};"
+        )
+        for r in results:
+            result[r['id']] = GwasInfo(r['gi'])
+    else:
+        results = tx.run(
+            "MATCH (gi:GwasInfo) RETURN distinct(gi) as gi;"
+        )
+        for r in results:
+            result[r['gi']['id']] = GwasInfo(r['gi'])
 
     return result
 
