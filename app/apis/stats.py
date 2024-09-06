@@ -34,8 +34,8 @@ class Overall(Resource):
         users_count = count_users(int(time.time()) - Globals.JWT_VALIDITY)
         users = {
             'all': sum(users_count['by_source'].values()),
-            'by_source': {Globals.USER_SOURCES[k]: v for k, v in users_count['by_source'].items()},
-            'by_tier': {Globals.USER_TIERS[k]: v for k, v in users_count['by_tier'].items()},
+            'by_source': users_count['by_source'],
+            'by_tier': users_count['by_tier'],
             'has_valid_token': users_count['has_valid_token'],
             'online': RedisQueries("limiter").count_online_users()
         }
@@ -47,9 +47,10 @@ class Overall(Resource):
         return {
             'datasets': datasets,
             'users': users,
-            'orgs': count_orgs()
             'orgs': count_orgs(),
-            'gwasinfo': gwasinfo
+            'gwasinfo': gwasinfo,
+            'user_sources': Globals.USER_SOURCES,
+            'user_tiers': Globals.USER_TIERS
         }
 
 
@@ -105,42 +106,54 @@ class MostValuedUsers(Resource):
         field = args['year'] + args['month']
 
         mau = json.loads(RedisQueries('stats').get_cache('stats_mau', 'all' if field == '**' else field))
+        # {'uid': [reqs, time_ms, avg_n_datasets, ip, source], ...}
+
         ips = set()
         emails = set()
-        for u in mau:
-            emails.add(u[0])
-            ips.add(u[4])
+        for id, stats in mau.items():
+            emails.add(id)
+            ips.add(stats[3])
 
         users_and_orgs = get_user_by_emails(list(emails))
         geoip = get_geoip_using_pipeline(list(ips))
 
-        mau_list_of_dict = []
+        mau_list = []
         org = {}
         stats_by_location = defaultdict(lambda: defaultdict(int))
 
-        for i, r in enumerate(mau):
-            uo = users_and_orgs[r[0]]
+        for uid, stats in mau.items():
+            uo = users_and_orgs[uid]
             if uo['org'] is not None:
                 org[uo['org']['uuid']] = uo['org']
-            email = r[0].split('@')
-            u = {
-                'key': email[0][:4].ljust(len(email[0]), '*') + '@' + email[1],
-                'reqs': r[1],
-                'hours': round(r[2] / 3600000, 2),
-                'avg_n_datasets': r[3],
-                'source': Globals.USER_SOURCES[uo['user']['source']],
-                'location': geoip.get(r[4], None),
-                'client': r[5],
-                'created': uo['user'].get('created', None),
-                'last_signin': uo['user'].get('last_signin', None),
-                'org_membership': uo['org_membership'],
-                'org_uuid': uo['org']['uuid'] if uo['org'] is not None else None
-            }
-            mau_list_of_dict.append(u)
-            location = geoip.get(r[4], '(?)')
+            email = uid.split('@')
+            mau_list.append([
+                # uid (masked)
+                email[0][:4].ljust(len(email[0]), '*') + '@' + email[1],
+                # reqs
+                stats[0],
+                # hours
+                round(stats[1] / 3600000, 2),
+                # avg_n_datasets
+                stats[2],
+                # source
+                uo['user']['source'],
+                # location
+                geoip.get(stats[3], None),
+                # client
+                stats[4],
+                # created
+                uo['user'].get('created', None),
+                # last_signin
+                uo['user'].get('last_signin', None),
+                # org_membership
+                uo['org_membership'],
+                # org_uuid
+                uo['org']['uuid'] if uo['org'] is not None else None
+            ])
+            location = geoip.get(stats[3], '(?)')
             stats_by_location[location]['users'] += 1
-            stats_by_location[location]['reqs'] += r[1]
-            stats_by_location[location]['ms'] += r[2]
+            stats_by_location[location]['reqs'] += stats[0]
+            stats_by_location[location]['ms'] += stats[1]
 
         for location, stats in stats_by_location.items():
             stats_by_location[location]['location'] = location
@@ -148,7 +161,7 @@ class MostValuedUsers(Resource):
             del stats_by_location[location]['ms']
 
         return {
-            'mau': mau_list_of_dict,
+            'mau': mau_list,
             'org': org,
             'stats_by_location': sorted(stats_by_location.values(), key=lambda l: l['users'], reverse=True)
         }
