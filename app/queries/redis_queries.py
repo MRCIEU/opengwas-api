@@ -115,5 +115,8 @@ class RedisQueries:
     def get_cache(self, key: str, field: str):
         return self.r.hget(name=key, key=field)
 
+    def delete_cache(self, key: str, field: str):
+        return self.r.hdel(key, field)
+
     def get_cache_all(self, key: str):
         return self.r.hgetall(name=key)
