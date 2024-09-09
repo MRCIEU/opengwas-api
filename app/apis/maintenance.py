@@ -11,6 +11,7 @@ from queries.redis_queries import RedisQueries
 from resources.airflow import Airflow
 from resources.globals import Globals
 from resources.oci import OCI
+from schemas.gwas_info_node_schema import valid_genome_build, valid_categories, valid_subcategories, valid_populations, valid_sex
 
 
 logger = logging.getLogger('debug-log')
@@ -18,15 +19,45 @@ logger = logging.getLogger('debug-log')
 api = Namespace('maintenance', description="Collection of maintenance endpoints")
 
 
-def save_gwasinfo_cache():
+def save_gwasinfo_cache():  # This is the minimal dump of the public datasets
     datasets = get_all_gwas_for_user(None)
+
+    datasets_compressed = {}
+    removed_fields = ['id', 'group_name']
+    reverse_coding = {
+        'build': {v: i for i, v in enumerate(valid_genome_build)},
+        'category': {v: i for i, v in enumerate(valid_categories)},
+        'subcategory': {v: i for i, v in enumerate(valid_subcategories)},
+        'population': {v: i for i, v in enumerate(valid_populations)},
+        'sex': {v: i for i, v in enumerate(valid_sex)},
+    }
+    majority_fields_and_reverse_coding = {f: reverse_coding.get(f, {}) for f in ['trait', 'build', 'category', 'subcategory', 'population', 'sex', 'author', 'year', 'ontology', 'unit', 'sample_size', 'consortium', 'mr', 'priority']}
+    majority_fields_and_coding = {f: list(rc.keys()) if len(rc) > 0 else [] for f, rc in majority_fields_and_reverse_coding.items()}
+
+    for id in datasets.keys():
+        gic = [[], {}]  # Compressed gwasinfo [[coded_values_of_majority_fields], {dict_of_other_fields}]
+        for field in removed_fields:
+            datasets[id].pop(field, None)
+        for field, coding in majority_fields_and_reverse_coding.items():
+            if len(coding) > 0:  # If field has coding
+                value = datasets[id].pop(field, None)
+                if value is not None:
+                    gic[0].append(coding[value])
+                else:
+                    gic[0].append(None)
+            else:
+                gic[0].append(datasets[id].pop(field, None))
+        gic[1] = datasets[id]
+        datasets_compressed[id] = gic
+
     with open(Globals.STATIC_GWASINFO, 'w') as f:
         json.dump({
             'metadata': {
                 'updated_at': datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S %Z'),
                 'size': len(datasets)
             },
-            'datasets': datasets
+            'majority_fields_and_coding': majority_fields_and_coding,
+            'datasets_compressed': datasets_compressed
         }, f)
     with open(Globals.STATIC_GWASINFO, 'rb') as f:
         oci_upload = OCI().object_storage_upload('data', 'gwasinfo.json', f)
