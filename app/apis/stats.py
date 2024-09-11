@@ -71,7 +71,7 @@ class MostValuedDatasets(Resource):
 
         field = args['year'] + args['month']
 
-        mvd = json.loads(RedisQueries('stats').get_cache('stats_mvd', 'all' if field == '**' else field))
+        mvd = json.loads(RedisQueries('cache').get_cache('stats_mvd', 'all' if field == '**' else field))
         # {'id': [reqs, users], ...}
 
         stats_by_batch = defaultdict(lambda: defaultdict(int))
@@ -105,7 +105,7 @@ class MostValuedUsers(Resource):
 
         field = args['year'] + args['month']
 
-        mau = json.loads(RedisQueries('stats').get_cache('stats_mau', 'all' if field == '**' else field))
+        mau = json.loads(RedisQueries('cache').get_cache('stats_mau', 'all' if field == '**' else field))
         # {'uid': [reqs, time_ms, avg_n_datasets, ip, source], ...}
 
         ips = set()

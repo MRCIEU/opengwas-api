@@ -23,7 +23,7 @@ class Redis(metaclass=Singleton):
         self.pool = {
             'session': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=0),
             'limiter': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=1),
-            'stats': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=2, decode_responses=True)
+            'cache': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=2, decode_responses=True)
         }
 
     @property
@@ -36,6 +36,6 @@ class Redis(metaclass=Singleton):
         self._conn = {
             'session': redis.Redis(connection_pool=self.pool['session']),
             'limiter': redis.Redis(connection_pool=self.pool['limiter']),
-            'stats': redis.Redis(connection_pool=self.pool['stats']),
+            'cache': redis.Redis(connection_pool=self.pool['cache']),
             'log': redis.Redis(connection_pool=self.pool['session'])  # Pub/Sub is not DB-specific
         }
