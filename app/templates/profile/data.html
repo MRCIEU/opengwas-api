@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">My Personal Data</h2>
+    <p class="fs-5 text-muted">...</p>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col">
+        <p>Thank you for accepting our Terms of use{{ ' on ' + user['created'] if 'created' in user else '' }}. Here are the information we hold about you:</p>
+    </div>
+</div>
+<h4>User</h4>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="firstname" class="col-form-label">Firstname</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="firstname" value="{{ user['first_name'] }}">
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="lastname" class="col-form-label">Lastname</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="lastname" value="{{ user['last_name'] }}">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="email" class="col-form-label">Email</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="email" value="{{ user['uid'] }}">
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="user_source" class="col-form-label">Method of most recent sign-in</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="user_source" value="{{ globals_sources[user['source']] }}">
+            </div>
+        </div>
+    </div>
+</div>
+{% if computed_org %}
+    <hr>
+    <h4>Organisation (computed) <small><i class="bi bi-info-circle" data-toggle="tooltip" title="The following information was either provided by Microsoft when you use Single Sign-On (SSO), or inferred from the domain name of your email address when you sign in via GitHub or email verification."></i></small></h4>
+        <div class="row">
+            <div class="col-auto">
+                <label for="org_name" class="col-form-label">Name</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="org_name" value="{{ computed_org['ms_name'] or computed_org['gh_name'] }}">
+            </div>
+        </div>
+    {% if computed_membership %}
+        <div class="row">
+            <div class="col-auto">
+                <label for="membership" class="col-form-label">Membership</label>
+            </div>
+            <div class="col">
+                <span type="text" readonly class="form-control-plaintext" id="membership">{{ "<br>".join(computed_membership.values()) | safe }}</span>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+<hr>
+<!--<h4>Surveys</h4>-->
+<!--<div class="row">-->
+<!--</div>-->
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(() => {
+        bind_events();
+        // get_survey_responses();
+    });
+
+    // Bind event listeners
+    function bind_events() {
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
+    }
+
+    // Get all survey responses of the user
+    function get_survey_responses() {
+        $.ajax({
+            url: "/profile/surveys/responses/list",
+            error: function (xhr) {
+                alert("An error occurred when retrieving your survey responses. Please try again later.");
+            },
+            success: function (response) {
+                console.log(response);
+            }
+        });
+    }
+</script>
+{% endblock %}

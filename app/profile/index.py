@@ -26,6 +26,14 @@ def index():
                            allowance_by_user_source=get_allowance_by_user_source(), root_url=Globals.app_config['root_url'])
 
 
+@profile_index_bp.route('/data')
+@login_required
+def gdpr():
+    g.user = current_user
+    computed_org, computed_membership = get_org_and_membership_from_user(current_user['uid']) if current_user['tier'] == 'ORG' else (None, None)
+    return render_template('profile/data.html', user=current_user, globals_sources=Globals.USER_SOURCES, computed_org=computed_org, computed_membership=computed_membership)
+
+
 @profile_index_bp.route('/test_allowance')
 @login_required
 def get_allowance():
