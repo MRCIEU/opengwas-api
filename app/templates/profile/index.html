@@ -60,28 +60,6 @@
         </div>
     </div>
 </div>
-{% if org %}
-    <hr>
-    <h4>Organisation <small><i class="bi bi-info-circle" data-toggle="tooltip" title="{{ org_tooltip }}"></i></small></h4>
-        <div class="row">
-            <div class="col-auto">
-                <label for="org_name" class="col-form-label">Name</label>
-            </div>
-            <div class="col">
-                <input type="text" readonly class="form-control-plaintext" id="org_name" value="{{ org['ms_name'] or org['gh_name'] }}">
-            </div>
-        </div>
-    {% if membership %}
-        <div class="row">
-            <div class="col-auto">
-                <label for="membership" class="col-form-label">Membership</label>
-            </div>
-            <div class="col">
-                <span type="text" readonly class="form-control-plaintext" id="membership">{{ "<br>".join(membership.values()) | safe }}</span>
-            </div>
-        </div>
-    {% endif %}
-{% endif %}
 <hr>
 <h4>Token (JWT) <small><a href="{{ root_url + '/api/#authentication' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
 <div id="noTokenDiv" class="row" style="display: none">
@@ -137,7 +115,7 @@
 <h4>Debug </h4>
 <div class="row">
     <div class="col-auto">
-        <label for="allowanceLimitInput" class="col-form-label">Account ID</label>
+        <label for="uuid" class="col-form-label">Account ID</label>
     </div>
     <div class="col">
         <input type="text" readonly class="form-control-plaintext" id="uuid" value="{{ user['uuid'] }}">
