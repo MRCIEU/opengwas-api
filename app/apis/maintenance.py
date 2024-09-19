@@ -134,12 +134,12 @@ class CacheStatsMVD(Resource):
         mvd = get_most_valued_datasets(args['year'], args['month'])
         result = format_mvd(mvd)
         if len(mvd) > 0:
-            response['current_month'] = RedisQueries('stats').save_cache('stats_mvd', args['year'] + args['month'], json.dumps(result))
+            response['current_month'] = RedisQueries('cache').save_cache('stats_mvd', args['year'] + args['month'], json.dumps(result))
 
         mvd = get_most_valued_datasets('*', '*')
         result = format_mvd(mvd)
         if len(mvd) > 0:
-            response['all'] = RedisQueries('stats').save_cache('stats_mvd', 'all', json.dumps(result))
+            response['all'] = RedisQueries('cache').save_cache('stats_mvd', 'all', json.dumps(result))
 
         return response
 
@@ -174,11 +174,11 @@ class CacheStatsMAU(Resource):
         mau = get_most_active_users(args['year'], args['month'])
         result = format_mau(mau)
         if len(result) > 0:
-            response['current_month'] = RedisQueries('stats').save_cache('stats_mau', args['year'] + args['month'], json.dumps(result))
+            response['current_month'] = RedisQueries('cache').save_cache('stats_mau', args['year'] + args['month'], json.dumps(result))
 
         mau = get_most_active_users('*', '*')
         result = format_mau(mau)
         if len(result) > 0:
-            response['all'] = RedisQueries('stats').save_cache('stats_mau', 'all', json.dumps(result))
+            response['all'] = RedisQueries('cache').save_cache('stats_mau', 'all', json.dumps(result))
 
         return response
