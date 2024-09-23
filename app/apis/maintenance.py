@@ -1,5 +1,6 @@
 import datetime
 
+from flask import request
 from flask_restx import Resource, Namespace
 import logging
 import json
@@ -8,6 +9,7 @@ from middleware.auth import key_required
 from queries.cql_queries import *
 from queries.es_admin import *
 from queries.redis_queries import RedisQueries
+from resources import CryptographyTool
 from resources.airflow import Airflow
 from resources.globals import Globals
 from resources.oci import OCI
@@ -182,3 +184,25 @@ class CacheStatsMAU(Resource):
             response['all'] = RedisQueries('cache').save_cache('stats_mau', 'all', json.dumps(result))
 
         return response
+
+
+@api.route('/survey/save')
+@api.doc(description="Save responses pushed by tally")
+class SaveTallyResponse(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
+    @api.doc(id='maintenance_survey_save_post')
+    @key_required
+    def post(self):
+        payload = request.json
+
+        uuid = ''
+        for f in payload['data']['fields']:
+            if f['label'] == 'uuid_encrypted':
+                uuid = CryptographyTool().decrypt(f['value'])
+
+        if uuid != '':
+            return RedisQueries('cache').save_cache('tally' + '_' + payload['data']['formId'], uuid, json.dumps(payload))
+
+        return 0
