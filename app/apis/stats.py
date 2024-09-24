@@ -121,11 +121,11 @@ class MostValuedUsers(Resource):
         org = {}
         stats_by_location = defaultdict(lambda: defaultdict(int))
 
-        for uid, stats in mau.items():
-            uo = users_and_orgs[uid]
+        for uuids, stats in mau.items():
+            uo = users_and_orgs[uuids]
             if uo['org'] is not None:
                 org[uo['org']['uuid']] = uo['org']
-            email = uid.split('@')
+            email = uo['user']['uid'].split('@')
             mau_list.append([
                 # uid (masked)
                 email[0][:4].ljust(len(email[0]), '*') + '@' + email[1],

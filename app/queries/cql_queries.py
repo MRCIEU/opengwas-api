@@ -448,7 +448,7 @@ def get_user_by_uuids(uuids: List[str]):
         "MATCH (u:User) OPTIONAL MATCH (u)-[r:MEMBER_OF_ORG]->(o:Org) WHERE u.uuid IN $uuids RETURN u, PROPERTIES(r) as r, o;",
         uuids=uuids
     )
-    return {result['u']['uid']: {
+    return {result['u']['uuid']: {
         'user': result['u'],
         'org_membership': result['r'],
         'org': result['o']
