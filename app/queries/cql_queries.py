@@ -1,5 +1,6 @@
 import time
 import uuid
+import shortuuid
 from collections import defaultdict
 from typing import List
 from neo4j.debug import watch
@@ -251,7 +252,7 @@ def count_gwas_by_group():
 
 def create_or_update_user_and_membership(email, tier, source, names=[], org=None, user_org_info=None, group_names=frozenset(['public'])):
     email = email.strip().lower()
-    uuid_str = str(uuid.uuid3(Globals.USER_UUID_NAMESPACE, email))
+    uuid_str = shortuuid.encode(uuid.uuid3(Globals.USER_UUID_NAMESPACE, email))
     if len(names) > 0:  # [first_name, last_name]
         u = User(uid=email, uuid=uuid_str, first_name=names[0], last_name=names[1], tier=tier, source=source)
     else:

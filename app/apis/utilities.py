@@ -1,4 +1,5 @@
 import uuid
+import shortuuid
 
 from flask import make_response
 from flask_restx import Resource, Namespace
@@ -190,7 +191,7 @@ class InitUUIDForUsers(Resource):
         for uid in uids:
             data.append({
                 'uid': uid,
-                'uuid': str(uuid.uuid3(Globals.USER_UUID_NAMESPACE, uid))
+                'uuid': shortuuid.encode(uuid.uuid3(Globals.USER_UUID_NAMESPACE, uid))
             })
         tx.run("UNWIND $data AS p MATCH (u:User) WHERE u.uid = p.uid SET u.uuid = p.uuid", data=data)
         return data
