@@ -45,19 +45,17 @@ class User(UniqueNode, UserMixin):
             parameters={**params_common, **params_specific_sign_up, **params_specific_every_time}
         )
 
-    @classmethod
-    def set_jwt_timestamp(cls, uid, timestamp):
-        tx = Neo4j.get_db()
-        tx.run(
-            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": $uid}) SET n.jwt_timestamp=$timestamp;",
+    def set_jwt_timestamp(self, uid, timestamp):
+        self._SCHEMA().load(self, partial=True)
+        Neo4j.get_db().run(
+            "MATCH (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) SET n.jwt_timestamp=$timestamp;",
             uid=uid, timestamp=timestamp
         )
 
-    @classmethod
-    def set_names(cls, uid, first_name, last_name):
-        tx = Neo4j.get_db()
-        tx.run(
-            "MATCH (n:" + cls.get_node_label() + " {" + cls._UID_KEY + ": $uid}) SET n.first_name=$first_name, n.last_name=$last_name;",
+    def set_names(self, uid, first_name, last_name):
+        self._SCHEMA().load(self, partial=True)
+        Neo4j.get_db().run(
+            "MATCH (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) SET n.first_name=$first_name, n.last_name=$last_name;",
             uid=uid, first_name=first_name, last_name=last_name
         )
 

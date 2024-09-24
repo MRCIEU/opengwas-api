@@ -494,11 +494,13 @@ def count_orgs():
 
 
 def set_user_jwt_timestamp(email, timestamp):
-    User().set_jwt_timestamp(email, timestamp)
+    u = User(uid=email, jwt_timestamp=timestamp)
+    u.set_jwt_timestamp(email, timestamp)
 
 
 def set_user_names(email, first_name, last_name):
-    User().set_names(email, first_name, last_name)
+    u = User(uid=email, first_name=first_name, last_name=last_name)
+    u.set_names(email, first_name, last_name)
 
 
 def add_org_ms(ms_id, ms_name, ms_domains):
