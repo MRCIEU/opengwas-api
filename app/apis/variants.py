@@ -38,7 +38,7 @@ class VariantGet(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'variants_get_rsid', start_time, {'rsid': len(rsids)}, len(hits))
+        logger_middleware.log(g.user['uuid'], 'variants_get_rsid', start_time, {'rsid': len(rsids)}, len(hits))
         return hits
 
 
@@ -76,7 +76,7 @@ class VariantPost(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'variants_post_rsid', start_time, {'rsid': len(args['rsid'])}, len(hits))
+        logger_middleware.log(g.user['uuid'], 'variants_post_rsid', start_time, {'rsid': len(args['rsid'])}, len(hits))
         return hits
 
 
@@ -108,7 +108,7 @@ class ChrposGet(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'variants_chrpos_get', start_time, {'chrpos': len(chrpos)}, len(result))
+        logger_middleware.log(g.user['uuid'], 'variants_chrpos_get', start_time, {'chrpos': len(chrpos)}, len(result))
         return result
 
 
@@ -151,7 +151,7 @@ class ChrposPost(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'variants_chrpos_post', start_time, {'chrpos': len(args['chrpos'])}, len(result))
+        logger_middleware.log(g.user['uuid'], 'variants_chrpos_post', start_time, {'chrpos': len(args['chrpos'])}, len(result))
         return result
 
 
@@ -181,7 +181,7 @@ class GeneGet(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'variants_gene_get', start_time, n_records=len(hits))
+        logger_middleware.log(g.user['uuid'], 'variants_gene_get', start_time, n_records=len(hits))
         return hits
 
 
@@ -214,7 +214,7 @@ class VariantGet(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'variants_afl2_rsid_get', start_time, {'rsid': len(rsid)}, n_records=len(result))
+        logger_middleware.log(g.user['uuid'], 'variants_afl2_rsid_get', start_time, {'rsid': len(rsid)}, n_records=len(result))
         return result
 
 
@@ -252,7 +252,7 @@ class ChrposGet(Resource):
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'variants_afl2_chrpos_get', start_time, {'chrpos': len(chrpos)}, n_records=len(result))
+        logger_middleware.log(g.user['uuid'], 'variants_afl2_chrpos_get', start_time, {'chrpos': len(chrpos)}, n_records=len(result))
         return result
 
 
@@ -304,7 +304,7 @@ class Afl2Post(Resource):
                 abort(503)
 
         result = out1 + out2
-        logger_middleware.log(g.user['uid'], 'variants_afl2_post', start_time,
+        logger_middleware.log(g.user['uuid'], 'variants_afl2_post', start_time,
                               {'rsid': len(args['rsid']), 'chrpos': len(chrpos)}, n_records=len(result))
         return result
 
@@ -319,7 +319,7 @@ class Afl2Snplist(Resource):
         start_time = time.time()
 
         try:
-            logger_middleware.log(g.user['uid'], 'variants_afl2_snplist_get', start_time)
+            logger_middleware.log(g.user['uuid'], 'variants_afl2_snplist_get', start_time)
             return send_file(Globals.AFL2['snplist'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))

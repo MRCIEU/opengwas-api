@@ -42,7 +42,7 @@ class Info(Resource):
 
         result = get_all_gwas_for_user(g.user['uid'])
 
-        logger_middleware.log(g.user['uid'], 'gwasinfo_get_all', start_time, {'id': 0}, len(result))
+        logger_middleware.log(g.user['uuid'], 'gwasinfo_get_all', start_time, {'id': 0}, len(result))
         return result
 
     parser.add_argument('id', required=False, type=str, action='append', default=[], help="List of GWAS IDs")
@@ -60,7 +60,7 @@ class Info(Resource):
 
         if 'id' not in args or args['id'] is None or len(args['id']) == 0:
             result = get_all_gwas_for_user(g.user['uid'])
-            logger_middleware.log(g.user['uid'], 'gwasinfo_post', start_time, {'id': 0}, len(result))
+            logger_middleware.log(g.user['uuid'], 'gwasinfo_post', start_time, {'id': 0}, len(result))
             return result
 
         recs = []
@@ -71,7 +71,7 @@ class Info(Resource):
                 logger.warning("Could not locate study: {}".format(e))
                 continue
 
-        logger_middleware.log(g.user['uid'], 'gwasinfo_post', start_time, {'id': len(args['id'])},
+        logger_middleware.log(g.user['uuid'], 'gwasinfo_post', start_time, {'id': len(args['id'])},
                               len(recs), [r['id'] for r in recs])
         return recs
 
@@ -102,5 +102,5 @@ class GetById(Resource):
         except LookupError:
             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
 
-        logger_middleware.log(g.user['uid'], 'gwasinfo_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
+        logger_middleware.log(g.user['uuid'], 'gwasinfo_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
         return recs

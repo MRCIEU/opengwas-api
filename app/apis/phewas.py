@@ -55,7 +55,7 @@ class PhewasGet(Resource):
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'phewas_get', start_time, {'variant': len(variants)},
+        logger_middleware.log(g.user['uuid'], 'phewas_get', start_time, {'variant': len(variants)},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
         return result
 
@@ -88,7 +88,7 @@ class PhewasPost(Resource):
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'phewas_post', start_time, {'variant': len(args['variant'])},
+        logger_middleware.log(g.user['uuid'], 'phewas_post', start_time, {'variant': len(args['variant'])},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
         return result
 
@@ -126,7 +126,7 @@ class PhewasFastPost(Resource):
         with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_response_cost(args['variant'])):
             pass
 
-        logger_middleware.log(g.user['uid'], 'phewas_fast_post', start_time, {'variant': len(args['variant'])},
+        logger_middleware.log(g.user['uuid'], 'phewas_fast_post', start_time, {'variant': len(args['variant'])},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
         # return result, 200, {'X-PROCESSING-TIME': ','.join([str(t) for t in timestamps])}
         return result

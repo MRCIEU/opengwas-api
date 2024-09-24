@@ -69,7 +69,7 @@ class Tophits(Resource):
             logger.error("Could not obtain tophits: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'tophits_post', start_time,
+        logger_middleware.log(g.user['uuid'], 'tophits_post', start_time,
                               {'id': len(args['id']), 'preclumped': args['preclumped'], 'clump': args['clump']},
                               len(result), list(set([r['id'] for r in result])))
         return result

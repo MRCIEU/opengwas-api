@@ -8,9 +8,9 @@ from queries.redis_queries import RedisQueries
 
 
 class Logger:
-    def log(self, uid, endpoint, start_time, cost_params=None, n_records=0, gwas_id=None, n_snps=0):
+    def log(self, uuid, endpoint, start_time, cost_params=None, n_records=0, gwas_id=None, n_snps=0):
         return RedisQueries('log').publish_log('log.api.' + Globals.app_config['env'], json.dumps({
-            'uid': uid,
+            'uuid': uuid,
             'ip': get_remote_address(),
             'endpoint': endpoint,
             'cost_params': cost_params,

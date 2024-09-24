@@ -46,7 +46,7 @@ class Clump(Resource):
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'ld_clump_post', start_time, {'rsid': len(args['rsid'])}, len(result))
+        logger_middleware.log(g.user['uuid'], 'ld_clump_post', start_time, {'rsid': len(args['rsid'])}, len(result))
         return result
 
 
@@ -76,7 +76,7 @@ class LdMatrix(Resource):
             logger.error("Could not clump SNPs: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'ld_matrix_post', start_time, {'rsid': len(args['rsid'])}, len(result['snplist']))
+        logger_middleware.log(g.user['uuid'], 'ld_matrix_post', start_time, {'rsid': len(args['rsid'])}, len(result['snplist']))
         return result
 
 
@@ -105,5 +105,5 @@ class RefLookup(Resource):
             logger.error("Could not lookup SNPs: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'ld_reflookup_post', start_time, {'rsid': len(args['rsid'])}, len(result))
+        logger_middleware.log(g.user['uuid'], 'ld_reflookup_post', start_time, {'rsid': len(args['rsid'])}, len(result))
         return result

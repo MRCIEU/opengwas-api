@@ -20,8 +20,8 @@ class User(Resource):
     def get(self):
         return {
             'user': {
-                'uid': g.user['uid'],
                 'account_id': g.user['uuid'],
+                'uid': g.user['uid'],
                 'first_name': g.user['first_name'],
                 'last_name': g.user['last_name'],
                 'most_recent_signin_method': Globals.USER_SOURCES[g.user['source']],

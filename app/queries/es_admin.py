@@ -1,7 +1,7 @@
 from resources.globals import Globals
 
 
-logs_index_prefix_api = "og-logs-api-"
+logs_index_prefix_api = "og-logs-api-uuid-"
 gwas_id_size = 100000  # Should be larger than the number of datasets
 user_size = 100000  # Should be larger than the number of users
 max_int = 2147483647
@@ -24,18 +24,18 @@ def get_most_valued_datasets(year, month):
         body={
             "size": 0,
             "aggs": {
-                "n_uid_per_gwas_id": {
+                "n_uuid_per_gwas_id": {
                     "terms": {
                         "field": "gwas_id",
                         "order": {
-                            "group_by_uid": "desc"
+                            "group_by_uuid": "desc"
                         },
                         "size": gwas_id_size
                     },
                     "aggs": {
-                        "group_by_uid": {
+                        "group_by_uuid": {
                             "cardinality": {
-                                "field": "uid"
+                                "field": "uuid"
                             }
                         }
                     }
@@ -43,7 +43,7 @@ def get_most_valued_datasets(year, month):
             }
         }
     )
-    return res['aggregations']['n_uid_per_gwas_id']['buckets']
+    return res['aggregations']['n_uuid_per_gwas_id']['buckets']
 
 
 def get_most_active_users(year, month):
@@ -59,9 +59,9 @@ def get_most_active_users(year, month):
                 }
             },
             "aggs": {
-                "uids": {
+                "uuids": {
                     "terms": {
-                        "field": "uid",
+                        "field": "uuid",
                         "size": user_size
                     },
                     "aggs": {
@@ -88,7 +88,7 @@ def get_most_active_users(year, month):
             }
         }
     )
-    return res['aggregations']['uids']['buckets']
+    return res['aggregations']['uuids']['buckets']
 
 
 def get_geoip_using_pipeline(ips):

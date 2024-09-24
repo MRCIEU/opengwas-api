@@ -46,7 +46,7 @@ class AssocGet(Resource):
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'assoc_get', start_time,
+        logger_middleware.log(g.user['uuid'], 'assoc_get', start_time,
                               {'id': len(ids), 'variant': len(variants), 'proxies': 1},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
         return result
@@ -89,7 +89,7 @@ class AssocPost(Resource):
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uid'], 'assoc_post', start_time,
+        logger_middleware.log(g.user['uuid'], 'assoc_post', start_time,
                               {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
         return result

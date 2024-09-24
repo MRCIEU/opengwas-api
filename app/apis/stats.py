@@ -106,15 +106,15 @@ class MostValuedUsers(Resource):
         field = args['year'] + args['month']
 
         mau = json.loads(RedisQueries('cache').get_cache('stats_mau', 'all' if field == '**' else field))
-        # {'uid': [reqs, time_ms, avg_n_datasets, ip, source], ...}
+        # {'uuid': [reqs, time_ms, avg_n_datasets, ip, source], ...}
 
         ips = set()
-        emails = set()
+        uuids = set()
         for id, stats in mau.items():
-            emails.add(id)
+            uuids.add(id)
             ips.add(stats[3])
 
-        users_and_orgs = get_user_by_emails(list(emails))
+        users_and_orgs = get_user_by_uuids(list(uuids))
         geoip = get_geoip_using_pipeline(list(ips))
 
         mau_list = []
