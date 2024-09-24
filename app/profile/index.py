@@ -80,12 +80,12 @@ def parse_survey_response(survey_form_key, uuid):
     except KeyError:  # key not found in Redis
         return "Unable to find the survey."
 
+    if raw_response is None:
+        return "Unable to find your response to the survey."
+
     raw_response = json.loads(raw_response)
 
     email = get_user_by_uuid(uuid).data()['u']['uid']
-
-    if raw_response is None:
-        return "Unable to find your response."
 
     fields = {}
     for key, f in {f['key']: f for f in raw_response['data']['fields']}.items():
