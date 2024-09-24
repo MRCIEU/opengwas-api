@@ -135,6 +135,10 @@ class Globals:
         'NONE': '0 per 10 minutes'
     }
 
+    SURVEY_FORMS = {
+        'user_info': 'wbrKW1'
+    }
+
     DATASET_ADDED_BY_STATE = {  # No state for released dataset
         0: 'Metadata created',
         1: 'QC in progress',  # crontab to update this field to 3 and send email

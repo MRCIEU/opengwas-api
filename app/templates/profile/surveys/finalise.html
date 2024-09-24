@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">Thank you</h2>
+    <p class="fs-5 text-muted"></p>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col">
+        <div id="processingDiv">
+            <p>We are processing your response. This may take a few minutes.</p>
+            <div class="d-flex m-4 justify-content-center">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only"></span>
+                </div>
+            </div>
+        </div>
+        <p id="reloadP" style="display: none">If it has been too long, click here to <a href="#" onclick="location.reload()">reload</a> the page. Alternatively, you may close this page or go back to your <a href="{{ url_for('profile.index.index') }}">account</a> page, and we will retry in the background. If it has been more than one hour, please consider filling in the same survey form again or contact us. We are sorry for the inconvenience caused.</p>
+        <p id="redirectP" style="display: none"> You can now go back to your <a href="{{ url_for('profile.index.index') }}">account</a> page.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var formId = "{{ form_id }}";
+    var redirectP;
+
+    $(document).ready(() => {
+        redirectP = $('#redirectP');
+        countdown();
+        parse_survey_response();
+    });
+
+    // Show instructions after countdown
+    function countdown() {
+        setTimeout(function () {
+            if ($('#processingDiv').length) {
+                $('#reloadP').css('display', 'block');
+            }
+        }, 360 * 1000);
+    }
+
+    // Parse cached survey response
+    function parse_survey_response() {
+        console.log('parse survey response');
+        $.ajax({
+            url: "/profile/surveys/parse?form=" + formId,
+            error: function (xhr) {
+                alert("An error occurred when processing your response. Please reload this page or consider filling in the same survey form again.");
+            },
+            success: function (response) {
+                $('#processingDiv').remove();
+                redirectP.css('display', 'block').html(response['message'] + redirectP.html());
+            }
+        });
+    }
+</script>
+{% endblock %}
