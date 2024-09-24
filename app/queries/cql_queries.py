@@ -420,6 +420,15 @@ def get_user_by_email(email):
     return result
 
 
+def get_user_by_uuid(uuid):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (u:User {uuid: $uuid}) RETURN u;",
+        uuid=str(uuid)
+    ).single()
+    return result
+
+
 def get_user_by_emails(emails: List[str]):
     tx = Neo4j.get_db()
     results = tx.run(
