@@ -158,7 +158,7 @@ class ExportUsers(Resource):
                 uid[0][:4].ljust(len(uid[0]), '*') + '@' + uid[1],
                 r['u']['last_name'],
                 Globals.USER_SOURCES[r['u']['source']],
-                Globals.USER_TIERS[r['u'].get('tier', 'NONE')],
+                Globals.USER_GROUPS[r['u'].get('group', 'NONE')],
                 "1" if (r['u'].get('jwt_timestamp', 0) + Globals.JWT_VALIDITY - time.time()) > 0 else "0"
             ]
             if r['o']:
@@ -171,7 +171,7 @@ class ExportUsers(Resource):
                 u.extend(["", "", ""])
             users.append(u)
 
-        result = "uid;last_name;source;tier;has_valid_jwt;org_uuid;org_name_microsoft;org_name_github\n"
+        result = "uid;last_name;source;group;has_valid_jwt;org_uuid;org_name_microsoft;org_name_github\n"
         for u in users:
             result = result + ";".join(u) + "\n"
 
