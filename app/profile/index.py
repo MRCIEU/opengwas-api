@@ -26,7 +26,7 @@ def index():
 @login_required
 def gdpr():
     g.user = current_user
-    computed_org, computed_membership = get_org_and_membership_from_user(current_user['uid']) if current_user['tier'] == 'ORG' else (None, None)
+    computed_org, computed_membership = get_org_and_membership_from_user(current_user['uid']) if current_user['group'] == 'ORG' else (None, None)
     return render_template('profile/data.html', user=current_user, globals_sources=Globals.USER_SOURCES, computed_org=computed_org, computed_membership=computed_membership)
 
 

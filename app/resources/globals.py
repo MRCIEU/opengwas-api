@@ -93,7 +93,7 @@ class Globals:
         'NONE': "Anonymous (legacy)"
     }
 
-    USER_TIERS = {
+    USER_GROUPS = {
         'ORG': "Organisational",
         'PER': "Personal",
         'NONE': "Unknown (legacy)"

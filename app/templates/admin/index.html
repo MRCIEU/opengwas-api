@@ -57,7 +57,7 @@
                     <p>By group - inferred from domain name of email address, or Microsoft organisational profile (if any):</p>
                     <table class="table table-sm table-borderless">
                         <thead><tr><td>Group</td><td>Count</td></tr></thead>
-                        <tbody id="overallUserModalByTierTbody"></tbody>
+                        <tbody id="overallUserModalByGroupTbody"></tbody>
                     </table>
                 </div>
             </div>
@@ -181,7 +181,7 @@
 <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
 
 <script>
-    var overallDatasetTr, overallUserTr, overallOrgTr, overallUserModalBySourceTbody, overallUserModalByTierTbody, timespanDropdown, mvdTable, batchTable, mauTable, locTable;
+    var overallDatasetTr, overallUserTr, overallOrgTr, overallUserModalBySourceTbody, overallUserModalByGroupTbody, timespanDropdown, mvdTable, batchTable, mauTable, locTable;
     var focusedReport, focusedYear = "*", focusedMonth = "*";
     var jwt, gwasinfo, user_sources, org;
 
@@ -193,7 +193,7 @@
         overallUserTr = $("#overallUserTr");
         overallOrgTr = $("#overallOrgTr");
         overallUserModalBySourceTbody = $("#overallUserModalBySourceTbody");
-        overallUserModalByTierTbody = $("#overallUserModalByTierTbody");
+        overallUserModalByGroupTbody = $("#overallUserModalByGroupTbody");
         timespanDropdown = $("#timespanDropdown");
         populate_dropdown();
     });
@@ -266,18 +266,18 @@
                 };
             });
             user_sources = response['user_sources'];
-            populate_overall_stats(response['datasets'], response['users'], response['user_sources'], response['user_tiers'], response['orgs']);
+            populate_overall_stats(response['datasets'], response['users'], response['user_sources'], response['user_groups'], response['orgs']);
             $.unblockUI();
         });
     }
 
-    function populate_overall_stats(datasets, users, user_sources, user_tiers, orgs) {
+    function populate_overall_stats(datasets, users, user_sources, user_groups, orgs) {
         overallDatasetTr.append(`<td>${datasets['public'] + datasets['private']}</td><td>${datasets['public']}</td><td>${datasets['private']}</td>`);
         for (let source_key in users['by_source']) {
             overallUserModalBySourceTbody.append(`<tr><td>${user_sources[source_key]}</td><td>${users['by_source'][source_key]}</td></tr>`);
         }
-        for (let tier_key in users['by_tier']) {
-            overallUserModalByTierTbody.append(`<tr><td>${user_tiers[tier_key]}</td><td>${users['by_tier'][tier_key]}</td></tr>`)
+        for (let group_key in users['by_group']) {
+            overallUserModalByGroupTbody.append(`<tr><td>${user_groups[group_key]}</td><td>${users['by_group'][group_key]}</td></tr>`)
         }
         overallUserTr.append(`<td>${users['all']}
             <i class="bi bi-info-circle" data-bs-toggle="modal" data-bs-target="#userCompositionModal"></i>

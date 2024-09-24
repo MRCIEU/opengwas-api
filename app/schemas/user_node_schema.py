@@ -10,8 +10,8 @@ class UserNodeSchema(FRPMSchema):
                             metadata={"description": "First name"})
     last_name = fields.Str(required=True, allow_none=False, validate=validate.Length(min=1, max=40),
                            metadata={"description": "Last name"})
-    tier = fields.Str(required=True, allow_none=False, validate=validate.OneOf(['ORG', 'PER']), metadata={"description": "Tier of user"})
-    source = fields.Str(required=True, allow_none=False, validate=validate.OneOf(['MS', 'GH', 'EM']), metadata={"description": "Source of user info"})
+    group = fields.Str(required=True, allow_none=False, validate=validate.OneOf(['ORG', 'PER']), metadata={"description": "Group of user"})
+    source = fields.Str(required=True, allow_none=False, validate=validate.OneOf(['MS', 'GH', 'EM']), metadata={"description": "Method of last sign-in"})
     jwt_timestamp = fields.Int(required=False, metadata={"description": "JWT timestamp"})
     created = fields.Int(required=False, metadata={"description": "Timestamp of node creation"})
     last_signin = fields.Int(required=False, metadata={"description": "Timestamp of most recent sign-in"})

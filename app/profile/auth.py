@@ -56,13 +56,13 @@ def _create_or_update_user_from_microsoft():
             # Create/merge Org node
             org = organisations.get_or_add_org(provider='MS', domain=domain, new_org=user_org_info['organization'])
             # Create/merge User node as well as MEMBER_OF and MEMBER_OF_ORG relationships
-            user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], tier='ORG', source='MS',
+            user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], group='ORG', source='MS',
                          names=[user_org_info['user']['givenName'], user_org_info['user']['surname']],
                          org=org, user_org_info=user_org_info['user_org'])
 
         else:
             # Just create/merge User node
-            user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], tier='PER', source='MS',
+            user = create_or_update_user_and_membership(email=user_org_info['user']['mail'], group='PER', source='MS',
                          names=[user_org_info['user']['givenName'], user_org_info['user']['surname']])
     except Exception as e:
         flash(str(e), 'danger')
@@ -71,7 +71,7 @@ def _create_or_update_user_from_microsoft():
     return user
 
 
-def _infer_tier_and_org_by_email(email):
+def _infer_group_and_org_by_email(email):
     domain = email.split("@")[1]
     org = organisations.get_or_add_org(provider='GH', domain=domain, new_org=GitHubUniversities().search_by_domain(domain))
     return 'ORG' if org else 'PER', org
@@ -87,8 +87,8 @@ def signin_via_github():
 
     gh_emails = _search_user_by_github()
     if 'existing' in gh_emails:  # If one of the email addresses on their GitHub account matches our record
-        tier, org = _infer_tier_and_org_by_email(gh_emails['existing'][0])
-        user = create_or_update_user_and_membership(email=gh_emails['existing'][0], tier=tier, source='GH', org=org)
+        group, org = _infer_group_and_org_by_email(gh_emails['existing'][0])
+        user = create_or_update_user_and_membership(email=gh_emails['existing'][0], group=group, source='GH', org=org)
 
         signin_user(user)
         return redirect(url_for('profile.index.index'))
@@ -228,8 +228,8 @@ def signin_via_link():
     if user is None:
         return signup_via_user_input(email, first_name, last_name, 'EM')
 
-    tier, org = _infer_tier_and_org_by_email(email)
-    user = create_or_update_user_and_membership(email=email, tier=tier, source='EM', org=org)
+    group, org = _infer_group_and_org_by_email(email)
+    user = create_or_update_user_and_membership(email=email, group=group, source='EM', org=org)
 
     signin_user(user)
 
@@ -277,11 +277,11 @@ def signup_via_user_input(email, first_name, last_name, source, return_redirect=
 
 def _create_or_update_user_from_user_input(email, first_name, last_name, source, return_redirect=True):
     try:
-        tier, org = _infer_tier_and_org_by_email(email)
+        group, org = _infer_group_and_org_by_email(email)
         if org:
-            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, names=[first_name, last_name], org=org)
+            user = create_or_update_user_and_membership(email=email, group=group, source=source, names=[first_name, last_name], org=org)
         else:
-            user = create_or_update_user_and_membership(email=email, tier=tier, source=source, names=[first_name, last_name])
+            user = create_or_update_user_and_membership(email=email, group=group, source=source, names=[first_name, last_name])
     except Exception as e:
         if return_redirect:
             flash(str(e), 'danger')

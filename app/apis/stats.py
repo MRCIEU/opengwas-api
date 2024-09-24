@@ -35,7 +35,7 @@ class Overall(Resource):
         users = {
             'all': sum(users_count['by_source'].values()),
             'by_source': users_count['by_source'],
-            'by_tier': users_count['by_tier'],
+            'by_group': users_count['by_group'],
             'has_valid_token': users_count['has_valid_token'],
             'online': RedisQueries("limiter").count_online_users()
         }
@@ -50,7 +50,7 @@ class Overall(Resource):
             'orgs': count_orgs(),
             'gwasinfo': gwasinfo,
             'user_sources': Globals.USER_SOURCES,
-            'user_tiers': Globals.USER_TIERS
+            'user_groups': Globals.USER_GROUPS
         }
 
 

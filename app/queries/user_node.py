@@ -12,7 +12,7 @@ class User(UniqueNode, UserMixin):
     _SCHEMA = UserNodeSchema
 
     def create_node(self):
-        partial_fields = ['first_name', 'last_name', 'tier', 'source']
+        partial_fields = ['first_name', 'last_name', 'group', 'source']
         # map using schema; fail when violates
         schema = self._SCHEMA()
         d = schema.load(self, partial=partial_fields)

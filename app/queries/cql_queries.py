@@ -250,20 +250,20 @@ def count_gwas_by_group():
     return result
 
 
-def create_or_update_user_and_membership(email, tier, source, names=[], org=None, user_org_info=None, group_names=frozenset(['public'])):
+def create_or_update_user_and_membership(email, group, source, names=[], org=None, user_org_info=None, group_names=frozenset(['public'])):
     email = email.strip().lower()
     uuid_str = shortuuid.encode(uuid.uuid3(Globals.USER_UUID_NAMESPACE, email))
     if len(names) > 0:  # [first_name, last_name]
-        u = User(uid=email, uuid=uuid_str, first_name=names[0], last_name=names[1], tier=tier, source=source)
+        u = User(uid=email, uuid=uuid_str, first_name=names[0], last_name=names[1], group=group, source=source)
     else:
-        u = User(uid=email, uuid=uuid_str, tier=tier, source=source)
+        u = User(uid=email, uuid=uuid_str, group=group, source=source)
     u.create_node()
 
     user = get_user_by_email(email)
     if not user:
         raise Exception("Failed to create or update user information.")
 
-    if tier == 'ORG':
+    if group == 'ORG':
         existing_org, membership = get_org_and_membership_from_user(email)
         if not existing_org or existing_org['uuid'] != org['uuid']:
             o = Org.get_node(org['uuid'])
@@ -446,7 +446,7 @@ def get_user_by_emails(emails: List[str]):
 def count_users(jwt_timestamp):
     result = {
         'by_source': {},
-        'by_tier': {},
+        'by_group': {},
         'has_valid_token': 0
     }
     tx = Neo4j.get_db()
@@ -460,12 +460,12 @@ def count_users(jwt_timestamp):
     del result['by_source'][None]
 
     results = tx.run(
-        "MATCH (u:User) RETURN u.tier as tier, count(u) as count;"
+        "MATCH (u:User) RETURN u.group as group, count(u) as count;"
     )
     for r in results:
-        result['by_tier'][r['tier']] = r['count']
-    result['by_tier']['NONE'] = result['by_tier'][None]
-    del result['by_tier'][None]
+        result['by_group'][r['group']] = r['count']
+    result['by_group']['NONE'] = result['by_group'][None]
+    del result['by_group'][None]
 
     result['has_valid_token'] = tx.run(
         "MATCH (u:User) WHERE u.jwt_timestamp >= $timestamp RETURN count(u) as count;",
