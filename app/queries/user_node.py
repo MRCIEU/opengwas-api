@@ -12,10 +12,11 @@ class User(UniqueNode, UserMixin):
     _SCHEMA = UserNodeSchema
 
     def create_node(self):
-        partial_fields = ['first_name', 'last_name', 'group', 'source']
+        partial_fields_sign_up = ['first_name', 'last_name']
+        partial_fields_every_time = ['group', 'source']
+        partial_fields_all = partial_fields_sign_up + partial_fields_every_time
         # map using schema; fail when violates
-        schema = self._SCHEMA()
-        d = schema.load(self, partial=partial_fields)
+        d = self._SCHEMA().load(self, partial=partial_fields_all)
 
         if d.get(self._UID_KEY) is None:
             raise KeyError("You must provide a value for the unique key.")
@@ -27,17 +28,21 @@ class User(UniqueNode, UserMixin):
             'last_signin': int(time.time())
         }
 
-        params_specific = {}
-        for field_name in partial_fields:
+        params_specific_sign_up = {}
+        params_specific_every_time = {}
+        for field_name in partial_fields_sign_up:
             if field_name in self:
-                params_specific[field_name] = self.get(field_name)
+                params_specific_sign_up[field_name] = self.get(field_name)
+        for field_name in partial_fields_every_time:
+            if field_name in self:
+                params_specific_every_time[field_name] = self.get(field_name)
 
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) " +
-            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific.keys()) + ['created', 'last_signin']]) + " " +
-            "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific.keys()) + ['last_signin']]) + ";",
-            parameters={**params_common, **params_specific}
+            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific_sign_up.keys()) + list(params_specific_every_time.keys()) + ['created', 'last_signin']]) + " " +
+            "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific_every_time.keys()) + ['last_signin']]) + ";",
+            parameters={**params_common, **params_specific_sign_up, **params_specific_every_time}
         )
 
     @classmethod
