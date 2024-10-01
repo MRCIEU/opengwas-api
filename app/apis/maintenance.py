@@ -130,7 +130,7 @@ class CacheStatsMVD(Resource):
         def format_mvd(mvd):
             return {mvd[i]['key']: [
                 mvd[i]['doc_count'],
-                mvd[i]['group_by_uid']['value']
+                mvd[i]['group_by_uuid']['value']
             ] for i in range(len(mvd))}
 
         mvd = get_most_valued_datasets(args['year'], args['month'])
