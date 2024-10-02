@@ -1,4 +1,5 @@
 import json
+import re
 
 from flask import Blueprint, render_template, g, request
 from flask_login import login_required, current_user
@@ -75,6 +76,9 @@ def parse_survey():
 
 
 def parse_survey_response(survey_form_key, uuid):
+    def escape_and_strip(input):
+        return re.sub(r'[^a-zA-Z0-9_()\s-]', '', input).strip()
+
     try:
         raw_response = RedisQueries('cache').get_cache('tally' + '_' + Globals.SURVEY_FORMS[survey_form_key], uuid)
     except KeyError:  # key not found in Redis
@@ -90,10 +94,10 @@ def parse_survey_response(survey_form_key, uuid):
     fields = {}
     for key, f in {f['key']: f for f in raw_response['data']['fields']}.items():
         if f['type'] in ['HIDDEN_FIELDS', 'INPUT_TEXT']:
-            fields[f['label']] = f['value']
+            fields[f['label']] = escape_and_strip(f['value'])
         elif f['type'] in ['DROPDOWN', 'CHECKBOXES'] and 'options' in f:
             f['options'] = {o['id']: o['text'] for o in f['options']}
-            fields[f['label']] = [f['options'][id] for id in f['value']]
+            fields[f['label']] = [escape_and_strip(f['options'][id]) for id in f['value']]
     fields.pop('uuid_encrypted')
     fields.pop('email')
 
