@@ -36,7 +36,9 @@
     $(document).ready(() => {
         redirectP = $('#redirectP');
         countdown();
-        parse_survey_response();
+        setTimeout(() => {
+            parse_survey_response();
+        }, 10000);
     });
 
     // Show instructions after countdown
