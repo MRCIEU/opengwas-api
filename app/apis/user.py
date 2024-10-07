@@ -27,8 +27,8 @@ class User(Resource):
                 'most_recent_signin_method': Globals.USER_SOURCES[g.user['source']],
                 'jwt_valid_until': datetime.datetime.strftime(datetime.datetime.fromtimestamp(g.user['jwt_timestamp'] + Globals.JWT_VALIDITY).astimezone(), '%Y-%m-%d %H:%M %Z')
             },
-            'client': {
+            'request': {
                 'client': request.headers.get('X-API-SOURCE', None),
-                'your_ip': get_remote_address()
+                'ip': get_remote_address()
             }
         }
