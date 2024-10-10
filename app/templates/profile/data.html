@@ -64,7 +64,7 @@
 </div>
 {% if computed_org %}
     <hr>
-    <h4>Organisation (computed) <small><i class="bi bi-info-circle" data-toggle="tooltip" title="The following information was either provided by Microsoft when you use Single Sign-On (SSO), or inferred from the domain name of your email address when you sign in via GitHub or email verification."></i></small></h4>
+    <h4>Organisation (retrieved/inferred)<small><i class="bi bi-info-circle" data-toggle="tooltip" title="The following information was either provided by Microsoft when you use Single Sign-On (SSO), or inferred from the domain name of your email address when you sign in via GitHub or email verification."></i></small></h4>
         <div class="row">
             <div class="col-auto">
                 <label for="org_name" class="col-form-label">Name</label>
@@ -85,16 +85,21 @@
     {% endif %}
 {% endif %}
 <hr>
-<!--<h4>Surveys</h4>-->
-<!--<div class="row">-->
-<!--</div>-->
+<h4>Surveys</h4>
+<div class="row">
+    <div class="accordion" id="surveyResponsesAccordion">
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    var surveyResponsesAccordion;
+
     $(document).ready(() => {
+        surveyResponsesAccordion = $('#surveyResponsesAccordion');
         bind_events();
-        // get_survey_responses();
+        get_survey_responses();
     });
 
     // Bind event listeners
@@ -113,7 +118,26 @@
             },
             success: function (response) {
                 console.log(response);
+                populate_survey_responses(response.surveys, response.responses);
             }
+        });
+    }
+
+    function get_survey_key(key_and_id, id) {
+        let i = Object.values(key_and_id).indexOf(id);
+        return i >= 0 ? Object.keys(key_and_id)[i] : '(unknown)';
+    }
+
+    function populate_survey_responses(surveys, responses) {
+        $.each(responses, function (i, r) {
+            let e = `<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#response_${i}"">`;
+            e += `${r['@timestamp']} - ${get_survey_key(surveys, r['formId'])}`;
+            e += `</button></h2><div id="response_${i}" class="accordion-collapse collapse" data-bs-parent="#surveyResponsesAccordion"><div class="accordion-body"><table class="table table-sm">`;
+            $.each(r['fields'], function (name, value) {
+                e += `<tr><td>${name}</td><td>${Array.isArray(value) ? value.join('<br>') : value}</td></tr>`;
+            });
+            e += `</table></div></div></div>`;
+            surveyResponsesAccordion.append(e);
         });
     }
 </script>

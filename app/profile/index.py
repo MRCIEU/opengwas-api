@@ -85,7 +85,7 @@ def parse_survey_response(survey_form_key, uuid):
         return "Unable to find the survey."
 
     if raw_response is None:
-        return "Unable to find your response to the survey."
+        return "Unable to find your response to the survey. Please reload this page or if problem persists, consider filling in the same survey form again."
 
     raw_response = json.loads(raw_response)
 
@@ -130,3 +130,14 @@ def parse_survey_response(survey_form_key, uuid):
 
         # return "Your account has been upgraded from Trial to Standard."
         return "Your response has been saved."
+
+
+@profile_index_bp.route('/surveys/responses/list')
+@login_required
+def list_survey_responses():
+    g.user = current_user
+
+    return {
+        'surveys': Globals.SURVEY_FORMS,
+        'responses': [hit['_source'] for hit in get_survey_responses(g.user['uuid'])]
+    }

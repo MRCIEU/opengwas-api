@@ -13,3 +13,27 @@ def save_survey(es_id, response):
         doc_as_upsert=True
     )
     return res
+
+
+def get_survey_responses(uuid):
+    res = Globals.es.search(
+        request_timeout=120,
+        index=surveys_index,
+        body={
+            "sort": [
+                {
+                    "@timestamp": {
+                        "order": "desc"
+                    }
+                }
+            ],
+            "query": {
+                "term": {
+                    "uuid": {
+                        "value": uuid
+                    }
+                }
+            }
+        }
+    )
+    return res['hits']['hits']
