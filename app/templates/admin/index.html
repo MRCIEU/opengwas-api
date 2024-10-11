@@ -201,7 +201,7 @@
     // Bind event listeners
     function bind_events() {
         $(document).on("click", ".timespan-dropdown-item", function () {
-            $("#timespanButton").html($(this)[0].getInnerHTML());
+            $("#timespanButton").html($(this)[0].getHTML());
             focusedYear = $(this)[0].getAttribute("data-year");
             focusedMonth = $(this)[0].getAttribute("data-month")
             load_report();
