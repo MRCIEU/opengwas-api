@@ -11,5 +11,5 @@ def index():
     return flask.render_template('api/index.html',
                                  status=status, elastic_counts=elastic_counts, neo4j_counts=neo4j_counts,
                                  root_url=Globals.app_config['root_url'],
-                                 user_sources=Globals.USER_SOURCES, user_allowance=Globals.ALLOWANCE_BY_USER_SOURCE,
+                                 user_tiers=Globals.USER_TIERS, user_allowance=Globals.ALLOWANCE_BY_USER_TIER,
                                  jwt_validity=int(Globals.JWT_VALIDITY / 86400))

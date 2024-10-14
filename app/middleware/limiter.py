@@ -5,7 +5,7 @@ import datetime
 
 from resources.globals import Globals
 from resources.redis import Redis
-from .auth import get_user_source, get_uid
+from .auth import get_user_tier, get_uid
 
 
 def make_429_response(request_limit: RequestLimit):
@@ -33,13 +33,8 @@ limiter = Limiter(
 
 
 def get_allowance_by_user_source():
-    user_source = get_user_source()
-    try:
-        if g.user['uid'].split('@')[1] == 'bristol.ac.uk':
-            user_source = 'UOB'
-    except:
-        pass
-    return Globals.ALLOWANCE_BY_USER_SOURCE[user_source]
+    user_tier = get_user_tier()
+    return Globals.ALLOWANCE_BY_USER_TIER[user_tier]
 
 
 def get_key_func_uid():

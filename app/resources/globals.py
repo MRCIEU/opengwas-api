@@ -97,6 +97,13 @@ class Globals:
         'NONE': "Unknown (legacy)"
     }
 
+    USER_TIERS = {
+        'NONE': "No allowance",
+        'TRIAL': "Trial",
+        'STANDARD': 'Standard',
+        'UOB': 'UOB'
+    }
+
     MS_ENTRA_ID_AUTHORITY = "https://login.microsoftonline.com/common"
     MS_ENTRA_ID_CLIENT_ID = app_config['providers']['microsoft']['entra_id']['client_id']
     MS_ENTRA_ID_CLIENT_SECRET = app_config['providers']['microsoft']['entra_id']['client_secret']
@@ -125,11 +132,10 @@ class Globals:
     JWT_VALIDITY = 14 * 86400  # seconds
 
     # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
-    ALLOWANCE_BY_USER_SOURCE = {
+    ALLOWANCE_BY_USER_TIER = {
         'UOB': '400000 per 10 minutes',
-        'MS': '100000 per 10 minutes',
-        'GH': '100000 per 10 minutes',
-        'EM': '20000 per 10 minutes',
+        'STANDARD': '100000 per 10 minutes',
+        'TRIAL': '100 per 10 minutes',
         'NONE': '0 per 10 minutes'
     }
 

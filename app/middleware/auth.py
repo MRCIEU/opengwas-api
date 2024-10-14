@@ -56,7 +56,14 @@ def get_uid(error_on_none=False):
     return g.user['uid']
 
 
-def get_user_source(error_on_none=False):
-    if 'user' not in g or 'source' not in g.user:
-        return raise_error('NO_UID_OR_SOURCE') if error_on_none else 'NONE'
-    return g.user['source']
+def get_user_tier(error_on_none=False):
+    if 'user' not in g:
+        return raise_error('NO_UID') if error_on_none else 'NONE'
+    if 'is_trial' in g.user:
+        return 'TRIAL'
+    try:
+        if g.user['uid'].split('@')[1] == 'bristol.ac.uk':
+            return 'UOB'
+    except:
+        pass
+    return 'STANDARD'

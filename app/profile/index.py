@@ -9,6 +9,7 @@ from queries.es_user import *
 from queries.redis_queries import RedisQueries
 from resources import CryptographyTool
 from resources.globals import Globals
+from middleware.auth import get_user_tier
 from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
 
 
@@ -20,7 +21,8 @@ profile_index_bp = Blueprint('index', __name__)
 def index():
     g.user = current_user
     return render_template('profile/index.html', user=current_user, globals_sources=Globals.USER_SOURCES,
-                           allowance_by_user_source=get_allowance_by_user_source(), root_url=Globals.app_config['root_url'])
+                           globals_tiers=Globals.USER_TIERS, user_tier=get_user_tier(),
+                           allowance_by_user_tier=get_allowance_by_user_source(), root_url=Globals.app_config['root_url'])
 
 
 @profile_index_bp.route('/data')

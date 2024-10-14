@@ -97,10 +97,18 @@
 <h4>Allowance <small><a href="{{ root_url + '/api/#allowance' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
 <div class="row">
     <div class="col-auto">
+        <label for="tierInput" class="col-form-label">Tier</label>
+    </div>
+    <div class="col">
+        <input type="text" readonly class="form-control-plaintext" id="tierInput" value="{{ globals_tiers[user_tier] }}">
+    </div>
+</div>
+<div class="row">
+    <div class="col-auto">
         <label for="allowanceLimitInput" class="col-form-label">Allowance</label>
     </div>
     <div class="col">
-        <input type="text" readonly class="form-control-plaintext" id="allowanceLimitInput" value="{{ allowance_by_user_source }}">
+        <input type="text" readonly class="form-control-plaintext" id="allowanceLimitInput" value="{{ allowance_by_user_tier }}">
     </div>
 </div>
 <div class="row">
