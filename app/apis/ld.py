@@ -5,7 +5,7 @@ import time
 from resources.ld import *
 from resources.globals import Globals
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 
 api = Namespace('ld', description="LD operations e.g. clumping, tagging, LD matrices")
@@ -32,7 +32,7 @@ class Clump(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=12):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=12):
             pass
 
         if len(args['rsid']) == 0 or len(args['pval']) == 0 or len(args['rsid']) != len(args['pval']):
@@ -64,7 +64,7 @@ class LdMatrix(Resource):
     @api.expect(parser)
     @api.doc(id='ld_matrix_post')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=18)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=18)
     def post(self):
         args = self.parser.parse_args()
 
@@ -93,7 +93,7 @@ class RefLookup(Resource):
     @api.expect(parser)
     @api.doc(id='ld_reflookup_post')
     @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=2)
+    @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=2)
     def post(self):
         args = self.parser.parse_args()
 

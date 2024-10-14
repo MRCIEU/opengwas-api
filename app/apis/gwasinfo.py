@@ -6,7 +6,7 @@ import os
 import time
 
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 from queries.cql_queries import *
 from resources.globals import Globals
@@ -33,7 +33,7 @@ class Info(Resource):
     @api.doc(model=gwas_info_model, id='gwasinfo_get_all')
     @jwt_required
     def get(self):
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost()):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost()):
             pass
         # if g.user['uid'] is None and os.path.exists(Globals.STATIC_GWASINFO):
         #     return send_file(Globals.STATIC_GWASINFO)
@@ -53,7 +53,7 @@ class Info(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['id'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['id'])):
             pass
 
         start_time = time.time()
@@ -87,7 +87,7 @@ class GetById(Resource):
     def get(self, id):
         ids = id.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(ids)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids)):
             pass
 
         start_time = time.time()

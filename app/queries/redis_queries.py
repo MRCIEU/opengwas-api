@@ -22,7 +22,7 @@ class RedisQueries:
 
     def count_online_users(self) -> int:
         result = 0
-        for _ in self.r.scan_iter(match="*allowance_by_user_source*", count=1000):
+        for _ in self.r.scan_iter(match="*allowance_by_user_tier*", count=1000):
             result += 1
         return result
 

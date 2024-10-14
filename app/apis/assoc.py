@@ -3,7 +3,7 @@ from flask_restx import Resource, reqparse, abort, Namespace
 import time
 
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 from queries.es import *
 
@@ -32,7 +32,7 @@ class AssocGet(Resource):
         ids = id.split(',')  # ''.split(',') == ['']
         variants = variant.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(ids, variants, proxies=1)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids, variants, proxies=1)):
             pass
 
         if ids == [''] or variants == ['']:
@@ -75,7 +75,7 @@ class AssocPost(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['id'], args['variant'], args['proxies'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['id'], args['variant'], args['proxies'])):
             pass
 
         if len(args['id']) == 0 or len(args['variant']) == 0:

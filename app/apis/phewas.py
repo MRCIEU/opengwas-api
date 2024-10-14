@@ -6,7 +6,7 @@ from queries.es import *
 from queries.redis_queries import RedisQueries
 from queries.variants import *
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
@@ -41,7 +41,7 @@ class PhewasGet(Resource):
     def get(self, variant='', pval=1e-3):
         variants = variant.split(',')
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(variants)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(variants)):
             pass
 
         if variants == ['']:
@@ -77,7 +77,7 @@ class PhewasPost(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['variant'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['variant'])):
             pass
 
         start_time = time.time()
@@ -111,7 +111,7 @@ class PhewasFastPost(Resource):
         if args['pval'] > 0.01:
             abort(400)
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['variant'], fast=True)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['variant'], fast=True)):
             pass
 
         start_time = time.time()
@@ -123,7 +123,7 @@ class PhewasFastPost(Resource):
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_response_cost(args['variant'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_response_cost(args['variant'])):
             pass
 
         logger_middleware.log(g.user['uuid'], 'phewas_fast_post', start_time, {'variant': len(args['variant'])},

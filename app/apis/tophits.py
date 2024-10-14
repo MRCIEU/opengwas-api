@@ -7,7 +7,7 @@ from queries.es import *
 from resources.ld import *
 from resources.globals import Globals
 from middleware.auth import jwt_required
-from middleware.limiter import limiter, get_allowance_by_user_source, get_key_func_uid
+from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 
 
@@ -55,7 +55,7 @@ class Tophits(Resource):
     def post(self):
         args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_source, scope='allowance_by_user_source', key_func=get_key_func_uid, cost=_get_cost(args['id'], args['preclumped'], args['clump'])):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['id'], args['preclumped'], args['clump'])):
             pass
 
         if len(args['id']) == 0:
