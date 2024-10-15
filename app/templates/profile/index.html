@@ -95,6 +95,11 @@
 </div>
 <hr>
 <h4>Allowance <small><a href="{{ root_url + '/api/#allowance' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
+{% if user_tier == 'TRIAL' %}
+<div class="alert alert-primary" role="alert">
+    To upgrade your account tier from Trial to Standard, please <a href="{{ url_for('profile.surveys.start_survey', form_id='user_info') }}">update your information</a>.
+</div>
+{% endif %}
 <div class="row">
     <div class="col-auto">
         <label for="tierInput" class="col-form-label">Tier</label>

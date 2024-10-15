@@ -503,6 +503,16 @@ def set_user_names(email, first_name, last_name):
     u.set_names(email, first_name, last_name)
 
 
+def delete_user_trial_tag(email):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (u:User {uid: $email}) SET u.is_trial = NULL RETURN u;",
+        email=email
+    ).single()
+
+    return result.data()
+
+
 def add_org_ms(ms_id, ms_name, ms_domains):
     o = Org(uuid=ms_id)
     o.create_node()
