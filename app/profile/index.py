@@ -1,3 +1,5 @@
+import datetime
+
 from flask import Blueprint, render_template, g
 from flask_login import login_required, current_user
 
@@ -24,7 +26,8 @@ def index():
 def gdpr():
     g.user = current_user
     computed_org, computed_membership = get_org_and_membership_from_user(current_user['uid']) if current_user['group'] == 'ORG' else (None, None)
-    return render_template('profile/data.html', user=current_user, globals_sources=Globals.USER_SOURCES, computed_org=computed_org, computed_membership=computed_membership)
+    return render_template('profile/data.html', user=current_user, created_date_string=' at ' + datetime.datetime.strftime(datetime.datetime.fromtimestamp(g.user['created']).astimezone(), '%Y-%m-%d %H:%M %Z') if 'created' in g.user else '',
+                           globals_sources=Globals.USER_SOURCES, computed_org=computed_org, computed_membership=computed_membership)
 
 
 @profile_index_bp.route('/test_allowance')

@@ -14,7 +14,7 @@
 {% block main %}
 <div class="row">
     <div class="col">
-        <p>Thank you for accepting our Terms of use{{ ' on ' + user['created'] if 'created' in user else '' }}. Here are the information we hold about you:</p>
+        <p>Thank you for accepting our Terms of use{{ created_date_string }}. Here are the information we hold about you:</p>
     </div>
 </div>
 <h4>User</h4>
