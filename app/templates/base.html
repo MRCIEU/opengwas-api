@@ -55,7 +55,10 @@
               <a class="nav-link" href="https://gwas.mrcieu.ac.uk/about" rel="external">about</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active" href="{{ url_for('/') }}">api<span class="visually-hidden">(current)</span></a>
+              <a class="nav-link {{ 'active' if request.endpoint == '/' else '' }}" href="{{ url_for('/') }}">api</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {{ 'active' if request.endpoint.startswith('profile') else '' }}" href="{{ url_for('profile.index.index') }}">account</a>
             </li>
           </ul>
         </div>
