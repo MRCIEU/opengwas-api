@@ -59,11 +59,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <ul class="list-group" style="list-style: none;">
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['Neo4j status'] == 'Available' else 'danger' }}">{{ status['Neo4j status'] }}</span> Neo4j status</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['ElasticSearch status'] == 'Available' else 'danger' }}">{{ status['ElasticSearch status'] }}</span> ElasticSearch status</li>
+                                        <li class=" "><span class="badge badge-{{ 'success' if status['Neo4j'] == 'Available' else 'danger' }}">{{ status['Neo4j'] }}</span> Neo4j status</li>
+                                        <li class=" "><span class="badge badge-{{ 'success' if status['ElasticSearch'] == 'Available' else 'danger' }}">{{ status['ElasticSearch'] }}</span> ElasticSearch status</li>
                                         <li class=" "><span class="badge badge-{{ 'success' if status['LD reference panel'] == 'Available' else 'danger' }}">{{ status['LD reference panel'] }}</span> LD reference panel</li>
                                         <li class=" "><span class="badge badge-{{ 'success' if status['PLINK executable'] == 'Available' else 'danger' }}">{{ status['PLINK executable'] }}</span> PLINK executable</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['Cromwell'] == 'Available' else 'danger' }}">{{ status['Cromwell'] }}</span> Cromwell</li>
+                                        <li class=" "><span class="badge badge-{{ 'success' if status['Airflow'] == 'Available' else 'danger' }}">{{ status['Airflow'] }}</span> Airflow</li>
                                         <li class=" "><span class="badge badge-{{ 'success' if status['1000 genomes annotation VCF'] == 'Available' else 'danger' }}">{{ status['1000 genomes annotation VCF'] }}</span> Population LD scores and frequencies</li>
                                     </ul>
                                 </div>
