@@ -23,7 +23,7 @@ def index():
 
 @profile_index_bp.route('/data')
 @login_required
-def gdpr():
+def subject_data():
     g.user = current_user
     computed_org, computed_membership = get_org_and_membership_from_user(current_user['uid']) if current_user['group'] == 'ORG' else (None, None)
     return render_template('profile/data.html', user=current_user, created_date_string=' at ' + datetime.datetime.strftime(datetime.datetime.fromtimestamp(g.user['created']).astimezone(), '%Y-%m-%d %H:%M %Z') if 'created' in g.user else '',
