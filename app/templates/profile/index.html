@@ -13,7 +13,7 @@
 
 {% block main %}
 <div class="clearfix">
-    <div class="float-start"><h4>User</h4></div>
+    <div class="float-start"><h4>User <small><a href="{{ url_for('profile.index.subject_data') }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle" data-toggle="tooltip" title="Click to view, update or delete the information we hold about you"></i></a></small></h4></div>
     <div class="float-end"><a href="{{ url_for('profile.auth.signout') }}" class="text-danger" data-toggle="tooltip" title="Sign out from this website. Please note your API token (if any) will still be valid.">Sign out</a></div>
 </div>
 <div class="row">
