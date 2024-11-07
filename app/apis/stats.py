@@ -37,6 +37,7 @@ class Overall(Resource):
             'by_source': users_count['by_source'],
             'by_group': users_count['by_group'],
             'has_valid_token': users_count['has_valid_token'],
+            'non_trial': users_count['non_trial'],
             'online': RedisQueries("limiter").count_online_users()
         }
 

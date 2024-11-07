@@ -25,7 +25,7 @@
     <div class="col-7">
         <h6>Users</h6>
         <table class="table table-sm table-borderless">
-            <thead><tr><td>All</td><td>With a valid token</td><td>Used token in the past 10 mins</td></tr></thead>
+            <thead><tr><td>All</td><td>Non-Trial</td><td>With a valid token</td><td>Used token in the past 10 mins</td></tr></thead>
             <tbody><tr id="overallUserTr"></tr></tbody>
         </table>
     </div>
@@ -281,7 +281,7 @@
         }
         overallUserTr.append(`<td>${users['all']}
             <i class="bi bi-info-circle" data-bs-toggle="modal" data-bs-target="#userCompositionModal"></i>
-            </td><td>${users['has_valid_token']}</td><td>${users['online']}</td>`);
+            </td><td>${users['non_trial']}</td><td>${users['has_valid_token']}</td><td>${users['online']}</td>`);
         overallOrgTr.append(`<td>${orgs}</td>`);
     }
 

@@ -459,7 +459,8 @@ def count_users(jwt_timestamp):
     result = {
         'by_source': {},
         'by_group': {},
-        'has_valid_token': 0
+        'has_valid_token': 0,
+        'non_trial': 0
     }
     tx = Neo4j.get_db()
 
@@ -482,6 +483,10 @@ def count_users(jwt_timestamp):
     result['has_valid_token'] = tx.run(
         "MATCH (u:User) WHERE u.jwt_timestamp >= $timestamp RETURN count(u) as count;",
         timestamp=jwt_timestamp
+    ).single()['count']
+
+    result['non_trial'] = tx.run(
+        "MATCH (u:User) WHERE u.is_trial IS NULL RETURN count(u) as count;"
     ).single()['count']
 
     return result
