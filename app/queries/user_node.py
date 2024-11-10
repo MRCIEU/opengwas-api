@@ -25,7 +25,8 @@ class User(UniqueNode, UserMixin):
             'uid': self.get(self._UID_KEY),
             'uuid': self.get('uuid'),
             'created': int(time.time()),
-            'last_signin': int(time.time())
+            'last_signin': int(time.time()),
+            'is_trial': True
         }
 
         params_specific_sign_up = {}
@@ -40,7 +41,7 @@ class User(UniqueNode, UserMixin):
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) " +
-            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific_sign_up.keys()) + list(params_specific_every_time.keys()) + ['created', 'last_signin']]) + " " +
+            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific_sign_up.keys()) + list(params_specific_every_time.keys()) + ['created', 'last_signin', 'is_trial']]) + " " +
             "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific_every_time.keys()) + ['last_signin']]) + ";",
             parameters={**params_common, **params_specific_sign_up, **params_specific_every_time}
         )
