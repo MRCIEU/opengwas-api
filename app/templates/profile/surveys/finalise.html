@@ -56,7 +56,8 @@
         $.ajax({
             url: "/profile/surveys/parse?form=" + formId,
             error: function (xhr) {
-                alert("An error occurred when processing your response. Please reload this page or consider filling in the same survey form again.");
+                alert("An error occurred when processing your response. Please reload this page or consider filling in the same survey form again. Please read the instruction very CAREFULLY and double check that you have ONLY used the following characters in all your responses: A-Z, a-z, 0-9, _, -, (, ) and whitespace. You will now be redirected to your account page.");
+                window.location.href = "{{ url_for('profile.index.index') }}";
             },
             success: function (response) {
                 $('#processingDiv').remove();
