@@ -55,6 +55,12 @@ def test_gene_get1(url, headers):
     assert r.status_code == 200 and len(r.json()) > 15
 
 
+# https://github.com/MRCIEU/opengwas-api/issues/16
+def test_gene_get2(url, headers):
+    r = requests.get(url + "/variants/gene/ENSG00000111684", headers=headers)
+    assert r.status_code == 200 and len(r.json()) > 100
+
+
 def test_rsid_post0(url, headers):
     headers = headers.copy()
     del headers['Authorization']
