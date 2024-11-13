@@ -104,13 +104,22 @@ def range_query(chrpos, radius=0):
             out.append(hits)
     return out
 
+
 def gene_query(name,radius):
     mg = mygene.MyGeneInfo()
     m = mg.getgene(name,'name,symbol,genomic_pos_hg19')
     if m:
-        chr = m['genomic_pos_hg19']['chr']
-        start = int(m['genomic_pos_hg19']['start'])
-        end = int(m['genomic_pos_hg19']['end'])
+        if isinstance(m['genomic_pos_hg19'], dict):
+            pos = m['genomic_pos_hg19']
+        else:  # list (e.g. name=ENSG00000111684)
+            # https://github.com/MRCIEU/opengwas-api/issues/16
+            pos = m['genomic_pos_hg19'][0]
+            for p in m['genomic_pos_hg19'][1:]:
+                if len(p['chr']) < len(pos['chr']):
+                    pos = p
+        chr = pos['chr']
+        start = int(pos['start'])
+        end = int(pos['end'])
         min=0
         if start-radius>0:
             min=start-radius
