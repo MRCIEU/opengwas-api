@@ -411,6 +411,7 @@ def get_todo_quality_control():
     return res
 
 
+# To check whether a user is blocked, use `User.get_node(uid).is_blocked()` instead
 def get_user_by_email(email):
     tx = Neo4j.get_db()
     result = tx.run(

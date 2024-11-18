@@ -2,7 +2,7 @@ import jwt
 import time
 from werkzeug.exceptions import Unauthorized
 
-from queries.cql_queries import get_user_by_email
+from queries.user_node import User
 from resources.globals import Globals
 
 
@@ -30,10 +30,13 @@ def validate_jwt(token):
     except Exception as e:
         raise Unauthorized("Invalid token. Please add your token to the request header. Header name: 'Authorization'. Header value: 'Bearer <your_token>'. To obtain a token, visit https://api.opengwas.io")
 
-    user = get_user_by_email(payload['sub'])
-    if user is None:
-        raise Unauthorized("User does not exist or has been deactivated.")
-    user = user.data()['u']
+    try:
+        user = User.get_node(payload['sub'])
+    except LookupError:
+        raise Unauthorized("User does not exist.")
+    except Exception:
+        raise Unauthorized("Unknown error.")
+
     if 'jwt_timestamp' not in user:
         raise Unauthorized("Please generate a new token.")
 
