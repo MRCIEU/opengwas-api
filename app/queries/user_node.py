@@ -63,3 +63,6 @@ class User(UniqueNode, UserMixin):
     # Overwrites UserMixin.get_id()
     def get_id(self):
         return str(self[self._UID_KEY])
+
+    def is_blocked(self):
+        return int(self.get('blocked_until', 0)) > int(time.time())

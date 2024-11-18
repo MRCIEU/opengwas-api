@@ -20,6 +20,8 @@ def jwt_required(f):
     def _decorator(*args, **kwargs):
         if request.headers.get('Authorization') is not None:
             g.user = validate_jwt(request.headers.get('Authorization', '').replace("Bearer ", ""))
+            if g.user.is_blocked():
+                return raise_error('INVALID_ACCOUNT')
         elif request.headers.get('X-TEST-MODE-KEY', 'default_value') == Globals.app_config['test']['static_token']:
             g.user = get_user_by_email(Globals.app_config['test']['uid']).data()['u']
         else:

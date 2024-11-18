@@ -1,5 +1,6 @@
-from functools import wraps
+from flask import flash, redirect, url_for
 from flask_login import LoginManager, login_user, current_user, logout_user
+from functools import wraps
 
 from queries.user_node import User
 
@@ -9,11 +10,16 @@ login_manager.login_view = '/'
 
 @login_manager.user_loader
 def load_user(uid):
-    return User.get_node(uid)
+    user = User.get_node(uid)
+    return None if user.is_blocked() else user
 
 
 def signin_user(user):
-    user = load_user(user['uid'])
+    uid = user['uid']
+    user = load_user(uid)
+    if user is None:
+        flash('Please try again. UID: ' + uid, 'danger')
+        return redirect(url_for('/'))
     login_user(user)
     return current_user
 
