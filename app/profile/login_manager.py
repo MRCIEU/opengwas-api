@@ -18,7 +18,7 @@ def signin_user(user):
     return current_user
 
 
-def sign_out_user():
+def signout_user():
     logout_user()
 
 

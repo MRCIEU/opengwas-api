@@ -1,4 +1,4 @@
-from flask import current_app, Blueprint, url_for, request, redirect, flash,session
+from flask import current_app, Blueprint, url_for, request, redirect, flash, session
 import time
 import json
 import datetime
@@ -294,6 +294,6 @@ def _create_or_update_user_from_user_input(email, first_name, last_name, source,
 
 @profile_auth_bp.route('/signout')
 def signout():
-    sign_out_user()
+    signout_user()
     flash('You have signed out successfully. Please note your API token (if any) is still valid.')
     return redirect(url_for('/'))
