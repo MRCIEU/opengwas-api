@@ -138,7 +138,7 @@
                         <p>The allowance is reset periodically and the clock starts at your first request. E.g. if the allowance is "1000 per 10 minutes" and you made your first request at 09:41:19, your allowance will be reset to 1000 at 09:51:19. Your real-time allowance information is available on your <a href="{{ root_url }}/profile">account</a> page, or in the response header (X-Allowance-* and Retry-After) of every request, except for those endpoints of which the cost is 0.</p>
                         <p><u>Resetting your token (JWT) will not reset your allowance.</u> If you have run out of allowance, you have to wait until the next period. If you insist sending requests and accumulate '429 Too Many Requests' errors, you account and IP address may be blocked for up to a week.</p>
                         <p>What's my allowance?</p>
-                        <p>During your first sign-in we will infer whether you are a Personal or Organisational user. (1) For Personal users, you will be in the 'Trial' tier which only offers limited allowance. Please follow the instructions on you account page to upgrade you account to Standard. (2) Organisational users will be in the 'Standard' tier by default.</p>
+                        <p>After your first sign-in you will be in the 'Trial' tier which only offers limited allowance. Please follow the instructions on you account page to upgrade you account to Standard.</p>
                         <table class="table table-sm">
                             <thead><tr><td><b>User tier</b></td><td><b>Allowance (free credits)</b></td></tr></thead>
                             <tbody>
