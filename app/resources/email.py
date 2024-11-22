@@ -17,7 +17,11 @@ class Email:
         email = Message("Your temporary sign in link - IEU OpenGWAS", sender=("IEU OpenGWAS", "ieu-opengwas@bristol.ac.uk"), recipients=[email_address])
         email.html = 'Dear researcher,<br><br>Please visit this link to sign in to OpenGWAS: <br><br><a href="{}">{}</a><br><br>The link is valid until {}.<br><br>IEU OpenGWAS<br>University of Bristol'.format(link, link, expiry_str)
 
-        self.mail.send(email)
+        try:
+            self.mail.send(email)
+        except Exception as e:
+            print(e)
+            raise Exception("Unable to send email. Please contact us.")
 
         result = {
             'message': "An email has been sent to {} - please check your junk folder, or contact us if you have not received anything after three attempts. The link will be valid until {}.".format(email_address, expiry_str)
