@@ -189,12 +189,10 @@ def send_email(email, first_name=None, last_name=None):
     link, expiry = _generate_email_signin_link(email, first_name, last_name)
     expiry_str = datetime.datetime.strftime(datetime.datetime.fromtimestamp(expiry).astimezone(), '%Y-%m-%d %H:%M:%S %Z')
 
-    @limiter.limit('3 per day', scope='send_email_per_recipient', key_func=lambda: email)  # Max number of requests per IP per recipient email address
-    def __send():
-        return Email().send_signin_email(link, email, expiry_str)
-
     try:
-        result = __send()
+        with limiter.limit('3 per day', scope='send_email_per_recipient', key_func=lambda: email):
+            # Max number of requests per IP per recipient email address
+            result = Email().send_signin_email(link, email, expiry_str)
     except Exception as e:
         return {
             'message': "Failed to send email. Please try again later or contact us. Details: " + str(e)
