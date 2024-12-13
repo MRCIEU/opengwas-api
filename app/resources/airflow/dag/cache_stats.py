@@ -5,7 +5,7 @@ from airflow.models import Variable
 from airflow.operators.http_operator import SimpleHttpOperator
 
 
-@dag(tags=['gwas'], schedule_interval='*/5 * * * *', start_date=datetime(2024, 8, 31, 20, 45))
+@dag(tags=['gwas'], schedule_interval='0 * * * *', start_date=datetime(2024, 12, 12, 23, 0))
 def cache_stats():
     timeouts = {
         'cache_stats_mvd': 300,

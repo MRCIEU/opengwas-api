@@ -5,7 +5,7 @@ from airflow.models import Variable
 from airflow.operators.http_operator import SimpleHttpOperator
 
 
-@dag(tags=['gwas'], schedule_interval='*/2 * * * *', start_date=datetime(2024, 8, 22, 8, 40))
+@dag(tags=['gwas'], schedule_interval='*/5 * * * *', start_date=datetime(2024, 12, 12, 22, 40))
 def callback():
     timeouts = {
         'refresh_added_by_status': 60
