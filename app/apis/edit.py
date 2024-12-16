@@ -13,7 +13,7 @@ import marshmallow.exceptions
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest
 
-from middleware.auth import jwt_required, check_role
+from middleware.auth import jwt_required, check_role, check_role_is_sufficient
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
 from resources.airflow import Airflow
