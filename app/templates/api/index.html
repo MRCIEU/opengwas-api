@@ -154,7 +154,7 @@
                             <thead><tr><td><b>Endpoint</b></td><td width="40%"><b>Cost per request</b></td><td><b>Conditions and notes</b></td></tr></thead>
                             <tbody>
                                 <tr><td>/status, /batches, /users</td><td>0 (no cost, but still subject to fair-use policy)</td><td></td></tr>
-                                <tr><td>/gwasinfo</td><td>1<br>50</td><td>1 &le; N<sub>id</sub> &le; 100<br>100 &lt; N<sub>id</sub> or no id is specified</td></tr>
+                                <tr><td>/gwasinfo<br><br>/gwasinfo/files</td><td>1<br>50<br>N<sub>id</sub> &times; 1000</td><td>1 &le; N<sub>id</sub> &le; 100<br>100 &lt; N<sub>id</sub> or no id is specified</td></tr>
                                 <tr><td>/associations</td><td>max(N<sub>id</sub>, N<sub>variant</sub>)<br>max(N<sub>id</sub>, N<sub>variant</sub>) &times; 5</td><td><br>proxies = 1</td></tr>
                                 <tr><td>/tophits</td><td>N<sub>id</sub><br>N<sub>id</sub> &times; 10<br>N<sub>id</sub> &times; 30</td><td>clump = 1 (use preclumped data)<br>clump = 0 (return all records)<br>clump = 1 (requires new clumping)</td></tr>
                                 <tr><td>/ld/clump<br>/ld/matrix<br>/ld/reflookup</td><td>12<br>18<br>2</td><td></td></tr>
