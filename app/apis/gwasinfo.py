@@ -10,6 +10,7 @@ from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func
 from middleware.logger import logger as logger_middleware
 from queries.cql_queries import *
 from resources.globals import Globals
+from resources.oci import OCI
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 logger = logging.getLogger('debug-log')
@@ -18,10 +19,13 @@ api = Namespace('gwasinfo', description="Get information about available GWAS su
 gwas_info_model = api.model('GwasInfo', GwasInfoNodeSchema.get_flask_model())
 
 
-def _get_cost(ids=None):
-    if ids is None or len(ids) > 100:
-        return 50
-    return 1
+def _get_cost(ids=None, files=0):
+    if files == 0:
+        if ids is None or len(ids) > 100:
+            return 50
+        return 1
+    else:
+        return len(ids) * 1000
 
 
 @api.route('')
@@ -104,3 +108,42 @@ class GetById(Resource):
 
         logger_middleware.log(g.user['uuid'], 'gwasinfo_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
         return recs
+
+
+@api.route('/files/<id>')
+@api.doc(description="For each dataset specified, get the list of permitted files and the base URL for download")
+class GetFilesByID(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
+    @api.doc(model=gwas_info_model, id='gwasinfo_files_get')
+    @jwt_required
+    def get(self, id):
+        ids = id.split(',')
+
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids, 1)):
+            pass
+
+        start_time = time.time()
+
+        try:
+            recs = []
+            for gwas_info_id in ids:
+                try:
+                    recs.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
+                except LookupError:
+                    continue
+        except LookupError:
+            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
+
+        result = {}
+
+        oci = OCI()
+        for rec in recs:
+            result[rec['id']] = [oci.object_storage_par_create('data', path, 'ObjectRead', 'Deny', 3600 * 2, g.user['uuid'] + '.' + rec['id'])
+                                 for path in oci.object_storage_list('data', rec['id'] + '/')
+                                 if path.endswith(('.vcf.gz', '.vcf.gz.tbi', '_report.html'))]
+
+
+        logger_middleware.log(g.user['uuid'], 'gwasinfo_files_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
+        return result
