@@ -76,3 +76,15 @@ def test_gwasinfo_get3(url, headers):
 def test_gwasinfo_get4(url, headers):
     r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-998,ieu-b-5008", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
+
+
+def test_gwasinfo_files_get0(url, headers):
+    headers = headers.copy()
+    del headers['Authorization']
+    r = requests.get(url + "/gwasinfo/files/ieu-a-2,ieu-a-998,ieu-b-5008", headers=headers)
+    assert r.status_code == 401
+
+
+def test_gwasinfo_files_get1(url, headers):
+    r = requests.get(url + "/gwasinfo/files/ieu-a-2,ieu-a-998,ieu-b-5008", headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 2
