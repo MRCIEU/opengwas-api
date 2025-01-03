@@ -194,8 +194,8 @@ class Release(Resource):
 
                 set_added_by_state_of_any_gwas(req['id'], 4)
 
-                for file_name in oci.object_storage_list('upload', req['id'] + '/'):
-                    oci_copy = oci.object_storage_copy('upload', req['id'] + '/' + file_name, 'data', req['id'] + '/' + file_name)
+                for path in oci.object_storage_list('upload', req['id'] + '/'):
+                    oci_copy = oci.object_storage_copy('upload', path, 'data', path)
 
                 if Globals.app_config['env'] == 'production':
                     # update GI cache
