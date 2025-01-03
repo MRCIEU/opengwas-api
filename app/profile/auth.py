@@ -190,7 +190,7 @@ def send_email(email, first_name=None, last_name=None):
     expiry_str = datetime.datetime.strftime(datetime.datetime.fromtimestamp(expiry).astimezone(), '%Y-%m-%d %H:%M:%S %Z')
 
     try:
-        with limiter.limit('3 per day', scope='send_email_per_recipient', key_func=lambda: email):
+        with limiter.limit('1 per 5 minutes, 3 per day', scope='send_email_per_recipient', key_func=lambda: email, error_message="Please CHECK YOUR JUNK/SPAM FOLDER and wait for 5 minutes before trying again."):
             # Max number of requests per IP per recipient email address
             result = Email().send_signin_email(link, email, expiry_str)
     except Exception as e:
