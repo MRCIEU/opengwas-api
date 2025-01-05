@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource
 import requests
+from requests.auth import HTTPBasicAuth
 import os
 import json
 
@@ -64,23 +65,24 @@ def check_plink():
 
 
 def count_elastic_records():
-    url = 'http://' + Globals.app_config['es']['host'] + ':' + str(Globals.app_config['es']['port']) + '/_stats/docs'
+    url = Globals.app_config['es']['scheme'] + "://" + Globals.app_config['es']['host'] + ':' + str(Globals.app_config['es']['port']) + '/_stats/docs'
     try:
-        out = requests.get(url).json()['_all']['primaries']['docs']['count']
+        out = requests.get(url, auth=HTTPBasicAuth('elastic', Globals.app_config['es']['password'])).json()['_all']['primaries']['docs']['count']
         return out
     except Exception as e:
         return None
 
+
 # TODO: This doesn't work
 # curl -XPOST 'localhost:9200/logstash*/_search' -H 'Content-Type: application/json' -d '{"_source":"/var/www/api/mr-base-api/app/logs/mrbaseapi.log","size":0, "query": { "bool": {"filter": { "range": { "@timestamp": {"gte": "now-30d", "lte": "now"}}}}}, "aggs" : {"api-calls" : {"date_histogram" : {"field" : "@timestamp","interval" : "day"}}}}' | jq '.aggregations."api-calls".buckets'
 def count_elastic_calls(epoch='30d'):
-    url = 'http://' + Globals.app_config['es']['host'] + ':' + str(
+    url = Globals.app_config['es']['scheme'] + "://" + Globals.app_config['es']['host'] + ':' + str(
         Globals.app_config['es']['port']) + "/logstash*/_search"
 
     payload = {"_source": "/var/www/api/mr-base-api/app/logs/mrbaseapi.log", "size": 0,
                "query": {"bool": {"filter": {"range": {"@timestamp": {"gte": "now-" + epoch, "lte": "now"}}}}},
                "aggs": {"api-calls": {"date_histogram": {"field": "@timestamp", "interval": "day"}}}}
-    r = requests.post(url, data=payload, headers={"Content-Type": "application/json"})
+    r = requests.post(url, data=payload, headers={"Content-Type": "application/json"}, auth=HTTPBasicAuth('elastic', Globals.app_config['es']['password']))
     return (r)
 
 
@@ -103,11 +105,11 @@ def count_cache_datasets():
 
 
 def check_elastic():
-    url = 'http://' + Globals.app_config['es']['host'] + ':' + str(
+    url = Globals.app_config['es']['scheme'] + "://" + Globals.app_config['es']['host'] + ':' + str(
         Globals.app_config['es']['port']) + '/_cluster/health?pretty'
     count_elastic_records()
     try:
-        out = requests.get(url).json()
+        out = requests.get(url, auth=HTTPBasicAuth('elastic', Globals.app_config['es']['password'])).json()
         if out['status'] == 'red':
             return "Unavailable"
         else:
