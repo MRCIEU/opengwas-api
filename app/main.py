@@ -82,7 +82,7 @@ setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=
 print("Starting MRB API v{}".format(Globals.VERSION))
 app = flask.Flask(__name__, static_folder="static")
 
-app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
+# app.wsgi_app = LoggerMiddleWare(app.wsgi_app)
 
 app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
 app.config['MAX_CONTENT_LENGTH'] = 1.5e+9
