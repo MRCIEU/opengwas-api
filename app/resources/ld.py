@@ -8,6 +8,12 @@ from resources.globals import Globals
 logger = logging.getLogger('debug-log')
 
 
+def execute_command(command):
+    if os.environ.get('ENV') == 'production':
+        command = '({}) > /dev/null 2>&1'.format(command)
+    os.system(command)
+
+
 def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb, pop="EUR"):
     try:
         start = time.time()
@@ -30,7 +36,7 @@ def plink_clumping_rs(upload_folder, rsid, pval, p1, p2, r2, kb, pop="EUR"):
                   " --out {7}".format(Globals.PLINK, Globals.LD_REF[pop], filename, p1, p2, r2, kb, filename)
 
         logger.debug(command)
-        os.system(command)
+        execute_command(command)
 
         filename_c = filename + ".clumped"
         words = []
@@ -81,13 +87,13 @@ def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
               " --make-just-bim" \
               " --out {3}".format(Globals.PLINK, Globals.LD_REF[pop], filename, filename)
         logger.debug(cmd)
-        os.system(cmd)
+        execute_command(cmd)
         cmd = "cut -d ' ' -f 1 " + filenameb + " > " + filenamek
         logger.debug(cmd)
-        os.system(cmd)
+        execute_command(cmd)
         cmd = "awk '{OFS=\"\"; print $2, \"_\", $5, \"_\", $6 }' " + filenameb + " > " + filenameka
         logger.debug(cmd)
-        os.system(cmd)
+        execute_command(cmd)
         logger.debug("found")
         command = "{0}" \
                   " --silent" \
@@ -97,7 +103,7 @@ def plink_ldsquare_rs(upload_folder, snps, pop='EUR'):
                   " --out {3}".format(Globals.PLINK, Globals.LD_REF[pop], filenamek, filename)
 
         logger.debug(command)
-        os.system(command)
+        execute_command(command)
         filename_c = filename + ".ld"
         if not os.path.isfile(filename_c):
             logger.debug("no file found")
@@ -135,7 +141,7 @@ def ld_ref_lookup(upload_folder, snps, pop='EUR'):
         tfile.close()
         cmd = "fgrep -wf {0} {1}.bim | awk '{{print $2}}' > {2}".format(filename, Globals.LD_REF[pop], filename_out)
         logger.debug(cmd)
-        os.system(cmd)
+        execute_command(cmd)
         with open(filename_out, "r") as f:
             snplist = list(filter(None, f.read().split("\n")))
 
