@@ -149,6 +149,10 @@ def check_phewas_fast():
         r = requests.post(url + '/', auth=auth, timeout=15)
         if r.status_code == 200:
             return "Available"
-    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
-        pass
+        else:
+            print("PheWAS proxy status code: {}".format(r.status_code))
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+        print("PheWAS proxy error: {}".format(e))
+    except Exception as e:
+        print("PheWAS proxy error: {}".format(e))
     return "Unavailable"
