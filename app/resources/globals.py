@@ -71,7 +71,7 @@ class Globals:
     )
 
     # connect to elasticsearch
-    es = Elasticsearch([f"{app_config['es']['scheme']}://elastic:{app_config['es']['password']}@{app_config['es']['host']}:{app_config['es']['port']}"], verify_certs=False)
+    es = Elasticsearch([f"http://elastic:{app_config['es']['password']}@{app_config['es']['host']}:{app_config['es']['port']}"], verify_certs=False)
 
     all_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
     public_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
