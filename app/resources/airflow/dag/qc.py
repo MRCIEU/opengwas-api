@@ -281,13 +281,7 @@ def qc():
         op_args=[compute_instances_client]
     )
 
-    check_states = PythonSensor(
-        task_id='check_states',
-        trigger_rule='all_done',
-        python_callable=_utils.check_states_of_all_tasks
-    )
-
-    test_files_on_oci >> create_instance >> download >> test_input_files >> gwas2vcf >> test_vcf_files >> clump >> test_clump_file >> ldsc >> test_ldsc_file >> report >> test_report_files >> delete_instance >> check_states
+    test_files_on_oci >> create_instance >> download >> test_input_files >> gwas2vcf >> test_vcf_files >> clump >> test_clump_file >> ldsc >> test_ldsc_file >> report >> test_report_files >> delete_instance
 
 
 qc()

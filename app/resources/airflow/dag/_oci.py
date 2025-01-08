@@ -44,7 +44,7 @@ def launch_instance(instance_client, display_name) -> str:
                 memory_in_gbs=8),
             source_details=oci.core.models.InstanceSourceViaImageDetails(
                 source_type="image",
-                boot_volume_size_in_gbs=55,
+                boot_volume_size_in_gbs=65,
                 image_id=Variable.get('OCI_IMAGE_ID')),
         ),
     )
