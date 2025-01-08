@@ -91,10 +91,11 @@ def download_gwas_pos_prefix_indices():
 
 
 def query_all_ids_and_batches():
+    t0 = time.time()
     Globals.all_ids = get_all_gwas_ids_by_n_id()
     Globals.all_batches = list(set(['-'.join(gwas_id.split('-', 2)[:2]) for gwas_id in Globals.all_ids.values()]))
     # Globals.public_batches = get_public_batches_prefix()
-    print('Loaded all_ids_and_batches')
+    print(f"Loaded all_ids_and_batches in {time.time() - t0} seconds")
 
 
 setup_event_logger('event-log', Globals.LOG_FILE)
