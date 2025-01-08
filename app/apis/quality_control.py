@@ -90,7 +90,7 @@ class TaskStatus(Resource):
         airflow = Airflow()
         dag_run = airflow.get_dag_run('qc', gwas_id)
         if dag_run['state'] != 'success':
-            return {"message": "The QC has failed so the dataset cannot be submitted for approval"}
+            return {"message": "The QC has failed so the dataset cannot be submitted for approval"}, 400
 
         set_added_by_state_of_any_gwas(gwas_id, 3)
 
@@ -181,7 +181,7 @@ class Release(Resource):
                 # assert r.json()['status'] == "Submitted"
                 # logger.info("Submitted {} to workflow".format(r.json()['id']))
 
-                airflow = Airflow().post_dag_run('release', req['id'], {
+                airflow = Airflow().trigger_dag_run('release', req['id'], {
                     'url': oci.object_storage_par_create('upload', req['id'], 'AnyObjectReadWrite', 'Deny', 3600 * 4, req['id'] + '.es'),
                     'gwas_id': req['id'],
                     'index': index,

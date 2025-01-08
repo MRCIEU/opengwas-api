@@ -258,12 +258,12 @@ class TaskState(Resource):
             },
             'dags': {
                 'qc': {
-                    'dag_run': airflow.get_dag_run('qc', gwas_id, True),
-                    'task_instances': airflow.get_task_instances('qc', gwas_id)['tasks']
+                    'dag_run': airflow.get_dag_run('qc', gwas_id, allow_not_found=True),
+                    'task_instances': airflow.get_task_instances('qc', gwas_id, allow_not_found=True)['tasks']
                 },
                 'release': {
-                    'dag_run': airflow.get_dag_run('release', gwas_id, True),
-                    'task_instances': airflow.get_task_instances('release', gwas_id)['tasks']
+                    'dag_run': airflow.get_dag_run('release', gwas_id, allow_not_found=True),
+                    'task_instances': airflow.get_task_instances('release', gwas_id, allow_not_found=True)['tasks']
                 }
             }
         }
@@ -581,7 +581,7 @@ class Upload(Resource):
             # assert r.json()['status'] == "Submitted"
             # logger.info("Submitted {} to workflow".format(r.json()['id']))
 
-            airflow = Airflow().post_dag_run('qc', args['id'], {
+            airflow = Airflow().trigger_dag_run('qc', args['id'], {
                 'url': oci.object_storage_par_create('upload', args['id'], 'AnyObjectReadWrite', 'Deny', 3600 * 36, args['id'] + '.qc'),
                 'gwas_id': args['id'],
                 'cohort_cases': g_node.get('ncase', None),

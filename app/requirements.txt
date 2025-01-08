@@ -2,6 +2,7 @@ aniso8601==10.0.1
 anonymizeip==1.0.0
 anyio==4.10.0
 apache-airflow-client==2.10.0
+apache-airflow-client==3.1.3
 async-timeout==5.0.1
 atomicwrites==1.4.1
 attrs==25.3.0
