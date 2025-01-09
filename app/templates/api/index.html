@@ -40,43 +40,24 @@
                 </div>
                 <div class="col-md-9 js-toc-content">
                     <section id="heading">
-                        <h3>API status</h3>
+                        <h3>System status and maintenance schedule</h3>
                         <div class="jumbotron" style="padding: 20px;">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <ul class="list-group" style="list-style: none;">
-                                        <li class=" "><span class="badge badge-success">{{ status['API version'] }}</span> Version</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['Access'] == 'public' else 'danger' }}">{{ status['Access'] }}</span> Access level</li>
-                                    </ul>
-                                    <p>
-                                        {% if elastic_counts %}
-                                            <span class="badge badge-success">{{ "{:,}".format(elastic_counts) }}</span> genetic associations<br/>
-                                        {% endif %}
-                                        {% if neo4j_counts %}
-                                            <span class="badge badge-success">{{ "{:,}".format(neo4j_counts) }}</span> GWAS summary datasets.
-                                        {% endif %}
-                                    </p>
+                                    To check system status, visit:<br>
+                                    <a class="btn btn-link btn-sm" href="{{ url_for('api.status_status') }}" target="_blank" role="button">/api/status</a> (throttle applies)
                                 </div>
                                 <div class="col-md-6">
-                                    <ul class="list-group" style="list-style: none;">
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['Neo4j'] == 'Available' else 'danger' }}">{{ status['Neo4j'] }}</span> Neo4j status</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['ElasticSearch'] == 'Available' else 'danger' }}">{{ status['ElasticSearch'] }}</span> ElasticSearch status</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['LD reference panel'] == 'Available' else 'danger' }}">{{ status['LD reference panel'] }}</span> LD reference panel</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['PLINK executable'] == 'Available' else 'danger' }}">{{ status['PLINK executable'] }}</span> PLINK executable</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['Airflow'] == 'Available' else 'danger' }}">{{ status['Airflow'] }}</span> Airflow</li>
-                                        <li class=" "><span class="badge badge-{{ 'success' if status['1000 genomes annotation VCF'] == 'Available' else 'danger' }}">{{ status['1000 genomes annotation VCF'] }}</span> Population LD scores and frequencies</li>
-                                    </ul>
+                                    To check uptime and maintenance schedule, visit:<br>
+                                    <a class="btn btn-link btn-sm" href="https://status.opengwas.io" target="_blank" role="button">https://status.opengwas.io</a>
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col">
                                 <p class="lead text-left">
-                                    <a class="btn btn-warning btn-lg" href="{{ url_for('api.doc') }}" target="_blank" role="button"><span class="glyphicon glyphicon-star"></span>Documentation</a>
-                                    {% if status['Access'] == 'private' %}
-                                        <a class="btn btn-warning btn-lg" href="https://ieugit-scmv-d0.epi.bris.ac.uk/ml18692/igd-upload-docs" role="button">Upload instructions</a>
-                                    {% endif %}
-                                    <a class="btn btn-secondary btn-lg" href="https://gwas.mrcieu.ac.uk" role="button">GWAS home page</a>
+                                    <a class="btn btn-warning btn-lg" href="{{ url_for('api.doc') }}" target="_blank" role="button"><span class="glyphicon glyphicon-star"></span>API Documentation</a>
+                                    <a class="btn btn-secondary btn-lg" href="https://gwas.mrcieu.ac.uk" role="button">OpenGWAS Website</a>
                                 </p>
                             </div>
                         </div>
