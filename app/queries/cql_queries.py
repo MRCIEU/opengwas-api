@@ -349,17 +349,17 @@ def get_groups_for_user(uid):
 """ Get GwasInfo from list of studies given user permission"""
 
 
-def get_permitted_studies(uid, gwas_info_ids: list):
-    assert isinstance(gwas_info_ids, list)
-    gwas_info_ids_str = []
-    for i in gwas_info_ids:
-        gwas_info_ids_str.append(str(i))
+def get_permitted_studies(uid, gwasinfo_ids: list):
+    assert isinstance(gwasinfo_ids, list)
+    gwasinfo_ids_str = []
+    for i in gwasinfo_ids:
+        gwasinfo_ids_str.append(str(i))
     schema = GwasInfoNodeSchema()
     group_names = get_groups_for_user(uid)
     tx = Neo4j.get_db()
     results = tx.run(
         "MATCH (g:Group)-[:ACCESS_TO]->(s:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) WHERE g.name IN $group_names AND s.id IN $sid RETURN distinct(s) as s;",
-        group_names=list(group_names), sid=gwas_info_ids_str
+        group_names=list(group_names), sid=gwasinfo_ids_str
     )
     res = {}
     for result in results:
@@ -385,11 +385,12 @@ def add_quality_control(user_email, gwasinfo_id, data_passed, comment=None):
         'gwas_id_n': gwasinfo.data()[0]['gwas_id_n'],
     }
 
-def delete_quality_control(gwas_info_id):
+
+def delete_quality_control(gwasinfo_id):
     tx = Neo4j.get_db()
     tx.run(
         "MATCH (gi:GwasInfo {id:$gwas_id})-[r:DID_QC]->(:User) DELETE r;",
-        gwas_id=str(gwas_info_id)
+        gwas_id=str(gwasinfo_id)
     )
 
 
