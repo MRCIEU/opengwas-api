@@ -13,7 +13,6 @@ from middleware.logger import logger as logger_middleware
 from queries.cql_queries import get_permitted_studies
 from queries.es import organise_variants
 from queries.mysql_queries import MySQLQueries
-from queries.variants import snps
 from resources.globals import Globals
 
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
@@ -110,15 +109,15 @@ def run_phewas(user_email, variants, pval, batch_list=None):
     chrpos_by_chr_id = defaultdict(set)
 
     if len(rsid) > 0:
-        total, hits = snps(rsid)
-        for doc in hits:
-            chrpos_by_chr_id[int(mysql_queries.non_numeric_chr.get(doc['_source']['CHR'], doc['_source']['CHR']))].add(doc['_source']['POS'])
+        snps = mysql_queries.get_snps_by_rsid(rsid)
+        for s in snps:
+            chrpos_by_chr_id[int(s['chr_id'])].add(s['pos'])
     if len(chrpos) > 0:
         for cp in chrpos:
-            chrpos_by_chr_id[int(mysql_queries.non_numeric_chr.get(cp['chr'], cp['chr']))].add(cp['start'])
+            chrpos_by_chr_id[int(mysql_queries._encode_chr(cp['chr']))].add(cp['start'])
     if len(cprange) > 0:
         for cpr in cprange:
-            chrpos_by_chr_id[int(mysql_queries.non_numeric_chr.get(cpr['chr'], cpr['chr']))].add((cpr['start'], cpr['end']))
+            chrpos_by_chr_id[int(mysql_queries._encode_chr(cpr['chr']))].add((cpr['start'], cpr['end']))
 
     time_mysql_start = time.time()
     results_using_gwas_node_ids = mysql_queries.get_phewas_by_chrpos(dict(chrpos_by_chr_id), -math.log10(pval))
@@ -143,7 +142,7 @@ def run_phewas(user_email, variants, pval, batch_list=None):
             result.append({
                 'id': gwas_ids_by_node_ids_permitted[r['gwas_id_n']],
                 'trait': gwasinfo_permitted[gwas_ids_by_node_ids_permitted[r['gwas_id_n']]]['trait'],
-                'chr': str(r['chr_id']) if r['chr_id'] <= 23 else mysql_queries.non_numeric_chr_reverse[r['chr_id']],
+                'chr': mysql_queries._decode_chr(r['chr_id']),
                 'position': r['pos'],
                 'rsid': r['snp_id'],
                 'ea': r['ea'],

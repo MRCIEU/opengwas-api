@@ -38,7 +38,7 @@ def organise_variants(variants):
     out = {
         'rsid': [x for x in variants if re.match(rsreg, x)],
         'chrpos': parse_chrpos([x for x in variants if re.match(crreg, x)]),
-        'cprange': parse_chrpos([x for x in variants if re.match(cpreg, x)])
+        'cprange': parse_chrpos([x for x in variants if re.match(cpreg, x)]),
     }
     return out
 
@@ -63,61 +63,61 @@ def add_trait_to_result(res, study_data):
     return res
 
 
-def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes, maf_threshold):
-    variants = organise_variants(variants)
-    study_data = get_permitted_studies(user_email, id)
-    id_access = list(study_data.keys())
-    if len(id_access) == 0:
-        return []
-
-    rsid = variants['rsid']
-    chrpos = variants['chrpos']
-    cprange = variants['cprange']
-
-    allres = []
-    if len(rsid) > 0:
-        if proxies == 0:
-            logger.debug("not using LD proxies")
-            try:
-                allres += elastic_query_rsid(rsid=rsid, studies=id_access)
-            except Exception as e:
-                logging.error("Could not obtain summary stats: {}".format(e))
-                flask.abort(503, e)
-        else:
-            logger.debug("using LD proxies")
-            try:
-                proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
-                proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
-                proxy_query = elastic_query_rsid(rsid=proxies, studies=id_access)
-                res = []
-                # Need to fix this
-                if proxy_query != '[]':
-                    res = extract_proxies_from_query(id, rsid, proxy_dat, proxy_query, maf_threshold, align_alleles)
-                allres += res
-            except Exception as e:
-                logging.error("Could not obtain summary stats: {}".format(e))
-                flask.abort(503, e)
-
-    if len(chrpos) > 0:
-        logger.debug("not using LD proxies")
-        try:
-            res = elastic_query_chrpos(chrpos=chrpos, studies=id_access)
-            allres += res
-        except Exception as e:
-            logging.error("Could not obtain summary stats: {}".format(e))
-            flask.abort(503, e)
-
-    if len(cprange) > 0:
-        logger.debug("not using LD proxies")
-        try:
-            res = elastic_query_cprange(cprange=cprange, studies=id_access)
-            allres += res
-        except Exception as e:
-            logging.error("Could not obtain summary stats: {}".format(e))
-            flask.abort(503, e)
-
-    allres = add_trait_to_result(allres, study_data)
-    return allres
+# def get_assoc(user_email, variants, id, proxies, r2, align_alleles, palindromes, maf_threshold):
+#     variants = organise_variants(variants)
+#     study_data = get_permitted_studies(user_email, id)
+#     id_access = list(study_data.keys())
+#     if len(id_access) == 0:
+#         return []
+#
+#     rsid = variants['rsid']
+#     chrpos = variants['chrpos']
+#     cprange = variants['cprange']
+#
+#     allres = []
+#     if len(rsid) > 0:
+#         if proxies == 0:
+#             logger.debug("not using LD proxies")
+#             try:
+#                 allres += elastic_query_rsid(rsid=rsid, studies=id_access)
+#             except Exception as e:
+#                 logging.error("Could not obtain summary stats: {}".format(e))
+#                 flask.abort(503, e)
+#         else:
+#             logger.debug("using LD proxies")
+#             try:
+#                 proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
+#                 proxies = [x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]
+#                 proxy_query = elastic_query_rsid(rsid=proxies, studies=id_access)
+#                 res = []
+#                 # Need to fix this
+#                 if proxy_query != '[]':
+#                     res = extract_proxies_from_query(id, rsid, proxy_dat, proxy_query, maf_threshold, align_alleles)
+#                 allres += res
+#             except Exception as e:
+#                 logging.error("Could not obtain summary stats: {}".format(e))
+#                 flask.abort(503, e)
+#
+#     if len(chrpos) > 0:
+#         logger.debug("not using LD proxies")
+#         try:
+#             res = elastic_query_chrpos(chrpos=chrpos, studies=id_access)
+#             allres += res
+#         except Exception as e:
+#             logging.error("Could not obtain summary stats: {}".format(e))
+#             flask.abort(503, e)
+#
+#     if len(cprange) > 0:
+#         logger.debug("not using LD proxies")
+#         try:
+#             res = elastic_query_cprange(cprange=cprange, studies=id_access)
+#             allres += res
+#         except Exception as e:
+#             logging.error("Could not obtain summary stats: {}".format(e))
+#             flask.abort(503, e)
+#
+#     allres = add_trait_to_result(allres, study_data)
+#     return allres
 
 
 def phewas_elastic_search(filterData, index_name, pval):

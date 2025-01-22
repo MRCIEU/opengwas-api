@@ -134,7 +134,7 @@ def extract_instruments(gwasinfo: dict, preclumped, clump, pval, r2, kb, pop="EU
         result.append({
             'id': gwas_ids_by_node_ids_permitted[r['gwas_id_n']],
             'trait': gwasinfo[gwas_ids_by_node_ids_permitted[r['gwas_id_n']]]['trait'],
-            'chr': str(r['chr_id']) if r['chr_id'] <= 23 else mysql_queries.non_numeric_chr_reverse[r['chr_id']],
+            'chr': mysql_queries._decode_chr(r['chr_id']),
             'position': r['pos'],
             'rsid': r['snp_id'],
             'ea': r['ea'],

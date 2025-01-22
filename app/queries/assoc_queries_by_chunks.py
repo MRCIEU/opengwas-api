@@ -9,7 +9,7 @@ from multiprocessing.pool import ThreadPool
 
 from middleware.logger import logger as logger_middleware
 from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query
-from queries.variants import snps
+from queries.mysql_queries import MySQLQueries
 from resources.globals import Globals
 from resources._oci import OCIObjectStorage
 
@@ -149,19 +149,20 @@ def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, r2
     cprange = variants['cprange']
 
     chunked_queries = AssocQueriesByChunks()
+    mysql_queries = MySQLQueries()
 
     query = set()
     result = []
     n_chunks_accessed_total = 0
     if len(rsid) > 0:
         if proxies == 0:
-            total, docs = snps(rsid)
-            query.update([f"{doc['_source']['CHR']}:{doc['_source']['POS']}" for doc in docs])
+            snps = mysql_queries.get_snps_by_rsid(rsid)
+            query.update([f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
         else:
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
             rsid_proxies = list(set([x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]))
-            total, docs = snps(rsid_proxies)
-            assoc_proxied, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{doc['_source']['CHR']}:{doc['_source']['POS']}" for doc in docs])
+            snps = mysql_queries.get_snps_by_rsid(rsid_proxies)
+            assoc_proxied, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
             # Need to fix this (which?)
             if assoc_proxied != '[]':
                 result += extract_proxies_from_query(ids, rsid, proxy_dat, assoc_proxied, maf_threshold, align_alleles)
@@ -171,7 +172,7 @@ def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, r2
         query.update([cp['orig'] for cp in chrpos])
 
     if len(cprange) > 0:
-        query.update([cp['orig'] for cp in cprange])
+        query.update([cpr['orig'] for cpr in cprange])
 
     time_os_start = time.time()
 

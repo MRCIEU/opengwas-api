@@ -1,14 +1,15 @@
 from decimal import Decimal, getcontext
 from sqlalchemy import or_, and_, between, union_all, select
 
+from queries.models.dbsnp import DBSNP
 from queries.models.phewas import PheWAS
 from queries.models.tophits import get_tophits_model
 from resources.globals import Globals
 
 
 class MySQLQueries:
+    dbsnp_build = 157
     non_numeric_chr = {'X': 23, 'Y': 24, 'MT': 25}
-    non_numeric_chr_reverse = {23: 'X', 24: 'Y', 25: 'MT'}
 
     def __init__(self):
         getcontext().prec = 10
@@ -24,6 +25,18 @@ class MySQLQueries:
         if size == '':
             return size
         return float(size) if '.' in size else int(size)
+
+    @staticmethod
+    def _encode_chr(chr_str):
+        return {'X': 23, 'Y': 24, 'MT': 25}.get(chr_str, int(chr_str))
+
+    @staticmethod
+    def _decode_chr(chr_id):
+        return str(chr_id) if chr_id <= 23 else {23: 'X', 24: 'Y', 25: 'MT'}[chr_id]
+
+    @staticmethod
+    def _strip_rsids(rsids: list[str]) -> list[str]:
+        return [s[2:] for s in rsids]
 
     def get_phewas_by_chrpos(self, chrpos_by_chr_id: dict, lp: float):
         queries = []
@@ -71,4 +84,33 @@ class MySQLQueries:
         # print(query.compile(compile_kwargs={"literal_binds": True}))
 
         result = Globals.mysql.session.execute(query).mappings().all()
+        return result
+
+    def get_snps_by_rsid(self, rsid_list: list[str]):
+        query = select(*DBSNP.__table__.c).where(DBSNP.rsid.in_(self._strip_rsids(rsid_list)))
+        # print(query.compile(compile_kwargs={"literal_binds": True}))
+
+        result = Globals.mysql.session.execute(query).mappings().all()
+        return result
+
+    def get_snps_by_chrpos(self, chrpos_by_chr_id: dict):
+        queries = []
+        for chr_id, chrpos_list in chrpos_by_chr_id.items():
+            conditions = []
+            for cp in chrpos_list:
+                if isinstance(cp, tuple):  # cprange
+                    conditions.append(between(DBSNP.pos, cp[0], cp[1]))
+                else:
+                    conditions.append(DBSNP.pos == cp)
+            queries.append(select(DBSNP).where(
+                and_(
+                    DBSNP.chr_id == chr_id,
+                    or_(*conditions),
+                ))
+            )
+
+        full_query = union_all(*queries)
+        # print(full_query.compile(compile_kwargs={"literal_binds": True}))
+
+        result = Globals.mysql.session.execute(full_query).mappings().all()
         return result

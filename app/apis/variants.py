@@ -1,45 +1,59 @@
-from flask import g, send_file
-from flask_restx import Resource, reqparse, abort, Namespace
 import time
 
-from queries.variants import *
-from queries.vcf import *
-from resources.globals import Globals
+from flask import g, send_file
+from flask_restx import Resource, reqparse, abort, Namespace
+
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
+from queries.mysql_queries import MySQLQueries
+from queries.variants import range_query, gene_query
+from queries.vcf import *
+from resources.globals import Globals
 
 api = Namespace('variants', description="Retrieve variant information")
 
 
-@api.route('/rsid/<rsid>')
-@api.doc(
-    description="Obtain information for a particular SNP or comma separated list of SNPs",
-    params={
-        'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs'
-    }
-)
-class VariantGet(Resource):
-    @api.doc(id='variants_get_rsid')
-    @jwt_required
-    def get(self, rsid=None):
-        if rsid is None:
-            abort(404)
-        rsids = rsid.split(',')
-
-        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1):
-            pass
-
-        start_time = time.time()
-
-        try:
-            total, hits = snps(rsids)
-        except Exception as e:
-            logger.error("Could not obtain variant information: {}".format(e))
-            abort(503)
-
-        logger_middleware.log(g.user['uuid'], 'variants_get_rsid', start_time, {'rsid': len(rsids)}, len(hits))
-        return hits
+# @api.route('/rsid/<rsid>')
+# @api.doc(
+#     description="Obtain information for a particular SNP or comma separated list of SNPs",
+#     params={
+#         'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs'
+#     }
+# )
+# class VariantGet(Resource):
+#     @api.doc(id='variants_get_rsid')
+#     @jwt_required
+#     def get(self, rsid=None):
+#         if rsid is None:
+#             abort(404)
+#         rsids = rsid.split(',')
+#
+#         with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1):
+#             pass
+#
+#         start_time = time.time()
+#
+#         result = []
+#         mysql_queries = MySQLQueries()
+#
+#         try:
+#             snps = mysql_queries.get_snps_by_rsid(rsids)
+#             for s in snps:
+#                 result.append({
+#                     '_id': f"rs{s['rsid']}",
+#                     '_source': {
+#                         'dbSNPBuildID': mysql_queries.dbsnp_build,
+#                         'CHROM': str(s['chr_id']) if s['chr_id'] <= 23 else mysql_queries._decode_chr(s['chr_id']),
+#                         'POS': s['pos'],
+#                     }
+#                 })
+#         except Exception as e:
+#             logger.error("Could not obtain variant information: {}".format(e))
+#             abort(503)
+#
+#         logger_middleware.log(g.user['uuid'], 'variants_get_rsid', start_time, {'rsid': len(rsids)}, len(result))
+#         return result
 
 
 @api.route('/rsid')
@@ -70,46 +84,59 @@ class VariantPost(Resource):
 
         start_time = time.time()
 
+        result = []
+        mysql_queries = MySQLQueries()
+
         try:
-            total, hits = snps(args['rsid'])
+            snps = mysql_queries.get_snps_by_rsid(args['rsid'])
+            for s in snps:
+                result.append({
+                    '_id': f"rs{s['rsid']}",
+                    '_source': {
+                        'dbSNPBuildID': mysql_queries.dbsnp_build,
+                        'ID': f"rs{s['rsid']}",
+                        'CHROM': mysql_queries._decode_chr(s['chr_id']),
+                        'POS': s['pos'],
+                    }
+                })
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uuid'], 'variants_post_rsid', start_time, {'rsid': len(args['rsid'])}, len(hits))
-        return hits
-
-
-@api.route('/chrpos/<chrpos>')
-@api.doc(
-    description="Obtain information for a particular variant or comma separated list of variants",
-    params={
-        'chrpos': 'Comma separated B37 coordinates or coordinate ranges e.g. 7:105561135-105563135,10:44865737'
-    }
-)
-class ChrposGet(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
-
-    @api.expect(parser)
-    @api.doc(id='variants_chrpos_get')
-    @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
-    def get(self, chrpos):
-        args = self.parser.parse_args()
-
-        start_time = time.time()
-
-        chrpos = [x for x in ''.join(chrpos.split()).split(',')]
-
-        try:
-            result = range_query(chrpos, args['radius'])
-        except Exception as e:
-            logger.error("Could not obtain variant information: {}".format(e))
-            abort(503)
-
-        logger_middleware.log(g.user['uuid'], 'variants_chrpos_get', start_time, {'chrpos': len(chrpos)}, len(result))
+        logger_middleware.log(g.user['uuid'], 'variants_get_rsid', start_time, {'rsid': len(args['rsid'])}, len(result))
         return result
+
+
+# @api.route('/chrpos/<chrpos>')
+# @api.doc(
+#     description="Obtain information for a particular variant or comma separated list of variants",
+#     params={
+#         'chrpos': 'Comma separated B37 coordinates or coordinate ranges e.g. 7:105561135-105563135,10:44865737'
+#     }
+# )
+# class ChrposGet(Resource):
+#     parser = reqparse.RequestParser()
+#     parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
+#
+#     @api.expect(parser)
+#     @api.doc(id='variants_chrpos_get')
+#     @jwt_required
+#     @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
+#     def get(self, chrpos):
+#         args = self.parser.parse_args()
+#
+#         start_time = time.time()
+#
+#         chrpos = [x for x in ''.join(chrpos.split()).split(',')]
+#
+#         try:
+#             result = range_query(chrpos, args['radius'])
+#         except Exception as e:
+#             logger.error("Could not obtain variant information: {}".format(e))
+#             abort(503)
+#
+#         logger_middleware.log(g.user['uuid'], 'variants_chrpos_get', start_time, {'chrpos': len(chrpos)}, len(result))
+#         return result
 
 
 @api.route('/chrpos')
@@ -140,7 +167,7 @@ class ChrposPost(Resource):
     @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
     def post(self):
         args = self.parser.parse_args()
-        if len(args['chrpos']) == 0:
+        if len(args['chrpos']) == 0 or args['radius'] < 0:
             abort(400)
 
         start_time = time.time()
@@ -176,84 +203,84 @@ class GeneGet(Resource):
         start_time = time.time()
 
         try:
-            total, hits = gene_query(gene, args['radius'])
+            result = gene_query(gene, args['radius'])
         except Exception as e:
             logger.error("Could not obtain variant information: {}".format(e))
             abort(503)
 
-        logger_middleware.log(g.user['uuid'], 'variants_gene_get', start_time, n_records=len(hits))
-        return hits
-
-
-@api.route('/afl2/rsid/<rsid>')
-@api.doc(
-    description="Obtain allele frequency and LD-scores for major populations based on 1000 genomes version 3 release",
-    params={
-        'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs'
-    }
-)
-class VariantGet(Resource):
-    @api.doc(id='variants_afl2_rsid_get')
-    @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
-    def get(self, rsid=None):
-        if rsid is None:
-            abort(404)
-
-        start_time = time.time()
-
-        try:
-            rsid = [x for x in ''.join(rsid.split()).split(',')]
-        except Exception as e:
-            logger.error("Could not parse rsid: {}".format(e))
-            abort(503)
-
-        try:
-            result = vcf_rsid(rsid, Globals.AFL2['vcf'], Globals.AFL2['rsidx'])
-        except Exception as e:
-            logger.error("Could not obtain variant information: {}".format(e))
-            abort(503)
-
-        logger_middleware.log(g.user['uuid'], 'variants_afl2_rsid_get', start_time, {'rsid': len(rsid)}, n_records=len(result))
+        logger_middleware.log(g.user['uuid'], 'variants_gene_get', start_time, n_records=len(result))
         return result
 
 
-@api.route('/afl2/chrpos/<chrpos>')
-@api.doc(
-    description="Obtain allele frequency and LD-scores for major populations based on 1000 genomes version 3 release",
-    params={
-        'chrpos': 'Comma separated B37 coordinates or coordinate ranges e.g. 7:105561135-105563135,10:44865737'
-    }
-)
-class ChrposGet(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
+# @api.route('/afl2/rsid/<rsid>')
+# @api.doc(
+#     description="Obtain allele frequency and LD-scores for major populations based on 1000 genomes version 3 release",
+#     params={
+#         'rsid': 'Comma-separated list of rs IDs to query from the GWAS IDs'
+#     }
+# )
+# class VariantGet(Resource):
+#     @api.doc(id='variants_afl2_rsid_get')
+#     @jwt_required
+#     @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
+#     def get(self, rsid=None):
+#         if rsid is None:
+#             abort(404)
+#
+#         start_time = time.time()
+#
+#         try:
+#             rsid = [x for x in ''.join(rsid.split()).split(',')]
+#         except Exception as e:
+#             logger.error("Could not parse rsid: {}".format(e))
+#             abort(503)
+#
+#         try:
+#             result = vcf_rsid(rsid, Globals.AFL2['vcf'], Globals.AFL2['rsidx'])
+#         except Exception as e:
+#             logger.error("Could not obtain variant information: {}".format(e))
+#             abort(503)
+#
+#         logger_middleware.log(g.user['uuid'], 'variants_afl2_rsid_get', start_time, {'rsid': len(rsid)}, n_records=len(result))
+#         return result
 
-    @api.expect(parser)
-    @api.doc(id='variants_afl2_chrpos_get')
-    @jwt_required
-    @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
-    def get(self, chrpos=None):
-        if chrpos is None:
-            abort(404)
-        args = self.parser.parse_args()
 
-        start_time = time.time()
-
-        try:
-            chrpos = parse_chrpos([x for x in ''.join(chrpos.split()).split(',')], args['radius'])
-        except Exception as e:
-            logger.error("Could not parse chrpos: {}".format(e))
-            abort(503)
-
-        try:
-            result = vcf_chrpos(chrpos, Globals.AFL2['vcf'])
-        except Exception as e:
-            logger.error("Could not obtain variant information: {}".format(e))
-            abort(503)
-
-        logger_middleware.log(g.user['uuid'], 'variants_afl2_chrpos_get', start_time, {'chrpos': len(chrpos)}, n_records=len(result))
-        return result
+# @api.route('/afl2/chrpos/<chrpos>')
+# @api.doc(
+#     description="Obtain allele frequency and LD-scores for major populations based on 1000 genomes version 3 release",
+#     params={
+#         'chrpos': 'Comma separated B37 coordinates or coordinate ranges e.g. 7:105561135-105563135,10:44865737'
+#     }
+# )
+# class ChrposGet(Resource):
+#     parser = reqparse.RequestParser()
+#     parser.add_argument('radius', type=int, required=False, default=0, help="Range to search either side of target locus")
+#
+#     @api.expect(parser)
+#     @api.doc(id='variants_afl2_chrpos_get')
+#     @jwt_required
+#     @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
+#     def get(self, chrpos=None):
+#         if chrpos is None:
+#             abort(404)
+#         args = self.parser.parse_args()
+#
+#         start_time = time.time()
+#
+#         try:
+#             chrpos = parse_chrpos([x for x in ''.join(chrpos.split()).split(',')], args['radius'])
+#         except Exception as e:
+#             logger.error("Could not parse chrpos: {}".format(e))
+#             abort(503)
+#
+#         try:
+#             result = vcf_chrpos(chrpos, Globals.AFL2['vcf'])
+#         except Exception as e:
+#             logger.error("Could not obtain variant information: {}".format(e))
+#             abort(503)
+#
+#         logger_middleware.log(g.user['uuid'], 'variants_afl2_chrpos_get', start_time, {'chrpos': len(chrpos)}, n_records=len(result))
+#         return result
 
 
 @api.route('/afl2')
