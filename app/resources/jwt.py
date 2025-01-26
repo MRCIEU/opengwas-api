@@ -28,7 +28,7 @@ def validate_jwt(token):
     try:
         payload = jwt.decode(token, Globals.app_config['rsa_keys']['public'], algorithms=['RS256'], audience='api.opengwas.io')
     except Exception as e:
-        raise Unauthorized("Invalid token. Please add your token to the request header. Header name: 'Authorization'. Header value: 'Bearer <your_token>'. To obtain a token, visit https://api.opengwas.io")
+        raise Unauthorized("Invalid token. Visit https://api.opengwas.io to obtain one and make sure there are no extra or missing characters around the token when you copy and paste. (1) If you are using R/ieugwasr, R/TwoSampleMR or derived packages, please see https://mrcieu.github.io/ieugwasr/articles/guide.html#authentication (2) If you are building your own wrapper around our API, please add your token to the request header. Header name: 'Authorization'. Header value: 'Bearer your_token' (with whitespace and no quotes). See also: https://datatracker.ietf.org/doc/html/rfc6750#section-2.1")
 
     try:
         user = User.get_node(payload['sub'])
