@@ -110,31 +110,32 @@ class GetById(Resource):
         return recs
 
 
-@api.route('/files/<id>')
-@api.doc(description="For each dataset specified, get the list of permitted files and the base URL for download")
+@api.route('/files')
+@api.doc(description="For each dataset specified, get the download URL for each file (.vcf.gz, .vcf.gz.tbi, _report.html) associated with the dataset. The URLs will expire in 2 hours. If a dataset is missing from the results, that means the dataset doesn't exist or you don't have access to it. If a dataset is in the result but some/all links are missing, that means the files are unavailable.")
 class GetFilesByID(Resource):
     parser = api.parser()
+    parser.add_argument('id', required=True, type=str, action='append', default=[], help="List of GWAS IDs")
 
     @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='gwasinfo_files_get')
+    @api.doc(id='gwasinfo_files_post')
     @jwt_required
-    def get(self, id):
-        ids = id.split(',')
+    def post(self):
+        args = self.parser.parse_args()
 
-        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids, 1)):
+        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['id'], 1)):
             pass
 
         start_time = time.time()
 
         try:
             recs = []
-            for gwas_info_id in ids:
+            for gwas_info_id in args['id']:
                 try:
                     recs.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
                 except LookupError:
                     continue
         except LookupError:
-            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
+            raise BadRequest("Gwas ID does not exist or you do not have permission to view.")
 
         result = {}
 
@@ -145,5 +146,5 @@ class GetFilesByID(Resource):
                                  if path.endswith(('.vcf.gz', '.vcf.gz.tbi', '_report.html'))]
 
 
-        logger_middleware.log(g.user['uuid'], 'gwasinfo_files_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
+        logger_middleware.log(g.user['uuid'], 'gwasinfo_files_get', start_time, {'id': len(args['id'])}, len(recs), [r['id'] for r in recs])
         return result
