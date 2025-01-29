@@ -39,6 +39,7 @@
 <div class="row">
     <p>Use the R/GwasDataImport package to format the raw data file upload it for QC. Each file must be accompanied by the corresponding GWAS ID assigned in Step 1.</p>
     <p>QC is a fully automated process and usually takes 4 - 24 hours. Once you have received the QC report you may submit the dataset for approval.</p>
+    <p><strong>Click on a row to see the detailed progress and download the QC report when available.</strong></p>
     <div><table class="table table-sm table-striped" id="qcTable">
         <thead><tr>
                 <th></th>
@@ -329,7 +330,7 @@
                             <p><small><i>By clicking the button above you consent your information (including names, email address, organisational affiliation etc.) to be made visible to the reviewers, who may then contact you via email if they have questions.</i></small></p>
                         </div>
                         <div id="pendingApprovalDiv">
-                            <p>Your dataset is now pending approval. We may contact you via email.</p>
+                            <p><strong>Your dataset is now pending approval. We may contact you via email.</strong></p>
                         </div>
                         <div id="releasePipelineDiv">
                             <p>Congratulations - you dataset has been approved and will be added to the database via the Release pipeline, which may take 0.5-4 hours. <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('approval')">reload pipeline state</a></p>
