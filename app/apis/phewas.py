@@ -118,7 +118,7 @@ class PhewasFastPost(Resource):
 
         try:
             # result, timestamps = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
-            result = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
+            result = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], batch_list=args['index_list'])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
             abort(503)
@@ -167,7 +167,7 @@ def run_phewas(user_email, variants, pval, index_list=None):
     return allres
 
 
-def run_phewas_fast(user_email, variants, pval, index_list=None):
+def run_phewas_fast(user_email, variants, pval, batch_list=None):
     variants = organise_variants(variants)
 
     rsid = variants['rsid']
@@ -206,7 +206,7 @@ def run_phewas_fast(user_email, variants, pval, index_list=None):
         flask.abort(503, e)
 
     try:
-        result = elastic_query_phewas_by_doc_ids(doc_ids_by_index, user_email=user_email, index_list=index_list)
+        result = elastic_query_phewas_by_doc_ids(doc_ids_by_index, user_email=user_email, batch_list=batch_list)
         # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain docs from database: {}".format(e))

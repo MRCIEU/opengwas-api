@@ -299,14 +299,12 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
     return res
 
 
-def elastic_query_phewas_by_doc_ids(doc_ids_by_index: dict[list[str]], user_email: str, index_list=[]) -> list:
+def elastic_query_phewas_by_doc_ids(doc_ids_by_index: dict[list[str]], user_email: str, batch_list=[]) -> list:
     if len(doc_ids_by_index) == 0:
         return []
-    study_indexes = Globals.public_batches
-    if len(index_list) > 0:
-        for index in doc_ids_by_index.keys():
-            if index not in index_list:
-                del doc_ids_by_index[doc_ids_by_index]
+    if len(batch_list) > 0:
+        doc_ids_by_index = {index: doc_ids for index, doc_ids in doc_ids_by_index.items() if '-'.join(index.split('-', 2)[:2]) in batch_list}
+
     res = []
     body_text = {
         "docs": []
@@ -322,7 +320,7 @@ def elastic_query_phewas_by_doc_ids(doc_ids_by_index: dict[list[str]], user_emai
     res = organise_payload_multi({'hits': {'hits': e['docs']}})
     end = time.time()
     t = round((end - start), 4)
-    query_logger.debug("\t".join(['name:phewas_fast', f'time:{t}', f'hits:{len(res)}', f'indexes:{study_indexes}', f'es:{body_text}']))
+    query_logger.debug("\t".join(['name:phewas_fast', f'time:{t}', f'hits:{len(res)}', f'indexes:{Globals.public_batches}', f'es:{body_text}']))
     logger.debug("Time taken: " + str(t) + " seconds")
     logger.debug('ES returned ' + str(len(res)) + ' records')
     # REMOVE DISALLOWED STUDIES
