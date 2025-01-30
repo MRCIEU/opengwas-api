@@ -55,6 +55,12 @@ def test_phewas_post4(url, headers):
     assert r.status_code == 200 and len(r.json()) > 400
 
 
+def test_phewas_post5(url, headers):
+    payload = {'variant': 'rs1205', 'pval': 0.0001, 'index_list': ['ieu-a']}
+    r = requests.post(url + "/phewas", data=payload, headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 1
+
+
 @pytest.mark.skip
 def test_phewas_fast_post0(url, headers):
     headers = headers.copy()
