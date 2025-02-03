@@ -2,17 +2,20 @@ import shortuuid
 
 from flask import make_response
 from flask_restx import Resource, Namespace
+import json
 import logging
 import os
-import json
+import random
 import time
 from collections import defaultdict
+from pprint import pprint
 
 from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
 from queries.redis_queries import RedisQueries
 from resources.globals import Globals
 from resources.neo4j import Neo4j
+from resources.airflow import Airflow
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 
@@ -117,31 +120,30 @@ class ImportMetadataFromJSON(Resource):
 class SampleDatasetsByBatches(Resource):
     def get(self):
         # Settings
-        skip_completed_tasks = False
+        skip_completed_tasks = True
         odds = 1
 
         n_skipped = 0
         if skip_completed_tasks:
-            completed = RedisQueries('phewas_tasks', provider='webdis').get_completed_phewas_tasks()
-        batches = defaultdict(int)
-        for gi in Neo4j.get_db().run("MATCH (gi:GwasInfo) RETURN gi.id").data():
-            batches['-'.join(gi['gi.id'].split('-', 2)[:2])] += 1
+            completed = RedisQueries('gwas_tasks', provider='ieu-ssd-proxy').get_completed_gwas_tasks()
+        gwas_ids_by_batch = defaultdict(list)
+        for gwas_id in Neo4j.get_db().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id)").single()[0]:
+            gwas_ids_by_batch['-'.join(gwas_id.split('-', 2)[:2])].append(gwas_id)
         samples = defaultdict(list)
-        for batch, size in batches.items():
-            for gi in Neo4j.get_db().run("MATCH (gi:GwasInfo) WHERE gi.id=~$batch RETURN gi.id, rand() as r ORDER BY r LIMIT $limit", batch=batch + ".*", limit=round(size * odds)).data():
-                if skip_completed_tasks and gi['gi.id'] in completed:
+        for batch, gwas_ids in gwas_ids_by_batch.items():
+            for gwas_id in random.sample(gwas_ids, round(len(gwas_ids_by_batch[batch]) * odds)):
+                if skip_completed_tasks and gwas_id in completed:
                     n_skipped += 1
                 else:
-                    samples[batch].append(gi['gi.id'])
+                    samples[batch].append(gwas_id)
         samples_size = defaultdict(int)
         for batch, samples_in_batch in samples.items():
             samples_size[batch] = len(samples_in_batch)
-            r = RedisQueries('phewas_tasks', provider='webdis').add_phewas_tasks(samples_in_batch)
-            time.sleep(2)  # Avoid premature connection closure by webdis (bug?)
+            r = RedisQueries('gwas_tasks', provider='ieu-ssd-proxy').add_gwas_tasks(samples_in_batch)
 
         return {
             'skipped': n_skipped,
-            'batches': batches,
+            'batches': list(gwas_ids_by_batch.keys()),
             'samples_size': samples_size,
             'samples': samples
         }
@@ -180,17 +182,40 @@ class ExportUsers(Resource):
         return response
 
 
-@api.route('/init_user_uuid')
-@api.doc(description="Initialise uuid for users")
-class InitUUIDForUsers(Resource):
+# @api.route('/init_user_uuid')
+# @api.doc(description="Initialise uuid for users")
+# class InitUUIDForUsers(Resource):
+#     def get(self):
+#         tx = Neo4j.get_db()
+#         uids = tx.run("MATCH (u:User) RETURN COLLECT(u.uid)").single()[0]
+#         data = []
+#         for uid in uids:
+#             data.append({
+#                 'uid': uid,
+#                 'uuid': shortuuid.uuid()
+#             })
+#         tx.run("UNWIND $data AS p MATCH (u:User) WHERE u.uid = p.uid SET u.uuid = p.uuid", data=data)
+#         return data
+
+
+@api.route('/list_user_uuid')
+@api.doc(description="List uuid of users")
+class ListUUIDOfUsers(Resource):
     def get(self):
-        tx = Neo4j.get_db()
-        uids = tx.run("MATCH (u:User) RETURN COLLECT(u.uid)").single()[0]
-        data = []
-        for uid in uids:
-            data.append({
-                'uid': uid,
-                'uuid': shortuuid.uuid()
-            })
-        tx.run("UNWIND $data AS p MATCH (u:User) WHERE u.uid = p.uid SET u.uuid = p.uuid", data=data)
-        return data
+        uuids = {}
+        for r in Neo4j.get_db().run("MATCH (u:User) WHERE u.uuid IS NOT NULL RETURN u").data():
+            uuids[r['u']['uid']] = r['u']['uuid']
+        return {
+            'uuids': uuids
+        }
+
+
+@api.route('/test_airflow')
+@api.doc(description="Test airflow")
+class TestAirflow(Resource):
+    def get(self):
+        airflow = Airflow()
+
+        airflow = airflow.get_dag_run('release', 'ieu-b-5137', True)
+
+        return airflow
