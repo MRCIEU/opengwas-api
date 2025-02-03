@@ -8,8 +8,8 @@ class RedisQueries:
     def __init__(self, db_name, provider='redis'):
         if provider == 'redis':
             self.r = Redis().conn[db_name]
-        elif provider == 'ieu-ssd-proxy':
-            self.r = RedisProxy(db_name)
+        elif provider in ['ieu-db-proxy', 'ieu-ssd-proxy']:
+            self.r = RedisProxy(provider, db_name)
         return
 
     def publish_log(self, channel, data):
@@ -26,11 +26,17 @@ class RedisQueries:
             result += 1
         return result
 
+    def add_gwas_tasks(self, tasks: list):
+        return self.r.query(['SADD', 'gwas_pending'] + tasks)
+
     def add_phewas_tasks(self, tasks: list):
-        return self.r.query(['SADD', 'pending'] + tasks)
+        return self.r.query(['SADD', 'phewas_pending'] + tasks)
+
+    def get_completed_gwas_tasks(self):
+        return self.r.query(['ZRANGE', 'gwas_completed', 0, -1])['ZRANGE']
 
     def get_completed_phewas_tasks(self):
-        return self.r.query(['ZRANGE', 'completed', 0, -1])['ZRANGE']
+        return self.r.query(['ZRANGE', 'phewas_completed', 0, -1])['ZRANGE']
 
     def get_cpalleles_of_chr_pos(self, chr_pos: set[tuple]) -> set:
         """

@@ -6,14 +6,15 @@ from .globals import Globals
 
 
 class RedisProxy:
-    def __init__(self, db_name: str):
+    def __init__(self, proxy_name: str, db_name: str):
         dbs = {
             'phewas_tasks': '0',
             'phewas_cpalleles': '1',
-            'phewas_docids': '2'
+            'phewas_docids': '2',
+            'gwas_tasks': '0'
         }
-        self.url = 'http://' + Globals.app_config['redis']['ieu-ssd-proxy']['host'] + ":" + str(Globals.app_config['redis']['ieu-ssd-proxy']['port'])
-        self.auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_username'], Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_passwd'])
+        self.url = 'http://' + Globals.app_config['redis'][proxy_name]['host'] + ":" + str(Globals.app_config['redis'][proxy_name]['port'])
+        self.auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis'][proxy_name]['basic_auth_username'], Globals.app_config['redis'][proxy_name]['basic_auth_passwd'])
 
         self.session_with_retry = requests.Session()
         self.session_with_retry.mount('http://', HTTPAdapter(max_retries=Retry(
