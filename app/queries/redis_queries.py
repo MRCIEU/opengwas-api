@@ -8,7 +8,11 @@ class RedisQueries:
     def __init__(self, db_name, provider='redis'):
         if provider == 'redis':
             self.r = Redis().conn[db_name]
+<<<<<<< HEAD
         elif provider in ['ieu-ssd-proxy']:
+=======
+        elif provider in ['ieu-db-proxy', 'ieu-ssd-proxy']:
+>>>>>>> 7337873df5fa8412aced2dae5f4f7635e1954963
             self.r = RedisProxy(provider, db_name)
         return
 
