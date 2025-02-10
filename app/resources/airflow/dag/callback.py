@@ -1,11 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
 from airflow.models import Variable
 from airflow.operators.http_operator import SimpleHttpOperator
 
 
-@dag(tags=['gwas'], schedule_interval='*/5 * * * *', start_date=datetime(2024, 12, 12, 22, 40))
+@dag(
+    tags=['gwas'],
+    schedule_interval='*/5 * * * *',
+    start_date=datetime(2025, 2, 6, 2, 20),
+    catchup=False
+)
 def callback():
     timeouts = {
         'refresh_added_by_status': 60
@@ -22,6 +27,8 @@ def callback():
         extra_options={
             'timeout': timeouts['refresh_added_by_status']
         },
+        retries=3,
+        retry_delay=timedelta(seconds=30),
         log_response=True
     )
 
