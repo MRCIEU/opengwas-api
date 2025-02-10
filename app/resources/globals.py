@@ -1,9 +1,10 @@
-from elasticsearch import Elasticsearch
 import json
 import platform
 import os
-from neo4j import GraphDatabase
 import requests
+from elasticsearch import Elasticsearch
+
+from neo4j import GraphDatabase
 
 
 class Globals:
@@ -75,6 +76,8 @@ class Globals:
 
     all_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
     public_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
+
+    gwas_pos_prefix_indices = {}
 
     variant_index = "snp-base-v0.2"
 

@@ -1,14 +1,17 @@
 import flask
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
+import gzip
+import io
 import logging
 import os
+import pickle
 import shutil
 import time
 from datetime import datetime
 
 from resources.globals import Globals
-from resources.logging_middleware import LoggerMiddleWare
+# from resources.logging_middleware import LoggerMiddleWare
 from resources.neo4j import Neo4j
 from resources._oci import OCI
 from resources.sessions import NoCookieSessionInterface, CustomRedisSessionInterface
@@ -95,6 +98,13 @@ app.teardown_appcontext(Neo4j.close_db)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
+
+try:
+    with gzip.GzipFile(fileobj=io.BytesIO(OCI().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
+        Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
+except Exception as e:
+    logging.error('Unable to retrieve pos_prefix_indices')
+    raise e
 
 app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
