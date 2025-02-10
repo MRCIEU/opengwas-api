@@ -18,12 +18,22 @@ class OCI:
         self.object_storage_client = oci.object_storage.ObjectStorageClient(config)
 
     def object_storage_list(self, bucket_key, prefix):
-        r = self.object_storage_client.list_objects(
-            namespace_name=Globals.app_config['oci']['object_storage']['namespace_name'],
-            bucket_name=Globals.app_config['oci']['object_storage']['bucket_names'][bucket_key],
-            prefix=prefix
-        )
-        return [o.name for o in r.data.objects]
+        results = []
+        start = ''
+
+        while True:
+            r = self.object_storage_client.list_objects(
+                namespace_name=Globals.app_config['oci']['object_storage']['namespace_name'],
+                bucket_name=Globals.app_config['oci']['object_storage']['bucket_names'][bucket_key],
+                prefix=prefix,
+                start=start
+            )
+            results.extend([o.name for o in r.data.objects])
+            if not r.data.next_start_with:
+                break
+            start = r.data.next_start_with
+
+        return results
 
     def object_storage_upload(self, bucket_key, object_name, object_body):
         return self.object_storage_client.put_object(

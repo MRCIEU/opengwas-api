@@ -12,7 +12,7 @@ from queries.redis_queries import RedisQueries
 from resources import CryptographyTool
 from resources.airflow import Airflow
 from resources.globals import Globals
-from resources.oci import OCI
+from resources._oci import OCI
 from schemas.gwas_info_node_schema import valid_genome_build, valid_categories, valid_subcategories, valid_populations, valid_sex
 
 

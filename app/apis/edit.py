@@ -18,7 +18,7 @@ from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
 from resources.airflow import Airflow
 from resources.globals import Globals
-from resources.oci import OCI
+from resources._oci import OCI
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema, check_id_is_valid_filename
 from schemas.gwas_row_schema import GwasRowSchema
 

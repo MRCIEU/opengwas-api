@@ -10,7 +10,7 @@ from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func
 from middleware.logger import logger as logger_middleware
 from queries.cql_queries import *
 from resources.globals import Globals
-from resources.oci import OCI
+from resources._oci import OCI
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 logger = logging.getLogger('debug-log')

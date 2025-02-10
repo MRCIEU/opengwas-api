@@ -18,7 +18,7 @@ from middleware.auth import jwt_required, check_role, check_role_is_sufficient
 from queries.cql_queries import *
 from resources.airflow import Airflow
 from resources.globals import Globals
-from resources.oci import OCI
+from resources._oci import OCI
 
 logger = logging.getLogger('debug-log')
 

@@ -7,7 +7,7 @@ import json
 
 from resources.globals import Globals
 from resources.neo4j import Neo4j
-from resources.oci import OCI
+from resources._oci import OCI
 from middleware.limiter import limiter
 
 api = Namespace('status', description="Status of API and linked resources")
