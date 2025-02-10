@@ -1,9 +1,12 @@
 import datetime
+import gzip
+import os
 
 from flask import request
 from flask_restx import Resource, Namespace
 import logging
 import json
+import pickle
 
 from middleware.auth import key_required
 from queries.cql_queries import *
@@ -80,6 +83,32 @@ class CacheGwasInfo(Resource):
         return {
             'n_gwasinfo': n,
             'batches': len(batches)
+        }
+
+
+@api.route('/associations/collect_indices')
+@api.doc(description="Collect pos_prefix_indices for all datasets and merge into one")
+class CacheGwasInfo(Resource):
+    parser = api.parser()
+
+    @api.expect(parser)
+    @api.doc(id='maintenance_associations_collect_indices_get')
+    @key_required
+    def get(self):
+        pos_prefix_indices = {}
+        oci = OCI()
+        output_path = f"{Globals.TMP_FOLDER}/0_pos_prefix_indices"
+
+        for gwas_id, pos_prefix_index in RedisQueries('gwas_tasks', provider='ieu-db-proxy').get_gwas_pos_prefix_indices().items():
+            pos_prefix_indices[gwas_id] = pickle.loads(pos_prefix_index)
+
+        with gzip.open(output_path, 'wb') as f:
+            pickle.dump(pos_prefix_indices, f)
+        with open(output_path, 'rb') as f:
+            oci.object_storage_upload('data-chunks', "0_pos_prefix_indices", f.read())
+        os.remove(output_path)
+        return {
+            'n_datasets': len(pos_prefix_indices)
         }
 
 

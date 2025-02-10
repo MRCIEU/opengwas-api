@@ -1,4 +1,5 @@
 from collections import defaultdict
+import jsonpickle
 
 from resources.redis import Redis
 from resources.redis_proxy import RedisProxy
@@ -8,9 +9,17 @@ class RedisQueries:
     def __init__(self, db_name, provider='redis'):
         if provider == 'redis':
             self.r = Redis().conn[db_name]
-        elif provider in ['ieu-ssd-proxy']:
+        elif provider in ['ieu-db-proxy', 'ieu-ssd-proxy']:
             self.r = RedisProxy(provider, db_name)
         return
+
+    def _remove_b_prefix_in_keys(self, d: dict):
+        """
+        Remove the "b'" prefix in literal string (complication of jsonpickle)
+        :param d:
+        :return:
+        """
+        return {k[2:]: v for k, v in d.items()}
 
     def publish_log(self, channel, data):
         """
@@ -53,6 +62,15 @@ class RedisQueries:
                 "end": -1
             }
         }])[0]
+
+    def get_gwas_pos_prefix_indices(self):
+        r = self.r.query([{
+            'cmd': 'hgetall',
+            'args': {
+                "name": 'gwas_pos_prefix_indices'
+            }
+        }], get_raw_response=True)[0]
+        return self._remove_b_prefix_in_keys(jsonpickle.decode(r))
 
     def get_completed_phewas_tasks(self):
         return self.r.query([{
