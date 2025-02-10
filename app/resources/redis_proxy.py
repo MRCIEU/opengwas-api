@@ -27,7 +27,7 @@ class RedisProxy:
 
         self.db = dbs[db_name]
 
-    def query(self, commands: list[dict], retry=True):
+    def query(self, commands: list[dict], retry=True, get_raw_response=False):
         """
         Make POST request to Redis proxy
         :param commands: list of a Redis command and its arguments, e.g. [{'cmd': 'zrange', 'args': {'name': 1, 'start': 12345, 'end': 13000, 'byscore': 'True'}}]
@@ -36,7 +36,8 @@ class RedisProxy:
         """
         r = getattr(self, 'session_with_retry' if retry else 'session').post(self.url, json={
             'db': self.db,
-            'cmds': commands
-        }, auth=self.auth, timeout=60)
+            'cmds': commands,
+            'get_raw_response': get_raw_response
+        }, auth=self.auth, timeout=120)
         assert r.status_code == 200
         return r.json()
