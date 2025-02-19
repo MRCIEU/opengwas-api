@@ -13,13 +13,13 @@ class RedisQueries:
             self.r = RedisProxy(provider, db_name)
         return
 
-    def _remove_b_prefix_in_keys(self, d: dict):
+    def _strip_b_in_keys(self, d: dict):
         """
-        Remove the "b'" prefix in literal string (complication of jsonpickle)
+        Remove the "b'" prefix and the "'" suffix in literal string (complication of jsonpickle)
         :param d:
         :return:
         """
-        return {k[2:]: v for k, v in d.items()}
+        return {k[2:-1]: v for k, v in d.items()}
 
     def publish_log(self, channel, data):
         """
@@ -70,7 +70,7 @@ class RedisQueries:
                 "name": 'gwas_pos_prefix_indices'
             }
         }], get_raw_response=True)[0]
-        return self._remove_b_prefix_in_keys(jsonpickle.decode(r))
+        return self._strip_b_in_keys(jsonpickle.decode(r))
 
     def get_completed_phewas_tasks(self):
         return self.r.query([{
