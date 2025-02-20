@@ -125,9 +125,9 @@ class SampleDatasetsByBatches(Resource):
 
         n_skipped = 0
         if skip_completed_tasks:
-            completed = RedisQueries('gwas_tasks', provider='ieu-ssd-proxy').get_completed_gwas_tasks()
+            completed = RedisQueries('gwas_tasks', provider='ieu-db-proxy').get_completed_gwas_tasks()
         gwas_ids_by_batch = defaultdict(list)
-        for gwas_id in Neo4j.get_db().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id)").single()[0]:
+        for gwas_id in Neo4j.get_db().run("MATCH (n:GwasInfo) WHERE EXISTS {MATCH (n:GwasInfo)-[r:DID_QC]->(u:User)} RETURN COLLECT(n.id)").single()[0]:
             gwas_ids_by_batch['-'.join(gwas_id.split('-', 2)[:2])].append(gwas_id)
         samples = defaultdict(list)
         for batch, gwas_ids in gwas_ids_by_batch.items():
@@ -139,7 +139,7 @@ class SampleDatasetsByBatches(Resource):
         samples_size = defaultdict(int)
         for batch, samples_in_batch in samples.items():
             samples_size[batch] = len(samples_in_batch)
-            r = RedisQueries('gwas_tasks', provider='ieu-ssd-proxy').add_gwas_tasks(samples_in_batch)
+            r = RedisQueries('gwas_tasks', provider='ieu-db-proxy').add_gwas_tasks(samples_in_batch)
 
         return {
             'skipped': n_skipped,
