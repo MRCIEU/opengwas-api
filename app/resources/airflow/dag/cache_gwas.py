@@ -7,8 +7,8 @@ from airflow.operators.http_operator import SimpleHttpOperator
 
 @dag(
     tags=['gwas'],
-    schedule_interval='0 1 * * *',
-    start_date=datetime(2025, 2, 6, 1, 0),
+    schedule_interval='0 12 * * *',
+    start_date=datetime(2025, 3, 5, 11, 0),
     catchup=False
 )
 def cache_gwas():
@@ -49,7 +49,6 @@ def cache_gwas():
         log_response=True
     )
 
-    cache_gwasinfo
     cache_gwasinfo, collect_associations_pos_indices
 
 cache_gwas()
