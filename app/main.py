@@ -109,7 +109,7 @@ app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
 if os.environ.get('ENV') == 'production':
     print('POOL', os.environ.get('POOL'))
-    if os.environ.get('POOL') == 'api' or os.environ.get('POOL') == 'api-priv':
+    if os.environ.get('POOL') in ['api', 'api-ref', 'api-priv']:
         app.session_interface = NoCookieSessionInterface()
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
