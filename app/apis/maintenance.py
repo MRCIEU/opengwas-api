@@ -1,5 +1,6 @@
 import datetime
 import gzip
+import io
 import os
 
 from flask import request
@@ -107,6 +108,12 @@ class CacheGwasInfo(Resource):
         with open(output_path, 'rb') as f:
             oci.object_storage_upload('data-chunks', "0_pos_prefix_indices", f.read())
         os.remove(output_path)
+
+        with gzip.GzipFile(
+                fileobj=io.BytesIO(OCI().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content),
+                mode='rb') as f:
+            pickle.loads(f.read())
+
         return {
             'n_datasets': len(pos_prefix_indices)
         }
