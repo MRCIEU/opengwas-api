@@ -104,7 +104,6 @@ try:
         Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
 except Exception as e:
     logging.error('Unable to retrieve pos_prefix_indices')
-    raise e
 
 app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
