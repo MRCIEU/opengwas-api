@@ -16,6 +16,42 @@ def _get_cost(ids=None, variants=None, proxies=0):  # Note: both inputs should b
     return max(len(ids), len(variants)) * (1 if proxies == 1 else 5)
 
 
+def _compare_results(r0, r1):
+    r0fset = {frozenset(a.items()) for a in r0}
+    r1fset = {frozenset(a.items()) for a in r1}
+
+    r0uniq = r0fset - r1fset
+    r1uniq = r1fset - r0fset
+
+    anomalies = []
+
+    r0uniq = [{a[0]: a[1] for a in fset} for fset in r0uniq]
+    r0uniq_dict = {f"{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r0uniq}
+    if len(r0uniq_dict) != len(r0uniq):
+        anomalies.append(['DUPLICATE_ID', 'r0'])
+
+    r1uniq = [{a[0]: a[1] for a in fset} for fset in r1uniq]
+    r1uniq_dict = {f"{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r1uniq}
+    if len(r1uniq_dict) != len(r1uniq):
+        anomalies.append(['DUPLICATE_ID', 'r1'])
+
+    print(len(r0uniq_dict), len(r1uniq_dict))
+
+    def _compare(dict1, dict2):
+        for id in dict1.keys():
+            if id not in dict2:
+                anomalies.append(['MISSING_ID', id])
+            elif dict1[id] != dict2[id]:
+                diff_keys = {k for k in dict1[id] if dict1[id][k] != dict2[id][k]}
+                if diff_keys != {'n'} or int(dict1[id]['n']) != int(dict2[id]['n']):
+                    anomalies.append(['DIFF_IN_VALUE', dict1[id], dict2[id], diff_keys])
+
+    _compare(r0uniq_dict, r1uniq_dict)
+    _compare(r1uniq_dict, r0uniq_dict)
+
+    assert anomalies == []
+
+
 @api.route('/<id>/<variant>')
 @api.doc(
     description="Get specific variant associations for specifc GWAS datasets",
