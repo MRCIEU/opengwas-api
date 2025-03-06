@@ -1,6 +1,7 @@
 from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
 import time
+import traceback
 
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
@@ -93,7 +94,29 @@ class AssocPost(Resource):
         logger_middleware.log(g.user['uuid'], 'assoc_post', start_time,
                               {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+
         return result
+
+        # start_time = time.time()
+        #
+        # try:
+        #     result_from_chunks = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+        # except Exception as e:
+        #     logger.error("Could not obtain SNP association: {}".format(e))
+        #     abort(503)
+        #
+        # logger_middleware.log(g.user['uuid'], 'assoc_chunked_post', start_time,
+        #                       {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
+        #                       len(result_from_chunks), list(set([r['id'] for r in result_from_chunks])), len(set([r['rsid'] for r in result_from_chunks])))
+        #
+        # try:
+        #     _compare_results(result, result_from_chunks)
+        #     return result_from_chunks
+        # except Exception as e:
+        #     log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, traceback.format_exc())
+        #     return {
+        #         'error_log_timestamp': log_timestamp
+        #     }, 503
 
 
 @api.route('/chunked')
