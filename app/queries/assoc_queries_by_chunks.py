@@ -12,6 +12,9 @@ from resources.globals import Globals
 from resources._oci import OCI
 
 
+# TODO: https://stackoverflow.com/questions/64514398/python-multiprocessing-within-flask-request-with-gunicorn-nginx
+
+
 class AssocQueriesByChunks:
     def __init__(self):
         self.oci = OCI()
@@ -47,7 +50,7 @@ class AssocQueriesByChunks:
     def _filter_chunks_available(self, pos_prefix_indices: dict, gwas_id: str, chr: str, pos_tuple: tuple[int]) -> set:
         chunks_available = set()
         for pos_prefix in range(pos_tuple[0] // self.chunk_size, pos_tuple[1] // self.chunk_size + 1):
-            if pos_prefix in pos_prefix_indices[gwas_id][chr]:
+            if chr in pos_prefix_indices[gwas_id] and pos_prefix in pos_prefix_indices[gwas_id][chr]:
                 chunks_available.add(pos_prefix)
         return chunks_available
 
@@ -79,20 +82,21 @@ class AssocQueriesByChunks:
         associations = []
         for pos in pos_available:
             if pos_tuple[0] <= pos <= pos_tuple[1]:
-                associations.append({
-                    'id': gwas_id,
-                    'trait': gwasinfo[gwas_id]['trait'],
-                    'chr': chr,
-                    'position': pos,
-                    'rsid': associations_available[pos][0],
-                    'ea': associations_available[pos][1],
-                    'nea': associations_available[pos][2],
-                    'eaf': float(associations_available[pos][3]) if associations_available[pos][3] != '' else '',
-                    'beta': float(associations_available[pos][4]) if associations_available[pos][4] != '' else '',
-                    'se': float(associations_available[pos][5]) if associations_available[pos][5] != '' else '',
-                    'p': float(associations_available[pos][6]) if associations_available[pos][6] != '' else '',
-                    'n': self._convert_sample_size(associations_available[pos][7])
-                })
+                for assoc in associations_available[pos]:
+                    associations.append({
+                        'id': gwas_id,
+                        'trait': gwasinfo[gwas_id]['trait'],
+                        'chr': chr,
+                        'position': pos,
+                        'rsid': assoc[0],
+                        'ea': assoc[1],
+                        'nea': assoc[2],
+                        'eaf': float(assoc[3]) if assoc[3] != '' else '',
+                        'beta': float(assoc[4]) if assoc[4] != '' else '',
+                        'se': float(assoc[5]) if assoc[5] != '' else '',
+                        'p': float(assoc[6]) if assoc[6] != '' else '',
+                        'n': self._convert_sample_size(assoc[7])
+                    })
         return associations
 
     def query(self, pos_prefix_indices: dict, gwasinfo: dict, gwas_ids: list[str], query: list[str]) -> list:
