@@ -29,6 +29,9 @@ class RedisQueries:
         """
         return self.r.publish(channel, data)
 
+    def add_log(self, key: str, score: float, member: str):
+        return self.r.zadd(name=key, mapping={member: score})
+
     def count_online_users(self) -> int:
         result = 0
         for _ in self.r.scan_iter(match="*allowance_by_user_tier*", count=1000):
