@@ -26,7 +26,7 @@ class User(Resource):
                 'last_name': g.user['last_name'],
                 'most_recent_signin_method': Globals.USER_SOURCES[g.user['source']],
                 'jwt_valid_until': datetime.datetime.strftime(datetime.datetime.fromtimestamp(g.user['jwt_timestamp'] + Globals.JWT_VALIDITY).astimezone(), '%Y-%m-%d %H:%M %Z'),
-                'roles': g.user.get('role', [])
+                'roles': g.user.get('roles', []),
             },
             'request': {
                 'client': request.headers.get('X-API-SOURCE', None),

@@ -56,7 +56,7 @@ class GetId(Resource):
         try:
             gwasinfo = get_gwas_for_user(g.user['uid'], gwas_id, datapass=False)
         except Exception as e:
-            if not check_role_is_sufficient(g.user.get('role', []), 'admin'):
+            if not check_role_is_sufficient(g.user.get('roles', []), 'admin'):
                 return {"message": str(e)}, 403
 
         try:

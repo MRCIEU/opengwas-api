@@ -81,7 +81,7 @@ class List(Resource):
             'gwasinfo': gwasinfo,
             'dag_run': dag_run,
             'count': count_draft_gwas_of_user(g.user['uid']),
-            'quota': get_quota_by_roles(g.user.get('role', []))
+            'quota': get_quota_by_roles(g.user.get('roles', []))
         }
 
 
@@ -102,7 +102,7 @@ class Add(Resource):
             req = self.parser.parse_args()
 
             count = count_draft_gwas_of_user(g.user['uid'])
-            quota = get_quota_by_roles(g.user.get('role', []))
+            quota = get_quota_by_roles(g.user.get('roles', []))
 
             if count >= quota:
                 return {"message": "You have reach your limit of adding metadata. You are allowed {} datasets but you already have {} that have not been released yet.".format(quota, count)}, 400
@@ -247,7 +247,7 @@ class TaskState(Resource):
         try:
             check_gwasinfo_is_added_by_user(gwas_id, g.user['uid'])
         except PermissionError as e:
-            if not check_role_is_sufficient(g.user.get('role', []), 'admin'):
+            if not check_role_is_sufficient(g.user.get('roles', []), 'admin'):
                 return {"message": str(e)}, 403
 
         airflow = Airflow()

@@ -32,7 +32,7 @@ def role_required(role):
     def _decorator(f):
         @wraps(f)
         def _check_role(*args, **kwargs):
-            if 'role' not in current_user or role not in current_user['role']:
+            if 'roles' not in current_user or role not in current_user['roles']:
                 return login_manager.unauthorized()
             return f(*args, **kwargs)
         return _check_role

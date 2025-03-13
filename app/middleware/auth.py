@@ -34,7 +34,7 @@ def check_role(role):
     def _decorator(f):
         @wraps(f)
         def _check_role(*args, **kwargs):
-            if 'user' not in g or not check_role_is_sufficient(g.user.get('role', []), role):
+            if 'user' not in g or not check_role_is_sufficient(g.user.get('roles', []), role):
                 return raise_error('NO_PRIVILEGE')
             return f(*args, **kwargs)
         return _check_role
