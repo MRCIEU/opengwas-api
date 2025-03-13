@@ -63,6 +63,8 @@ def get_user_tier(error_on_none=False):
         return raise_error('NO_UID') if error_on_none else 'NONE'
     if 'is_trial' in g.user:
         return 'TRIAL'
+    if 'commercial' in tags:
+        return 'COMMERCIAL'
     try:
         if g.user['uid'].split('@')[1] == 'bristol.ac.uk':
             return 'UOB'

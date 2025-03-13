@@ -100,6 +100,7 @@ class Globals:
         'NONE': "No allowance",
         'TRIAL': "Trial",
         'STANDARD': 'Standard',
+        'COMMERCIAL': 'Commercial',
         'UOB': 'UOB'
     }
 
@@ -133,6 +134,7 @@ class Globals:
     # https://flask-limiter.readthedocs.io/en/stable/configuration.html#ratelimit-string
     ALLOWANCE_BY_USER_TIER = {
         'UOB': '400000 per 10 minutes',
+        'COMMERCIAL': '100000 per 10 minutes',
         'STANDARD': '100000 per 10 minutes',
         'TRIAL': '100 per 10 minutes',
         'NONE': '0 per 10 minutes'
