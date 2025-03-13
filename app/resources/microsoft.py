@@ -41,7 +41,7 @@ def _call_api(endpoint_key):
 
 
 def _org_response_unavailable(response_json):
-    if 'error' in response_json and response_json['error']['message'] == "Unable to find target address":
+    if 'error' in response_json and "Unable to find target address" in response_json['error']['message']:
         return True
     return False
 
