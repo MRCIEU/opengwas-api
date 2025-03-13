@@ -1,4 +1,3 @@
-import neo4j.debug
 from flask_login import UserMixin
 import time
 
@@ -26,7 +25,7 @@ class User(UniqueNode, UserMixin):
             'uuid': self.get('uuid'),
             'created': int(time.time()),
             'last_signin': int(time.time()),
-            'is_trial': True
+            'tags': ['trial']
         }
 
         params_specific_sign_up = {}
@@ -41,7 +40,7 @@ class User(UniqueNode, UserMixin):
         tx = Neo4j.get_db()
         tx.run(
             "MERGE (n:" + self.get_node_label() + " {" + self._UID_KEY + ": $uid}) " +
-            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific_sign_up.keys()) + list(params_specific_every_time.keys()) + ['created', 'last_signin', 'is_trial']]) + " " +
+            "ON CREATE SET " + ','.join(['n.{}=${}'.format(f, f) for f in ['uuid'] + list(params_specific_sign_up.keys()) + list(params_specific_every_time.keys()) + ['created', 'last_signin', 'tags']]) + " " +
             "ON MATCH SET " + ','.join(['n.{}=${}'.format(f, f) for f in list(params_specific_every_time.keys()) + ['last_signin']]) + ";",
             parameters={**params_common, **params_specific_sign_up, **params_specific_every_time}
         )

@@ -16,7 +16,7 @@ class UserNodeSchema(FRPMSchema):
     created = fields.Int(required=False, metadata={"description": "Timestamp of node creation"})
     last_signin = fields.Int(required=False, metadata={"description": "Timestamp of most recent sign-in"})
     uuid = fields.Str(required=False, metadata={"description": "Shortened UUID of user"})
-    is_trial = fields.Boolean(required=False, metadata={"description": "Is this a trial account"})
+    tags = fields.List(fields.Str(validate=validate.OneOf(['trial', 'commercial'])), required=False, metadata={"description": "Tags of user"})
     blocked_until = fields.Int(required=False, metadata={"description": "Blocked until timestamp (only present when blocked)"})
 
     @post_load

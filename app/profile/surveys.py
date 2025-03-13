@@ -19,7 +19,7 @@ profile_surveys_bp = Blueprint('surveys', __name__)
 def start_survey(form_id):
     g.user = current_user
     url = 'https://tally.so/r/' + Globals.SURVEY_FORMS[form_id] + '?uuid_encrypted=' + CryptographyTool().encrypt(g.user['uuid']).decode() + '&email=' + g.user['uid']
-    if 'is_trial' in g.user:
+    if 'trial' in g.user.get('tags', []):
         url += '&is_trial=true'
     return redirect(url, 302)
 
@@ -110,7 +110,7 @@ def parse_survey_response(survey_form_key, uuid):
         set_user_names(email, first_name, last_name)
 
         # Upgrade from Trial to Standard
-        delete_user_trial_tag(email)
+        delete_user_tag(email, 'trial')
 
         # return "Your account has been upgraded from Trial to Standard."
         return "Your response has been saved."

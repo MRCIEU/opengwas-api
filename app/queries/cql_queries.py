@@ -487,7 +487,7 @@ def count_users(jwt_timestamp):
     ).single()['count']
 
     result['non_trial'] = tx.run(
-        "MATCH (u:User) WHERE u.is_trial IS NULL RETURN count(u) as count;"
+        "MATCH (u:User) WHERE u.tags IS NULL OR NOT 'trial' IN u.tags RETURN count(u) as count;"
     ).single()['count']
 
     return result
@@ -509,11 +509,21 @@ def set_user_names(email, first_name, last_name):
     u.set_names(email, first_name, last_name)
 
 
-def delete_user_trial_tag(email):
+def add_user_tag(email, tag):
     tx = Neo4j.get_db()
     result = tx.run(
-        "MATCH (u:User {uid: $email}) SET u.is_trial = NULL RETURN u;",
-        email=email
+        "MATCH (u:User {uid: $email}) SET u.tags = [t IN u.tags WHERE t <> $tag] + [$tag] RETURN u;",
+        email=email, tag=tag
+    ).single()
+
+    return result.data()
+
+
+def delete_user_tag(email, tag):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (u:User {uid: $email}) WHERE $tag IN u.tags SET u.tags = [t IN u.tags WHERE t <> $tag] WITH u WHERE u.tags = [] REMOVE u.tags RETURN u;",
+        email=email, tag=tag
     ).single()
 
     return result.data()

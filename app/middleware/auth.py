@@ -61,7 +61,8 @@ def get_uid(error_on_none=False):
 def get_user_tier(error_on_none=False):
     if 'user' not in g:
         return raise_error('NO_UID') if error_on_none else 'NONE'
-    if 'is_trial' in g.user:
+    tags = g.user.get('tags', [])
+    if 'trial' in tags:
         return 'TRIAL'
     if 'commercial' in tags:
         return 'COMMERCIAL'
