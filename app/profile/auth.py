@@ -161,17 +161,22 @@ def check_email_and_names():
     except Exception as e:
         return {'message': "Please provide a valid email address."}, 400
 
+    user = get_user_by_email(req['email'])
+
     try:
         domain = req['email'].split("@")[1]
-        if not GitHubUniversities().search_by_domain(domain):
-            raise Exception("Only new user with an academic email address can sign in via this method. If you only have non-academic email address, please use Microsoft or GitHub instead.")
+        # Only users with an academic email address OR commercial users can sign in via email
+        if not (GitHubUniversities().search_by_domain(domain) or user is not None and 'commercial' in user.data()['u'].get('tags', [])):
+            raise Exception("Only users with an academic email address OR commercial users can sign in via this method - please use Microsoft or GitHub instead.")
     except Exception as e:
         return {'message': str(e)}, 400
 
-    # For existing user, send one-time sign-in link without names
-    user = get_user_by_email(req['email'])
-    if user:
-        return send_email(req['email'])
+    try:
+        # For existing user, send one-time sign-in link without names
+        if user:
+            return send_email(req['email'])
+    except Exception as e:
+        return {'message': str(e)}, 400
 
     # For new user, check names and send one-time sign-in link containing names
     try:
@@ -250,7 +255,7 @@ def _decrypt_email_link(message):
     return email, first_name, last_name
 
 
-@profile_auth_bp.route('/email/signup')
+# @profile_auth_bp.route('/email/signup')
 def signup_via_user_input(email, first_name, last_name, source, return_redirect=True):
     try:
         Validator('UserNodeSchema', partial=True).validate({
