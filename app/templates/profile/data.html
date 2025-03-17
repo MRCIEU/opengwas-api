@@ -14,7 +14,7 @@
 {% block main %}
 <div class="row">
     <div class="col">
-        <p>Thank you for accepting our Terms of use{{ created_date_string }}. Here are the information we hold about you:</p>
+        <p>Thank you for accepting our Terms of use{{ created_date_string }}. Here are the information we hold about you. You can fill in the <a href="{{ url_for('profile.surveys.start_survey', form_id='user_info') }}">user info survey</a> if you wish to update your information e.g. if your circumstance changed. Many thanks. </p>
     </div>
 </div>
 <h4>User</h4>
