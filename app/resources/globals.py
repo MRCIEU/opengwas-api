@@ -78,6 +78,7 @@ class Globals:
     public_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
 
     gwas_pos_prefix_indices = {}
+    ASSOC_BY_CHUNKS_QUERY_MAX_N_PROC = 4
 
     variant_index = "snp-base-v0.2"
 

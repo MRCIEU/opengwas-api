@@ -1,9 +1,13 @@
 import collections
 import gzip
+import multiprocessing
 import os
 import pickle
 import shutil
+import time
 import uuid
+
+from multiprocessing import Process, Queue
 
 from queries.cql_queries import get_permitted_studies
 from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query, add_trait_to_result
@@ -99,7 +103,24 @@ class AssocQueriesByChunks:
                     })
         return associations
 
-    def query(self, pos_prefix_indices: dict, gwasinfo: dict, gwas_ids: list[str], query: list[str]) -> list:
+    def query_worker(self, proc_id: int, tasks_queue: multiprocessing.Queue, results_queue: multiprocessing.Queue, pos_prefix_indices: dict, gwasinfo: dict) -> list:
+        t0 = time.time()
+
+        def _run(gwas_id: str, chr: str, pos_tuple: tuple):
+            chunks_available = self._filter_chunks_available(pos_prefix_indices, gwas_id, chr, pos_tuple)
+            associations_available = self._fetch_associations_available(gwas_id, chr, chunks_available)
+            associations = self._trim_and_compose_associations(gwasinfo, gwas_id, chr, associations_available, pos_tuple)
+            results_queue.put(associations)
+
+        while True:
+            task = tasks_queue.get()
+            if not task:
+                print('Process {} ended in {} s'.format(proc_id, str(round(time.time() - t0, 3))))
+                break
+            gwas_id, chr, pos_tuple = task
+            _run(gwas_id, chr, pos_tuple)
+
+    def query_by_multiprocessing(self, pos_prefix_indices: dict, gwasinfo: dict, gwas_ids: list[str], query: list[str]) -> list:
         pos_tuple_list_by_chr = collections.defaultdict(list)
         for q in query:
             chr, pos = q.split(':')
@@ -107,15 +128,33 @@ class AssocQueriesByChunks:
             pos_tuple_list_by_chr[chr].append((int(pos_start), int(pos_end)))
         merged_pos_by_chr = self._merge_pos_ranges(pos_tuple_list_by_chr)
 
-        result = []
+        tasks = []
         for gwas_id in gwas_ids:
             for chr in merged_pos_by_chr:
                 for pos_tuple in merged_pos_by_chr[chr]:
-                    chunks_available = self._filter_chunks_available(pos_prefix_indices, gwas_id, chr, pos_tuple)
-                    associations_available = self._fetch_associations_available(gwas_id, chr, chunks_available)
-                    associations = self._trim_and_compose_associations(gwasinfo, gwas_id, chr, associations_available, pos_tuple)
-                    result.extend(associations)
-        return result
+                    tasks.append((gwas_id, chr, pos_tuple))
+
+        n_proc = max(len(tasks), Globals.ASSOC_BY_CHUNKS_QUERY_MAX_N_PROC)
+
+        tasks_queue = Queue()
+        for t in tasks:
+            tasks_queue.put(t)
+        for _ in range(n_proc):
+            tasks_queue.put(None)
+
+        results_queue = Queue()
+        processes = []
+        for proc_id in range(n_proc):
+            proc = Process(target=self.query_worker, args=(proc_id, tasks_queue, results_queue, pos_prefix_indices, gwasinfo))
+            proc.start()
+            processes.append(proc)
+        for proc in processes:
+            proc.join()
+
+        results = []
+        for _ in range(results_queue.qsize()):
+            results.extend(results_queue.get())
+        return results
 
 
 def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2, align_alleles, palindromes, maf_threshold):
@@ -147,7 +186,7 @@ def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2, align_
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
             rsid_proxies = list(set([x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]))
             total, docs = snps(rsid_proxies)
-            assoc_proxied = chunked_queries.query(Globals.gwas_pos_prefix_indices, study_data, ids, [f"{doc['_source']['CHROM']}:{doc['_source']['POS']}" for doc in docs])
+            assoc_proxied = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, [f"{doc['_source']['CHROM']}:{doc['_source']['POS']}" for doc in docs])
             # Need to fix this (which?)
             if assoc_proxied != '[]':
                 result += extract_proxies_from_query(ids, rsid, proxy_dat, assoc_proxied, maf_threshold, align_alleles)
@@ -158,7 +197,7 @@ def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2, align_
     if len(cprange) > 0:
         query.update([cp['orig'] for cp in cprange])
 
-    result += chunked_queries.query(Globals.gwas_pos_prefix_indices, study_data, ids, list(query))
+    result += chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, list(query))
 
     result = sorted(result, key=lambda x: x['position'])
     result = add_trait_to_result(result, study_data)
