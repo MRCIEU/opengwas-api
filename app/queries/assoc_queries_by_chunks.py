@@ -1,13 +1,11 @@
 import collections
 import gzip
-import multiprocessing
 import os
 import pickle
 import shutil
-import time
 import uuid
 
-from multiprocessing import Process, Queue
+from multiprocessing.pool import ThreadPool
 
 from queries.cql_queries import get_permitted_studies
 from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query, add_trait_to_result
@@ -103,24 +101,14 @@ class AssocQueriesByChunks:
                     })
         return associations
 
-    def query_worker(self, proc_id: int, tasks_queue: multiprocessing.Queue, results_queue: multiprocessing.Queue, pos_prefix_indices: dict, gwasinfo: dict) -> list:
-        t0 = time.time()
-
-        def _run(gwas_id: str, chr: str, pos_tuple: tuple):
+    def query_by_multiprocessing(self, pos_prefix_indices: dict, gwasinfo: dict, gwas_ids: list[str], query: list[str]) -> list:
+        def _query(t: tuple):
+            gwas_id, chr, pos_tuple = t
             chunks_available = self._filter_chunks_available(pos_prefix_indices, gwas_id, chr, pos_tuple)
             associations_available = self._fetch_associations_available(gwas_id, chr, chunks_available)
             associations = self._trim_and_compose_associations(gwasinfo, gwas_id, chr, associations_available, pos_tuple)
-            results_queue.put(associations)
+            return associations
 
-        while True:
-            task = tasks_queue.get()
-            if not task:
-                print('Process {} ended in {} s'.format(proc_id, str(round(time.time() - t0, 3))))
-                break
-            gwas_id, chr, pos_tuple = task
-            _run(gwas_id, chr, pos_tuple)
-
-    def query_by_multiprocessing(self, pos_prefix_indices: dict, gwasinfo: dict, gwas_ids: list[str], query: list[str]) -> list:
         pos_tuple_list_by_chr = collections.defaultdict(list)
         for q in query:
             chr, pos = q.split(':')
@@ -134,26 +122,18 @@ class AssocQueriesByChunks:
                 for pos_tuple in merged_pos_by_chr[chr]:
                     tasks.append((gwas_id, chr, pos_tuple))
 
-        n_proc = max(len(tasks), Globals.ASSOC_BY_CHUNKS_QUERY_MAX_N_PROC)
+        n_proc = max(len(tasks), Globals.ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS)
 
-        tasks_queue = Queue()
-        for t in tasks:
-            tasks_queue.put(t)
-        for _ in range(n_proc):
-            tasks_queue.put(None)
+        with ThreadPool(n_proc) as pool:
+            async_instance = pool.map_async(_query, tasks)
+            try:
+                results = []
+                for r in async_instance.get():
+                    results.extend(r)
+            except Exception as e:
+                print(str(e))
+                raise e
 
-        results_queue = Queue()
-        processes = []
-        for proc_id in range(n_proc):
-            proc = Process(target=self.query_worker, args=(proc_id, tasks_queue, results_queue, pos_prefix_indices, gwasinfo))
-            proc.start()
-            processes.append(proc)
-        for proc in processes:
-            proc.join()
-
-        results = []
-        for _ in range(results_queue.qsize()):
-            results.extend(results_queue.get())
         return results
 
 
