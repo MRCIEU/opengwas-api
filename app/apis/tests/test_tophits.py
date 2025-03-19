@@ -65,3 +65,10 @@ def test_tophits_post7(url, headers):
     payload = {'id': ['ukb-d-F5_DEPRESSIO'], 'kb': 5000}
     r = requests.post(url + "/tophits", data=payload, headers=headers)
     assert r.status_code == 200
+
+
+def test_tophits_post8(url, headers):
+    payload = {'id': ['ebi-a-GCST011081'], 'pval': 0.00005, 'preclumped': 0, 'clump': 1}
+    r = requests.post(url + "/tophits", data=payload, headers=headers)
+    o = r.json()
+    assert r.status_code == 200 and len(o) > 40
