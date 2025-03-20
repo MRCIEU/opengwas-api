@@ -10,7 +10,7 @@ from queries.redis_queries import RedisQueries
 
 class Logger:
     def log(self, user_uuid, endpoint, start_time, cost_params=None, n_records=0, gwas_id=None, n_snps=0):
-        return RedisQueries('log').publish_log('log.api.' + Globals.app_config['env'], json.dumps({
+        return RedisQueries('log_pubsub').publish_log('log.api.' + Globals.app_config['env'], json.dumps({
             'uuid': user_uuid,
             'ip': get_remote_address(),
             'endpoint': endpoint,
@@ -24,15 +24,28 @@ class Logger:
 
     def log_error(self, user_uuid, endpoint, args, error):
         log_timestamp = int(round(time.time() * 1000000))
-        RedisQueries('log_error').add_log(f"api_error.{Globals.app_config['env']}.{endpoint}", log_timestamp, json.dumps({
+        RedisQueries('log').add_log(f"api_error.{Globals.app_config['env']}.{endpoint}", log_timestamp, json.dumps({
             'uuid': user_uuid,
             'ip': get_remote_address(),
             'endpoint': endpoint,
-            'time': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'datetime': datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'args': args,
             'error': error,
             'source': request.headers.get('X-API-SOURCE', None)
         }))
+        return log_timestamp
+
+    def log_info(self, user_uuid, operation, args, info):
+        log_timestamp = int(round(time.time() * 1000000))
+        RedisQueries('log').add_log(f"api_info.{Globals.app_config['env']}.{operation}", log_timestamp, json.dumps({
+              'uuid': user_uuid,
+              'ip': get_remote_address(),
+              'operation': operation,
+              'datetime': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              'args': args,
+              'info': info,
+              'source': request.headers.get('X-API-SOURCE', None)
+          }))
         return log_timestamp
 
 logger = Logger()
