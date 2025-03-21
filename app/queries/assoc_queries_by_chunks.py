@@ -1,12 +1,13 @@
+from flask import g
 import collections
 import gzip
-import os
+import io
 import pickle
-import shutil
-import uuid
+import time
 
 from multiprocessing.pool import ThreadPool
 
+from middleware.logger import logger as logger_middleware
 from queries.cql_queries import get_permitted_studies
 from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query, add_trait_to_result
 from queries.variants import snps
@@ -14,20 +15,11 @@ from resources.globals import Globals
 from resources._oci import OCI
 
 
-# TODO: https://stackoverflow.com/questions/64514398/python-multiprocessing-within-flask-request-with-gunicorn-nginx
-
-
 class AssocQueriesByChunks:
     def __init__(self):
         self.oci = OCI()
 
-        self.temp_dir = f"{Globals.TMP_FOLDER}/{uuid.uuid4()}"
-        os.makedirs(self.temp_dir, exist_ok=True)
-
         self.chunk_size = 10_000_000
-
-    def __del__(self):
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _convert_sample_size(self, size):
         if size == '':
@@ -60,19 +52,8 @@ class AssocQueriesByChunks:
     def _fetch_associations_available(self, gwas_id: str, chr: str, pos_prefixes: set) -> dict:
         associations_available = {}
         for pos_prefix in sorted(pos_prefixes):
-            chunk_path = f"{self.temp_dir}/{gwas_id}/{chr}_{pos_prefix}"
-            local_file_valid = os.path.exists(chunk_path) and os.path.getsize(chunk_path) > 0
-            try:
-                with gzip.open(chunk_path, 'rb') as f:
-                    associations_available = associations_available | pickle.load(f)
-            except Exception as e:
-                local_file_valid = False
-            if not local_file_valid:
-                os.makedirs(f"{self.temp_dir}/{gwas_id}", exist_ok=True)
-                with open(chunk_path, 'wb+') as f:
-                    f.write(self.oci.object_storage_download('data-chunks', f"{gwas_id}/{chr}_{pos_prefix}").data.content)
-                with gzip.open(chunk_path, 'rb') as f:
-                    associations_available = associations_available | pickle.load(f)
+            with gzip.GzipFile(fileobj=io.BytesIO(self.oci.object_storage_download('data-chunks', f"{gwas_id}/{chr}_{pos_prefix}").data.content), mode='rb') as f:
+                associations_available = associations_available | pickle.loads(f.read())
         return associations_available
 
     # only leave the associations that are within the pos range
@@ -102,13 +83,18 @@ class AssocQueriesByChunks:
         return associations
 
     def query_by_multiprocessing(self, pos_prefix_indices: dict, gwasinfo: dict, gwas_ids: list[str], query: list[str]) -> list:
-        def _query(t: tuple):
-            gwas_id, chr, pos_tuple = t
+        def _query(params: tuple):
+            gwas_id, chr, pos_tuple = params
+            ttask = [time.time()]
             chunks_available = self._filter_chunks_available(pos_prefix_indices, gwas_id, chr, pos_tuple)
+            ttask.append(time.time())
             associations_available = self._fetch_associations_available(gwas_id, chr, chunks_available)
+            ttask.append(time.time())
             associations = self._trim_and_compose_associations(gwasinfo, gwas_id, chr, associations_available, pos_tuple)
-            return associations
+            ttask.append(time.time())
+            return associations, ttask
 
+        tquery = [time.time()]
         pos_tuple_list_by_chr = collections.defaultdict(list)
         for q in query:
             chr, pos = q.split(':')
@@ -124,12 +110,25 @@ class AssocQueriesByChunks:
 
         n_proc = max(len(tasks), Globals.ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS)
 
+        tquery.append(time.time())
+
         with ThreadPool(n_proc) as pool:
             async_instance = pool.map_async(_query, tasks)
+            tquery.append(time.time())
             try:
                 results = []
-                for r in async_instance.get():
-                    results.extend(r)
+                times_by_steps = [[], [], []]
+                outcome = async_instance.get()
+                tquery.append(time.time())
+                for associations, time_by_step_of_query in outcome:
+                    results.extend(associations)
+                    for step in [0, 1, 2]:
+                        times_by_steps[step].append(time_by_step_of_query[step + 1] - time_by_step_of_query[step])
+                tquery.append(time.time())
+
+                tquery = [round((tquery[i + 1] - tquery[i]) * 1000, 2) for i in range(len(tquery) - 1)]
+                tquery.extend([int(sum(times_of_step) * 1000 / max(len(times_of_step), 1)) for times_of_step in times_by_steps])
+                logger_middleware.log_info(g.user['uuid'], 'assoc_query_by_chunks', {'n_tasks': len(tasks)}, tquery)
             except Exception as e:
                 print(str(e))
                 raise e
