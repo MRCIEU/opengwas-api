@@ -1,5 +1,6 @@
 from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
+import math
 import time
 import traceback
 
@@ -26,12 +27,12 @@ def _compare_results(r0, r1):
     anomalies = []
 
     r0uniq = [{a[0]: a[1] for a in fset} for fset in r0uniq]
-    r0uniq_dict = {f"{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r0uniq}
+    r0uniq_dict = {f"{a['chr']}_{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r0uniq}
     if len(r0uniq_dict) != len(r0uniq):
         anomalies.append(['DUPLICATE_ID', 'r0'])
 
     r1uniq = [{a[0]: a[1] for a in fset} for fset in r1uniq]
-    r1uniq_dict = {f"{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r1uniq}
+    r1uniq_dict = {f"{a['chr']}_{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r1uniq}
     if len(r1uniq_dict) != len(r1uniq):
         anomalies.append(['DUPLICATE_ID', 'r1'])
 
@@ -43,13 +44,19 @@ def _compare_results(r0, r1):
                 anomalies.append(['MISSING_ID', id])
             elif dict1[id] != dict2[id]:
                 diff_keys = {k for k in dict1[id] if dict1[id][k] != dict2[id][k]}
-                if diff_keys != {'n'} or int(dict1[id]['n']) != int(dict2[id]['n']):
+                if not (
+                    (diff_keys == {'n'} and int(dict1[id]['n']) == int(dict2[id]['n'])) or
+                    (diff_keys == {'beta', 'eaf'} and
+                        math.isclose(float(dict1[id]['beta']) * -1, float(dict2[id]['beta']), rel_tol=1e-6) and
+                        math.isclose(float(dict1[id]['eaf']) + float(dict2[id]['eaf']), 1.000000, rel_tol=1e-6)
+                    )
+                ):
                     anomalies.append(['DIFF_IN_VALUE', dict1[id], dict2[id], diff_keys])
 
     _compare(r0uniq_dict, r1uniq_dict)
     _compare(r1uniq_dict, r0uniq_dict)
 
-    assert anomalies == []
+    return anomalies
 
 
 @api.route('/<id>/<variant>')
@@ -131,28 +138,32 @@ class AssocPost(Resource):
                               {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
 
-        return result
+        # return result
 
-        # start_time = time.time()
-        #
-        # try:
-        #     result_from_chunks = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
-        # except Exception as e:
-        #     logger.error("Could not obtain SNP association: {}".format(e))
-        #     abort(503)
-        #
-        # logger_middleware.log(g.user['uuid'], 'assoc_chunked_post', start_time,
-        #                       {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
-        #                       len(result_from_chunks), list(set([r['id'] for r in result_from_chunks])), len(set([r['rsid'] for r in result_from_chunks])))
-        #
-        # try:
-        #     _compare_results(result, result_from_chunks)
-        #     return result_from_chunks
-        # except Exception as e:
-        #     log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, traceback.format_exc())
-        #     return {
-        #         'error_log_timestamp': log_timestamp
-        #     }, 503
+        start_time = time.time()
+
+        try:
+            result_from_chunks = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+        except Exception as e:
+            logger.error("Could not obtain SNP association: {}".format(e))
+            abort(503)
+
+        logger_middleware.log(g.user['uuid'], 'assoc_chunked_post', start_time,
+                              {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
+                              len(result_from_chunks), list(set([r['id'] for r in result_from_chunks])), len(set([r['rsid'] for r in result_from_chunks])))
+
+        try:
+            anomalies = _compare_results(result, result_from_chunks)
+            assert anomalies == []
+        except AssertionError as e:
+            log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, anomalies)
+        except Exception as e:
+            log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, traceback.format_exc())
+            return {
+                'error_log_timestamp': log_timestamp
+            }, 503
+
+        return result
 
 
 @api.route('/chunked')
