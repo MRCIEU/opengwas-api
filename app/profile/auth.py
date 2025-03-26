@@ -278,13 +278,13 @@ def signup_via_user_input(email, first_name, last_name, source, return_redirect=
     }
 
 
-def _create_or_update_user_from_user_input(email, first_name, last_name, source, return_redirect=True):
+def _create_or_update_user_from_user_input(email, first_name, last_name, source, return_redirect=True, record_last_signin=True):
     try:
         group, org = _infer_group_and_org_by_email(email)
         if org:
-            user = create_or_update_user_and_membership(email=email, group=group, source=source, names=[first_name, last_name], org=org)
+            user = create_or_update_user_and_membership(email=email, group=group, source=source, names=[first_name, last_name], org=org, record_last_signin=record_last_signin)
         else:
-            user = create_or_update_user_and_membership(email=email, group=group, source=source, names=[first_name, last_name])
+            user = create_or_update_user_and_membership(email=email, group=group, source=source, names=[first_name, last_name], record_last_signin=record_last_signin)
     except Exception as e:
         if return_redirect:
             flash(str(e), 'danger')

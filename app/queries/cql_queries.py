@@ -249,14 +249,14 @@ def count_gwas_by_group():
     return result
 
 
-def create_or_update_user_and_membership(email, group, source, names=[], org=None, user_org_info=None, group_names=frozenset(['public'])):
+def create_or_update_user_and_membership(email, group, source, names=[], org=None, user_org_info=None, group_names=frozenset(['public']), record_last_signin=True):
     email = email.strip().lower()
     uuid_str = shortuuid.uuid()
     if len(names) > 0:  # [first_name, last_name]
         u = User(uid=email, uuid=uuid_str, first_name=names[0], last_name=names[1], group=group, source=source)
     else:
         u = User(uid=email, uuid=uuid_str, group=group, source=source)
-    u.create_node()
+    u.create_node(record_last_signin=record_last_signin)
 
     user = get_user_by_email(email)
     if not user:

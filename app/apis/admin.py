@@ -74,7 +74,7 @@ class AddUser(Resource):
             return {'message': "User already exists"}, 400
 
         try:
-            user = _create_or_update_user_from_user_input(args['email'], args['first_name'], args['last_name'], 'EM', return_redirect=False)
+            user = _create_or_update_user_from_user_input(args['email'], args['first_name'], args['last_name'], 'EM', return_redirect=False, record_last_signin=False)
         except Exception as e:
             return {'message': str(e)}, 400
 

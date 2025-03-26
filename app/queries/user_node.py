@@ -10,7 +10,7 @@ class User(UniqueNode, UserMixin):
     _UID_KEY = 'uid'
     _SCHEMA = UserNodeSchema
 
-    def create_node(self):
+    def create_node(self, record_last_signin=True):
         partial_fields_sign_up = ['first_name', 'last_name']
         partial_fields_every_time = ['group', 'source']
         partial_fields_all = partial_fields_sign_up + partial_fields_every_time
@@ -24,7 +24,7 @@ class User(UniqueNode, UserMixin):
             'uid': self.get(self._UID_KEY),
             'uuid': self.get('uuid'),
             'created': int(time.time()),
-            'last_signin': int(time.time()),
+            'last_signin': int(time.time()) if record_last_signin else None,
             'tags': ['trial']
         }
 
