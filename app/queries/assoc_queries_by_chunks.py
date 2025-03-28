@@ -12,12 +12,12 @@ from queries.cql_queries import get_permitted_studies
 from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query, add_trait_to_result
 from queries.variants import snps
 from resources.globals import Globals
-from resources._oci import OCI
+from resources._oci import OCIObjectStorage
 
 
 class AssocQueriesByChunks:
     def __init__(self):
-        self.oci = OCI()
+        self.oci = OCIObjectStorage()
 
         self.chunk_size = 10_000_000
 

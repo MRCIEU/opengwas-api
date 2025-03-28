@@ -18,7 +18,7 @@ from queries.cql_queries import *
 from queries.gwas_info_node import GwasInfo
 from resources.airflow import Airflow
 from resources.globals import Globals
-from resources._oci import OCI
+from resources._oci import OCIObjectStorage
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema, check_id_is_valid_filename
 from schemas.gwas_row_schema import GwasRowSchema
 
@@ -132,7 +132,7 @@ class Add(Resource):
             # with open(json_path, 'w') as f:
             #     json.dump(gi, f)
             # with open(json_path, 'rb') as f:
-            #     oci_upload = OCI().object_storage_upload('upload', str(gwas_id) + '/' + str(gwas_id) + '.json', f)
+            #     oci_upload = OCIObjectStorage().object_storage_upload('upload', str(gwas_id) + '/' + str(gwas_id) + '.json', f)
             # shutil.rmtree(study_folder)
             #
             # return {"id": gwas_id, "oci_upload": {'status': oci_upload.status, 'headers': dict(oci_upload.headers)}}, 200
@@ -181,7 +181,7 @@ class Edit(Resource):
                 logger.error("Could not create study folder: {}".format(e))
                 raise e
 
-            oci = OCI()
+            oci = OCIObjectStorage()
 
             gi = GwasInfo.get_node(gwas_id)
             json_path = os.path.join(study_folder, str(gwas_id) + '.json')
@@ -294,7 +294,7 @@ class Delete(Resource):
         if os.path.isdir(study_folder):
             shutil.rmtree(study_folder)
 
-        oci = OCI()
+        oci = OCIObjectStorage()
         oci.object_storage_delete_by_prefix('upload', gwas_id + '/')
 
         airflow = Airflow()
@@ -516,7 +516,7 @@ class Upload(Resource):
             except ValueError as e:
                 return {'message': 'Check file upload: {}'.format(e)}, 400
 
-            oci = OCI()
+            oci = OCIObjectStorage()
 
             # write metadata to json
             gi = get_gwas_for_user(g.user['uid'], gwas_id, datapass=False)
@@ -566,7 +566,7 @@ class Upload(Resource):
             # with open(os.path.join(study_folder, gwas_id + '_wdl.json'), 'rb') as f:
             #     oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '_wdl.json', f)
 
-            # upload to OCI Object Storage
+            # upload to OCIObjectStorage Object Storage
             with open(input_path, 'rb') as f:
                 oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + input_data_filename, f)
 

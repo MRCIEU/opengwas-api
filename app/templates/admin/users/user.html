@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">User {{ uuid }}</h2>
+    <p class="fs-5 text-muted">...</p>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="clearfix">
+    <div class="float-start"><h4>User</h4></div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="firstname" class="col-form-label">Firstname</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="firstname" value="{{ user['first_name'] }}">
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="lastname" class="col-form-label">Lastname</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="lastname" value="{{ user['last_name'] }}">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="email" class="col-form-label">Email</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="email" value="{{ user['uid'] }}">
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="uuid" class="col-form-label">Account ID</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="uuid" value="{{ user['uuid'] }}">
+            </div>
+        </div>
+    </div>
+</div>
+{% if computed_org %}
+    <hr>
+    <h4>Organisation (retrieved/inferred) <small><i class="bi bi-info-circle" data-toggle="tooltip" title="The following information was either provided by Microsoft when the user used Single Sign-On (SSO), or inferred from the domain name of their email address when they signed in via GitHub or email verification."></i></small></h4>
+        <div class="row">
+            <div class="col-auto">
+                <label for="org_name" class="col-form-label">Name</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="org_name" value="{{ computed_org['ms_name'] or computed_org['gh_name'] }}">
+            </div>
+        </div>
+    {% if computed_membership %}
+        <div class="row">
+            <div class="col-auto">
+                <label for="membership" class="col-form-label">Membership</label>
+            </div>
+            <div class="col">
+                <span type="text" readonly class="form-control-plaintext" id="membership">{{ "<br>".join(computed_membership.values()) | safe }}</span>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+<hr>
+<h4>Activities</h4>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="email" class="col-form-label">Created at</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" value="{{ user['created'] }}">
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="email" class="col-form-label">Last signed in at</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" value="{{ user['last_signin'] }}">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="uuid" class="col-form-label">Token (JWT) generated at</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" value="{{ user['jwt_timestamp'] }}">
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="uuid" class="col-form-label">Last signed in via</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" value="{{ globals_sources[user['source']] }}">
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+<h4>Allowance</h4>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-auto">
+                <label for="tierInput" class="col-form-label">Tier</label>
+            </div>
+            <div class="col">
+                <input type="text" readonly class="form-control-plaintext" id="tierInput" value="{{ globals_tiers[user_tier] }}">
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+        <div class="col-auto">
+            <label for="allowanceLimitInput" class="col-form-label">Allowance</label>
+        </div>
+        <div class="col">
+            <input type="text" readonly class="form-control-plaintext" id="allowanceLimitInput" value="{{ allowance_by_user_tier }}">
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var noTokenDiv, tokenValueTextarea, tokenGenerationResultP;
+
+    $(document).ready(() => {
+        bind_events();
+    });
+
+    // Bind event listeners
+    function bind_events() {
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    }
+
+    // Get token
+    function get_token() {
+        $.ajax({
+            url: "/profile/token?random=" + Math.random(),
+            error: function (xhr) {
+                if (xhr.status === 410) {
+                    // No valid token
+                    noTokenDiv.css("display", "flex");
+                } else {
+                    alert("An error occurred when retrieving your token.");
+                }
+            },
+            success: function (response) {
+                populate_token_info(response.expiry, response.token);
+            }
+        });
+    }
+
+    // Get allowance
+    function test_allowance() {
+        $.ajax({
+            url: "/profile/test_allowance",
+            error: function (xhr) {
+                if (xhr.status === 429) {
+                    populate_allowance_info(xhr.getResponseHeader('X-Allowance-Remaining'), xhr.getResponseHeader('X-Allowance-Reset'));
+                } else {
+                    alert("An error occurred when retrieving your allowance.");
+                }
+            },
+            success: function (response, status, xhr) {
+                populate_allowance_info(xhr.getResponseHeader('X-Allowance-Remaining'), xhr.getResponseHeader('X-Allowance-Reset'));
+            }
+        });
+    }
+
+    // Generate a new token
+    function generate_token() {
+        $.ajax({
+            url: "/profile/token/generate",
+            error: function () {
+                alert("An error occurred when generating your token.");
+            },
+            success: function (response) {
+                populate_token_info(response.expiry, response.token);
+                tokenGenerationResultP.html("Please save your token now. You will not be able to see it again.");
+                tokenValueTextarea.removeAttr('disabled').attr('rows', 3);
+            }
+        });
+    }
+
+    // Populate token expiry and value
+    function populate_token_info(expiry, token) {
+        noTokenDiv.css("display", "none");
+        $("#tokenExpiryInput").val(expiry);
+        tokenValueTextarea.val(token);
+        $("#currentTokenDiv").css("display", "inherit");
+    }
+
+    // Populate allowance info
+    function populate_allowance_info(remaining, reset) {
+        $("#allowanceRemainingInput").val(`${remaining} (reset at ${(new Date(reset * 1000)).toLocaleString()} ${Intl.DateTimeFormat().resolvedOptions().timeZone} time)`);
+    }
+</script>
+{% endblock %}

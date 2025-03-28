@@ -13,7 +13,7 @@ from datetime import datetime
 from resources.globals import Globals
 # from resources.logging_middleware import LoggerMiddleWare
 from resources.neo4j import Neo4j
-from resources._oci import OCI
+from resources._oci import OCIObjectStorage
 from resources.sessions import NoCookieSessionInterface, CustomRedisSessionInterface
 from middleware.limiter import limiter
 from apis import api_bp
@@ -100,7 +100,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 limiter.init_app(app)
 
 try:
-    with gzip.GzipFile(fileobj=io.BytesIO(OCI().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
+    with gzip.GzipFile(fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
         Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
 except Exception as e:
     logging.error('Unable to retrieve pos_prefix_indices')

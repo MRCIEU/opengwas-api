@@ -16,7 +16,7 @@ from queries.redis_queries import RedisQueries
 from resources import CryptographyTool
 from resources.airflow import Airflow
 from resources.globals import Globals
-from resources._oci import OCI
+from resources._oci import OCIObjectStorage
 from schemas.gwas_info_node_schema import valid_genome_build, valid_categories, valid_subcategories, valid_populations, valid_sex
 
 
@@ -66,7 +66,7 @@ def save_gwasinfo_cache():  # This is the minimal dump of the public datasets
             'datasets_compressed': datasets_compressed
         }, f)
     with open(Globals.STATIC_GWASINFO, 'rb') as f:
-        oci_upload = OCI().object_storage_upload('data', 'gwasinfo.json', f)
+        oci_upload = OCIObjectStorage().object_storage_upload('data', 'gwasinfo.json', f)
     return len(datasets)
 
 
@@ -97,7 +97,7 @@ class CacheGwasInfo(Resource):
     @key_required
     def get(self):
         pos_prefix_indices = {}
-        oci = OCI()
+        oci = OCIObjectStorage()
         output_path = f"{Globals.TMP_FOLDER}/0_pos_prefix_indices"
 
         for gwas_id, pos_prefix_index in RedisQueries('gwas_tasks', provider='ieu-db-proxy').get_gwas_pos_prefix_indices().items():
@@ -110,7 +110,7 @@ class CacheGwasInfo(Resource):
         os.remove(output_path)
 
         with gzip.GzipFile(
-                fileobj=io.BytesIO(OCI().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content),
+                fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content),
                 mode='rb') as f:
             pickle.loads(f.read())
 

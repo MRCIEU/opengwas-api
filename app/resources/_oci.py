@@ -5,8 +5,7 @@ import oci
 from resources.globals import Globals
 
 
-class OCI:
-    def __init__(self):
+def get_oci_config():
         config = {
             "user": Globals.app_config['oci']['auth']['user'],
             "fingerprint": Globals.app_config['oci']['auth']['fingerprint'],
@@ -15,7 +14,12 @@ class OCI:
             "key_file": Globals.app_config['oci']['auth']['key_file']
         }
         oci.config.validate_config(config)
-        self.object_storage_client = oci.object_storage.ObjectStorageClient(config)
+        return config
+
+
+class OCIObjectStorage:
+    def __init__(self):
+        self.object_storage_client = oci.object_storage.ObjectStorageClient(get_oci_config())
 
     def object_storage_list(self, bucket_key, prefix):
         results = []
@@ -106,3 +110,26 @@ class OCI:
         for o in object_names:
             self.object_storage_copy(src_bucket_key, o, dst_bucket_key, dst_object_name)
         return object_names
+
+
+# class OCIEmailDP:
+#     def __init__(self):
+#         self.email_dp_client = oci.email_data_plane.EmailDPClient(get_oci_config())
+#
+#     def send_email(self, recipients, subject, body_html):
+#         return self.email_dp_client.submit_email(oci.email_data_plane.models.SubmitEmailDetails(
+#             body_html=body_html,
+#             recipients=oci.email_data_plane.models.Recipients(
+#                 to=[oci.email_data_plane.models.EmailAddress(
+#                     email=r
+#                 ) for r in recipients],
+#             ),
+#             sender=oci.email_data_plane.models.Sender(
+#                 compartment_id=Globals.app_config['oci']['email_delivery']['compartment_id'],
+#                 sender_address=oci.email_data_plane.models.EmailAddress(
+#                     email=Globals.app_config['oci']['email_delivery']['sender']['email'],
+#                     name=Globals.app_config['oci']['email_delivery']['sender']['name']
+#                 )
+#             ),
+#             subject=subject
+#         ))

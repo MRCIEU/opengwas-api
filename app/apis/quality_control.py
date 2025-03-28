@@ -18,7 +18,7 @@ from middleware.auth import jwt_required, check_role, check_role_is_sufficient
 from queries.cql_queries import *
 from resources.airflow import Airflow
 from resources.globals import Globals
-from resources._oci import OCI
+from resources._oci import OCIObjectStorage
 
 logger = logging.getLogger('debug-log')
 
@@ -60,7 +60,7 @@ class GetId(Resource):
                 return {"message": str(e)}, 403
 
         try:
-            report_str = OCI().object_storage_download('upload', '{}/{}_report.html'.format(gwas_id, gwas_id)).data.text
+            report_str = OCIObjectStorage().object_storage_download('upload', '{}/{}_report.html'.format(gwas_id, gwas_id)).data.text
         except Exception as e:
             return {"message": "The report may not have been generated yet. Please check QC pipeline state."}, 404
 
@@ -148,7 +148,7 @@ class Release(Resource):
             # study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
             # os.makedirs(study_folder, exist_ok=True)
             #
-            oci = OCI()
+            oci = OCIObjectStorage()
             #
             # f = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json').data.text
             # analyst = json.loads(f)

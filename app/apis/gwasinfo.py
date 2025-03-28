@@ -10,7 +10,7 @@ from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func
 from middleware.logger import logger as logger_middleware
 from queries.cql_queries import *
 from resources.globals import Globals
-from resources._oci import OCI
+from resources._oci import OCIObjectStorage
 from schemas.gwas_info_node_schema import GwasInfoNodeSchema
 
 logger = logging.getLogger('debug-log')
@@ -139,7 +139,7 @@ class GetFilesByID(Resource):
 
         result = {}
 
-        oci = OCI()
+        oci = OCIObjectStorage()
         for rec in recs:
             result[rec['id']] = [oci.object_storage_par_create('data', path, 'ObjectRead', 'Deny', 3600 * 2, g.user['uuid'] + '.' + rec['id'])
                                  for path in oci.object_storage_list('data', rec['id'] + '/')

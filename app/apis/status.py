@@ -7,7 +7,7 @@ import json
 
 from resources.globals import Globals
 from resources.neo4j import Neo4j
-from resources._oci import OCI
+from resources._oci import OCIObjectStorage
 from middleware.limiter import limiter
 
 api = Namespace('status', description="Status of API and linked resources")
@@ -175,7 +175,7 @@ def count_neo4j_datasets():
 
 def count_cache_datasets():
     try:
-        return json.loads(OCI().object_storage_download('data', 'gwasinfo.json').data.text)['metadata']['size']
+        return json.loads(OCIObjectStorage().object_storage_download('data', 'gwasinfo.json').data.text)['metadata']['size']
     except Exception as e:
         print(e)
     return 0

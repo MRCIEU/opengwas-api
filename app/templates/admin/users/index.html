@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link href="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.1/css/buttons.dataTables.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.datatables.net/select/3.0.0/css/select.bootstrap5.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.3.3/css/searchPanes.bootstrap5.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block header %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="fw-normal">Admin area</h2>
+    <p class="fs-5 text-muted">...</p>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            Add user
+        </button>
+    </div>
+</div>
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5">Add user</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <p>Please try to look up the user first by searching for their email address, first name or last name on the main screen. Only use this form if you are sure that they do not exist. Also note that you need to reload (refresh) this page after new users have been added.</p>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="emailInput" placeholder="name@example.com">
+                    <label for="emailInput">Email</label>
+                </div>
+                <div class="mb-3 row">
+                    <div class="col-md">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="firstNameInput" placeholder="Firstname">
+                            <label for="firstNameInput">First name</label>
+                        </div>
+                    </div>
+                    <div class="col-md">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="lastNameInput" placeholder="Lastname">
+                            <label for="lastNameInput">Last name</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="addUserBtn" onclick="add_user()">Add </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row p-1">
+    <div class="col">
+        <table class="table table-sm table-striped" id="usersTable">
+            <thead><tr>
+                    <th>#</th>
+                    <th>UID</th>
+                    <th>Account ID</th>
+                    <th>Lastname</th>
+                    <th>Org (Inferred)</th>
+                    <th>Groups</th>
+                    <th>Tags</th>
+                    <th>Roles</th>
+                    <th>First sign-in</th>
+                    <th>Tenure(d)</th>
+                    <th>Last sign-in</th>
+                </tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js" integrity="sha512-eYSzo+20ajZMRsjxB6L7eyqo5kuXuS2+wEbbOkpaur+sA2shQameiJiWEzCIDwJqaB0a4a6tCuEvCOBHUg3Skg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/select/3.0.0/js/dataTables.select.min.js"></script>
+<script src="https://cdn.datatables.net/select/3.0.0/js/select.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/searchpanes/2.3.3/js/dataTables.searchPanes.min.js"></script>
+<script src="https://cdn.datatables.net/searchpanes/2.3.3/js/searchPanes.bootstrap5.min.js"></script>
+
+<script>
+    var usersTable;
+    var jwt, users, orgs;
+
+    $(document).ready(() => {
+        $.blockUI({message: '<h5 class="p-2"><div class="spinner-border spinner-border-sm" role="status"></div> Loading all users</h5>'});
+        bind_events();
+        get_token();
+    });
+
+    // Bind event listeners
+    function bind_events() {
+        $("#usersTable").on("click", "tr", function () {
+            window.open("{{ url_for('admin.users.users') }}" + "/" + usersTable.row(this).data().uuid, "_blank");
+        });
+    }
+
+    // Add/remove spinner and disable/enable the button
+    function button_loading(id, loading=true) {
+        let btn = $('#' + id);
+        if (loading){
+            btn.append(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`);
+            btn.prop('disabled', 'disabled');
+        } else {
+            btn.children('span').remove();
+            btn.prop('disabled', false);
+        }
+    }
+
+    // Get token
+    function get_token() {
+        $.ajax({
+            url: "/admin/token?random=" + Math.random(),
+            error: function (xhr) {
+                alert("You need to have a valid token to access the admin area. If you haven't, generate one on the user profile page, then go back here and refresh.");
+            },
+            success: function (response) {
+                jwt = response.token;
+                init_tables();
+                load_users_data();
+            }
+        });
+    }
+
+    function init_tables() {
+        usersTable = $("#usersTable").DataTable({
+            autoWidth: false,
+            scrollX: true,
+            layout: {
+                topStart: {
+                    searchPanes: {
+                        columns: [4, 5, 6]
+                    }
+                },
+                bottomStart: 'pageLength',
+                bottom2: 'info'
+            },
+            language: {
+                emptyTable: "Loading...<br>(this may take up to 120 seconds)"
+            },
+            columns: [
+                {
+                    render: (data, type, row, meta) => {
+                        return meta.row + 1;
+                    }
+                },
+                {data: "uid"},
+                {data: "uuid"},
+                {data: "last_name"},
+                {
+                    render: (data, type, row, meta) => {
+                        if (row['org_uuid'] !== null) {
+                            let o = orgs[row['org_uuid']];
+                            return o.hasOwnProperty('ms_name') ? o['ms_name'] : o['gh_name'];
+                        } else {
+                            return '(?)';
+                        }
+                    }
+                },
+                {
+                    data: "groups",
+                    render: {
+                        _: '[, ]',
+                        sp: '[]'
+                    },
+                    searchPanes: {
+                        orthogonal: 'sp'
+                    }
+                },
+                {
+                    data: "tags",
+                    render: {
+                        _: '[, ]',
+                        sp: '[]'
+                    },
+                    searchPanes: {
+                        orthogonal: 'sp'
+                    }
+                },
+                {
+                    data: "roles",
+                    render: {
+                        _: '[, ]',
+                        sp: '[]'
+                    },
+                    searchPanes: {
+                        orthogonal: 'sp'
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        if (row['created'] !== null) {
+                            return (new Date(row['created'] * 1000)).toISOString().split('T')[0];
+                        } else {
+                            return '(?)';
+                        }
+                    }
+                },
+                {
+                    type: 'numeric',
+                    render: (data, type, row, meta) => {
+                        if (row['created'] !== null) {
+                            return Math.floor((Date.now() / 1000 - row['created']) / 86400);
+                        } else {
+                            return '-1';
+                        }
+                    }
+                },
+                {
+                    render: (data, type, row, meta) => {
+                        if (row['last_signin'] !== null) {
+                            return (new Date(row['last_signin'] * 1000)).toISOString().split('T')[0];
+                        } else {
+                            return '(?)';
+                        }
+                    }
+                }
+            ]
+        });
+    }
+
+    function load_users_data() {
+        if (usersTable != undefined) {
+            usersTable.clear().draw();
+        }
+
+        function load_single(skip, limit) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "/api/admin/users/list",
+                    headers: {
+                        "Authorization": "Bearer " + jwt
+                    },
+                    data: {
+                        "skip": skip,
+                        "limit": limit
+                    },
+                    success: function (response) {
+                        resolve(response);
+                    },
+                    error: function (xhr, status, error) {
+                        reject(error)
+                    }
+                });
+            });
+        }
+
+        async function load_all() {
+            let results = {
+                'users': [],
+                'orgs': {}
+            }
+            let skip = 0;
+            let limit = 1000;
+
+            while (true) {
+                const response = await load_single(skip, limit);
+
+                results['users'] = results['users'].concat(response['users']);
+                results['orgs'] = Object.assign(results['orgs'], response['orgs']);
+
+                if (response['users'].length > 0 && results['users'].length < 1000) {
+                    skip += limit;
+                } else {
+                    users = results['users'];
+                    orgs = results['orgs'];
+                    populate_users_table(users);
+                    $.unblockUI();
+                    break;
+                }
+            }
+        }
+
+        load_all();
+    }
+
+    function populate_users_table(users) {
+        users = users.map((u) => {
+            return {
+                'uid': u[0],
+                'uuid': u[1],
+                'org_uuid': u[2],
+                'last_name': u[3],
+                'groups': u[4],
+                'tags': u[5],
+                'roles': u[6],
+                'created': u[7],
+                'last_signin': u[8]
+            }
+        });
+        usersTable.clear();
+        usersTable.rows.add(users).draw();
+        usersTable.searchPanes.rebuildPane();
+    }
+
+    function add_user() {
+        button_loading('addUserBtn', true);
+
+        $.ajax({
+            url: "/api/admin/users/add",
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            },
+            data: {
+                "email": $("#emailInput").val(),
+                "first_name": $("#firstNameInput").val(),
+                "last_name": $("#lastNameInput").val()
+            },
+            error: function (xhr) {
+                alert(xhr.responseJSON.message);
+            },
+            success: function (response) {
+                window.location.href = "{{ url_for('admin.users.users') }}" + "/" + response.user['uuid'];
+            }
+        }).always(() => {
+            button_loading('addUserBtn', false);
+        });
+    }
+</script>
+{% endblock %}
