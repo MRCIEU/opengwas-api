@@ -4,6 +4,8 @@
 <link href="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.2/font/bootstrap-icons.min.css" integrity="sha512-D1liES3uvDpPrgk7vXR/hR/sukGn7EtDWEyvpdLsyalQYq6v6YUsTUJmku7B4rcuQ21rf0UTksw2i/2Pdjbd3g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.1/css/buttons.dataTables.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.datatables.net/select/3.0.0/css/select.bootstrap5.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.3.3/css/searchPanes.bootstrap5.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endblock %}
 
 {% block header %}
@@ -155,6 +157,7 @@
                             <th>#</th>
                             <th>UID</th>
                             <th>Org (Inferred)</th>
+                            <th>Tags</th>
                             <th>N<sub>Reqs</sub></th>
                             <th>&#931;<sub>ProcTime</sub>(h)</th>
                             <th>Avg(N<sub>Datasets</sub>)</th>
@@ -178,12 +181,15 @@
 <script src="https://cdn.datatables.net/v/bs5/dt-2.0.7/datatables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/select/3.0.0/js/dataTables.select.min.js"></script>
+<script src="https://cdn.datatables.net/select/3.0.0/js/select.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/searchpanes/2.3.3/js/dataTables.searchPanes.min.js"></script>
+<script src="https://cdn.datatables.net/searchpanes/2.3.3/js/searchPanes.bootstrap5.min.js"></script>
 
 <script>
     var overallDatasetTr, overallUserTr, overallOrgTr, overallUserModalBySourceTbody, overallUserModalByGroupTbody, timespanDropdown, mvdTable, batchTable, mauTable, locTable;
     var focusedReport, focusedYear = "*", focusedMonth = "*";
-    var jwt, gwasinfo, user_sources, org;
+    var jwt, gwasinfo, user_sources, orgs;
 
     $(document).ready(() => {
         $.blockUI({message: '<h5 class="p-2"><div class="spinner-border spinner-border-sm" role="status"></div> Loading metadata of all datasets</h5>'});
@@ -455,7 +461,11 @@
         mauTable = $("#mauTable").DataTable({
             scrollX: true,
             layout: {
-                topStart: 'search',
+                topStart: {
+                    searchPanes: {
+                        columns: [2, 3]
+                    }
+                },
                 topEnd: 'paging',
                 bottomStart: 'pageLength',
                 bottomEnd: {
@@ -482,11 +492,21 @@
                 {
                     render: (data, type, row, meta) => {
                         if (row['org_uuid'] !== null) {
-                            let o = org[row['org_uuid']];
+                            let o = orgs[row['org_uuid']];
                             return o.hasOwnProperty('ms_name') ? o['ms_name'] : o['gh_name'];
                         } else {
                             return '(?)';
                         }
+                    }
+                },
+                {
+                    data: "tags",
+                    render: {
+                        _: '[, ]',
+                        sp: '[]'
+                    },
+                    searchPanes: {
+                        orthogonal: 'sp'
                     }
                 },
                 {
@@ -597,7 +617,7 @@
                 "month": month
             }
         }).done(function (response) {
-            org = response['org'];
+            orgs = response['orgs'];
             populate_loc_table(response['stats_by_location']);
             populate_mau_table(response['mau']);
         });
@@ -621,11 +641,13 @@
                 'created': u[7],
                 'last_signin': u[8],
                 'org_membership': u[9],
-                'org_uuid': u[10]
+                'org_uuid': u[10],
+                'tags': u[11]
             }
         });
         mauTable.clear();
         mauTable.rows.add(mau).draw();
+        mauTable.searchPanes.rebuildPane();
     }
 </script>
 {% endblock %}

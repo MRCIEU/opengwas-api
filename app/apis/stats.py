@@ -119,13 +119,13 @@ class MostValuedUsers(Resource):
         geoip = get_geoip_using_pipeline(list(ips))
 
         mau_list = []
-        org = {}
+        orgs = {}
         stats_by_location = defaultdict(lambda: defaultdict(int))
 
-        for uuids, stats in mau.items():
-            uo = users_and_orgs[uuids]
-            if uo['org'] is not None:
-                org[uo['org']['uuid']] = uo['org']
+        for uuid, stats in mau.items():
+            uo = users_and_orgs[uuid]
+            if uo['org'] is not None and uo['org']['uuid'] not in orgs:
+                orgs[uo['org']['uuid']] = uo['org']
             email = uo['user']['uid'].split('@')
             mau_list.append([
                 # uid (masked)
@@ -149,7 +149,9 @@ class MostValuedUsers(Resource):
                 # org_membership
                 uo['org_membership'],
                 # org_uuid
-                uo['org']['uuid'] if uo['org'] is not None else None
+                uo['org']['uuid'] if uo['org'] is not None else None,
+                # tags
+                uo['user'].get('tags', None)
             ])
             location = geoip.get(stats[3], '(?)')
             stats_by_location[location]['users'] += 1
@@ -163,6 +165,6 @@ class MostValuedUsers(Resource):
 
         return {
             'mau': mau_list,
-            'org': org,
+            'orgs': orgs,
             'stats_by_location': sorted(stats_by_location.values(), key=lambda l: l['users'], reverse=True)
         }
