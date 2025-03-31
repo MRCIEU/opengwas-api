@@ -58,16 +58,19 @@ def get_uid(error_on_none=False):
     return g.user['uid']
 
 
-def get_user_tier(error_on_none=False):
-    if 'user' not in g:
-        return raise_error('NO_UID') if error_on_none else 'NONE'
-    tags = g.user.get('tags', [])
+def get_user_tier(user=None, error_on_none=False):
+    if user is None:
+        if 'user' not in g:
+            return raise_error('NO_UID') if error_on_none else 'NONE'
+        user = g.user
+    tags = user.get('tags', [])
+
     if 'trial' in tags:
         return 'TRIAL'
     if 'commercial' in tags:
         return 'COMMERCIAL'
     try:
-        if g.user['uid'].split('@')[1] == 'bristol.ac.uk':
+        if user['uid'].split('@')[1] == 'bristol.ac.uk':
             return 'UOB'
     except:
         pass
