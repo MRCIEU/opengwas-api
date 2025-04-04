@@ -32,8 +32,8 @@ limiter = Limiter(
 )
 
 
-def get_allowance_by_user_tier():
-    user_tier = get_user_tier()
+def get_allowance_by_user_tier(user=None):
+    user_tier = get_user_tier(user=user)
     return Globals.ALLOWANCE_BY_USER_TIER[user_tier]
 
 
