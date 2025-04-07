@@ -99,11 +99,12 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
 
-try:
-    with gzip.GzipFile(fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
-        Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
-except Exception as e:
-    logging.error('Unable to retrieve pos_prefix_indices')
+if os.environ.get('POOL') in ['api', 'api-ref', 'api-priv']:
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
+            Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
+    except Exception as e:
+        logging.error('Unable to retrieve pos_prefix_indices')
 
 app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
