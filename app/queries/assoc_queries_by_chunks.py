@@ -10,6 +10,7 @@ from multiprocessing.pool import ThreadPool
 from middleware.logger import logger as logger_middleware
 from queries.cql_queries import get_permitted_studies
 from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query, add_trait_to_result
+from queries.redis_queries import RedisQueries
 from queries.variants import snps
 from resources.globals import Globals
 from resources._oci import OCIObjectStorage
@@ -159,13 +160,13 @@ def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2, align_
     result = []
     if len(rsid) > 0:
         if proxies == 0:
-            total, docs = snps(rsid)
-            query.update([f"{doc['_source']['CHROM']}:{doc['_source']['POS']}" for doc in docs])
+            chrpos_from_rsids = [cp for cp in RedisQueries('dbsnp', provider='ieu-db-proxy').get_chrpos_of_rsids([r[2:] for r in rsid]) if cp is not None]
+            query.update(chrpos_from_rsids)
         else:
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
             rsid_proxies = list(set([x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]))
-            total, docs = snps(rsid_proxies)
-            assoc_proxied = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, [f"{doc['_source']['CHROM']}:{doc['_source']['POS']}" for doc in docs])
+            chrpos_from_rsids = [cp for cp in RedisQueries('dbsnp', provider='ieu-db-proxy').get_chrpos_of_rsids([r[2:] for r in rsid_proxies]) if cp is not None]
+            assoc_proxied = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, chrpos_from_rsids)
             # Need to fix this (which?)
             if assoc_proxied != '[]':
                 result += extract_proxies_from_query(ids, rsid, proxy_dat, assoc_proxied, maf_threshold, align_alleles)

@@ -85,6 +85,14 @@ class RedisQueries:
             }
         }])[0]
 
+    def get_chrpos_of_rsids(self, rsids: list):
+        return self.r.query([{
+            'cmd': 'mget',
+            'args': {
+                "keys": rsids
+            }
+        }])[0]
+
     def get_cpalleles_of_chr_pos(self, chr_pos: set[tuple]) -> set:
         """
         Get chr, pos, alleles combinations from Redis, using chrpos or cprange.
