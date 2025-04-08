@@ -78,6 +78,14 @@ def probe_readiness():
     return {'message': "LD files unavailable"}, 503
 
 
+def download_gwas_pos_prefix_indices():
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
+            Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
+    except Exception as e:
+        logging.error('Unable to retrieve pos_prefix_indices')
+
+
 setup_event_logger('event-log', Globals.LOG_FILE)
 setup_logger('debug-log', Globals.LOG_FILE_DEBUG, level=logging.DEBUG, disabled=True)
 setup_logger('query-log', Globals.LOG_FILE_QUERY, level=logging.DEBUG, disabled=True)
@@ -99,13 +107,6 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 # https://stackoverflow.com/a/76902054
 limiter.init_app(app)
 
-if os.environ.get('POOL') in ['api', 'api-ref', 'api-priv']:
-    try:
-        with gzip.GzipFile(fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
-            Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
-    except Exception as e:
-        logging.error('Unable to retrieve pos_prefix_indices')
-
 app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
 if os.environ.get('ENV') == 'production':
@@ -114,6 +115,7 @@ if os.environ.get('ENV') == 'production':
         app.session_interface = NoCookieSessionInterface()
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
+        download_gwas_pos_prefix_indices()
     elif os.environ.get('POOL') == 'ui':
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
@@ -130,6 +132,7 @@ else:
     app.register_blueprint(contribution_bp, url_prefix='/contribution')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     login_manager.init_app(app)
+    download_gwas_pos_prefix_indices()
 
 
 if __name__ == "__main__":
