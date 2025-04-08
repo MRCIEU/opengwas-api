@@ -27,12 +27,12 @@ def _compare_results(r0, r1):
     anomalies = []
 
     r0uniq = [{a[0]: a[1] for a in fset} for fset in r0uniq]
-    r0uniq_dict = {f"{a['chr']}_{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r0uniq}
+    r0uniq_dict = {f"{a['id']}_{a['chr']}_{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r0uniq}
     if len(r0uniq_dict) != len(r0uniq):
         anomalies.append(['DUPLICATE_ID', 'r0'])
 
     r1uniq = [{a[0]: a[1] for a in fset} for fset in r1uniq]
-    r1uniq_dict = {f"{a['chr']}_{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r1uniq}
+    r1uniq_dict = {f"{a['id']}_{a['chr']}_{a['position']}_{a['rsid']}_{a['ea']}_{a['nea']}": a for a in r1uniq}
     if len(r1uniq_dict) != len(r1uniq):
         anomalies.append(['DUPLICATE_ID', 'r1'])
 
