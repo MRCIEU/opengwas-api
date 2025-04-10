@@ -11,8 +11,7 @@ class RedisProxy:
             'phewas_tasks': '0',
             'phewas_cpalleles': '1',
             'phewas_docids': '2',
-            'gwas_tasks': '0',
-            'dbsnp': '2'
+            'gwas_tasks': '0'
         }
         self.url = 'http://' + Globals.app_config['redis'][proxy_name]['host'] + ":" + str(Globals.app_config['redis'][proxy_name]['port'])
         self.auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis'][proxy_name]['basic_auth_username'], Globals.app_config['redis'][proxy_name]['basic_auth_passwd'])
