@@ -37,7 +37,7 @@ def es_search(filterData,routing):
 def snps(snp_list):
     print('snps',len(snp_list))
     filterData=[
-            {"terms":{"ID":snp_list}},
+            {"terms":{"_id":snp_list}},
             ]
     total,hits=es_search(filterData=filterData,routing='')
     return total,hits
@@ -45,20 +45,19 @@ def snps(snp_list):
 
 def chrpos_query(chrpos):
     chrs = list(set([x['chr'] for x in chrpos]))
-    out = list()
     total=0
     hits=list()
     for chr in chrs:
         filterData=[
-                {"term":{"CHROM":chr}},
-                {"term":{"COMMON":"1"}},
+                {"term":{"CHR":chr}},
+                # {"term":{"COMMON":"1"}},
                 {"terms" : {"POS": [x['start'] for x in chrpos if x['chr'] == chr]}},
                 ]
         tot,hit=es_search(filterData=filterData,routing=chr)
         total+=tot
         if tot > 0:
             for item in hit:
-                item.update({'query': str(item['_source']['CHROM'])+":"+str(item['_source']['POS'])})
+                item.update({'query': str(item['_source']['CHR'])+":"+str(item['_source']['POS'])})
                 so = item['_source']
                 item.pop('_source')
                 item.update(so)
@@ -81,7 +80,6 @@ def parse_chrpos(chrpos, radius=0):
 
 
 def range_query(chrpos, radius=0):
-
     chrpos = parse_chrpos(chrpos, radius)
     if radius == 0 and all(x['type'] == 'position' for x in chrpos):
         return chrpos_query(chrpos)['results']
@@ -90,8 +88,8 @@ def range_query(chrpos, radius=0):
 
     for i in range(len(chrpos)):
         filterData = [
-                {"term": {"CHROM": chrpos[i]['chr']}},
-                {"term": {"COMMON": "1"}},
+                {"term": {"CHR": chrpos[i]['chr']}},
+                # {"term": {"COMMON": "1"}},
                 {"range": {"POS": {"gte": chrpos[i]['start'], "lte": chrpos[i]['end']}}},
                 ]
         total, hits = es_search(filterData=filterData, routing=chrpos[i]['chr'])
@@ -125,8 +123,8 @@ def gene_query(name,radius):
             min=start-radius
         max=end+radius
         filterData=[
-                {"term":{"CHROM":chr}},
-                {"term":{"COMMON":"1"}},
+                {"term":{"CHR":chr}},
+                # {"term":{"COMMON":"1"}},
                 {"range" : {"POS" : {"gte" : min, "lte" : max}}},
                 ]
         total,hits=es_search(filterData=filterData,routing=chr)

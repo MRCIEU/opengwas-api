@@ -160,12 +160,12 @@ def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2, align_
     if len(rsid) > 0:
         if proxies == 0:
             total, docs = snps(rsid)
-            query.update([f"{doc['_source']['CHROM']}:{doc['_source']['POS']}" for doc in docs])
+            query.update([f"{doc['_source']['CHR']}:{doc['_source']['POS']}" for doc in docs])
         else:
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
             rsid_proxies = list(set([x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]))
             total, docs = snps(rsid_proxies)
-            assoc_proxied = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, [f"{doc['_source']['CHROM']}:{doc['_source']['POS']}" for doc in docs])
+            assoc_proxied = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, [f"{doc['_source']['CHR']}:{doc['_source']['POS']}" for doc in docs])
             # Need to fix this (which?)
             if assoc_proxied != '[]':
                 result += extract_proxies_from_query(ids, rsid, proxy_dat, assoc_proxied, maf_threshold, align_alleles)

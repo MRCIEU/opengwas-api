@@ -80,7 +80,7 @@ class Globals:
     gwas_pos_prefix_indices = {}
     ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS = 16
 
-    variant_index = "snp-base-v0.2"
+    variant_index = "dbsnp-157"
 
     EMAIL_VERIFICATION_LINK_VALIDITY = 3600  # seconds
 
