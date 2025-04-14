@@ -30,11 +30,6 @@ class Globals:
             QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
             ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
 
-        if os.environ.get('ACCESS') == 'private':
-            app_config['access'] = 'private'
-        else:
-            app_config['access'] = 'public'
-
     print("Params: {}".format(app_config))
 
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
