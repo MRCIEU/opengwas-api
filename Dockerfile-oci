@@ -10,5 +10,7 @@ RUN rm -rf /app/vault
 WORKDIR /app
 RUN mkdir /data /data/igd /data/mrb_logs /data/tmp
 
+RUN chmod +x /app/download_files.sh
+
 RUN chmod +x /app/gunicorn.sh
 CMD /app/gunicorn.sh
