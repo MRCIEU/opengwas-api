@@ -143,13 +143,13 @@ class AssocPost(Resource):
         start_time = time.time()
 
         try:
-            result_from_chunks = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+            result_from_chunks, n_chunks_accessed = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
         except Exception as e:
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
 
         logger_middleware.log(g.user['uuid'], 'assoc_chunked_post', start_time,
-                              {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
+                              {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies'], 'chunks': n_chunks_accessed},
                               len(result_from_chunks), list(set([r['id'] for r in result_from_chunks])), len(set([r['rsid'] for r in result_from_chunks])))
 
         try:
@@ -199,12 +199,12 @@ class AssocChunkedPost(Resource):
         start_time = time.time()
 
         try:
-            result = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+            result, n_chunks_accessed = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
         except Exception as e:
             logger.error("Could not obtain SNP association: {}".format(e))
             abort(503)
 
         logger_middleware.log(g.user['uuid'], 'assoc_chunked_post', start_time,
-                              {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
+                              {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies'], 'chunks': n_chunks_accessed},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
         return result
