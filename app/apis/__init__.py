@@ -49,7 +49,7 @@ api.add_namespace(variants)
 api.add_namespace(ld)
 
 # private
-if os.environ.get('POOL') == 'api-priv':
+if (os.environ.get('ENV') == 'production' and os.environ.get('POOL') == 'api-priv') or os.environ.get('ENV') == 'local':
     api.add_namespace(maintenance)
     api.add_namespace(edit)
     api.add_namespace(quality_control)
