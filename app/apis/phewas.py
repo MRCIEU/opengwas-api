@@ -184,7 +184,7 @@ def run_phewas_fast(user_email, variants, pval, batch_list=None):
         if len(rsid) > 0:
             total, hits = snps(rsid)
             for doc in hits:
-                chr_pos.add((doc['_source']['CHR'], doc['_source']['POS'], doc['_source']['POS']))
+                chr_pos.add((str(doc['_source']['CHR']), doc['_source']['POS'], doc['_source']['POS']))
         if len(chrpos) > 0:
             for cp in chrpos:
                 chr_pos.add((str(cp['chr']), cp['start'], cp['end']))
