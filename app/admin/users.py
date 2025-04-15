@@ -36,7 +36,7 @@ def user(uuid):
         user['last_signin'] = _convert_timestamp(user['last_signin']) if 'last_signin' in user else '(Never)'
         user['jwt_timestamp'] = _convert_timestamp(user['jwt_timestamp']) if 'jwt_timestamp' in user else '(Never)'
 
-        computed_org, computed_membership = get_org_and_membership_from_user(user['uid']) if user['group'] == 'ORG' else (None, None)
+        computed_org, computed_membership = get_org_and_membership_from_user(user['uid']) if user.get('group') == 'ORG' else (None, None)
 
         return render_template('admin/users/user.html', user=user, globals_sources=Globals.USER_SOURCES,
                            globals_tiers=Globals.USER_TIERS, user_tier=get_user_tier(user=user),
