@@ -116,6 +116,7 @@ if os.environ.get('ENV') == 'production':
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
         download_gwas_pos_prefix_indices()
+        logging.getLogger('oci._vendor.urllib3.connectionpool').setLevel(logging.ERROR)
     elif os.environ.get('POOL') == 'ui':
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)

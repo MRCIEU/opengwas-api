@@ -20,6 +20,8 @@ def get_oci_config():
 class OCIObjectStorage:
     def __init__(self):
         self.object_storage_client = oci.object_storage.ObjectStorageClient(get_oci_config())
+        self.object_storage_client.base_client.session.adapters['http://'].poolmanager.connection_pool_kw['maxsize'] = 100
+        self.object_storage_client.base_client.session.adapters['https://'].poolmanager.connection_pool_kw['maxsize'] = 100
 
     def object_storage_list(self, bucket_key, prefix):
         results = []
