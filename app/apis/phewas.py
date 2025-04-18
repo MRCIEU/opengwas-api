@@ -1,6 +1,7 @@
 from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
 import time
+import traceback
 
 from queries.es import *
 from queries.redis_queries import RedisQueries
@@ -121,6 +122,7 @@ class PhewasFastPost(Resource):
             result = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], batch_list=args['index_list'])
         except Exception as e:
             logger.error("Could not query summary stats: {}".format(e))
+            logger_middleware.log_error(g.user['uuid'], 'phewas_fast_post', args, traceback.format_exc())
             abort(503)
 
         with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_response_cost(args['variant'])):
@@ -196,21 +198,21 @@ def run_phewas_fast(user_email, variants, pval, batch_list=None):
         # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain cpalleles from fast index (first tier): {}".format(e))
-        flask.abort(503, e)
+        raise e
 
     try:
         doc_ids_by_index = RedisQueries('phewas_docids', provider='ieu-ssd-proxy').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
         # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain doc IDs from fast index (second tier): {}".format(e))
-        flask.abort(503, e)
+        raise e
 
     try:
         result = elastic_query_phewas_by_doc_ids(doc_ids_by_index, user_email=user_email, batch_list=batch_list)
         # timestamps.append(time.time())
     except Exception as e:
         logging.error("Could not obtain docs from database: {}".format(e))
-        flask.abort(503, e)
+        raise e
 
     # for i in [4, 3, 2, 1]:
     #     timestamps[i] = round((timestamps[i] - timestamps[i - 1]) * 1000)
