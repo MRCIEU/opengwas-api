@@ -85,6 +85,12 @@ def test_assoc_post6(url, headers):
     assert r.status_code == 200 and len(r.json()) == 6
 
 
+def test_assoc_post7(url, headers):
+    payload = {'id': ['ieu-b-2'], 'variant': ['rs234']}
+    r = requests.post(url + "/associations", data=payload, headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 1
+
+
 def test_chrpos1(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135'], 'proxies': 0}
     r1 = requests.post(url + "/associations", data=payload, headers=headers)

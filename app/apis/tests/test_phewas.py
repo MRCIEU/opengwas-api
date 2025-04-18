@@ -60,6 +60,11 @@ def test_phewas_post5(url, headers):
     r = requests.post(url + "/phewas", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 1
 
+def test_phewas_post6(url, headers):
+    payload = {'variant': 'rs1693457', 'pval': 0.00000005, 'index_list': ['ubm-a']}
+    r = requests.post(url + "/phewas", data=payload, headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 0
+
 
 @pytest.mark.skip
 def test_phewas_fast_post0(url, headers):
