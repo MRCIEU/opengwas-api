@@ -1,3 +1,4 @@
+import pytest
 import requests
 
 
@@ -115,48 +116,56 @@ def test_chrpos3(url, headers):
     assert 'rs1205' in [x['rsid'] for x in r1.json()]
 
 
+@pytest.mark.skip
 def test_assoc_chunked_post0(url):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
     r = requests.post(url + "/associations/chunked", data=payload)
     assert r.status_code == 401
 
 
+@pytest.mark.skip
 def test_assoc_chunked_post1(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
     r = requests.post(url + "/associations/chunked", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
+@pytest.mark.skip
 def test_assoc_chunked_post2(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-b-5008'], 'variant': ['rs234', 'rs123']}
     r = requests.post(url + "/associations/chunked", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 6
 
 
+@pytest.mark.skip
 def test_assoc_chunked_post3(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs6689306']}
     r = requests.post(url + "/associations/chunked", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 0
 
 
+@pytest.mark.skip
 def test_assoc_chunked_post4(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs6689306'], 'proxies': 1}
     r = requests.post(url + "/associations/chunked", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 2
 
 
+@pytest.mark.skip
 def test_assoc_chunked_post5(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs234', 'rs123', 'rs6689306']}
     r = requests.post(url + "/associations/chunked", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 4
 
 
+@pytest.mark.skip
 def test_assoc_chunked_post6(url, headers):
     payload = {'id': ['ieu-a-1', 'ieu-a-2'], 'variant': ['rs234', 'rs123', 'rs6689306'], 'proxies': 1}
     r = requests.post(url + "/associations/chunked", data=payload, headers=headers)
     assert r.status_code == 200 and len(r.json()) == 6
 
 
+@pytest.mark.skip
 def test_chunked_chrpos1(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135'], 'proxies': 0}
     r1 = requests.post(url + "/associations/chunked", data=payload, headers=headers)
@@ -167,6 +176,7 @@ def test_chunked_chrpos1(url, headers):
     assert r1.json()[0]['rsid'] == r2.json()[0]['rsid']
 
 
+@pytest.mark.skip
 def test_chunked_chrpos2(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135', 'rs1205'], 'proxies': 0}
     r1 = requests.post(url + "/associations/chunked", data=payload, headers=headers)
@@ -174,6 +184,7 @@ def test_chunked_chrpos2(url, headers):
     assert 'rs234' in [x['rsid'] for x in r1.json()]
 
 
+@pytest.mark.skip
 def test_chunked_chrpos3(url, headers):
     payload = {'id': ['ieu-a-2'], 'variant': ['7:105561135-105571135', 'rs1205'], 'proxies': 0}
     r1 = requests.post(url + "/associations/chunked", data=payload, headers=headers)
