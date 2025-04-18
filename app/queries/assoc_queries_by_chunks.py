@@ -146,7 +146,7 @@ def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2, align_
     study_data = get_permitted_studies(user_email, ids)
     id_access = list(study_data.keys())
     if len(id_access) == 0:
-        return []
+        return [], 0
     for id in ids:
         if id not in id_access:
             ids.remove(id)
