@@ -167,7 +167,7 @@ def count_elastic_records():
 
 def count_neo4j_datasets():
     try:
-        return Neo4j.get_db().run("MATCH (n:GwasInfo) return count(n) as n").single()[0]
+        return Neo4j.get_db().run("MATCH (n:GwasInfo) WHERE EXISTS {MATCH (n:GwasInfo)-[r:DID_QC]->(u:User)} RETURN COUNT(n) AS n").single()[0]
     except Exception as e:
         print(e)
     return 0
