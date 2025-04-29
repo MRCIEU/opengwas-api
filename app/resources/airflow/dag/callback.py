@@ -8,7 +8,7 @@ from airflow.operators.http_operator import SimpleHttpOperator
 @dag(
     tags=['gwas'],
     schedule_interval='*/5 * * * *',
-    start_date=datetime(2025, 2, 6, 2, 20),
+    start_date=datetime.now(),
     catchup=False
 )
 def callback():
@@ -27,7 +27,7 @@ def callback():
         extra_options={
             'timeout': timeouts['refresh_added_by_status']
         },
-        retries=3,
+        retries=6,
         retry_delay=timedelta(seconds=30),
         log_response=True
     )

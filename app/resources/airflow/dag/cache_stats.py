@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag, task
+from airflow.decorators import dag
 from airflow.models import Variable
 from airflow.operators.http_operator import SimpleHttpOperator
 
@@ -8,7 +8,7 @@ from airflow.operators.http_operator import SimpleHttpOperator
 @dag(
     tags=['gwas'],
     schedule_interval='0 * * * *',
-    start_date=datetime(2025, 2, 6, 3, 0),
+    start_date=datetime.now(),
     catchup=False
 )
 def cache_stats():
@@ -32,8 +32,8 @@ def cache_stats():
         extra_options={
             'timeout': timeouts['cache_stats_mvd']
         },
-        retries=3,
-        retry_delay=timedelta(seconds=30),
+        retries=20,
+        retry_delay=timedelta(seconds=60),
         log_response=True
     )
 
@@ -52,6 +52,8 @@ def cache_stats():
         extra_options={
             'timeout': timeouts['cache_stats_mau']
         },
+        retries=20,
+        retry_delay=timedelta(seconds=60),
         log_response=True
     )
 
