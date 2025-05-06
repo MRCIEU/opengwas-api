@@ -14,8 +14,23 @@ class Email:
         except Exception:
             raise Exception("Invalid email address.")
 
-        email = Message("Your temporary sign in link - IEU OpenGWAS", sender=("IEU OpenGWAS", "ieu-opengwas@bristol.ac.uk"), recipients=[email_address])
-        email.html = 'Dear researcher,<br><br>Please visit this link to sign in to OpenGWAS: <br><br><a href="{}">{}</a><br><br>The link is valid until {}.<br><br>IEU OpenGWAS<br>University of Bristol'.format(link, link, expiry_str)
+        email = Message(
+            subject="Your sign in link - IEU OpenGWAS",
+            sender=("OpenGWAS", "info@opengwas.io"),
+            recipients=[email_address],
+            html=f'Dear researcher,<br><br>'
+                 f'This is your unique link, which you can use to securely sign in to your OpenGWAS account without using a password: <br><br>'
+                 f'<a href="{link}">{link}</a><br><br>'
+                 f'The link is valid until {expiry_str}. Do not share this link with anyone else.<br><br>'
+                 f'IEU OpenGWAS<br>'
+                 f'University of Bristol<br><br>'
+                 f'	Please do not reply to this message. This email was sent from a notification-only email address that cannot accept incoming emails.',
+            extra_headers={
+                'X-Priority': '1',
+                'X-MSMail-Priority': 'High',
+                'Importance': 'High'
+            }
+        )
 
         try:
             self.mail.send(email)

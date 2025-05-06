@@ -114,6 +114,7 @@ class OCIObjectStorage:
         return object_names
 
 
+# Need to add config for email delivery
 # class OCIEmailDP:
 #     def __init__(self):
 #         self.email_dp_client = oci.email_data_plane.EmailDPClient(get_oci_config())
