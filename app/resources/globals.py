@@ -30,7 +30,7 @@ class Globals:
             QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
             ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
 
-    print("Params: {}".format(app_config))
+    # print("Params: {}".format(app_config))
 
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
     LD_POPULATIONS = ['EUR', 'SAS', 'EAS', 'AFR', 'AMR', 'legacy']
