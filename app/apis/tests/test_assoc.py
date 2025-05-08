@@ -116,6 +116,12 @@ def test_chrpos3(url, headers):
     assert 'rs1205' in [x['rsid'] for x in r1.json()]
 
 
+def test_chrpos4(url, headers):
+    payload = {'id': ['ieu-a-300'], 'variant': ['1:109724880-109904880'], 'proxies': 0}
+    r1 = requests.post(url + "/associations", data=payload, headers=headers)
+    assert r1.status_code == 200 and len(r1.json()) > 200
+
+
 @pytest.mark.skip
 def test_assoc_chunked_post0(url):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
