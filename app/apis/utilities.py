@@ -125,25 +125,25 @@ class SampleDatasetsByBatches(Resource):
 
         n_skipped = 0
         if skip_completed_tasks:
-            completed = RedisQueries('gwas_tasks', provider='ieu-db-proxy').get_completed_gwas_tasks()
-        gwas_ids_by_batch = defaultdict(list)
-        for gwas_id in Neo4j.get_db().run("MATCH (n:GwasInfo) WHERE EXISTS {MATCH (n:GwasInfo)-[r:DID_QC]->(u:User)} RETURN COLLECT(n.id)").single()[0]:
-            gwas_ids_by_batch['-'.join(gwas_id.split('-', 2)[:2])].append(gwas_id)
+            completed = RedisQueries('tasks', provider='ieu-db-proxy').get_completed_tasks()
+        ids_by_batch = defaultdict(list)
+        for ids in Neo4j.get_db().run("MATCH (n:GwasInfo) WHERE EXISTS {MATCH (n:GwasInfo)-[r:DID_QC]->(u:User)} RETURN n.id AS gwas_id, id(n) AS id_n"):
+            ids_by_batch['-'.join(ids['gwas_id'].split('-', 2)[:2])].append(f"{ids['id_n']}:{ids['gwas_id']}")
         samples = defaultdict(list)
-        for batch, gwas_ids in gwas_ids_by_batch.items():
-            for gwas_id in random.sample(gwas_ids, round(len(gwas_ids_by_batch[batch]) * odds)):
-                if skip_completed_tasks and gwas_id in completed:
+        for batch, ids in ids_by_batch.items():
+            for id_n_and_gwas_id in random.sample(ids, round(len(ids_by_batch[batch]) * odds)):
+                if skip_completed_tasks and id_n_and_gwas_id in completed:
                     n_skipped += 1
                 else:
-                    samples[batch].append(gwas_id)
+                    samples[batch].append(id_n_and_gwas_id)
         samples_size = defaultdict(int)
         for batch, samples_in_batch in samples.items():
             samples_size[batch] = len(samples_in_batch)
-            r = RedisQueries('gwas_tasks', provider='ieu-db-proxy').add_gwas_tasks(samples_in_batch)
+            r = RedisQueries('tasks', provider='ieu-db-proxy').add_tasks(samples_in_batch)
 
         return {
             'skipped': n_skipped,
-            'batches': list(gwas_ids_by_batch.keys()),
+            'batches': list(ids_by_batch.keys()),
             'samples_size': samples_size,
             'samples': samples
         }
