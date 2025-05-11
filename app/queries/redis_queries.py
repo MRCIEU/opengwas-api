@@ -38,29 +38,29 @@ class RedisQueries:
             result += 1
         return result
 
-    def add_gwas_tasks(self, tasks: list):
+    def add_tasks(self, tasks: list):
         return self.r.query([{
             'cmd': 'sadd',
             'args': {
-                "name": 'gwas_pending',
+                "name": 'tasks_pending',
                 "values": tasks
             }
         }])[0]
 
-    def add_phewas_tasks(self, tasks: list):
-        return self.r.query([{
-            'cmd': 'sadd',
-            'args': {
-                "name": 'phewas_pending',
-                "values": tasks
-            }
-        }])[0]
+    # def add_phewas_tasks(self, tasks: list):
+    #     return self.r.query([{
+    #         'cmd': 'sadd',
+    #         'args': {
+    #             "name": 'phewas_pending',
+    #             "values": tasks
+    #         }
+    #     }])[0]
 
-    def get_completed_gwas_tasks(self):
+    def get_completed_tasks(self):
         return self.r.query([{
             'cmd': 'zrange',
             'args': {
-                "name": 'gwas_completed',
+                "name": 'tasks_completed',
                 "start": 0,
                 "end": -1
             }
@@ -75,15 +75,15 @@ class RedisQueries:
         }], get_raw_response=True)[0]
         return self._strip_b_in_keys(jsonpickle.decode(r))
 
-    def get_completed_phewas_tasks(self):
-        return self.r.query([{
-            'cmd': 'zrange',
-            'args': {
-                "name": 'phewas_completed',
-                "start": 0,
-                "end": -1
-            }
-        }])[0]
+    # def get_completed_phewas_tasks(self):
+    #     return self.r.query([{
+    #         'cmd': 'zrange',
+    #         'args': {
+    #             "name": 'phewas_completed',
+    #             "start": 0,
+    #             "end": -1
+    #         }
+    #     }])[0]
 
     def get_cpalleles_of_chr_pos(self, chr_pos: set[tuple]) -> set:
         """
