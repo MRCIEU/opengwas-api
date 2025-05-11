@@ -100,7 +100,7 @@ class CacheGwasInfo(Resource):
         oci = OCIObjectStorage()
         output_path = f"{Globals.TMP_FOLDER}/0_pos_prefix_indices"
 
-        for gwas_id, pos_prefix_index in RedisQueries('gwas_tasks', provider='ieu-db-proxy').get_gwas_pos_prefix_indices().items():
+        for gwas_id, pos_prefix_index in RedisQueries('tasks', provider='ieu-db-proxy').get_gwas_pos_prefix_indices().items():
             pos_prefix_indices[gwas_id] = pickle.loads(pos_prefix_index)
 
         with gzip.open(output_path, 'wb') as f:
