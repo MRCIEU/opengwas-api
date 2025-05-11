@@ -45,7 +45,7 @@ def _compare_results(r0, r1):
             elif dict1[id] != dict2[id]:
                 diff_keys = {k for k in dict1[id] if dict1[id][k] != dict2[id][k]}
                 if not (
-                    (diff_keys == {'n'} and int('0' + str(dict1[id]['n'])) == int('0' + str(dict2[id]['n']))) or
+                    (diff_keys == {'n'} and int(float('0' + str(dict1[id]['n']))) == int(float('0' + str(dict2[id]['n'])))) or
                     (diff_keys == {'beta', 'eaf'} and
                         math.isclose(float(dict1[id]['beta']) * -1, float(dict2[id]['beta']), rel_tol=1e-6) and
                         math.isclose(float(dict1[id]['eaf']) + float(dict2[id]['eaf']), 1.000000, rel_tol=1e-6)
