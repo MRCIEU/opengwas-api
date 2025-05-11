@@ -152,18 +152,18 @@ class AssocPost(Resource):
                               {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies'], 'chunks': n_chunks_accessed},
                               len(result_from_chunks), list(set([r['id'] for r in result_from_chunks])), len(set([r['rsid'] for r in result_from_chunks])))
 
-        try:
-            anomalies = _compare_results(result, result_from_chunks)
-            assert anomalies == []
-        except AssertionError as e:
-            log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, anomalies)
-        except Exception as e:
-            log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, traceback.format_exc())
-            return {
-                'error_log_timestamp': log_timestamp
-            }, 503
+        # try:
+        #     anomalies = _compare_results(result, result_from_chunks)
+        #     assert anomalies == []
+        # except AssertionError as e:
+        #     log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, anomalies)
+        # except Exception as e:
+        #     log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_post', args, traceback.format_exc())
+        #     return {
+        #         'error_log_timestamp': log_timestamp
+        #     }, 503
 
-        return result
+        return result_from_chunks
 
 
 @api.route('/chunked')
