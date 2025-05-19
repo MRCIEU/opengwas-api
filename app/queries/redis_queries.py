@@ -91,21 +91,6 @@ class RedisQueries:
         :param chr_pos: list of (chr(str), pos_start, pos_end) tuples e.g. [('1', 12345, 12345), ('1', 12345, 12400)]
         :return: set of cpalleles e.g. {'1:12345:G:C', '1:12398:AT:G'}
         """
-        # When using redis-py, which supports native pipelining
-        # chr_pos = list(chr_pos)  # Should be sequential as pipeline will be used
-        # pipe = self.r.pipeline()
-        # chrs = []
-        # for cp in chr_pos:
-        #     pipe.zrange(cp[0], start=cp[1], end=cp[2], byscore=True)
-        #     chrs.append(cp[0])
-        # results = pipe.execute()
-        # cpalleles = set()
-        # for i in range(len(chrs)):
-        #     for pos_alleles in results[i]:
-        #         cpalleles.add(chrs[i] + ':' + pos_alleles.decode('ascii'))
-        # return cpalleles
-
-        # When using redis proxy, where pipelining is implemented at proxy level
         chr_pos = list(chr_pos)
         cpalleles = set()
         cmds = []
@@ -124,28 +109,16 @@ class RedisQueries:
                 cpalleles.add(chr_pos[seq][0] + ':' + pos_alleles)
         return cpalleles
 
-    def get_doc_ids_of_cpalleles_and_pval(self, cpalleles: set, pval: float) -> dict[set]:
+    def get_gwas_n_ids_of_cpalleles_and_pval(self, cpalleles: set, pval: float) -> dict[set]:
         """
-        Get Elasticsearch document IDs from Redis, using cpalleles and pval
+        Get Neo4j elementId(n) from Redis, using cpalleles and pval
         :param cpalleles: set of cpalleles e.g. {'1:12345:G:C', '1:12398:AT:G'}
         :param pval:
         :return:
         """
-        # When using redis-py, which supports native pipelining
-        # pipe = self.r.pipeline()
-        # for chr_pos_alleles in cpalleles:
-        #     pipe.zrange(chr_pos_alleles, start=0, end=pval, byscore=True)
-        # results = pipe.execute()
-        # doc_ids = defaultdict(set)
-        # for doc_ids_of_cpalleles in results:
-        #     for doc_id in doc_ids_of_cpalleles:
-        #         index_and_doc_id = doc_id.decode('ascii').split(':')
-        #         doc_ids[index_and_doc_id[0]].add(index_and_doc_id[1])
-        # return doc_ids
-
-        # When using redis proxy, where pipelining is implemented at proxy level
-        doc_ids = defaultdict(set)
+        gwas_n_ids = defaultdict(set)
         cmds = []
+        cpalleles = list(cpalleles)
         for chr_pos_alleles in cpalleles:
             cmds.append({
                 'cmd': 'zrange',
@@ -156,11 +129,10 @@ class RedisQueries:
                     "byscore": "True"
                 }
             })
-        for seq, doc_ids_of_chr_pos_alleles in enumerate(self.r.query(cmds)):
-            for doc_id in doc_ids_of_chr_pos_alleles:
-                index_and_doc_id = doc_id.split(':')
-                doc_ids[index_and_doc_id[0]].add(index_and_doc_id[1])
-        return doc_ids
+        for seq, gwas_n_ids_of_chr_pos_alleles in enumerate(self.r.query(cmds)):
+            for gwas_n_id in gwas_n_ids_of_chr_pos_alleles:
+                gwas_n_ids[int(gwas_n_id)].add(':'.join(cpalleles[seq].split(':')[:2]))
+        return gwas_n_ids
 
     def save_cache(self, key: str, field: str, value: str):
         return self.r.hset(name=key, key=field, value=value)

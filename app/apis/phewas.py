@@ -3,12 +3,15 @@ from flask_restx import Resource, reqparse, abort, Namespace
 import time
 import traceback
 
-from queries.es import *
-from queries.redis_queries import RedisQueries
-from queries.variants import *
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
+from queries.assoc_queries_by_chunks import get_assoc_chunked
+from queries.cql_queries import get_permitted_studies
+from queries.es import elastic_query_phewas_rsid, elastic_query_phewas_chrpos, elastic_query_phewas_cprange, organise_variants
+from queries.redis_queries import RedisQueries
+from queries.variants import snps
+from resources.globals import Globals
 
 api = Namespace('phewas', description="Perform PheWAS of specified variants across all available GWAS datasets")
 
@@ -110,7 +113,7 @@ class PhewasFastPost(Resource):
     def post(self):
         args = self.parser.parse_args()
         if args['pval'] > 0.01:
-            abort(400)
+            abort(400, "pval must be strictly less than 0.01")
 
         with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['variant'], fast=True)):
             pass
@@ -118,19 +121,18 @@ class PhewasFastPost(Resource):
         start_time = time.time()
 
         try:
-            # result, timestamps = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], index_list=args['index_list'])
             result = run_phewas_fast(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], batch_list=args['index_list'])
         except Exception as e:
-            logger.error("Could not query summary stats: {}".format(e))
-            logger_middleware.log_error(g.user['uuid'], 'phewas_fast_post', args, traceback.format_exc())
-            abort(503)
+            if "too many" in str(e):
+                abort(400, str(e))
+            log_timestamp = logger_middleware.log_error(g.user['uuid'], 'phewas_fast_post', args, traceback.format_exc())
+            abort(503, f"Something went wrong. Please try again later. If the problem persists please let us know the error ID: {log_timestamp}")
 
         with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_response_cost(args['variant'])):
             pass
 
-        logger_middleware.log(g.user['uuid'], 'phewas_fast_post', start_time, {'variant': len(args['variant'])},
+        logger_middleware.log(g.user['uuid'], 'phewas_chunked_post', start_time, {'variant': len(args['variant'])},
                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
-        # return result, 200, {'X-PROCESSING-TIME': ','.join([str(t) for t in timestamps])}
         return result
 
 
@@ -177,46 +179,52 @@ def run_phewas_fast(user_email, variants, pval, batch_list=None):
     cprange = variants['cprange']
 
     chr_pos = set()
-    cpalleles = set()
-    doc_ids_by_index = set()
     result = []
     # timestamps = [time.time()]
 
-    try:
-        if len(rsid) > 0:
-            total, hits = snps(rsid)
-            for doc in hits:
-                chr_pos.add((str(doc['_source']['CHR']), doc['_source']['POS'], doc['_source']['POS']))
-        if len(chrpos) > 0:
-            for cp in chrpos:
-                chr_pos.add((str(cp['chr']), cp['start'], cp['end']))
-        if len(cprange) > 0:
-            for cpr in cprange:
-                chr_pos.add((str(cpr['chr']), cpr['start'], cpr['end']))
-        # timestamps.append(time.time())
-        cpalleles = RedisQueries('phewas_cpalleles', provider='ieu-ssd-proxy').get_cpalleles_of_chr_pos(chr_pos)
-        # timestamps.append(time.time())
-    except Exception as e:
-        logging.error("Could not obtain cpalleles from fast index (first tier): {}".format(e))
-        raise e
+    if len(rsid) > 0:
+        total, hits = snps(rsid)
+        for doc in hits:
+            chr_pos.add((str(doc['_source']['CHR']), doc['_source']['POS'], doc['_source']['POS']))
+    if len(chrpos) > 0:
+        for cp in chrpos:
+            chr_pos.add((str(cp['chr']), cp['start'], cp['end']))
+    if len(cprange) > 0:
+        for cpr in cprange:
+            chr_pos.add((str(cpr['chr']), cpr['start'], cpr['end']))
+    # timestamps.append(time.time())
+    cpalleles = RedisQueries('phewas_cpalleles', provider='ieu-ssd-proxy').get_cpalleles_of_chr_pos(chr_pos)
+    # timestamps.append(time.time())
 
-    try:
-        doc_ids_by_index = RedisQueries('phewas_docids', provider='ieu-ssd-proxy').get_doc_ids_of_cpalleles_and_pval(cpalleles, pval)
-        # timestamps.append(time.time())
-    except Exception as e:
-        logging.error("Could not obtain doc IDs from fast index (second tier): {}".format(e))
-        raise e
+    chrpos_by_gwas_node_ids = RedisQueries('phewas_gwas_n_ids', provider='ieu-ssd-proxy').get_gwas_n_ids_of_cpalleles_and_pval(cpalleles, pval)
+    # timestamps.append(time.time())
 
-    try:
-        result = elastic_query_phewas_by_doc_ids(doc_ids_by_index, user_email=user_email, batch_list=batch_list)
-        # timestamps.append(time.time())
-    except Exception as e:
-        logging.error("Could not obtain docs from database: {}".format(e))
-        raise e
+    # result = elastic_query_phewas_by_doc_ids(doc_ids_by_index, user_email=user_email, batch_list=batch_list)
+    gwas_ids_by_node_ids = {gwas_node_id: Globals.all_ids[gwas_node_id] for gwas_node_id in chrpos_by_gwas_node_ids.keys()}
+    if len(batch_list) > 0:
+        gwas_ids_by_node_ids = {node_id: gwas_id for node_id, gwas_id in gwas_ids_by_node_ids.items() if '-'.join(gwas_id.split('-', 2)[:2]) in batch_list}
+    permitted_studies = get_permitted_studies(user_email, list(gwas_ids_by_node_ids.values()))
+    gwas_ids_by_node_ids_permitted = {node_id: gwas_id for node_id, gwas_id in gwas_ids_by_node_ids.items() if gwas_id in permitted_studies.keys()}
+
+    if len(gwas_ids_by_node_ids_permitted) > 50:
+        raise Exception(f"There are {len(gwas_ids_by_node_ids_permitted)} associations found, which is too many. Please use a smaller pval and/or specify the list of batchs so that the number of associations is no more than 50.")
+
+    results_all = []
+    n_chunks_accessed_all = 0
+    print(len(gwas_ids_by_node_ids_permitted))
+    i = 1
+    for gwas_node_id, gwas_id in gwas_ids_by_node_ids_permitted.items():
+        results, n_chunks_accessed = get_assoc_chunked(user_email, chrpos_by_gwas_node_ids[gwas_node_id], [gwas_id],
+                                                       proxies=0, study_data=permitted_studies)
+        results_all += results
+        n_chunks_accessed_all += n_chunks_accessed
+        print(i)
+        i += 1
+    # timestamps.append(time.time())
 
     # for i in [4, 3, 2, 1]:
     #     timestamps[i] = round((timestamps[i] - timestamps[i - 1]) * 1000)
     # timestamps.pop(0)
 
     # return result, timestamps
-    return result
+    return results_all
