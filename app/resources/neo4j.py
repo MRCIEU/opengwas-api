@@ -19,20 +19,20 @@ class Neo4j:
             flask.g.neo4j_db = Globals.dbConnection.session()
         return flask.g.neo4j_db
 
-    @staticmethod
-    def clear_db():
-        tx = Neo4j.get_db()
-        tx.run("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;")
+    # @staticmethod
+    # def clear_db():
+    #     tx = Neo4j.get_db()
+    #     tx.run("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;")
 
-    @staticmethod
-    def drop_all_constraints():
-        tx = Neo4j.get_db()
-        cmd = []
-        results = tx.run("SHOW CONSTRAINTS;")
-        for result in results:
-            cmd.append("DROP CONSTRAINT " + result['name'])
-        for c in cmd:
-            tx.run(c)
+    # @staticmethod
+    # def drop_all_constraints():
+    #     tx = Neo4j.get_db()
+    #     cmd = []
+    #     results = tx.run("SHOW CONSTRAINTS;")
+    #     for result in results:
+    #         cmd.append("DROP CONSTRAINT " + result['name'])
+    #     for c in cmd:
+    #         tx.run(c)
 
     @staticmethod
     def check_running():
