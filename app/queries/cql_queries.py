@@ -27,6 +27,10 @@ def get_batches():
     return res
 
 
+def get_public_batches_prefix():
+    return list(set(['-'.join(id.split('-', 2)[:2]) for id in Neo4j.get_db().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
+
+
 def update_batches_stats():
     batches = defaultdict(int)
     tx = Neo4j.get_db()
@@ -39,6 +43,14 @@ def update_batches_stats():
         )
     result = tx.run("MATCH (b:Batches) RETURN b")
     return [r['b'].__dict__['_properties'] for r in result]
+
+
+def get_all_gwas_ids_by_n_id() -> dict:
+    result = {}
+    ids = Neo4j.get_db().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id) AS gwas_id, COLLECT(id(n)) AS id_n").single()
+    for i in range(len(ids[0])):
+        result[ids[1][i]] = ids[0][i]
+    return result
 
 
 def get_all_gwas_as_admin(return_subset_properties=[]):

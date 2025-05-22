@@ -13,6 +13,7 @@ from datetime import datetime
 from resources.globals import Globals
 # from resources.logging_middleware import LoggerMiddleWare
 from resources.neo4j import Neo4j
+from queries.cql_queries import get_all_gwas_ids_by_n_id, get_public_batches_prefix
 from resources._oci import OCIObjectStorage
 from resources.sessions import NoCookieSessionInterface, CustomRedisSessionInterface
 from middleware.limiter import limiter
@@ -82,8 +83,16 @@ def download_gwas_pos_prefix_indices():
     try:
         with gzip.GzipFile(fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content), mode='rb') as f:
             Globals.gwas_pos_prefix_indices = pickle.loads(f.read())
+        logging.info('Successfully retrieved pos_prefix_indices')
     except Exception as e:
         logging.error('Unable to retrieve pos_prefix_indices')
+
+
+def query_all_ids_and_batches():
+    Globals.all_ids = get_all_gwas_ids_by_n_id()
+    Globals.all_batches = list(set(['-'.join(gwas_id.split('-', 2)[:2]) for gwas_id in Globals.all_ids.values()]))
+    # Globals.public_batches = get_public_batches_prefix()
+    print('Loaded all_ids_and_batches')
 
 
 setup_event_logger('event-log', Globals.LOG_FILE)
@@ -116,8 +125,10 @@ if os.environ.get('ENV') == 'production':
         app.session_interface = NoCookieSessionInterface()
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
-        download_gwas_pos_prefix_indices()
-        logging.getLogger('oci._vendor.urllib3.connectionpool').setLevel(logging.ERROR)
+        with app.app_context():
+            download_gwas_pos_prefix_indices()
+            query_all_ids_and_batches()
+            logging.getLogger('oci._vendor.urllib3.connectionpool').setLevel(logging.ERROR)
     elif os.environ.get('POOL') == 'ui':
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
@@ -134,7 +145,9 @@ else:
     app.register_blueprint(contribution_bp, url_prefix='/contribution')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     login_manager.init_app(app)
-    download_gwas_pos_prefix_indices()
+    with app.app_context():
+        download_gwas_pos_prefix_indices()
+        query_all_ids_and_batches()
 
 
 if __name__ == "__main__":

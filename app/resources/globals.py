@@ -1,7 +1,6 @@
 import json
 import platform
 import os
-import requests
 from elasticsearch import Elasticsearch
 
 from neo4j import GraphDatabase
@@ -69,8 +68,9 @@ class Globals:
     # connect to elasticsearch
     es = Elasticsearch([f"http://elastic:{app_config['es']['password']}@{app_config['es']['host']}:{app_config['es']['port']}"], verify_certs=False)
 
-    all_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
-    public_batches = list(set(['-'.join(id.split('-', 2)[:2]) for id in dbConnection.session().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
+    all_ids = {}
+    all_batches = []
+    # public_batches = []
 
     gwas_pos_prefix_indices = {}
     ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS = 16
