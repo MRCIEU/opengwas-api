@@ -138,18 +138,19 @@ class AssocQueriesByChunks:
         return results, n_chunks_accessed
 
 
-def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2, align_alleles, palindromes, maf_threshold):
+def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2=None, align_alleles=None, palindromes=None, maf_threshold=None, study_data=None):
     """
     Adapted from queries.es.get_assoc()
     """
     variants = organise_variants(variants)
-    study_data = get_permitted_studies(user_email, ids)
-    id_access = list(study_data.keys())
-    if len(id_access) == 0:
-        return [], 0
-    for id in ids:
-        if id not in id_access:
-            ids.remove(id)
+    if not study_data:  # Need to get metadata and keep those permitted, otherwise take the study_data provided as permitted
+        study_data = get_permitted_studies(user_email, ids)
+        id_access = list(study_data.keys())
+        if len(id_access) == 0:
+            return [], 0
+        for id in ids:
+            if id not in id_access:
+                ids.remove(id)
 
     rsid = variants['rsid']
     chrpos = variants['chrpos']
