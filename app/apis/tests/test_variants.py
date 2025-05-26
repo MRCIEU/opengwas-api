@@ -52,13 +52,13 @@ def test_gene_get0(url, headers):
 
 def test_gene_get1(url, headers):
     r = requests.get(url + "/variants/gene/ENSG00000123374", headers=headers)
-    assert r.status_code == 200 and len(r.json()) > 15
+    assert r.status_code == 200 and len(r.json()) > 2000
 
 
 # https://github.com/MRCIEU/opengwas-api/issues/16
 def test_gene_get2(url, headers):
     r = requests.get(url + "/variants/gene/ENSG00000111684", headers=headers)
-    assert r.status_code == 200 and len(r.json()) > 100
+    assert r.status_code == 200 and len(r.json()) > 10000
 
 
 def test_rsid_post0(url, headers):
