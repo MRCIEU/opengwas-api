@@ -106,36 +106,44 @@ def range_query(chrpos, radius=0):
 def gene_query(name,radius):
     mg = mygene.MyGeneInfo()
     m = mg.getgene(name,'name,symbol,genomic_pos_hg19')
-    if m:
-        if isinstance(m['genomic_pos_hg19'], dict):
-            pos = m['genomic_pos_hg19']
-        else:  # list (e.g. name=ENSG00000111684)
-            # https://github.com/MRCIEU/opengwas-api/issues/16
-            pos = m['genomic_pos_hg19'][0]
-            for p in m['genomic_pos_hg19'][1:]:
-                if len(p['chr']) < len(pos['chr']):
-                    pos = p
-        chr = pos['chr']
-        start = int(pos['start'])
-        end = int(pos['end'])
-        min=0
-        if start-radius>0:
-            min=start-radius
-        max=end+radius
-        filterData=[
-                {"term":{"CHR":chr}},
-                # {"term":{"COMMON":"1"}},
-                {"range" : {"POS" : {"gte" : min, "lte" : max}}},
-                ]
-        total,hits=es_search(filterData=filterData,routing=chr)
-        if total > 0:
-            for item in hits:
-                item.update({'query': name})
-                so = item['_source']
-                item.pop('_source')
-                item.update(so)
-    else:
+    if not m:
         print('No match')
-        return 0,0
+        return 0, 0
+    if isinstance(m, list):
+        for i in range(len(m)):
+            if 'genomic_pos_hg19' in m[i]:
+                m = m[i]
+                break
+    if isinstance(m['genomic_pos_hg19'], dict):
+        pos = m['genomic_pos_hg19']
+    else:  # list (e.g. name=ENSG00000111684, more than one cpranges)
+        # https://github.com/MRCIEU/opengwas-api/issues/16
+        pos = m['genomic_pos_hg19'][0]
+        for p in m['genomic_pos_hg19'][1:]:
+            if len(p['chr']) < len(pos['chr']):
+                pos = p
+    chr = pos['chr']
+    start = int(pos['start'])
+    end = int(pos['end'])
+    min = 0
+    if start - radius > 0:
+        min = start - radius
+    max = end + radius
+    filterData = [
+        {"term":{"CHR":chr}},
+        # {"term":{"COMMON":"1"}},
+        {"range" : {"POS" : {"gte" : min, "lte" : max}}},
+    ]
+    total, hits = es_search(filterData=filterData, routing=chr)
+    if total > 0:
+        for item in hits:
+            item['dbSNPBuildID'] = item.pop('_index')
+            item['ID'] = item.pop('_id')
+            item.pop('_type')
+            item.pop('_score')
+            item.update({'query': name})
+            so = item['_source']
+            item.pop('_source')
+            item.update(so)
+            item['CHROM'] = item.pop('CHR')
     return total,hits
-
