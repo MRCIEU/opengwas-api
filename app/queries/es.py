@@ -300,6 +300,7 @@ def elastic_query_phewas_cprange(cprange, user_email, pval, index_list=[]):
 
 
 def elastic_query_phewas_by_doc_ids(doc_ids_by_index: dict[list[str]], user_email: str, batch_list=[]) -> list:
+    """Deprecated"""
     if len(batch_list) > 0:
         doc_ids_by_index = {index: doc_ids for index, doc_ids in doc_ids_by_index.items() if '-'.join(index.split('-', 2)[:2]) in batch_list}
     if len(doc_ids_by_index) == 0:
