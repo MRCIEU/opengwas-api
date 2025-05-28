@@ -3,8 +3,9 @@ from flask_restx import Resource, reqparse, abort, Namespace
 import logging
 import time
 
-from queries.es import *
-from resources.ld import *
+from queries.cql_queries import get_permitted_studies
+from queries.es import elastic_query_pval, add_trait_to_result
+from resources.ld import plink_clumping_rs
 from resources.globals import Globals
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
