@@ -7,7 +7,7 @@ from airflow.operators.bash_operator import BashOperator
 @dag(
     tags=['airflow'],
     schedule_interval='* 0 * * *',
-    start_date=datetime.now(),
+    start_date=datetime(2025, 5, 29, 21, 0),
     catchup=False
 )
 def airflow_cleanup():
