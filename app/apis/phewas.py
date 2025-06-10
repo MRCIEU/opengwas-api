@@ -206,8 +206,8 @@ def run_phewas_fast(user_email, variants, pval, batch_list=None):
     permitted_studies = get_permitted_studies(user_email, list(gwas_ids_by_node_ids.values()))
     gwas_ids_by_node_ids_permitted = {node_id: gwas_id for node_id, gwas_id in gwas_ids_by_node_ids.items() if gwas_id in permitted_studies.keys()}
 
-    if len(gwas_ids_by_node_ids_permitted) > 50:
-        raise Exception(f"There are {len(gwas_ids_by_node_ids_permitted)} associations found, which is too many. Please use a smaller pval and/or specify the list of batchs so that the number of associations is no more than 50.")
+    if len(gwas_ids_by_node_ids_permitted) > 96:
+        raise Exception(f"There are {len(gwas_ids_by_node_ids_permitted)} associations found, which is too many. Please use a smaller pval and/or specify the list of batches so that the number of associations is no more than 96.")
 
     results_all = []
     n_chunks_accessed_all = 0
