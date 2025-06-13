@@ -117,7 +117,7 @@ class GetFilesByID(Resource):
     parser.add_argument('id', required=True, type=str, action='append', default=[], help="List of GWAS IDs")
 
     @api.expect(parser)
-    @api.doc(id='gwasinfo_files_post')
+    @api.doc(id='gwasinfo_files_get')
     @jwt_required
     def post(self):
         args = self.parser.parse_args()
