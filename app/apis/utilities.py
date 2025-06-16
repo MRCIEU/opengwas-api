@@ -122,20 +122,21 @@ class SampleDatasetsByBatches(Resource):
         # Settings
         skip_completed_tasks = True
         odds = 1
+        action = 'phewas'
 
         n_skipped = 0
         if skip_completed_tasks:
             completed = RedisQueries('tasks', provider='ieu-db-proxy').get_completed_tasks()
-        ids_by_batch = defaultdict(list)
+        tasks_by_batch = defaultdict(list)
         for ids in Neo4j.get_db().run("MATCH (n:GwasInfo) WHERE EXISTS {MATCH (n:GwasInfo)-[r:DID_QC]->(u:User)} RETURN n.id AS gwas_id, id(n) AS id_n"):
-            ids_by_batch['-'.join(ids['gwas_id'].split('-', 2)[:2])].append(f"{ids['id_n']}:{ids['gwas_id']}")
+            tasks_by_batch['-'.join(ids['gwas_id'].split('-', 2)[:2])].append(f"{ids['id_n']}:{ids['gwas_id']}:{action}")
         samples = defaultdict(list)
-        for batch, ids in ids_by_batch.items():
-            for id_n_and_gwas_id in random.sample(ids, round(len(ids_by_batch[batch]) * odds)):
-                if skip_completed_tasks and id_n_and_gwas_id in completed:
+        for batch, ids in tasks_by_batch.items():
+            for task in random.sample(ids, round(len(tasks_by_batch[batch]) * odds)):
+                if skip_completed_tasks and task in completed:
                     n_skipped += 1
                 else:
-                    samples[batch].append(id_n_and_gwas_id)
+                    samples[batch].append(task)
         samples_size = defaultdict(int)
         for batch, samples_in_batch in samples.items():
             samples_size[batch] = len(samples_in_batch)
@@ -143,7 +144,7 @@ class SampleDatasetsByBatches(Resource):
 
         return {
             'skipped': n_skipped,
-            'batches': list(ids_by_batch.keys()),
+            'batches': list(tasks_by_batch.keys()),
             'samples_size': samples_size,
             'samples': samples
         }
