@@ -58,11 +58,9 @@ class RedisQueries:
 
     def get_completed_tasks(self):
         return self.r.query([{
-            'cmd': 'zrange',
+            'cmd': 'hgetall',
             'args': {
-                "name": 'tasks_completed',
-                "start": 0,
-                "end": -1
+                "name": 'tasks_completed'
             }
         }])[0]
 
