@@ -12,7 +12,7 @@ class RedisProxy:
             'tophits_5e-8_10000_0.001': '1', # ieu-db-interface
             'tophits_1e-5_1000_0.8': '2', # ieu-db-interface
             'phewas_cpalleles': '1', # ieu-mrbssd1
-            'phewas_gwas_n_ids': '2' # ieu-mrbssd1
+            'phewas_gwas_n_ids': '2', # ieu-mrbssd1
         }
         self.url = 'http://' + Globals.app_config['redis'][proxy_name]['host'] + ":" + str(Globals.app_config['redis'][proxy_name]['port'])
         self.auth = requests.auth.HTTPBasicAuth(Globals.app_config['redis'][proxy_name]['basic_auth_username'], Globals.app_config['redis'][proxy_name]['basic_auth_passwd'])
@@ -33,6 +33,7 @@ class RedisProxy:
         Make POST request to Redis proxy
         :param commands: list of a Redis command and its arguments, e.g. [{'cmd': 'zrange', 'args': {'name': 1, 'start': 12345, 'end': 13000, 'byscore': 'True'}}]
         :param retry: True to retry (WARNING! consider idempotence)
+        :param get_raw_response: True to get raw (binary) response
         :return: result object
         """
         r = getattr(self, 'session_with_retry' if retry else 'session').post(self.url, json={
