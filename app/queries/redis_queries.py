@@ -132,6 +132,16 @@ class RedisQueries:
                 gwas_n_ids[int(gwas_n_id)].add(':'.join(cpalleles[seq].split(':')[:2]))
         return gwas_n_ids
 
+    def get_tophits_of_datasets_by_pval(self, gwas_ids: list, pval: float) -> dict:
+        return self.r.query([{
+            'cmd': 'zrange',
+            'args': {
+                "name": gwas_id,
+                "start": "-inf",
+                "end": "(" + str(pval),
+            }
+        } for gwas_id in gwas_ids])
+
     def save_cache(self, key: str, field: str, value: str):
         return self.r.hset(name=key, key=field, value=value)
 

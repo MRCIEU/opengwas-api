@@ -5,6 +5,7 @@ import time
 
 from queries.cql_queries import get_permitted_studies
 from queries.es import elastic_query_pval, add_trait_to_result
+from queries.redis_queries import RedisQueries
 from resources.ld import plink_clumping_rs
 from resources.globals import Globals
 from middleware.auth import jwt_required
@@ -96,6 +97,34 @@ def extract_instruments(user_email, id, preclumped, clump, bychr, pval, r2, kb, 
     # rsids can be multi-allelic so one form of the variant might be significant
     # while the other is not
     res = [x for x in res if x['p'] < pval]
+
+    if not preclumped and clump == 1 and len(res) > 0:
+        found_outcomes = set([x.get('id') for x in res])
+        res_clumped = []
+        for outcome in found_outcomes:
+            logger.debug("clumping results for " + str(outcome))
+            rsid = [x.get('rsid') for x in res if x.get('id') == outcome]
+            p = [x.get('p') for x in res if x.get('id') == outcome]
+            out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb, pop=pop)
+            res_clumped = res_clumped + [x for x in res if x.get('id') == outcome and x.get('rsid') in out]
+        return res_clumped
+    res = add_trait_to_result(res, study_data)
+    return res
+
+
+def extract_instruments_fast(user_email, id, preclumped, clump, bychr, pval, r2, kb, pop="EUR"):
+    outcomes = ",".join(["'" + x + "'" for x in id])
+    outcomes_clean = outcomes.replace("'", "")
+    logger.debug('searching ' + outcomes_clean)
+    study_data = get_permitted_studies(user_email, id)
+    outcomes_access = list(study_data.keys())
+    logger.debug(str(outcomes_access))
+    if len(outcomes_access) == 0:
+        logger.debug('No outcomes left after permissions check')
+        return []
+
+    if preclumped:
+        res = RedisQueries('tophits_5e-8_10000_0.001', provider='ieu-db-proxy').get_tophits_of_datasets_by_pval(outcomes_access, pval)
 
     if not preclumped and clump == 1 and len(res) > 0:
         found_outcomes = set([x.get('id') for x in res])
