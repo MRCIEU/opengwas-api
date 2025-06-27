@@ -2,6 +2,7 @@ from flask import make_response, request, g
 from flask_limiter import Limiter, RequestLimit, HEADERS
 from flask_limiter.util import get_remote_address
 import datetime
+import ipaddress
 
 from resources.globals import Globals
 from resources.redis import Redis
@@ -31,6 +32,12 @@ limiter = Limiter(
     }
 )
 
+IP_RANGES = [
+    ipaddress.ip_network('89.248.48.224/27'),
+    ipaddress.ip_network('213.123.49.48/29'),
+    ipaddress.ip_network('157.96.33.80/28'),
+]
+
 
 def get_allowance_by_user_tier(user=None):
     user_tier = get_user_tier(user=user)
@@ -48,3 +55,7 @@ def header_whitelist():
         request.headers.get('X-TEST-MODE-KEY', 'default_value') == Globals.app_config['test']['static_token'],
         request.headers.get('X-TEST-NO-RATE-LIMIT-KEY', 'default_value') == Globals.app_config['test']['no_rate_limit_key']
     ])
+
+@limiter.request_filter
+def ip_whitelist_appcheck():
+    return any(ipaddress.ip_address(get_remote_address()) in ip_range for ip_range in IP_RANGES)
