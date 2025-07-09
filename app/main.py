@@ -16,6 +16,7 @@ from resources.neo4j import Neo4j
 from queries.cql_queries import get_all_gwas_ids_by_n_id, get_public_batches_prefix
 from resources._oci import OCIObjectStorage
 from resources.sessions import NoCookieSessionInterface, CustomRedisSessionInterface
+from middleware.before_request import before_api_request
 from middleware.limiter import limiter
 from apis import api_bp
 from apis.status import check_ld_ref, check_1000g_vcf
@@ -129,6 +130,11 @@ if os.environ.get('ENV') == 'production':
             download_gwas_pos_prefix_indices()
             query_all_ids_and_batches()
             logging.getLogger('oci._vendor.urllib3.connectionpool').setLevel(logging.ERROR)
+
+        @app.before_request
+        def before_request():
+            return before_api_request()
+
     elif os.environ.get('POOL') == 'ui':
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
@@ -148,6 +154,10 @@ else:
     with app.app_context():
         download_gwas_pos_prefix_indices()
         query_all_ids_and_batches()
+
+    @app.before_request
+    def before_request():
+        return before_api_request()
 
 
 if __name__ == "__main__":
