@@ -109,6 +109,7 @@ app = flask.Flask(__name__, static_folder="static")
 
 app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
 app.config['MAX_CONTENT_LENGTH'] = 1.5e+9
+app.config['SESSION_COOKIE_SECURE'] = True
 app.config.update(Globals.app_config['email'])
 
 app.teardown_appcontext(Neo4j.close_db)
