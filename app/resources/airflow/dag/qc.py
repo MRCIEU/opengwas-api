@@ -71,8 +71,8 @@ def _task_gwas2vcf(agent_client, timeout, **context):
             "cd ~/work",
             "python ../gwas2vcf/main.py --id ${ID} --json ${ID}_data.json --data upload.txt.gz --out ./${ID}.vcf.gz --ref ~/ref/reference_genomes/human_g1k_v37.fasta --dbsnp ~/ref/dbsnp/dbsnp.v153.b37.vcf.gz --alias ~/gwas2vcf/alias-b37.txt",
             "conda deactivate", # TODO: check file existence
-            "curl -X PUT --data-binary '@${ID}.vcf.gz' ${URL}${ID}/${ID}.vcf.gz",
-            "curl -X PUT --data-binary '@${ID}.vcf.gz.tbi' ${URL}${ID}/${ID}.vcf.gz.tbi"
+            "gunzip -t ${ID}.vcf.gz && curl -X PUT --data-binary '@${ID}.vcf.gz' ${URL}${ID}/${ID}.vcf.gz",
+            "gunzip -t ${ID}.vcf.gz.tbi &&curl -X PUT --data-binary '@${ID}.vcf.gz.tbi' ${URL}${ID}/${ID}.vcf.gz.tbi"
         ]
     )
 
@@ -144,7 +144,7 @@ def _task_report(agent_client, timeout, **context):
             "cd ~/work",
             "curl -X PUT --data-binary '@metadata.json' ${URL}${ID}/metadata.json",
             "curl -X PUT --data-binary '@qc_metrics.json' ${URL}${ID}/qc_metrics.json",
-            "curl -X PUT --data-binary '@${ID}_report.html' ${URL}${ID}/${ID}_report.html"
+            "test -s ${ID}_report.html && curl -X PUT --data-binary '@${ID}_report.html' ${URL}${ID}/${ID}_report.html"
         ]
     )
 
