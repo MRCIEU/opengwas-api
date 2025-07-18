@@ -112,6 +112,9 @@ app.config['MAX_CONTENT_LENGTH'] = 1.5e+9
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config.update(Globals.app_config['email'])
 
+app.config.update(Globals.app_config['mysql']['config'])
+Globals.mysql.init_app(app)
+
 app.teardown_appcontext(Neo4j.close_db)
 
 # https://flask-limiter.readthedocs.io/en/stable/recipes.html#deploying-an-application-behind-a-proxy

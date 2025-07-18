@@ -1,6 +1,7 @@
-from resources.globals import Globals
 import flask
 import logging
+
+from resources.globals import Globals
 
 logger = logging.getLogger('debug-log')
 
@@ -16,7 +17,7 @@ class Neo4j:
     @staticmethod
     def get_db():
         if not hasattr(flask.g, 'neo4j_db'):
-            flask.g.neo4j_db = Globals.dbConnection.session()
+            flask.g.neo4j_db = Globals.neo4j_driver.session()
         return flask.g.neo4j_db
 
     # @staticmethod

@@ -4,6 +4,7 @@ import os
 from elasticsearch import Elasticsearch
 
 from neo4j import GraphDatabase
+from flask_sqlalchemy import SQLAlchemy
 
 
 class Globals:
@@ -60,10 +61,17 @@ class Globals:
     CHROMLIST = list(range(1, 24)) + ['X', 'Y', 'MT']
 
     # reduced lifetime see here: https://github.com/neo4j/neo4j-python-driver/issues/196
-    dbConnection = GraphDatabase.driver(
+    neo4j_driver = GraphDatabase.driver(
         'bolt://' + app_config['neo4j']['host'] + ":" + str(app_config['neo4j']['port']),
         auth=(app_config['neo4j']['user'], app_config['neo4j']['passwd']), max_connection_lifetime=5
     )
+
+    mysql = SQLAlchemy(engine_options={
+        'pool_size': app_config['mysql']['options']['pool_size'],
+        'max_overflow': app_config['mysql']['options']['max_overflow'],
+        'pool_timeout': app_config['mysql']['options']['pool_timeout'],
+        'pool_recycle': app_config['mysql']['options']['pool_recycle'],
+    })
 
     # connect to elasticsearch
     es = Elasticsearch([f"http://elastic:{app_config['es']['password']}@{app_config['es']['host']}:{app_config['es']['port']}"], verify_certs=False)
