@@ -1,10 +1,13 @@
 from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
+from collections import defaultdict
 import logging
+import math
 import time
 
 from queries.cql_queries import get_permitted_studies
 from queries.es import elastic_query_pval, add_trait_to_result
+from queries.mysql_queries import MySQLQueries
 from queries.redis_queries import RedisQueries
 from resources.ld import plink_clumping_rs
 from resources.globals import Globals
@@ -66,7 +69,7 @@ class Tophits(Resource):
         start_time = time.time()
 
         try:
-            result = extract_instruments(g.user['uid'], args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])
+            result = extract_instruments_fast(g.user['uid'], args['id'], args['preclumped'], args['clump'], args['bychr'], args['pval'], args['r2'], args['kb'], args['pop'])
         except Exception as e:
             logger.error("Could not obtain tophits: {}".format(e))
             abort(503)
@@ -113,28 +116,68 @@ def extract_instruments(user_email, id, preclumped, clump, bychr, pval, r2, kb, 
 
 
 def extract_instruments_fast(user_email, id, preclumped, clump, bychr, pval, r2, kb, pop="EUR"):
+    mysql_queries = MySQLQueries()
+
     outcomes = ",".join(["'" + x + "'" for x in id])
     outcomes_clean = outcomes.replace("'", "")
     logger.debug('searching ' + outcomes_clean)
-    study_data = get_permitted_studies(user_email, id)
-    outcomes_access = list(study_data.keys())
-    logger.debug(str(outcomes_access))
-    if len(outcomes_access) == 0:
+    studies_permitted = get_permitted_studies(user_email, id)
+    if len(studies_permitted.keys()) == 0:
         logger.debug('No outcomes left after permissions check')
         return []
 
-    if preclumped:
-        res = RedisQueries('tophits_5e-8_10000_0.001', provider='ieu-db-proxy').get_tophits_of_datasets_by_pval(outcomes_access, pval)
+    gwas_ids_by_node_ids_permitted = {node_id: gwas_id for node_id, gwas_id in Globals.all_ids.items() if gwas_id in studies_permitted.keys()}
 
-    if not preclumped and clump == 1 and len(res) > 0:
-        found_outcomes = set([x.get('id') for x in res])
-        res_clumped = []
-        for outcome in found_outcomes:
-            logger.debug("clumping results for " + str(outcome))
-            rsid = [x.get('rsid') for x in res if x.get('id') == outcome]
-            p = [x.get('p') for x in res if x.get('id') == outcome]
-            out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb, pop=pop)
-            res_clumped = res_clumped + [x for x in res if x.get('id') == outcome and x.get('rsid') in out]
-        return res_clumped
-    res = add_trait_to_result(res, study_data)
-    return res
+    # if preclumped:
+        # res = RedisQueries('tophits_5e-8_10000_0.001', provider='ieu-db-proxy').get_tophits_of_datasets_by_pval(outcomes_access, pval)
+
+    if preclumped:
+        results_using_gwas_node_ids = mysql_queries.get_tophits('tophits_5e-8_10000_0.001', list(gwas_ids_by_node_ids_permitted.keys()), -math.log10(pval))
+    else:
+        results_using_gwas_node_ids = mysql_queries.get_tophits_from_phewas_by_gwas_id_n(list(gwas_ids_by_node_ids_permitted.keys()), -math.log10(pval))
+
+    results = []
+    for r in results_using_gwas_node_ids:
+        results.append({
+            'id': gwas_ids_by_node_ids_permitted[r['gwas_id_n']],
+            'trait': studies_permitted[gwas_ids_by_node_ids_permitted[r['gwas_id_n']]]['trait'],
+            'chr': str(r['chr_id']) if r['chr_id'] <= 23 else mysql_queries.non_numeric_chr_reverse[r['chr_id']],
+            'position': r['pos'],
+            'rsid': r['snp_id'],
+            'ea': r['ea'],
+            'nea': r['nea'],
+            'eaf': r['eaf'],
+            'beta': r['beta'],
+            'se': r['se'],
+            'p': mysql_queries._convert_lp(r['lp']),
+            'n': mysql_queries._convert_ss(r['ss']),
+        })
+
+    # if not preclumped and clump == 1 and len(results_using_gwas_node_ids) > 0:
+    #     found_outcomes = set([x.get('id') for x in results_using_gwas_node_ids])
+    #     res_clumped = []
+    #     for outcome in found_outcomes:
+    #         logger.debug("clumping results for " + str(outcome))
+    #         rsid = [x.get('rsid') for x in results_using_gwas_node_ids if x.get('id') == outcome]
+    #         p = [x.get('p') for x in results_using_gwas_node_ids if x.get('id') == outcome]
+    #         out = plink_clumping_rs(Globals.TMP_FOLDER, rsid, p, pval, pval, r2, kb, pop=pop)
+    #         res_clumped = res_clumped + [x for x in results_using_gwas_node_ids if x.get('id') == outcome and x.get('rsid') in out]
+    #     return res_clumped
+
+    if not preclumped and clump:
+        rsids_by_gwas_id = defaultdict(list)
+        pvals_by_gwas_id = defaultdict(list)
+        results_by_gwas_id = defaultdict(list)
+        for r in results:
+            rsids_by_gwas_id[r['id']].append(r['rsid'])
+            pvals_by_gwas_id[r['id']].append(r['p'])
+            results_by_gwas_id[r['id']].append(r)
+
+        results_clumped = []
+        for gwas_id in results_by_gwas_id.keys():
+            logger.debug("clumping results for " + str(gwas_id))
+            rsids_clumped = plink_clumping_rs(Globals.TMP_FOLDER, rsids_by_gwas_id[gwas_id], pvals_by_gwas_id[gwas_id], pval, pval, r2, kb, pop=pop)
+            results_clumped += [x for x in results_by_gwas_id[gwas_id] if x['rsid'] in rsids_clumped]
+        results = results_clumped
+
+    return sorted(results, key=lambda a: a['p'])
