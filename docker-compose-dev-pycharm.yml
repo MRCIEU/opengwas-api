@@ -23,23 +23,23 @@ services:
     command: ["gunicorn", "--bind", "0.0.0.0:8019", "--workers", "2", "main:app"]
     networks:
       - og-api
-    depends_on:
-      - og-neo4j
+#    depends_on:
+#      - og-neo4j
 #      - og-redis
 
-  og-neo4j:
-    image: neo4j:5.17
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - ./app/data/neo4j-v5/data:/data
-      - ./app/data/neo4j-backup:/backup
-    environment:
-      - NEO4J_AUTH=${NEO4J_AUTH}
-      - NEO4J_server_directories_run=/run
-    networks:
-      - og-api
+#  og-neo4j:
+#    image: neo4j:5.17
+#    ports:
+#      - "7474:7474"
+#      - "7687:7687"
+#    volumes:
+#      - ./app/data/neo4j-v5/data:/data
+#      - ./app/data/neo4j-backup:/backup
+#    environment:
+#      - NEO4J_AUTH=${NEO4J_AUTH}
+#      - NEO4J_server_directories_run=/run
+#    networks:
+#      - og-api
 
 #  og-redis:
 #    image: redis:7.2.4
