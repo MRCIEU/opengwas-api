@@ -47,7 +47,7 @@ def fix_legacy_value_errors(results: list):
     for i in range(len(results)):
         # Fix beta and eaf for ukb-e
         if results[i]['id'].startswith('ukb-e'):
-            if not (g.client['source'] == 'R' and g.client['version'] == 'TwoSampleMR'):
+            if not (g.source['client'] == 'R' and g.source['version'] == 'TwoSampleMR'):
                 # For R/TwoSampleMR (actually ieugwasr <= 1.0.4), beta will be fixed by the client
                 # Since the value in results is correct, we need to flip it here so that it can be "fixed" by the client
                 # https://github.com/MRCIEU/ieugwasr/blob/4224670b09fa5dddfb2a24af514a0629edd1de38/R/query.R#L391
