@@ -17,43 +17,43 @@ def _get_cost(ids=None, variants=None, proxies=0):  # Note: both inputs should b
     return max(len(ids), len(variants)) * (1 if proxies == 1 else 5)
 
 
-@api.route('/<id>/<variant>')
-@api.hide
-@api.doc(
-    description="Get specific variant associations for specifc GWAS datasets",
-    params={
-        'id': 'An ID or comma-separated list of GWAS dataset IDs',
-        'variant': 'Comma-separated list of rs IDs or chr:position to query from the GWAS IDs. hg19/build37 chr:position can be single position or a range e.g rs1205,10:44865737,7:105561135-105563135'
-    }
-)
-class AssocGet(Resource):
-    parser = api.parser()
-
-    @api.expect(parser)
-    @api.doc(id='assoc_get')
-    @jwt_required
-    def get(self, id='', variant=''):
-        ids = id.split(',')  # ''.split(',') == ['']
-        variants = variant.split(',')
-
-        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids, variants, proxies=1)):
-            pass
-
-        if ids == [''] or variants == ['']:
-            abort(400)
-
-        start_time = time.time()
-
-        try:
-            result = get_assoc(g.user['uid'], variants, ids, 1, 0.8, 1, 1, 0.3)
-        except Exception as e:
-            logger.error("Could not obtain SNP association: {}".format(e))
-            abort(503)
-
-        logger_middleware.log(g.user['uuid'], 'assoc_get', start_time,
-                              {'id': len(ids), 'variant': len(variants), 'proxies': 1},
-                              len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
-        return result
+# @api.route('/<id>/<variant>')
+# @api.hide
+# @api.doc(
+#     description="Get specific variant associations for specifc GWAS datasets",
+#     params={
+#         'id': 'An ID or comma-separated list of GWAS dataset IDs',
+#         'variant': 'Comma-separated list of rs IDs or chr:position to query from the GWAS IDs. hg19/build37 chr:position can be single position or a range e.g rs1205,10:44865737,7:105561135-105563135'
+#     }
+# )
+# class AssocGet(Resource):
+#     parser = api.parser()
+#
+#     @api.expect(parser)
+#     @api.doc(id='assoc_get')
+#     @jwt_required
+#     def get(self, id='', variant=''):
+#         ids = id.split(',')  # ''.split(',') == ['']
+#         variants = variant.split(',')
+#
+#         with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids, variants, proxies=1)):
+#             pass
+#
+#         if ids == [''] or variants == ['']:
+#             abort(400)
+#
+#         start_time = time.time()
+#
+#         try:
+#             result = get_assoc(g.user['uid'], variants, ids, 1, 0.8, 1, 1, 0.3)
+#         except Exception as e:
+#             logger.error("Could not obtain SNP association: {}".format(e))
+#             abort(503)
+#
+#         logger_middleware.log(g.user['uuid'], 'assoc_get', start_time,
+#                               {'id': len(ids), 'variant': len(variants), 'proxies': 1},
+#                               len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+#         return result
 
 @api.route('')
 @api.doc(
@@ -85,17 +85,20 @@ class AssocPost(Resource):
         if len(args['id']) == 0 or len(args['variant']) == 0:
             abort(400)
 
-        start_time = time.time()
+        if len(args['id']) * len(args['variant']) > 64:
+            abort(400, "Please make sure N(id) * N(variant) <= 64.")
 
-        try:
-            result = get_assoc(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
-        except Exception as e:
-            logger.error("Could not obtain SNP association: {}".format(e))
-            abort(503)
-
-        logger_middleware.log(g.user['uuid'], 'assoc_post', start_time,
-                              {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
-                              len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
+        # start_time = time.time()
+        #
+        # try:
+        #     result = get_assoc(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+        # except Exception as e:
+        #     logger.error("Could not obtain SNP association: {}".format(e))
+        #     abort(503)
+        #
+        # logger_middleware.log(g.user['uuid'], 'assoc_post', start_time,
+        #                       {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies']},
+        #                       len(result), list(set([r['id'] for r in result])), len(set([r['rsid'] for r in result])))
 
         # return result
 
@@ -104,8 +107,8 @@ class AssocPost(Resource):
         try:
             result_from_chunks, n_chunks_accessed = get_assoc_chunked(g.user['uid'], args['variant'], args['id'], args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
         except Exception as e:
-            logger.error("Could not obtain SNP association: {}".format(e))
-            abort(503)
+            log_timestamp = logger_middleware.log_error(g.user['uuid'], 'assoc_chunked_post', args, traceback.format_exc())
+            abort(503, f"Something went wrong. Please try again later. If the problem persists please let us know the error ID: {log_timestamp}")
 
         logger_middleware.log(g.user['uuid'], 'assoc_chunked_post', start_time,
                               {'id': len(args['id']), 'variant': len(args['variant']), 'proxies': args['proxies'], 'chunks': n_chunks_accessed},
