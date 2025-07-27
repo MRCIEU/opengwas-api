@@ -81,7 +81,7 @@ class Globals:
     # public_batches = []
 
     gwas_pos_prefix_indices = {}
-    ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS = 16
+    ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS = 8
 
     variant_index = "dbsnp-157"
 
