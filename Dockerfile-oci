@@ -11,6 +11,9 @@ WORKDIR /app
 RUN mkdir /data /data/igd /data/mrb_logs /data/tmp
 
 RUN chmod +x /app/download_files.sh
-
 RUN chmod +x /app/gunicorn.sh
+
+ARG IMAGE_TAG
+ENV IMAGE_TAG=${IMAGE_TAG}
+
 CMD /app/gunicorn.sh
