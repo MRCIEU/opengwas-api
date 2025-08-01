@@ -31,7 +31,7 @@
             </p>
         {% else %}
             <p>
-                <a id="signinWithMSA">
+                <a id="signinWithMSA" href="{{ url_for('profile.auth.start_microsoft_signin') }}">
                     <img id="signinWithMSImg" src="{{ url_for('static', filename='images/microsoft-signin.svg') }}" alt="Sign in with Microsoft">
                 </a>
                 <ul>
@@ -132,10 +132,9 @@
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.min.js" integrity="sha512-WW8/jxkELe2CAiE4LvQfwm1rajOS8PHasCCx+knHG0gBHt8EXxS6T6tJRTGuDQVnluuAvMxWF4j8SNFDKceLFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-    var signinWithMSA, signinWithGHA, ghSignupModal, ghEmailsDivGroup, ghResultP, ghSignupBtn, emailNamesDivGroup, emailResultP, emailSigninBtn;
+    var signinWithGHA, ghSignupModal, ghEmailsDivGroup, ghResultP, ghSignupBtn, emailNamesDivGroup, emailResultP, emailSigninBtn;
 
     $(document).ready(() => {
-        signinWithMSA = $("#signinWithMSA");
         signinWithGHA = $("#signinWithGHA");
         ghSignupModal = new bootstrap.Modal('#ghSignupModal', {});
         ghEmailsDivGroup = $("#ghEmailsDivGroup");
@@ -164,13 +163,10 @@
         $.ajax({
             url: "/profile/auth/providers/init",
             error: function () {
-                $("#signinWithMSImg").css("filter", "grayscale(100%)").css("cursor", "not-allowed");
-                signinWithMSA.attr("onclick", "alert('Failed to generate link for Microsoft sign in - please refresh this page or contact us.')");
                 $("#signinWithGHA").prop("disabled", "disabled");
                 signinWithGHA.attr("onclick", "alert('Failed to generate link for GitHub sign in - please refresh this page or contact us.')");
             },
             success: function (response) {
-                signinWithMSA.attr("href", response.microsoft);
                 // If in the midway of GitHub sign in i.e. verified email addresses retrieved from GitHub and stored in sessions
                 if (response.github_emails) {
                     $.each(response.github_emails, function (key, email) {
