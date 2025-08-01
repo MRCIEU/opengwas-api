@@ -8,8 +8,7 @@ import time
 from multiprocessing.pool import ThreadPool
 
 from middleware.logger import logger as logger_middleware
-from queries.cql_queries import get_permitted_studies
-from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query, add_trait_to_result
+from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query
 from queries.variants import snps
 from resources.globals import Globals
 from resources._oci import OCIObjectStorage
@@ -27,7 +26,7 @@ class AssocQueriesByChunks:
         return float(size) if '.' in size else int(size)
 
     # for each chr, merge the ranges of positions into minimal ranges (https://leetcode.com/problems/merge-intervals/)
-    # then work out the groups of chunk to fetch, without knowing which chunks are actually available
+    # then work out the groups of chunks to fetch, without knowing which chunks are actually available
     def _merge_pos_ranges(self, pos_tuple_list_by_chr: dict[list[tuple[int, int]]]) -> dict[list[int]]:
         merged_pos_by_chr = collections.defaultdict(list)
         for chr in pos_tuple_list_by_chr.keys():
@@ -85,16 +84,17 @@ class AssocQueriesByChunks:
     def query_by_multiprocessing(self, pos_prefix_indices: dict, gwasinfo: dict, gwas_ids: list[str], query: list[str]) -> tuple[list, int]:
         def _query(params: tuple):
             gwas_id, chr, pos_tuple = params
-            ttask = [time.time()]
+            # ttask = [time.time()]
             chunks_available = self._filter_chunks_available(pos_prefix_indices, gwas_id, chr, pos_tuple)
-            ttask.append(time.time())
+            # ttask.append(time.time())
             associations_available = self._fetch_associations_available(gwas_id, chr, chunks_available)
-            ttask.append(time.time())
+            # ttask.append(time.time())
             associations = self._trim_and_compose_associations(gwasinfo, gwas_id, chr, associations_available, pos_tuple)
-            ttask.append(time.time())
-            return associations, ttask, len(chunks_available)
+            # ttask.append(time.time())
+            # return associations, ttask, len(chunks_available)
+            return associations, len(chunks_available)
 
-        tquery = [time.time()]
+        # tquery = [time.time()]
         pos_tuple_list_by_chr = collections.defaultdict(list)
         for q in query:
             chr, pos = q.split(':')
@@ -110,27 +110,28 @@ class AssocQueriesByChunks:
 
         n_proc = max(len(tasks), Globals.ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS)
 
-        tquery.append(time.time())
+        # tquery.append(time.time())
 
         with ThreadPool(n_proc) as pool:
             async_instance = pool.map_async(_query, tasks)
-            tquery.append(time.time())
+            # tquery.append(time.time())
             try:
                 results = []
                 times_by_steps = [[], [], []]
                 n_chunks_accessed = 0
                 outcome = async_instance.get()
-                tquery.append(time.time())
-                for associations, time_by_step_of_query, chunks_available in outcome:
+                # tquery.append(time.time())
+                # for associations, time_by_step_of_query, chunks_available in outcome:
+                for associations, chunks_available in outcome:
                     results.extend(associations)
-                    for step in [0, 1, 2]:
-                        times_by_steps[step].append(time_by_step_of_query[step + 1] - time_by_step_of_query[step])
+                    # for step in [0, 1, 2]:
+                    #     times_by_steps[step].append(time_by_step_of_query[step + 1] - time_by_step_of_query[step])
                     n_chunks_accessed += chunks_available
-                tquery.append(time.time())
+                # tquery.append(time.time())
 
-                tquery = [round((tquery[i + 1] - tquery[i]) * 1000, 2) for i in range(len(tquery) - 1)]
-                tquery.extend([int(sum(times_of_step) * 1000 / max(len(times_of_step), 1)) for times_of_step in times_by_steps])
-                logger_middleware.log_info(g.user['uuid'], 'assoc_query_by_chunks', {'n_tasks': len(tasks)}, tquery)
+                # tquery = [round((tquery[i + 1] - tquery[i]) * 1000, 2) for i in range(len(tquery) - 1)]
+                # tquery.extend([int(sum(times_of_step) * 1000 / max(len(times_of_step), 1)) for times_of_step in times_by_steps])
+                # logger_middleware.log_info(g.user['uuid'], 'assoc_query_by_chunks', {'n_tasks': len(tasks)}, tquery)
             except Exception as e:
                 print(str(e))
                 raise e
@@ -138,20 +139,11 @@ class AssocQueriesByChunks:
         return results, n_chunks_accessed
 
 
-def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2=None, align_alleles=None, palindromes=None, maf_threshold=None, study_data=None):
+def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, r2=None, align_alleles=None, palindromes=None, maf_threshold=None):
     """
     Adapted from queries.es.get_assoc()
     """
     variants = organise_variants(variants)
-    if not study_data:  # Need to get metadata and keep those permitted, otherwise take the study_data provided as permitted
-        study_data = get_permitted_studies(user_email, ids)
-        id_access = list(study_data.keys())
-        if len(id_access) == 0:
-            return [], 0
-        for id in ids:
-            if id not in id_access:
-                ids.remove(id)
-
     rsid = variants['rsid']
     chrpos = variants['chrpos']
     cprange = variants['cprange']
@@ -169,7 +161,7 @@ def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2=None, a
             proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
             rsid_proxies = list(set([x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]))
             total, docs = snps(rsid_proxies)
-            assoc_proxied, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, [f"{doc['_source']['CHR']}:{doc['_source']['POS']}" for doc in docs])
+            assoc_proxied, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{doc['_source']['CHR']}:{doc['_source']['POS']}" for doc in docs])
             # Need to fix this (which?)
             if assoc_proxied != '[]':
                 result += extract_proxies_from_query(ids, rsid, proxy_dat, assoc_proxied, maf_threshold, align_alleles)
@@ -181,10 +173,11 @@ def get_assoc_chunked(user_email, variants: list, ids: list, proxies, r2=None, a
     if len(cprange) > 0:
         query.update([cp['orig'] for cp in cprange])
 
-    assoc, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, study_data, ids, list(query))
+    time_os_start = time.time()
+
+    assoc, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, list(query))
     result += assoc
     n_chunks_accessed_total += n_chunks_accessed
 
-    result = sorted(result, key=lambda x: x['position'])
-    result = add_trait_to_result(result, study_data)
-    return result, n_chunks_accessed_total
+    result = sorted(result, key=lambda a: (a['id'], a['chr'], a['position'], a['ea'], a['nea']))
+    return result, n_chunks_accessed_total, (time.time() - time_os_start) * 1000
