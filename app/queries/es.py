@@ -31,6 +31,7 @@ def make_multi_body_text(filterData,pval=''):
     return m
 
 def organise_variants(variants):
+    variants = [x for x in variants if x is not None]
     rsreg = r'^rs\d+$'
     crreg = r'^(\d+|X|Y|MT):\d+$'
     cpreg = r'^(\d+|X|Y|MT):\d+-\d+$'
