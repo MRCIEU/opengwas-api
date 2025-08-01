@@ -53,7 +53,7 @@ def check_all(n_logs_past_hour, n_datasets):
         'SERVICES__PHEWAS': check_phewas_proxy(),
         'SERVICES__LOGGING': check_logging(n_logs_past_hour),
         'SERVICES__PIPELINE': check_airflow(),
-        'STATISTICS__N_RECORDS': count_elastic_records(),
+        # 'STATISTICS__N_RECORDS': count_elastic_records(),
         'STATISTICS__N_DATASETS': n_datasets,
         'STATISTICS__N_PUBLIC_DATASETS': count_cache_datasets(),
         'STATISTICS__N_REQS_IN_PAST_HOUR': n_logs_past_hour
