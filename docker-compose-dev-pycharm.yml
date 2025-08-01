@@ -40,11 +40,3 @@ services:
 #      - NEO4J_server_directories_run=/run
 #    networks:
 #      - og-api
-
-#  og-redis:
-#    image: redis:7.2.4
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - ./app/data/redis-v7/data:/data
-#    command: ["redis-server", "--requirepass", "${REDIS_PASS}", "--dir", "/data"]
