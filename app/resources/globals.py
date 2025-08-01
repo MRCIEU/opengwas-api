@@ -1,17 +1,19 @@
 import json
 import platform
 import os
-from elasticsearch import Elasticsearch
 
-from neo4j import GraphDatabase
+import uptrace
+
+from elasticsearch import Elasticsearch
 from flask_sqlalchemy import SQLAlchemy
+from neo4j import GraphDatabase
+from opentelemetry import metrics, trace
 
 
 class Globals:
     VERSION = '4.0.0'
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'vault/app_conf.json')
-    AUTHTEXT = 'See the Authentication section of API tutorial page for details on how to authenticate.'
 
     """ Set environment files to toggle between local and production & private vs public APIs """
     with open(APP_CONF) as f:
@@ -52,6 +54,34 @@ class Globals:
     LOG_FILE_DEBUG = os.path.join(app_config['directories']['logs'], 'mrbaseapi-debug.log')
     LOG_FILE_QUERY = os.path.join(app_config['directories']['logs'], 'opengwasapi-query.log')
     STATIC_GWASINFO = os.path.join(app_config['directories']['upload'], 'gwasinfo.json')
+
+    uptrace.configure_opentelemetry(
+        dsn=app_config['otel']['dsn'],
+        service_name="api",
+        service_version=VERSION,
+        resource_attributes={'host.name': os.environ.get('ENV')}
+    )
+
+    tracer = trace.get_tracer('flask')
+
+    meter = metrics.get_meter('flask')
+    meters = {
+        'histogram_time_per_chunk': meter.create_histogram(
+            name='time_per_chunk',
+            description='Time taken to access each chunk from Object Storage',
+            unit='ms',
+        ),
+        'histogram_time_per_variant': meter.create_histogram(
+            name='time_per_variant',
+            description='Time taken to access associations for each variant from MySQL',
+            unit='ms',
+        ),
+        'histogram_time_per_gwas_id': meter.create_histogram(
+            name='time_per_gwas_id',
+            description='Time taken to access associations for each GWAS ID from MySQL',
+            unit='ms',
+        )
+    }
 
     OAUTH2_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='
     USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token='
