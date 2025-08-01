@@ -1,4 +1,4 @@
-name: Build docker image and push to OCI Registry
+name: Build image and push to OCI Registry
 
 on:
   push:
@@ -6,8 +6,10 @@ on:
       - master
 
 jobs:
-  build-and-push:
+  build-push:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.tag.outputs.image_tag }}
 
     steps:
     - name: Checkout code
@@ -28,21 +30,22 @@ jobs:
       run: |
         DATE=$(date -u +%Y%m%d)
         TIME=$(date -u +%H%M)
-        VERSION_TAG="$DATE.$TIME"
-        echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+        IMAGE_TAG="$DATE.$TIME"
+        echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-    - name: Build Docker image
+    - name: Build image
       run: |
-        docker build --platform linux/amd64 -t og-api -f Dockerfile-oci .
+        docker build --platform linux/amd64 -t og-api -f Dockerfile-oci \
+          --build-arg IMAGE_TAG=${{ steps.tag.outputs.image_tag }} .
 
     - name: Tag image with OCI tag
       run: |
-        docker tag og-api:latest lhr.ocir.io/ieup4/opengwas/api:${{ steps.generate_tag.outputs.version_tag }}
+        docker tag og-api:latest lhr.ocir.io/ieup4/opengwas/api:${{ steps.generate_tag.outputs.image_tag }}
 
     - name: Push image to OCI
       run: |
-        docker push lhr.ocir.io/ieup4/opengwas/api:${{ steps.generate_tag.outputs.version_tag }}
+        docker push lhr.ocir.io/ieup4/opengwas/api:${{ steps.generate_tag.outputs.image_tag }}
 
-    - name: Print published version
+    - name: Print image tag
       run: |
-        echo "✅ Published version: ${{ steps.generate_tag.outputs.version_tag }}"
+        echo "✅ Published version: ${{ steps.generate_tag.outputs.image_tag }}"
