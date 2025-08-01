@@ -18,8 +18,8 @@ def generate_signin_link(url):
     return auth.log_in(scopes=Globals.MS_ENTRA_ID_SCOPE, redirect_uri=url)
 
 
-def get_tokens(request_args):
-    result = auth.complete_log_in(request_args)
+def get_tokens(auth_response):
+    result = auth.complete_log_in(auth_response)
     if "error" in result or len(result) == 0:
         raise Exception("An error occurred during the Microsoft sign-in process. Please clear your browser cache and try again.")
     return result
