@@ -1,6 +1,6 @@
 import json
-import platform
 import os
+import platform
 
 import uptrace
 
@@ -20,20 +20,16 @@ class Globals:
     with open(APP_CONF) as f:
         app_config = json.load(f)
 
-        if os.environ.get('ENV') == 'production':
-            print("Production")
-            app_config = app_config['production']
-            app_config['env'] = 'production'
-            QC_WDL_PATH = "/app/resources/workflow/qc.wdl"
-            ELASTIC_WDL_PATH = "/app/resources/workflow/elastic.wdl"
-        else:
-            print("Local")
-            app_config = app_config['local']
-            app_config['env'] = 'local'
-            QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
-            ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
+        print(f"Group: {os.environ.get('GROUP')}")
 
-    # print("Params: {}".format(app_config))
+        if os.environ.get('GROUP') in ['prod', 'test']:
+            app_config = app_config['production']
+            # QC_WDL_PATH = "/app/resources/workflow/qc.wdl"
+            # ELASTIC_WDL_PATH = "/app/resources/workflow/elastic.wdl"
+        else:
+            app_config = app_config['local']
+            # QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
+            # ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
 
     PLINK = os.path.join(root_path, 'bin', 'plink' + '_' + platform.system())
     LD_POPULATIONS = ['EUR', 'SAS', 'EAS', 'AFR', 'AMR', 'legacy']
@@ -60,7 +56,7 @@ class Globals:
         dsn=app_config['otel']['dsn'],
         service_name="api",
         service_version=VERSION,
-        resource_attributes={'host.name': os.environ.get('ENV')}
+        resource_attributes={'host.name': os.environ.get('GROUP')}
     )
 
     tracer = trace.get_tracer('flask')

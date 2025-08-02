@@ -9,7 +9,7 @@ logger = logging.getLogger('debug-log')
 
 
 def execute_command(command):
-    if os.environ.get('ENV') == 'production':
+    if os.environ.get('GROUP') == 'production':
         command = '({}) > /dev/null 2>&1'.format(command)
     os.system(command)
 

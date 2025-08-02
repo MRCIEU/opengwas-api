@@ -1,6 +1,7 @@
+import os
+
 from flask import Blueprint
 from flask_restx import Api
-import os
 
 from resources.globals import Globals
 from werkzeug.exceptions import TooManyRequests
@@ -49,13 +50,16 @@ api.add_namespace(variants)
 api.add_namespace(ld)
 
 # private
-if (os.environ.get('ENV') == 'production' and os.environ.get('POOL') == 'api-priv') or os.environ.get('ENV') == 'local':
+if (
+    os.environ.get('GROUP') == 'prod' and os.environ.get('COMPONENT') == 'api-priv' or
+    os.environ.get('GROUP') in ['test', 'local']
+):
     api.add_namespace(maintenance)
     api.add_namespace(edit)
     api.add_namespace(quality_control)
     api.add_namespace(stats)
 
-if os.environ.get('ENV') == 'local':
+if os.environ.get('GROUP') == 'local':
     api.add_namespace(utilities)
 
 

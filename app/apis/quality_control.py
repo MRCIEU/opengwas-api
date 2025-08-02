@@ -1,16 +1,15 @@
 import base64
+import json
+import logging
+import os
+import requests
+import shutil
+import time
 
 from flask import g, send_from_directory
 from flask_restx import Resource, Namespace
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
-
-import json
-import logging
-import shutil
-import os
-import requests
-import time
 
 from .edit import check_batch_exists
 
@@ -197,7 +196,7 @@ class Release(Resource):
                 for path in oci.object_storage_list('upload', req['id'] + '/'):
                     oci_copy = oci.object_storage_copy('upload', path, 'data', path)
 
-                if Globals.app_config['env'] == 'production':
+                if os.environ.get('GROUP') in ['prod', 'test']:
                     # update GI cache
                     requests.get(Globals.app_config['root_url'] + "/api/gicache")
 

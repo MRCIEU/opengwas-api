@@ -1,6 +1,4 @@
-import flask
-from flask_login import current_user
-from werkzeug.middleware.proxy_fix import ProxyFix
+from datetime import datetime
 import gzip
 import io
 import logging
@@ -8,7 +6,10 @@ import os
 import pickle
 import shutil
 import time
-from datetime import datetime
+
+import flask
+from flask_login import current_user
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from resources.globals import Globals
 # from resources.logging_middleware import LoggerMiddleWare
@@ -124,9 +125,9 @@ limiter.init_app(app)
 
 app.add_url_rule('/probe/health', '/probe/health', view_func=probe_health)
 
-if os.environ.get('ENV') == 'production':
-    print('POOL', os.environ.get('POOL'))
-    if os.environ.get('POOL') in ['api', 'api-light', 'api-ref', 'api-priv']:
+if os.environ.get('GROUP') in ['prod', 'test']:
+    print('COMPONENT', os.environ.get('COMPONENT'))
+    if os.environ.get('COMPONENT') in ['api', 'api-light', 'api-ref', 'api-priv']:
         app.session_interface = NoCookieSessionInterface()
         app.add_url_rule('/probe/readiness', '/probe/readiness', view_func=probe_readiness)
         app.register_blueprint(api_bp, url_prefix='/api')
@@ -139,7 +140,7 @@ if os.environ.get('ENV') == 'production':
         def before_request():
             return before_api_request()
 
-    elif os.environ.get('POOL') == 'ui':
+    elif os.environ.get('COMPONENT') == 'ui':
         app.session_interface = CustomRedisSessionInterface()
         app.add_url_rule('/', '/', view_func=show_index)
         app.register_blueprint(profile_bp, url_prefix='/profile')
