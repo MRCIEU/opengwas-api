@@ -15,3 +15,33 @@ jobs:
     - name: Print tag (placeholder for real test logic)
       run: |
         echo "🔍 Running tests on tag: ${{ github.event.inputs.image_tag }}"
+
+    # Real pytest logic would go here
+
+    - name: Checkout infrastructure repo
+      run: |
+        gh auth login --with-token <<< "${{ secrets.OG_INFRA_REPO_PAT }}"
+        gh repo clone ${{ secrets.OG_INFRA_REPO }} infra-repo
+        cd infra-repo
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        gh repo set-default ${{ secrets.OG_INFRA_REPO }}
+        gh auth setup-git
+      env:
+        GH_TOKEN: ${{ secrets.OG_INFRA_REPO_PAT }}
+
+    - name: Update kustomization.yaml and deployment replicas
+      run: |
+        cd infra-repo/kubernetest-manifests/og-api-test
+        
+        # Set replicas to 0
+        yq eval '.spec.replicas = 0' -i api-deployment.yaml
+
+    - name: Commit and push changes using gh CLI
+      run: |
+        cd infra-repo        
+        git add .
+        git commit -m "Destroy og-api-test pods"
+        git push
+      env:
+        GH_TOKEN: ${{ secrets.OG_INFRA_REPO_PAT }}
