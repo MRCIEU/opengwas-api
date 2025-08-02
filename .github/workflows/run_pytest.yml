@@ -20,28 +20,26 @@ jobs:
 
     - name: Checkout infrastructure repo
       run: |
-        gh auth login --with-token <<< "${{ secrets.OG_INFRA_REPO_PAT }}"
-        gh repo clone ${{ secrets.OG_INFRA_REPO }} infra-repo
+        git clone https://x-access-token:${{ secrets.OG_INFRA_REPO_PAT }}@github.com/${{ secrets.OG_INFRA_REPO }} infra-repo
         cd infra-repo
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        gh repo set-default ${{ secrets.OG_INFRA_REPO }}
-        gh auth setup-git
-      env:
-        GH_TOKEN: ${{ secrets.OG_INFRA_REPO_PAT }}
 
     - name: Update kustomization.yaml and deployment replicas
       run: |
-        cd infra-repo/kubernetest-manifests/og-api-test
+        cd infra-repo/kubernetest-manifests/og-api
+        # Update image tag for prod deployment
+        yq eval '.images[0].newTag = "${{ github.event.client_payload.image_tag }}"' -i kustomization.yaml
         
-        # Set replicas to 0
+        cd infra-repo/kubernetest-manifests/og-api-test
+        # Set replicas to 0 for test deployment
         yq eval '.spec.replicas = 0' -i api-deployment.yaml
 
     - name: Commit and push changes using gh CLI
       run: |
         cd infra-repo        
         git add .
-        git commit -m "Destroy og-api-test pods"
+        git commit -m "Destroy og-api-test pod following pytest run for tag ${{ github.event.inputs.image_tag }}"
         git push
       env:
         GH_TOKEN: ${{ secrets.OG_INFRA_REPO_PAT }}
