@@ -61,7 +61,7 @@ jobs:
               exit 0
             fi
           else
-            echo "Waiting for status 200, got $HTTP_CODE or request timed out."
+            echo "Waiting for status 200, got <$HTTP_CODE> or request timed out."
           fi
     
           sleep $INTERVAL

@@ -12,22 +12,21 @@ from opentelemetry import metrics, trace
 
 class Globals:
     VERSION = '4.0.0'
-    BUILD=os.environ.get('IMAGE_TAG')
+    BUILD = os.environ.get('IMAGE_TAG')
+    GROUP = os.environ.get('GROUP')
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'vault/app_conf.json')
 
+    print(f"Version {VERSION} - Build {BUILD} - Group {GROUP}")
+
     """ Set environment files to toggle between local and production & private vs public APIs """
     with open(APP_CONF) as f:
-        app_config = json.load(f)
-
-        print(f"Group: {os.environ.get('GROUP')}")
-
-        if os.environ.get('GROUP') in ['prod', 'test']:
-            app_config = app_config['production']
+        if GROUP in ['prod', 'test']:
+            app_config = json.load(f)['production']
             # QC_WDL_PATH = "/app/resources/workflow/qc.wdl"
             # ELASTIC_WDL_PATH = "/app/resources/workflow/elastic.wdl"
         else:
-            app_config = app_config['local']
+            app_config = json.load(f)['local']
             # QC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'qc.wdl')
             # ELASTIC_WDL_PATH = os.path.join(root_path, 'resources', 'workflow', 'elastic.wdl')
 
