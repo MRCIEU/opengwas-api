@@ -23,7 +23,7 @@ jobs:
       run: |
         cd infra-repo/kubernetes-manifests/og-api-test
         # Update image tag for test deployment
-        yq eval '.images[0].newTag = "${{ github.event.client_payload.image_tag }}"' -i kustomization.yaml
+        yq eval '.images[0].newTag = "${{ github.event.inputs.image_tag }}"' -i kustomization.yaml
         # Set replicas to 1 for test deployment
         yq eval '.spec.replicas = 1' -i api-deployment.yaml
 
@@ -31,13 +31,13 @@ jobs:
       run: |
         cd infra-repo
         git add .
-        git commit -m "Update api_image_test to tag ${{ github.event.client_payload.image_tag }} and create og-test-api pod"
+        git commit -m "Update api_image_test to tag ${{ github.event.inputs.image_tag }} and create og-test-api pod"
         git push
 
     - name: Wait for test deployment readiness
       env:
         TEST_URL: ${{ secrets.OG_API_TEST_URL }}/api/status
-        EXPECTED_BUILD: ${{ github.event.client_payload.image_tag }}
+        EXPECTED_BUILD: ${{ github.event.inputs.image_tag }}
       run: |
         echo "🕒 Wait for 3 minutes before starting polling..."
         sleep 180
