@@ -12,6 +12,7 @@ from opentelemetry import metrics, trace
 
 class Globals:
     VERSION = '4.0.0'
+    BUILD=os.environ.get('IMAGE_TAG')
     root_path = os.path.dirname(os.path.dirname(__file__))
     APP_CONF = os.path.join(root_path, 'vault/app_conf.json')
 

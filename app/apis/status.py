@@ -41,9 +41,9 @@ def check_all(n_logs_past_hour, n_datasets):
     return {
         '_NOTES_1': "Check uptime and maintenance information at https://status.opengwas.io",
         '_NOTES_2': "Throttling: Please note this endpoint (/api/status) is also subject to throttling (but separate from your API allowance). Do not call this endpoint more often than necessary.",
-        '_NOTES_3': "REFERENCES__ASSOCIATIONS_POS_PREFIX_INDICES is a pilot component and its unavailability has no effect on the current API.",
-        '_NOTES_4': "STATISTICS__N_REQS_IN_PAST_HOUR is the number of requests processed (not just received) in the past hour. Non-zero number usually means OpenGWAS has been operational overall.",
+        '_NOTES_3': "STATISTICS__N_REQS_IN_PAST_HOUR is the number of requests processed (not just received) in the past hour. Non-zero number usually means OpenGWAS has been operational overall.",
         'API__VERSION': Globals.VERSION,
+        'API__BUILD': Globals.BUILD,
         'REFERENCES__ASSOCIATIONS_POS_PREFIX_INDICES': check_gwas_pos_prefix_indices(n_datasets),
         # 'REFERENCES__LD_REF_PANEL': check_ld_ref(),
         # 'REFERENCES__1000_GENOMES_VCF': check_1000g_vcf(),
