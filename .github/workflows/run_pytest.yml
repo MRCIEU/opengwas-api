@@ -31,7 +31,7 @@ jobs:
         # Update image tag for prod deployment
         yq eval '.images[0].newTag = "${{ github.event.inputs.image_tag }}"' -i kustomization.yaml
         
-        cd infra-repo/kubernetes-manifests/og-api-test
+        cd ../og-api-test
         # Set replicas to 0 for test deployment
         yq eval '.spec.replicas = 0' -i api-deployment.yaml
 

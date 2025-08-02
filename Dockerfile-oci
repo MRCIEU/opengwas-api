@@ -16,4 +16,4 @@ RUN chmod +x /app/gunicorn.sh
 ARG IMAGE_TAG="00000000.0000"
 ENV IMAGE_TAG=${IMAGE_TAG}
 
-CMD /app/gunicorn.sh
+CMD ["/app/gunicorn.sh"]
