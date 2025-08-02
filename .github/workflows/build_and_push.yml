@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build-push:
+  build-and-push:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.tag.outputs.image_tag }}
@@ -49,3 +49,12 @@ jobs:
     - name: Print image tag
       run: |
         echo "✅ Published version: ${{ steps.generate_tag.outputs.image_tag }}"
+
+    - name: Trigger setup_test_deployment workflow
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh workflow run setup_test_deployment.yml \
+          --repo ${{ github.repository }} \
+          --ref master \
+          --field image_tag=${{ steps.generate_tag.outputs.image_tag }}

@@ -1,0 +1,17 @@
+name: Run pytest on test deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+
+jobs:
+  run-pytest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Print tag (placeholder for real test logic)
+      run: |
+        echo "🔍 Running tests on tag: ${{ github.event.inputs.image_tag }}"
