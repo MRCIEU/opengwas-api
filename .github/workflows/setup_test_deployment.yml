@@ -48,9 +48,10 @@ jobs:
         ELAPSED=0
     
         while [ $ELAPSED -lt $TIMEOUT ]; do
-          RESPONSE=$(curl -s --max-time 10 -w "%{http_code}" "$TEST_URL") || RESPONSE=""
-          HTTP_CODE=$(echo "$RESPONSE" | tail -c 3)
-          BODY=$(echo "$RESPONSE" | head -c -3)
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 10 "$TEST_URL") || true
+          echo "$RESPONSE"
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
     
           if [ "$HTTP_CODE" = "200" ]; then
             BUILD_TAG=$(echo "$BODY" | jq -r '.API__BUILD')
