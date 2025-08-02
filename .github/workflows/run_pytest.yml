@@ -27,11 +27,11 @@ jobs:
 
     - name: Update kustomization.yaml and deployment replicas
       run: |
-        cd infra-repo/kubernetest-manifests/og-api
+        cd infra-repo/kubernetes-manifests/og-api
         # Update image tag for prod deployment
         yq eval '.images[0].newTag = "${{ github.event.client_payload.image_tag }}"' -i kustomization.yaml
         
-        cd infra-repo/kubernetest-manifests/og-api-test
+        cd infra-repo/kubernetes-manifests/og-api-test
         # Set replicas to 0 for test deployment
         yq eval '.spec.replicas = 0' -i api-deployment.yaml
 
