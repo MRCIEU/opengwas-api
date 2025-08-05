@@ -166,7 +166,7 @@ class Globals:
         'UOB': '400000 per 10 minutes',
         'COMMERCIAL': '100000 per 10 minutes',
         'STANDARD': '100000 per 10 minutes',
-        'TRIAL': '100 per 10 minutes',
+        'TRIAL': '1000 per 10 minutes',
         'NONE': '0 per 10 minutes'
     }
 
