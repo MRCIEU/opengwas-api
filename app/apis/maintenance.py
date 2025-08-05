@@ -81,6 +81,12 @@ class CacheGwasInfo(Resource):
     def get(self):
         n = save_gwasinfo_cache()
         batches = update_batches_stats()
+
+        with open('/tmp/batches', 'w') as f:
+            json.dump(batches, f)
+        with open('/tmp/batches', 'rb') as f:
+            oci_upload = OCIObjectStorage().object_storage_upload('data', 'gwasinfo_batches.json', f)
+
         return {
             'n_gwasinfo': n,
             'batches': len(batches)
