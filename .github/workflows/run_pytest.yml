@@ -41,5 +41,3 @@ jobs:
         git add .
         git commit -m "Destroy og-api-test pod following pytest run for tag ${{ github.event.inputs.image_tag }}"
         git push
-      env:
-        GH_TOKEN: ${{ secrets.OG_INFRA_REPO_PAT }}
