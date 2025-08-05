@@ -43,17 +43,17 @@
           </ul>
           <ul class="navbar-nav me-right">
             <li class="nav-item">
-              <a class="nav-link" href="https://gwas.mrcieu.ac.uk" rel="external">home</a>
+              <a class="nav-link" href="https://opengwas.io" rel="external">home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="https://gwas.mrcieu.ac.uk/datasets" rel="external">datasets</a>
+              <a class="nav-link" href="https://opengwas.io/datasets" rel="external">datasets</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="https://gwas.mrcieu.ac.uk/phewas" rel="external">phewas</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="https://gwas.mrcieu.ac.uk/about" rel="external">about</a>
-            </li>
+<!--            <li class="nav-item">-->
+<!--              <a class="nav-link" href="https://opengwas.io/phewas" rel="external">phewas</a>-->
+<!--            </li>-->
+<!--            <li class="nav-item">-->
+<!--              <a class="nav-link" href="https://opengwas.io/about" rel="external">about</a>-->
+<!--            </li>-->
             <li class="nav-item">
               <a class="nav-link {{ 'active' if request.endpoint == '/' else '' }}" href="{{ url_for('/') }}">api</a>
             </li>
@@ -103,7 +103,7 @@
             </p>
             </div>
             <div class="col-6 text-start align-middle">
-              <a href="https://gwas.mrcieu.ac.uk/terms" rel="external">Terms of use</a><br>
+              <a href="https://opengwas.io/terms" rel="external">Terms of use</a><br>
               <a href="https://github.com/MRCIEU/igd-data-requests/issues" rel="external">Data contributions or requests</a><br>
               <a href="mailto:g.hemani@bristol.ac.uk">Contact</a><br><br>
               <span class="text-nowrap">&copy; {{ now.year }} University of Bristol</span><br>
