@@ -74,6 +74,19 @@ def get_all_gwas_as_admin(return_subset_properties=[]):
     return result
 
 
+def get_public_gwas_by_id(gwas_id):
+    tx = Neo4j.get_db()
+    result = tx.run(
+        "MATCH (g:Group {name:'public'})-[:ACCESS_TO]->(gi:GwasInfo {id:$gwas_id, group_name:'public'}) RETURN gi;",
+        gwas_id=gwas_id
+    ).single()
+
+    if result is None:
+        raise LookupError("GWAS ID {} does not exist or you do not have the required access".format(gwas_id))
+
+    return GwasInfo(result['gi'])
+
+
 def get_all_gwas_for_user(uid):
     group_names = get_groups_for_user(uid)
     res = {}

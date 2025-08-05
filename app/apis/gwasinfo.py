@@ -1,9 +1,12 @@
-from flask import send_file, g
-from flask_restx import Resource, Namespace
-from werkzeug.exceptions import BadRequest
 import logging
 import os
 import time
+from random import choices
+
+from flask import send_file, g, jsonify, make_response
+from flask_limiter.util import get_remote_address
+from flask_restx import Resource, Namespace
+from werkzeug.exceptions import BadRequest
 
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
@@ -80,34 +83,34 @@ class Info(Resource):
         return recs
 
 
-@api.route('/<id>')
-@api.doc(description="Get metadata about specified GWAS summary datasets")
-class GetById(Resource):
-    parser = api.parser()
-
-    @api.expect(parser)
-    @api.doc(model=gwas_info_model, id='gwasinfo_get')
-    @jwt_required
-    def get(self, id):
-        ids = id.split(',')
-
-        with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids)):
-            pass
-
-        start_time = time.time()
-
-        try:
-            recs = []
-            for gwas_info_id in ids:
-                try:
-                    recs.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
-                except LookupError:
-                    continue
-        except LookupError:
-            raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
-
-        logger_middleware.log(g.user['uuid'], 'gwasinfo_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
-        return recs
+# @api.route('/<id>')
+# @api.doc(description="Get metadata about specified GWAS summary datasets")
+# class GetById(Resource):
+#     parser = api.parser()
+#
+#     @api.expect(parser)
+#     @api.doc(model=gwas_info_model, id='gwasinfo_get')
+#     @jwt_required
+#     def get(self, id):
+#         ids = id.split(',')
+#
+#         with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(ids)):
+#             pass
+#
+#         start_time = time.time()
+#
+#         try:
+#             recs = []
+#             for gwas_info_id in ids:
+#                 try:
+#                     recs.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
+#                 except LookupError:
+#                     continue
+#         except LookupError:
+#             raise BadRequest("Gwas ID {} does not exist or you do not have permission to view.".format(id))
+#
+#         logger_middleware.log(g.user['uuid'], 'gwasinfo_get', start_time, {'id': len(ids)}, len(recs), [r['id'] for r in recs])
+#         return recs
 
 
 @api.route('/files')
@@ -148,3 +151,44 @@ class GetFilesByID(Resource):
 
         logger_middleware.log(g.user['uuid'], 'gwasinfo_files_get', start_time, {'id': len(args['id'])}, len(recs), [r['id'] for r in recs])
         return result
+
+
+@api.route('/files/trial')
+@api.hide
+class GetFilesByIDTrial(Resource):
+    parser = api.parser()
+    parser.add_argument('id', type=str, required=True, help="One GWAS ID")
+    parser.add_argument('type', type=str, required=True, choices=['report', 'vcf'],
+                        help="Type of the files to retrieve. 'report' will return _report.html file, 'vcf' will return .vcf.gz and .vcf.gz.tbi files.")
+
+    @api.expect(parser)
+    @api.doc(id='gwasinfo_files_trial', security=[])
+    def post(self):
+        args = self.parser.parse_args()
+
+        match args['type']:
+            case 'report':
+                extensions = ('_report.html',)
+            case 'vcf':
+                extensions = ('.vcf.gz', '.vcf.gz.tbi',)
+            case _:
+                raise BadRequest("Invalid 'type' specified. Use 'report' or 'vcf'.")
+
+        start_time = time.time()
+
+        try:
+            get_public_gwas_by_id(args['id'])
+        except LookupError:
+            raise BadRequest("Gwas ID does not exist or you do not have permission to view.")
+
+        oci = OCIObjectStorage()
+        results = [oci.object_storage_par_create('data', path, 'ObjectRead', 'Deny', 3600 * 2, get_remote_address() + '.' + args['id'])
+                                 for path in oci.object_storage_list('data', args['id'] + '/')
+                                 if path.endswith(extensions)]
+
+        if args['type'] == 'vcf' and len(results) > 0:
+            with limiter.limit('20 per day'):
+                pass
+
+        logger_middleware.log(None, 'gwasinfo_files_trial', start_time, gwas_id=[args['id']])
+        return results
