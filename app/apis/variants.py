@@ -305,7 +305,7 @@ class Afl2Post(Resource):
 
         result = out1 + out2
         logger_middleware.log(g.user['uuid'], 'variants_afl2_post', start_time,
-                              {'rsid': len(args['rsid']), 'chrpos': len(chrpos)}, n_records=len(result))
+                              {'rsid': len(args['rsid']), 'chrpos': len(args['chrpos'])}, n_records=len(result))
         return result
 
 
