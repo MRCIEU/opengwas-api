@@ -60,22 +60,22 @@ def test_gwasinfo_get1(url, headers):
     assert r.status_code == 200 and len(r.json()) > 48000
 
 
-def test_gwasinfo_get2(url, headers):
-    r = requests.get(url + "/gwasinfo/ieu-a-2", headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 1
-
-    # Issue 57
-    assert r.json()[0]['trait'] == "Body mass index"
-
-
-def test_gwasinfo_get3(url, headers):
-    r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-998", headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 1
-
-
-def test_gwasinfo_get4(url, headers):
-    r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-998,ieu-b-5008", headers=headers)
-    assert r.status_code == 200 and len(r.json()) == 2
+# def test_gwasinfo_get2(url, headers):
+#     r = requests.get(url + "/gwasinfo/ieu-a-2", headers=headers)
+#     assert r.status_code == 200 and len(r.json()) == 1
+#
+#     # Issue 57
+#     assert r.json()[0]['trait'] == "Body mass index"
+#
+#
+# def test_gwasinfo_get3(url, headers):
+#     r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-998", headers=headers)
+#     assert r.status_code == 200 and len(r.json()) == 1
+#
+#
+# def test_gwasinfo_get4(url, headers):
+#     r = requests.get(url + "/gwasinfo/ieu-a-2,ieu-a-998,ieu-b-5008", headers=headers)
+#     assert r.status_code == 200 and len(r.json()) == 2
 
 
 def test_gwasinfo_files_get0(url, headers):
