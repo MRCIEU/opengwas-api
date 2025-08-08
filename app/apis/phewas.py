@@ -47,10 +47,6 @@ class Phewas(Resource):
     @api.doc(id='phewas_post')
     @jwt_required
     def post(self):
-        return {
-            "message": "PheWAS service is undergoing maintenance. Please try again later. See also: https://status.opengwas.io",
-        }, 400
-
         args = self.parser.parse_args()
 
         with limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=_get_cost(args['variant'], fast=True)):
