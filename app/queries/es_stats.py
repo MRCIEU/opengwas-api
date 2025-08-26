@@ -1,3 +1,6 @@
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 from resources.globals import Globals
 
 
@@ -15,6 +18,12 @@ def _get_index_by_year_month(year, month):
     elif month == "*":
         return index + ".*"
     return index + "." + str(month).rjust(2, '0')
+
+
+def _get_indices_of_current_and_last_month():
+    now = datetime.now()
+    last_month_date = now - relativedelta(months=1)
+    return f'{logs_index_prefix_api}{now.strftime("%Y")}.{now.strftime("%m")},{logs_index_prefix_api}{last_month_date.strftime("%Y")}.{last_month_date.strftime("%m")}'
 
 
 def get_most_valued_datasets(year, month):
@@ -135,3 +144,67 @@ def get_geoip_using_pipeline(ips):
     )
 
     return result
+
+
+def get_recent_week_stats():
+    res = Globals.es.search(
+        request_timeout=120,
+        index=_get_indices_of_current_and_last_month(),
+        body={
+            "size": 0,
+            "query": {
+                "range": {
+                    "@timestamp": {
+                        "gte": "now-7d",
+                        "lte": "now"
+                    }
+                }
+            },
+            "aggs": {
+                "per_hour": {
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "calendar_interval": "1h",
+                        "format": "epoch_second",
+                        "min_doc_count": 0
+                    },
+                    "aggs": {
+                        "time": {
+                            "sum": {
+                                "field": "time"
+                            }
+                        },
+                        "records": {
+                            "sum": {
+                                "field": "n_records"
+                            }
+                        },
+                        "users": {
+                            "cardinality": {
+                                "field": "uuid"
+                            }
+                        },
+                        "time_pct": {
+                            "percentiles": {
+                                "field": "time",
+                                "percents": [
+                                    90
+                                ]
+                            }
+                        },
+                        "slow_reqs": {
+                            "filter": {
+                                "range": {
+                                    "time": {
+                                        "gt": 3000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+
+    return res['aggregations']['per_hour']['buckets']

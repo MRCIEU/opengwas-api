@@ -2,6 +2,7 @@ import datetime
 import gzip
 import io
 import os
+import pytz
 
 from flask import request
 from flask_restx import Resource, Namespace
@@ -10,8 +11,8 @@ import json
 import pickle
 
 from middleware.auth import key_required
-from queries.cql_queries import *
-from queries.es_admin import *
+from queries.cql_queries import get_all_gwas_for_user, update_batches_stats, get_added_by_state_of_all_draft_gwas, set_added_by_state_of_any_gwas
+from queries.es_stats import get_most_valued_datasets, get_most_active_users, get_recent_week_stats
 from queries.redis_queries import RedisQueries
 from resources import CryptographyTool
 from resources.airflow import Airflow
@@ -59,14 +60,14 @@ def save_gwasinfo_cache():  # This is the minimal dump of the public datasets
     with open(Globals.STATIC_GWASINFO, 'w') as f:
         json.dump({
             'metadata': {
-                'updated_at': datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S %Z'),
+                'updated_at': datetime.datetime.strftime(datetime.datetime.now(pytz.timezone('Europe/London')), '%Y-%m-%d %H:%M:%S %Z'),
                 'size': len(datasets)
             },
             'majority_fields_and_coding': majority_fields_and_coding,
             'datasets_compressed': datasets_compressed
         }, f)
     with open(Globals.STATIC_GWASINFO, 'rb') as f:
-        oci_upload = OCIObjectStorage().object_storage_upload('data', 'gwasinfo.json', f)
+        oci_upload = OCIObjectStorage().object_storage_upload('website', 'gwasinfo/gwasinfo.json', f)
     return len(datasets)
 
 
@@ -85,7 +86,7 @@ class CacheGwasInfo(Resource):
         with open('/tmp/batches', 'w') as f:
             json.dump(batches, f)
         with open('/tmp/batches', 'rb') as f:
-            oci_upload = OCIObjectStorage().object_storage_upload('data', 'gwasinfo_batches.json', f)
+            oci_upload = OCIObjectStorage().object_storage_upload('website', 'gwasinfo/gwasinfo_batches.json', f)
 
         return {
             'n_gwasinfo': n,
@@ -179,11 +180,19 @@ class CacheStatsMVD(Resource):
         result = format_mvd(mvd)
         if len(mvd) > 0:
             response['current_month'] = RedisQueries('cache').save_cache('stats_mvd', args['year'] + args['month'], json.dumps(result))
+            with open('/tmp/stats_mvd_current', 'w') as f:
+                json.dump(result, f)
+            with open('/tmp/stats_mvd_current', 'rb') as f:
+                oci_upload = OCIObjectStorage().object_storage_upload('website', f"stats/mvd/{args['year']}{args['month']}.json", f)
 
         mvd = get_most_valued_datasets('*', '*')
         result = format_mvd(mvd)
         if len(mvd) > 0:
             response['all'] = RedisQueries('cache').save_cache('stats_mvd', 'all', json.dumps(result))
+            with open('/tmp/stats_mvd_all', 'w') as f:
+                json.dump(result, f)
+            with open('/tmp/stats_mvd_all', 'rb') as f:
+                oci_upload = OCIObjectStorage().object_storage_upload('website', 'stats/mvd/all.json', f)
 
         return response
 
@@ -219,13 +228,48 @@ class CacheStatsMAU(Resource):
         result = format_mau(mau)
         if len(result) > 0:
             response['current_month'] = RedisQueries('cache').save_cache('stats_mau', args['year'] + args['month'], json.dumps(result))
+            with open('/tmp/stats_mau_current', 'w') as f:
+                json.dump(result, f)
+            with open('/tmp/stats_mau_current', 'rb') as f:
+                oci_upload = OCIObjectStorage().object_storage_upload('website', f"stats/mau/{args['year']}{args['month']}.json", f)
 
         mau = get_most_active_users('*', '*')
         result = format_mau(mau)
         if len(result) > 0:
             response['all'] = RedisQueries('cache').save_cache('stats_mau', 'all', json.dumps(result))
+            with open('/tmp/stats_mau_all', 'w') as f:
+                json.dump(result, f)
+            with open('/tmp/stats_mau_all', 'rb') as f:
+                oci_upload = OCIObjectStorage().object_storage_upload('website', 'stats/mau/all.json', f)
 
         return response
+
+
+@api.route('/stats/recent_week/cache')
+@api.doc(description="Update cache for per hour stats of the past week")
+class CacheStatsPerHour(Resource):
+    @api.doc(id='maintenance_stats_recent_week_cache_get')
+    @key_required
+    def get(self):
+        recent_week = get_recent_week_stats()
+        recent_week = dict(sorted({h['key_as_string']: [
+            h['doc_count'],  # Number of requests
+            int(h['records']['value']),  # Number of records returned
+            h['users']['value'],  # Number of unique users
+            round(h['time']['value'] / 1000 / 3600, 2),  # Load
+            round(h['time_pct']['values']['90.0']),  # 90th percentile of response time
+            round(h['slow_reqs']['doc_count'] / h['doc_count'], 2),  # Fraction of slow requests
+        ] for h in recent_week}.items()))
+        recent_week.popitem()  # Remove current hour which is incomplete
+
+        with open('/tmp/stats_recent_week', 'w') as f:
+            json.dump(recent_week, f)
+        with open('/tmp/stats_recent_week', 'rb') as f:
+            oci_upload = OCIObjectStorage().object_storage_upload('website', 'stats/recent_week.json', f)
+
+        return {
+            'latest_hour': list(recent_week.keys())[-1]
+        }
 
 
 @api.route('/survey/save')

@@ -6,8 +6,8 @@ import time
 
 from .edit import check_batch_exists
 from middleware.auth import jwt_required, check_role
-from queries.cql_queries import *
-from queries.es_admin import *
+from queries.cql_queries import count_gwas_by_group, count_users, get_all_gwas_as_admin, count_orgs, get_batches, get_user_by_uuids
+from queries.es_stats import get_geoip_using_pipeline
 from queries.redis_queries import RedisQueries
 from resources.globals import Globals
 
