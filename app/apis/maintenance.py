@@ -1,18 +1,17 @@
-import datetime
 import gzip
 import io
+import json
+import logging
 import os
-import pytz
+import pickle
+import time
 
 from flask import request
 from flask_restx import Resource, Namespace
-import logging
-import json
-import pickle
 
 from middleware.auth import key_required
 from queries.cql_queries import get_all_gwas_for_user, update_batches_stats, get_added_by_state_of_all_draft_gwas, set_added_by_state_of_any_gwas
-from queries.es_stats import get_most_valued_datasets, get_most_active_users, get_recent_week_stats
+from queries.es_stats import get_most_valued_datasets, get_most_active_users, get_recent_week_stats, get_past_hour_stats
 from queries.redis_queries import RedisQueries
 from resources import CryptographyTool
 from resources.airflow import Airflow
@@ -60,7 +59,7 @@ def save_gwasinfo_cache():  # This is the minimal dump of the public datasets
     with open(Globals.STATIC_GWASINFO, 'w') as f:
         json.dump({
             'metadata': {
-                'updated_at': datetime.datetime.strftime(datetime.datetime.now(pytz.timezone('Europe/London')), '%Y-%m-%d %H:%M:%S %Z'),
+                'updated_at': int(time.time()),
                 'size': len(datasets)
             },
             'majority_fields_and_coding': majority_fields_and_coding,
@@ -247,19 +246,19 @@ class CacheStatsMAU(Resource):
 
 @api.route('/stats/recent_week/cache')
 @api.doc(description="Update cache for per hour stats of the past week")
-class CacheStatsPerHour(Resource):
+class CacheStatsRecentWeek(Resource):
     @api.doc(id='maintenance_stats_recent_week_cache_get')
     @key_required
     def get(self):
         recent_week = get_recent_week_stats()
-        recent_week = dict(sorted({h['key_as_string']: [
-            h['doc_count'],  # Number of requests
-            int(h['records']['value']),  # Number of records returned
-            h['users']['value'],  # Number of unique users
-            round(h['time']['value'] / 1000 / 3600, 2),  # Load
-            round(h['time_pct']['values']['90.0']),  # 90th percentile of response time
-            round(h['slow_reqs']['doc_count'] / h['doc_count'], 2),  # Fraction of slow requests
-        ] for h in recent_week}.items()))
+        recent_week = dict(sorted({hour['key_as_string']: [
+            hour['doc_count'],  # Number of requests
+            int(hour['records']['value']),  # Number of records returned
+            hour['users']['value'],  # Number of unique users
+            round(hour['time']['value'] / 1000 / 3600, 2),  # Load
+            round(hour['time_pct']['values']['90.0']),  # 90th percentile of response time
+            round(hour['slow_reqs']['doc_count'] / hour['doc_count'], 2),  # Fraction of slow requests
+        ] for hour in recent_week}.items()))
         recent_week.popitem()  # Remove current hour which is incomplete
 
         with open('/tmp/stats_recent_week', 'w') as f:
@@ -268,7 +267,30 @@ class CacheStatsPerHour(Resource):
             oci_upload = OCIObjectStorage().object_storage_upload('website', 'stats/recent_week.json', f)
 
         return {
-            'latest_hour': list(recent_week.keys())[-1]
+            'latest_hour': int(list(recent_week.keys())[-1])
+        }
+
+
+@api.route('/stats/past_hour')
+@api.doc(description="Get stats for the past hour")
+class CacheStatsPastHour(Resource):
+    @api.doc(id='maintenance_stats_past_hour_get')
+    @key_required
+    def get(self):
+        past_hour = get_past_hour_stats()
+        past_hour = dict({endpoint['key']: [
+            endpoint['doc_count'],  # Number of requests
+            int(endpoint['records']['value']),  # Number of records returned
+            round(endpoint['time']['value'] / 1000, 2),  # Total processing time
+            round(endpoint['time_pct']['values']['90.0']),  # 90th percentile of response time
+            round(endpoint['slow_reqs']['doc_count'] / endpoint['doc_count'], 2),  # Fraction of slow requests
+        ] for endpoint in past_hour}.items())
+
+        return {
+            'metadata': {
+                'updated_at': int(time.time()),
+            },
+            'past_hour': past_hour,
         }
 
 

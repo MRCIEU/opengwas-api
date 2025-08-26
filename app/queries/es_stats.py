@@ -187,9 +187,7 @@ def get_recent_week_stats():
                         "time_pct": {
                             "percentiles": {
                                 "field": "time",
-                                "percents": [
-                                    90
-                                ]
+                                "percents": [90]
                             }
                         },
                         "slow_reqs": {
@@ -208,3 +206,56 @@ def get_recent_week_stats():
     )
 
     return res['aggregations']['per_hour']['buckets']
+
+
+def get_past_hour_stats():
+    res = Globals.es.search(
+        request_timeout=120,
+        index=_get_indices_of_current_and_last_month(),
+        body={
+            "size": 0,
+            "query": {
+                "range": {
+                    "@timestamp": {
+                        "gte": "now-1h",
+                        "lte": "now"
+                    }
+                }
+            },
+            "aggs": {
+                "by_endpoint": {
+                    "terms": {
+                        "field": "endpoint",
+                        "size": 100
+                    },
+                    "aggs": {
+                        "time": {
+                            "sum": {
+                                "field": "time"
+                            }
+                        },
+                        "time_pct": {
+                            "percentiles": {
+                                "field": "time",
+                                "percents": [90]
+                            }
+                        },
+                        "slow_reqs": {
+                            "filter": {
+                                "range": {
+                                    "time": {"gt": 3000}
+                                }
+                            }
+                        },
+                        "records": {
+                            "sum": {
+                                "field": "n_records"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+
+    return res['aggregations']['by_endpoint']['buckets']
