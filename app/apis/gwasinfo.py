@@ -32,7 +32,7 @@ def _get_cost(ids=None, files=0):
 
 
 @api.route('')
-@api.doc(description="Get metadata about specified GWAS summary datasets (or all datasets if no id is specified)")
+@api.doc(description="Get metadata about all GWAS summary datasets that you have access to")
 class Info(Resource):
     parser = api.parser()
 
