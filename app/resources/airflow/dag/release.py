@@ -2,7 +2,8 @@ import requests
 import logging
 
 from airflow import AirflowException
-from airflow.decorators import dag, task
+from airflow.sdk import dag
+from airflow.decorators import task
 from airflow.operators.python import PythonOperator
 from airflow.sensors.python import PythonSensor
 

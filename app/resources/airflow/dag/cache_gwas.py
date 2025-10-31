@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 from airflow.models import Variable
-from airflow.operators.http_operator import SimpleHttpOperator
+from airflow.providers.http.operators.http import HttpOperator
 
 
 @dag(
     tags=['gwas'],
-    schedule_interval='0 12 * * *',
-    start_date=datetime(2025, 5, 29, 21, 0),
+    schedule='30 12 * * *',
+    start_date=datetime(2025, 10, 12, 21, 0),
     catchup=False
 )
 def cache_gwas():
@@ -17,7 +17,7 @@ def cache_gwas():
         'collect_associations_pos_indices': 600
     }
 
-    cache_gwasinfo = SimpleHttpOperator(
+    cache_gwasinfo = HttpOperator(
         task_id='cache_gwasinfo',
         http_conn_id='api',
         endpoint='/api/maintenance/gwasinfo/cache',
@@ -33,7 +33,7 @@ def cache_gwas():
         log_response=True
     )
 
-    collect_associations_pos_indices = SimpleHttpOperator(
+    collect_associations_pos_indices = HttpOperator(
         task_id='collect_associations_pos_indices',
         http_conn_id='api',
         endpoint='/api/maintenance/associations/collect_indices',

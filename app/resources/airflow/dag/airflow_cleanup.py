@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag
-from airflow.operators.bash_operator import BashOperator
+from airflow.sdk import dag
+from airflow.providers.standard.operators.bash import BashOperator
 
 
 @dag(
     tags=['airflow'],
-    schedule_interval='* 0 * * *',
-    start_date=datetime(2025, 5, 29, 21, 0),
+    schedule='* 3 * * *',
+    start_date=datetime(2025, 10, 12, 21, 0),
     catchup=False
 )
 def airflow_cleanup():

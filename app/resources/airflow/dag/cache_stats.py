@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 
-from airflow.decorators import dag
+from airflow.sdk import dag
 from airflow.models import Variable
-from airflow.operators.http_operator import SimpleHttpOperator
+from airflow.providers.http.operators.http import HttpOperator
 
 
 @dag(
     tags=['gwas'],
-    schedule_interval='0 * * * *',
-    start_date=datetime(2025, 5, 29, 21, 0),
+    schedule='0 * * * *',
+    start_date=datetime(2025, 10, 12, 21, 0),
     catchup=False
 )
 def cache_stats():
@@ -18,7 +18,7 @@ def cache_stats():
         'cache_stats_recent_week': 300,
     }
 
-    cache_stats_mvd = SimpleHttpOperator(
+    cache_stats_mvd = HttpOperator(
         task_id='cache_stats_mvd',
         http_conn_id='api',
         endpoint='/api/maintenance/stats/mvd/cache',
@@ -38,7 +38,7 @@ def cache_stats():
         log_response=True
     )
 
-    cache_stats_mau = SimpleHttpOperator(
+    cache_stats_mau = HttpOperator(
         task_id='cache_stats_mau',
         http_conn_id='api',
         endpoint='/api/maintenance/stats/mau/cache',
@@ -58,7 +58,7 @@ def cache_stats():
         log_response=True
     )
 
-    cache_stats_recent_week = SimpleHttpOperator(
+    cache_stats_recent_week = HttpOperator(
         task_id='cache_stats_recent_week',
         http_conn_id='api',
         endpoint='/api/maintenance/stats/recent_week/cache',
