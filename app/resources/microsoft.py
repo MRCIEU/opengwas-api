@@ -21,7 +21,7 @@ def generate_signin_link(url):
 def get_tokens(auth_response):
     result = auth.complete_log_in(auth_response)
     if "error" in result or len(result) == 0:
-        raise Exception("An error occurred during the Microsoft sign-in process. Please clear your browser cache and try again.")
+        raise Exception("An error occurred during the Microsoft sign-in process. Please clear your browser cache and try again. If the issue persists, please try signing in with GitHub or using email.")
     return result
 
 
