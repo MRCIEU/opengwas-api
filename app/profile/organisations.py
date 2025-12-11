@@ -22,7 +22,7 @@ def get_or_add_org(provider=None, domain=None, new_org=None):
             cql_queries.add_org_ms(new_org['id'], new_org['displayName'], new_org['verifiedDomains'])
             return get_existing_org_by_id_or_domain('ms_id', new_org['id'])
     elif provider == 'GH':
-        if existing_org:  # Always update org properties using GitHub repo data source
+        if existing_org and new_org:  # Always update org properties using GitHub repo data source, as long as the latter is not empty
             cql_queries.set_org_properties_from_github(existing_org['uuid'], new_org['gh_name'], new_org['gh_domains'])
             return existing_org
         elif new_org:
