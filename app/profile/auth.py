@@ -175,7 +175,7 @@ def check_email_and_names():
         domain = req['email'].split("@")[1]
         # Only users with an academic email address OR commercial users can sign in via email
         if not (GitHubUniversities().search_by_domain(domain) or user is not None and 'commercial' in user.data()['u'].get('tags', [])):
-            raise Exception("Only users with an academic email address OR commercial users can sign in via this method - please use Microsoft or GitHub instead.")
+            raise Exception("Only users with an academic email address OR *approved* commercial users can sign in via this method - please use Microsoft or GitHub instead.")
     except Exception as e:
         return {'message': str(e)}, 400
 
