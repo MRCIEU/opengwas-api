@@ -5,6 +5,7 @@ import os
 
 
 metadata_template = {
+        'id': f"test-a-{int(time.time())}",
         'pmid': 1234,
         'year': 2010,
         'mr': 1,
@@ -25,7 +26,7 @@ metadata_template = {
         'sd': 8.4548,
         'priority': 15,
         'author': 'Randall JC',
-        'consortium': 'GIANT'
+        'consortium': 'GIANT',
     }
 
 
@@ -34,13 +35,13 @@ def test_edit_permission(url):
     assert r.status_code == 401
 
 
-def test_edit_add_delete(url, headers):
+def test_edit_add_delete_metadata(url, headers):
     payload = metadata_template.copy()
 
     # add record
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     gwas_id = str(r.json()['id'])
-    assert r.status_code == 200 and isinstance(int(gwas_id.replace('ieu-b-', '')), int)
+    assert r.status_code == 200 and isinstance(int(gwas_id.replace('test-a-', '')), int)
 
     # check present
     r = requests.get(url + "/edit/check/" + gwas_id, headers=headers)
@@ -90,7 +91,7 @@ def test_edit_upload_gzip(url, headers):
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
     gwas_id = str(r.json()['id'])
-    assert isinstance(int(gwas_id.replace('ieu-b-', '')), int)
+    assert isinstance(int(gwas_id.replace('test-a-', '')), int)
 
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt.gz')
 
