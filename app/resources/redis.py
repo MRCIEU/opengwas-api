@@ -24,7 +24,8 @@ class Redis(metaclass=Singleton):
             'session': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=0),
             'limiter': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=1),
             'cache': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=2, decode_responses=True),
-            'log': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=3)
+            'log': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=3),
+            'indexing': redis.ConnectionPool(host=conf['oci']['host'], port=conf['oci']['port'], password=conf['oci']['pass'], db=4),
         }
 
     @property
