@@ -57,22 +57,25 @@ class Airflow:
         )
         self.api_client = airflow_client.client.ApiClient(configuration)
         self.task_description = {
-            'test_files_on_oci': 'Check whether necessary files exist in storage',
-            'create_instance': 'Create compute instance',
-            'download': 'Start to download files to compute instance',
-            'test_input_files': 'Check whether files are ready on compute instance',
-            'gwas2vcf': 'Start gwas2vcf',
-            'test_vcf_files': 'Check whether VCF files are ready',
-            'clump': 'Start clump',
-            'test_clump_file': 'Check whether clump file is ready',
-            'ldsc': 'Start LDSC',
-            'test_ldsc_file': 'Check whether ldsc file is ready',
-            'report': 'Start report generation',
-            'test_report_files': 'Check whether report files are ready',
-            'delete_instance': 'Delete compute instance',
-            'check_states': 'Check states of all tasks',
-            'index': 'Start data transfer from files to database',
-            'test_index_log': 'Check whether all data have been added to database'
+            'test_files_on_oci': 'Looking for input files on storage',
+            'create_instance': 'Creating compute instance',
+            'download': 'Download files to the compute instance',
+            'test_input_files': 'Looking for files on the compute instance',
+            'gwas2vcf': 'Start: gwas2vcf',
+            'test_vcf_files': 'Checking whether VCF files are ready',
+            'clump': 'Start: clumping',
+            'test_clump_file': 'Checking whether the clump file is ready',
+            'ldsc': 'Start: LDSC',
+            'test_ldsc_file': 'Checking whether the ldsc file is ready',
+            'report': 'Start: Reporting',
+            'test_report_files': 'Checking whether the report is ready',
+            'delete_instance': 'Terminating the compute instance',
+            'run_assoc': 'Start extracting and chunking associations',
+            'test_assoc': 'Checking whether associations are ready',
+            'run_phewas': 'Start extracting PheWAS and inserting to database',
+            'test_phewas': 'Checking whether PheWAS records are ready',
+            'run_tophits': 'Start extracting tophits and inserting to database',
+            'test_tophits': 'Checking whether tophits are ready',
         }
 
     def trigger_dag_run(self, dag_id: str, dag_run_id: str, conf: dict):
@@ -163,7 +166,7 @@ class Airflow:
             raise InternalServerError("No task instance found.")
         for _, t in tasks.items():
             # Look for the first substantial task that is still running
-            if t['task_id'] not in ['delete_instance', 'check_states'] and t.get('state') not in ['success', 'upstream_failed', 'failed']:
+            if t['task_id'] not in ['delete_instance'] and t.get('state') not in ['success', 'upstream_failed', 'failed']:
                 return self.patch_task_instances(dag_id, dag_run_id, t['task_id'], 'failed')
         raise InternalServerError("It's too late to fail a DAG run. All substantial tasks have either succeeded or failed.")
 
