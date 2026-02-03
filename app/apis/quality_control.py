@@ -119,7 +119,7 @@ class Release(Resource):
                 raise ValueError("Dataset cannot be released - the QC workflow is in the state of: " + airflow['state'])
 
             # update graph
-            add_quality_control(g.user['uid'], req['id'], req['passed_qc'] == "True", comment=req['comments'])
+            gwas_id_n = add_quality_control(g.user['uid'], req['id'], req['passed_qc'] == "True", comment=req['comments'])['gwas_id_n']
 
             oci = OCIObjectStorage()
 
@@ -127,9 +127,7 @@ class Release(Resource):
                 airflow = Airflow().trigger_dag_run('release', req['id'], {
                     'url': oci.object_storage_par_create('upload', req['id'], 'AnyObjectReadWrite', 'Deny', 3600 * 4, req['id'] + '.es'),
                     'gwas_id': req['id'],
-                    'index': index,
-                    'es_host': Globals.ES_HOST,
-                    'es_port': Globals.ES_PORT
+                    'gwas_id_n': gwas_id_n,
                 })
                 assert airflow['dag_run_id'] == req['id']
                 logger.info("Submitted {} to es workflow".format(req['id']))

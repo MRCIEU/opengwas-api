@@ -367,14 +367,23 @@ def get_permitted_studies(uid, gwas_info_ids: list):
     return res
 
 
-def add_quality_control(user_email, gwas_info_id, data_passed, comment=None):
+def add_quality_control(user_email, gwasinfo_id, data_passed, comment=None):
     u = User.get_node(user_email)
-    g = GwasInfo.get_node(gwas_info_id)
+    g = GwasInfo.get_node(gwasinfo_id)
     r = QualityControlRel(epoch=time.time(), data_passed=data_passed, comment=comment)
 
     # create QC rel
     r.create_rel(g, u)
 
+    tx = Neo4j.get_db()
+    gwasinfo = tx.run(
+        "MATCH (gi:GwasInfo {id:$gwas_id}) RETURN id(gi) as gwas_id_n;",
+        gwas_id=gwasinfo_id
+    )
+
+    return {
+        'gwas_id_n': gwasinfo.data()[0]['gwas_id_n'],
+    }
 
 def delete_quality_control(gwas_info_id):
     tx = Neo4j.get_db()
