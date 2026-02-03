@@ -119,24 +119,6 @@ class Add(Resource):
             except Exception as e:
                 return {"message": str(e)}, 400
 
-            # write metadata to json
-            # study_folder = os.path.join(Globals.UPLOAD_FOLDER, str(gwas_id))
-            # try:
-            #     os.makedirs(study_folder, exist_ok=True)
-            # except FileExistsError as e:
-            #     logger.error("Could not create study folder: {}".format(e))
-            #     raise e
-            #
-            # gi = GwasInfo.get_node(gwas_id)
-            # json_path = os.path.join(study_folder, str(gwas_id) + '.json')
-            # with open(json_path, 'w') as f:
-            #     json.dump(gi, f)
-            # with open(json_path, 'rb') as f:
-            #     oci_upload = OCIObjectStorage().object_storage_upload('upload', str(gwas_id) + '/' + str(gwas_id) + '.json', f)
-            # shutil.rmtree(study_folder)
-            #
-            # return {"id": gwas_id, "oci_upload": {'status': oci_upload.status, 'headers': dict(oci_upload.headers)}}, 200
-
             return {'id': gwas_id}, 200
 
         except marshmallow.exceptions.ValidationError as e:
@@ -525,61 +507,15 @@ class Upload(Resource):
             with open(os.path.join(study_folder, gwas_id + '.json'), 'rb') as f:
                 oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '.json', f)
 
-            # write analyst data to json
-            # an = {"upload_uid": g.user['uid'], "upload_epoch": time.time()}
-            # with open(os.path.join(study_folder, gwas_id + '_analyst.json'), 'w') as f:
-            #     json.dump(an, f)
-            # with open(os.path.join(study_folder, gwas_id + '_analyst.json'), 'rb') as f:
-            #     oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '_analyst.json', f)
-
-            # add cromwell label
-            # with open(os.path.join(study_folder, gwas_id + '_labels.json'), 'w') as f:
-            #     json.dump({"gwas_id": args['id']}, f)
-            # with open(os.path.join(study_folder, gwas_id + '_labels.json'), 'rb') as f:
-            #     oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '_labels.json', f)
-
             # write mappings, build, md5 etc. for pipeline
             with open(os.path.join(study_folder, gwas_id + '_data.json'), 'w') as f:
                 json.dump(data, f)
             with open(os.path.join(study_folder, gwas_id + '_data.json'), 'rb') as f:
                 oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '_data.json', f)
 
-            # write params for workflow
-            # wdl = {
-            #     "qc.StudyId": str(args['id']),
-            #     "qc.SumStatsFilename": str(input_data_filename),
-            #     "elastic.StudyId": str(args['id']),
-            #     "elastic.EsIndex": str(study_prefix),
-            #     "elastic.Host": str(Globals.app_config['es']['host']),
-            #     "elastic.Port": str(Globals.app_config['es']['port'])
-            # }
-
-            # conditionally add ncase & ncontrol
-            # if g_node.get('ncase') is not None:
-            #     wdl['qc.Cases'] = g_node['ncase']
-            #
-            # if g_node.get('ncontrol') is not None:
-            #     wdl['qc.Controls'] = g_node['ncontrol']
-
-            # with open(os.path.join(study_folder, gwas_id + '_wdl.json'), 'w') as f:
-            #     json.dump(wdl, f)
-            # with open(os.path.join(study_folder, gwas_id + '_wdl.json'), 'rb') as f:
-            #     oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + gwas_id + '_wdl.json', f)
-
             # upload to OCIObjectStorage Object Storage
             with open(input_path, 'rb') as f:
                 oci_upload = oci.object_storage_upload('upload', gwas_id + '/' + input_data_filename, f)
-
-            # add to workflow queue
-            # r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
-            #                   files={
-            #                       'workflowSource': open(Globals.QC_WDL_PATH, 'rb'),
-            #                       'labels': open(os.path.join(study_folder, str(args['id']) + '_labels.json'), 'rb'),
-            #                       'workflowInputs': json.dumps(dict(filter(lambda item: item[0].startswith('qc.'), wdl.items())))
-            #                   }, auth=Globals.CROMWELL_AUTH)
-            # assert r.status_code == 201
-            # assert r.json()['status'] == "Submitted"
-            # logger.info("Submitted {} to workflow".format(r.json()['id']))
 
             airflow = Airflow().trigger_dag_run('qc', args['id'], {
                 'url': oci.object_storage_par_create('upload', args['id'], 'AnyObjectReadWrite', 'Deny', 3600 * 36, args['id'] + '.qc'),

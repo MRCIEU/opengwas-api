@@ -11,8 +11,6 @@ from flask_restx import Resource, Namespace
 import marshmallow.exceptions
 from werkzeug.exceptions import BadRequest
 
-from .edit import check_batch_exists
-
 from middleware.auth import jwt_required, check_role, check_role_is_sufficient
 from queries.cql_queries import *
 from resources.airflow import Airflow
@@ -116,71 +114,16 @@ class Release(Resource):
         try:
             req = self.parser.parse_args()
 
-            # try:
-            #     check_user_is_developer(g.user['uid'])
-            # except PermissionError as e:
-            #     return {"message": str(e)}, 403
-
-            # check first stage workflow completed successfully
-            # payload = {'label': 'gwas_id:' + req['id']}
-            # r = requests.get(Globals.CROMWELL_URL + "/api/workflows/v1/query", params=payload, auth=Globals.CROMWELL_AUTH)
-            # assert r.status_code == 200
-            # first_stage_passed = False
-            # for result in r.json()["results"]:
-            #     if "name" in result and result["name"] == "qc" and result["status"] == "Succeeded":
-            #         first_stage_passed = True
-            #         break
-            # if req['passed_qc'] == "True" and not first_stage_passed:
-            #     raise ValueError("Cannot release data; the qc workflow failed!")
-
             airflow = Airflow().get_dag_run('qc', req['id'])
-            if airflow['state'] != 'success':
+            if airflow.get('state', None) != 'success':
                 raise ValueError("Dataset cannot be released - the QC workflow is in the state of: " + airflow['state'])
-
-            # Check submission status
-            index = check_batch_exists(req['id'], Globals.all_batches)
 
             # update graph
             add_quality_control(g.user['uid'], req['id'], req['passed_qc'] == "True", comment=req['comments'])
 
-            # update json
-            # study_folder = os.path.join(Globals.UPLOAD_FOLDER, req['id'])
-            # os.makedirs(study_folder, exist_ok=True)
-            #
             oci = OCIObjectStorage()
-            #
-            # f = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json').data.text
-            # analyst = json.loads(f)
-            #
-            # analyst['release_uid'] = g.user['uid']
-            # analyst['release_epoch'] = time.time()
-            # analyst['release_comments'] = req['comments']
-            # analyst['passed_qc'] = req['passed_qc']
-            #
-            # with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'w') as f:
-            #     json.dump(analyst, f)
-            # with open(os.path.join(study_folder, str(req['id']) + '_analyst.json'), 'rb') as f:
-            #     oci_upload = oci.object_storage_upload('upload', str(req['id']) + '/' + str(req['id']) + '_analyst.json', f)
-            #
-            # shutil.rmtree(study_folder)
-            #
-            # labels_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_labels.json').data.text
-            # wdl_str = oci.object_storage_download('upload', str(req['id']) + '/' + str(req['id']) + '_wdl.json').data.text
 
-            # insert new data to elastic
             if req['passed_qc'] == "True":
-                # find WDL params
-                # add to workflow queue
-                # r = requests.post(Globals.CROMWELL_URL + "/api/workflows/v1",
-                #                   files={
-                #                       'workflowSource': open(Globals.ELASTIC_WDL_PATH, 'rb'),
-                #                       'labels': labels_str,
-                #                       'workflowInputs': json.dumps(dict(filter(lambda item: item[0].startswith('elastic.'), json.loads(wdl_str).items())))
-                #                   }, auth=Globals.CROMWELL_AUTH)
-                # assert r.status_code == 201
-                # assert r.json()['status'] == "Submitted"
-                # logger.info("Submitted {} to workflow".format(r.json()['id']))
-
                 airflow = Airflow().trigger_dag_run('release', req['id'], {
                     'url': oci.object_storage_par_create('upload', req['id'], 'AnyObjectReadWrite', 'Deny', 3600 * 4, req['id'] + '.es'),
                     'gwas_id': req['id'],
