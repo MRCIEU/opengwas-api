@@ -1,5 +1,6 @@
 from decimal import Decimal, getcontext
-from sqlalchemy import or_, and_, between, union_all, select
+from typing import Literal, Iterable
+from sqlalchemy import or_, and_, between, union_all, select, case, asc, literal
 
 from queries.models.dbsnp import DBSNP
 from queries.models.phewas import PheWAS
@@ -35,8 +36,19 @@ class MySQLQueries:
         return str(chr_id) if chr_id <= 23 else {23: 'X', 24: 'Y', 25: 'MT'}[chr_id]
 
     @staticmethod
-    def _strip_rsids(rsids: list[str]) -> list[str]:
-        return [s[2:] for s in rsids]
+    def _lstrip_rsids(rsids: list[str]) -> list[str]:
+        return [r[2:] for r in rsids]
+
+    @staticmethod
+    def _prepend_rsids(rows: Iterable, columns: list[str]) -> list[dict]:
+        result = []
+        for row in rows:
+            r = dict(row)
+            for col in columns:
+                if r.get(col) is not None:
+                    r[col] = f"rs{row[col]}"
+            result.append(r)
+        return result
 
     def get_phewas_by_chrpos(self, chrpos_by_chr_id: dict, lp: float):
         queries = []
@@ -87,11 +99,11 @@ class MySQLQueries:
         return result
 
     def get_snps_by_rsid(self, rsid_list: list[str]):
-        query = select(*DBSNP.__table__.c).where(DBSNP.rsid.in_(self._strip_rsids(rsid_list)))
+        query = select(*DBSNP.__table__.c).where(DBSNP.rsid.in_(self._lstrip_rsids(rsid_list)))
         # print(query.compile(compile_kwargs={"literal_binds": True}))
 
         result = Globals.mysql.session.execute(query).mappings().all()
-        return result
+        return self._prepend_rsids(result, ['rsid'])
 
     def get_snps_by_chrpos(self, chrpos_by_chr_id: dict):
         queries = []

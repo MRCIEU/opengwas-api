@@ -167,7 +167,7 @@ def range_query(chrpos: list, radius: int):
             result.append({
                 'query': chrpos_raw[i],
                 'dbSNPBuildID': mysql_queries.dbsnp_build,
-                'ID': f"rs{s['rsid']}",
+                'ID': s['rsid'],
                 'CHROM': mysql_queries._decode_chr(s['chr_id']),
                 'POS': s['pos'],
             })

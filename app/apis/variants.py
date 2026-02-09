@@ -7,7 +7,7 @@ from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 from queries.mysql_queries import MySQLQueries
-from queries.variants import range_query, gene_query
+from queries.variants import range_query, gene_query, parse_chrpos
 from queries.vcf import *
 from resources.globals import Globals
 
@@ -91,10 +91,10 @@ class VariantPost(Resource):
             snps = mysql_queries.get_snps_by_rsid(args['rsid'])
             for s in snps:
                 result.append({
-                    '_id': f"rs{s['rsid']}",
+                    '_id': s['rsid'],
                     '_source': {
                         'dbSNPBuildID': mysql_queries.dbsnp_build,
-                        'ID': f"rs{s['rsid']}",
+                        'ID': s['rsid'],
                         'CHROM': mysql_queries._decode_chr(s['chr_id']),
                         'POS': s['pos'],
                     }
