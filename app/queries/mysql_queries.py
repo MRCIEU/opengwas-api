@@ -4,6 +4,7 @@ from sqlalchemy import or_, and_, between, union_all, select, case, asc, literal
 
 from queries.models.dbsnp import DBSNP
 from queries.models.phewas import PheWAS
+from queries.models.proxies import get_proxies_model
 from queries.models.tophits import get_tophits_model
 from resources.globals import Globals
 
@@ -125,4 +126,56 @@ class MySQLQueries:
         # print(full_query.compile(compile_kwargs={"literal_binds": True}))
 
         result = Globals.mysql.session.execute(full_query).mappings().all()
-        return result
+        return self._prepend_rsids(result, ['rsid'])
+
+    def get_proxies(self, table_name: str, target_snps: list[str], r2: float, palindromic: Literal[0, 1], maf_threshold: float):
+        target_snps = self._lstrip_rsids(target_snps)
+        Proxies = get_proxies_model(table_name)
+        if palindromic == 0:
+            query = select(*Proxies.__table__.c,
+                           case(
+                               (Proxies.rsid_a.in_(target_snps), 'a'),
+                               (Proxies.rsid_b.in_(target_snps), 'b'),
+                           ).label('target_column')).where(
+                and_(
+                    or_(
+                        Proxies.rsid_a.in_(target_snps),
+                        Proxies.rsid_b.in_(target_snps),
+                    ),
+                    Proxies.r2 >= r2,
+                    Proxies.palindromic == 0,
+                )
+            ).order_by(asc(Proxies.distance))
+        else:
+            query_a = select(*Proxies.__table__.c, literal('a').label('target_column')).where(
+                and_(
+                    Proxies.rsid_a.in_(target_snps),
+                    Proxies.r2 >= r2,
+                    or_(
+                        Proxies.palindromic == 0,
+                        and_(
+                            Proxies.palindromic == 1,
+                            Proxies.maf_a < maf_threshold,
+                        ),
+                    ),
+                )
+            )
+            query_b = select(*Proxies.__table__.c, literal('b').label('target_column')).where(
+                and_(
+                    Proxies.rsid_b.in_(target_snps),
+                    Proxies.r2 >= r2,
+                    or_(
+                        Proxies.palindromic == 0,
+                        and_(
+                            Proxies.palindromic == 1,
+                            Proxies.maf_b < maf_threshold
+                        ),
+                    ),
+                )
+            )
+            query = union_all(query_a, query_b).order_by(asc(Proxies.distance))
+
+        # print(query.compile(compile_kwargs={"literal_binds": True}))
+
+        result = Globals.mysql.session.execute(query).mappings().all()
+        return self._prepend_rsids(result, ['rsid_a', 'rsid_b'])

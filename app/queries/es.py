@@ -578,17 +578,17 @@ def extract_proxies_from_query(outcomes, snps, proxy_dat, proxy_query, maf_thres
     start = time.time()
     matched_proxies = []
     proxy_query_copy = [a.get('rsid') for a in proxy_query]
-    for i in range(len(outcomes)):
+    for i in range(len(outcomes)):  # each gwas_id from the input
         logger.debug("matching proxies to query snps for " + str(outcomes[i]))
-        for j in range(len(snps)):
+        for j in range(len(snps)):  # each rsid from the input
             # logger.info(str(j)+' '+snps[j])
             flag = 0
-            for k in range(len(proxy_dat[j])):
+            for k in range(len(proxy_dat[j])):  # each proxy from all the proxies of a target
                 # logger.info(str(k)+' '+str(proxy_dat[j][k]))
                 if flag == 1:
                     # logger.info(flag)
                     break
-                for l in range(len(proxy_query)):
+                for l in range(len(proxy_query)):  # each assoc to be returned
                     if (proxy_query[l].get('rsid') == proxy_dat[j][k].get('proxies')) and (
                             str(proxy_query[l].get('id')) == outcomes[i]):
                         # logger.info(proxy_query[l].get('rsid'))
@@ -682,8 +682,6 @@ def allele_check(x):
 def proxy_alleles(pq, pd, maf_threshold):
     mallele1 = allele_check(pq.get('ea'))
     mallele2 = allele_check(pq.get('nea'))
-    tallele1 = pd.get('tallele1')
-    tallele2 = pd.get('tallele2')
     pallele1 = pd.get('pallele1')
     pallele2 = pd.get('pallele2')
     if mallele1 is None:

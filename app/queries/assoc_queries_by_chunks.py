@@ -8,8 +8,9 @@ import time
 from multiprocessing.pool import ThreadPool
 
 from middleware.logger import logger as logger_middleware
-from queries.es import organise_variants, get_proxies_es, extract_proxies_from_query
+from queries.es import organise_variants, extract_proxies_from_query
 from queries.mysql_queries import MySQLQueries
+from queries.proxy_queries import get_proxies_from_mysql, annotate_associations
 from resources.globals import Globals
 from resources._oci import OCIObjectStorage
 
@@ -139,7 +140,7 @@ class AssocQueriesByChunks:
         return results, n_chunks_accessed
 
 
-def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, r2=None, align_alleles=None, palindromes=None, maf_threshold=None):
+def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, population='EUR', r2=None, align_alleles=None, palindromes=None, maf_threshold=None):
     """
     Adapted from queries.es.get_assoc()
     """
@@ -159,13 +160,13 @@ def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, r2
             snps = mysql_queries.get_snps_by_rsid(rsid)
             query.update([f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
         else:
-            proxy_dat = get_proxies_es(rsid, r2, palindromes, maf_threshold)
-            rsid_proxies = list(set([x.get('proxies') for x in [item for sublist in proxy_dat for item in sublist]]))
-            snps = mysql_queries.get_snps_by_rsid(rsid_proxies)
-            assoc_proxied, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
+            proxies = get_proxies_from_mysql(population, rsid, r2, palindromes, maf_threshold)
+            proxies_rsids = list(set([proxy['proxy'] for target in proxies for proxy in proxies[target]]))
+            snps = mysql_queries.get_snps_by_rsid(proxies_rsids)
+            assoc_using_proxies, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
             # Need to fix this (which?)
-            if assoc_proxied != '[]':
-                result += extract_proxies_from_query(ids, rsid, proxy_dat, assoc_proxied, maf_threshold, align_alleles)
+            if assoc_using_proxies != '[]':
+                result += annotate_associations(ids, rsid, proxies, assoc_using_proxies, maf_threshold, align_alleles)
             n_chunks_accessed_total += n_chunks_accessed
 
     if len(chrpos) > 0:
