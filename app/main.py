@@ -95,7 +95,7 @@ def query_all_ids_and_batches():
     Globals.all_ids = get_all_gwas_ids_by_n_id()
     Globals.all_batches = list(set(['-'.join(gwas_id.split('-', 2)[:2]) for gwas_id in Globals.all_ids.values()]).union({'test-a'}))
     # Globals.public_batches = get_public_batches_prefix()
-    print(f"Loaded all_ids_and_batches in {time.time() - t0} seconds")
+    print(f"Loaded all_ids_and_batches in {round(time.time() - t0, 3)} seconds")
 
 
 setup_event_logger('event-log', Globals.LOG_FILE)
