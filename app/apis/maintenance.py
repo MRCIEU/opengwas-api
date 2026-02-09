@@ -138,7 +138,7 @@ class RefreshAddedByStatus(Resource):
 
         airflow = Airflow()
 
-        for gwas_id, state in gwas_id_and_state.items():
+        for gwas_id, state in list(gwas_id_and_state.items()):
             if state == 1 and airflow.get_dag_run('qc', gwas_id, True)['end_date'] != '':
                 set_added_by_state_of_any_gwas(gwas_id, 2)
                 gwas_id_and_state[gwas_id] = 2
