@@ -33,14 +33,16 @@ class AssocPost(Resource):
                         help="List of GWAS study IDs e.g. ['ieu-a-2', 'ieu-a-7']")
     parser.add_argument('proxies', type=int, required=False, default=0,
                          help="Whether to look for proxies (1) or not (0). Note that proxies won't be looked for range queries")
+    parser.add_argument('population', type=str, required=False, default="EUR",
+                        help="Which population to use for proxy (select from AFR, AMR, EAS, EUR, SAS)")
     parser.add_argument('r2', type=float, required=False, default=0.8,
-                        help="Minimum LD r2 for a proxy")
+                        help="Minimum LD r2 for a proxy (>= the given value)")
     parser.add_argument('align_alleles', type=int, required=False, default=1,
                         help="Whether to align alleles")
     parser.add_argument('palindromes', type=int, required=False, default=1,
                          help="Whether to allow palindromic proxies")
     parser.add_argument('maf_threshold', type=float, required=False, default=0.3,
-                         help="Maximum MAF allowed for a palindromic variant")
+                         help="Maximum MAF allowed for a palindromic variant (< the given value)")
 
     @api.expect(parser)
     @api.doc(id='assoc_post')
@@ -72,6 +74,12 @@ class AssocPost(Resource):
                         "message": "Please make sure N(id) * N(variant) <= 64.",
                     }, 400
 
+                if args['population'] not in ['AFR', 'AMR', 'EAS', 'EUR', 'SAS']:
+                    span.set_status(Status(StatusCode.ERROR, "UNKNOWN_POPULATION_FOR_PROXY"))
+                    return {
+                        "message": "Please make sure the population is one of AFR, AMR, EAS, EUR, SAS.",
+                    }, 400
+
                 span.set_attribute('n_id_variant_combs', len(args['id']) * len(args['variant']))
 
             # Check access
@@ -84,7 +92,7 @@ class AssocPost(Resource):
             # Query assoc
             with Globals.tracer.start_as_current_span("assoc.query", kind=SpanKind.SERVER) as span:
                 try:
-                    result, n_chunks_accessed, time_ms = get_assoc_from_chunks(gwasinfo_permitted, args['variant'], gwas_ids_permitted, args['proxies'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
+                    result, n_chunks_accessed, time_ms = get_assoc_from_chunks(gwasinfo_permitted, args['variant'], gwas_ids_permitted, args['proxies'], args['population'], args['r2'], args['align_alleles'], args['palindromes'], args['maf_threshold'])
                 except Exception as e:
                     span.set_attributes({
                         'args': json.dumps(args),
