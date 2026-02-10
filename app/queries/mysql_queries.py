@@ -1,5 +1,5 @@
 from decimal import Decimal, getcontext
-from typing import Literal, Iterable
+from typing import Literal, Iterable, Union
 from sqlalchemy import or_, and_, between, union_all, select, case, asc, literal
 
 from queries.models.dbsnp import DBSNP
@@ -29,11 +29,11 @@ class MySQLQueries:
         return float(size) if '.' in size else int(size)
 
     @staticmethod
-    def _encode_chr(chr_str):
-        return {'X': 23, 'Y': 24, 'MT': 25}.get(chr_str, int(chr_str))
+    def _encode_chr(chr_str: Union[int, str]) -> int:
+        return int({'X': 23, 'Y': 24, 'MT': 25}.get(chr_str, chr_str))
 
     @staticmethod
-    def _decode_chr(chr_id):
+    def _decode_chr(chr_id: int) -> str:
         return str(chr_id) if chr_id <= 23 else {23: 'X', 24: 'Y', 25: 'MT'}[chr_id]
 
     @staticmethod
