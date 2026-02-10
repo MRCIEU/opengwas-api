@@ -165,7 +165,7 @@ def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, po
             snps = mysql_queries.get_snps_by_rsid(proxies_rsids)
             assoc_using_proxies, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
             # Need to fix this (which?)
-            if assoc_using_proxies != '[]':
+            if len(assoc_using_proxies) > 0:
                 result += annotate_associations(ids, rsid, proxies, assoc_using_proxies, maf_threshold, align_alleles)
             n_chunks_accessed_total += n_chunks_accessed
 
