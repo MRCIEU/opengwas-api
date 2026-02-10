@@ -36,6 +36,7 @@ pysam==0.23.3
 pytest-rerunfailures==16.1
 pytest-xdist==3.8.0
 redis==5.2.1
+requests==2.31.0
 shortuuid==1.0.13
 tomli==2.4.0
 uptrace==1.39.0
