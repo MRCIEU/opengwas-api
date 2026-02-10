@@ -75,7 +75,7 @@ class Phewas(Resource):
                     span.record_exception(e)
                     span.set_status(Status(StatusCode.ERROR, "UNABLE_TO_RETRIEVE_PHEWAS"))
                     return {
-                        "message": "Unable to retrieve associations.",
+                        "message": "Unable to retrieve PheWAS.",
                         "trace_id": format(span.get_span_context().trace_id, '016x'),
                     }, 503
 
