@@ -29,8 +29,8 @@ class MySQLQueries:
         return float(size) if '.' in size else int(size)
 
     @staticmethod
-    def _encode_chr(chr_str: Union[int, str]) -> int:
-        return int({'X': 23, 'Y': 24, 'MT': 25}.get(chr_str, chr_str))
+    def _encode_chr(chr: Union[int, str]) -> int:
+        return int({'X': 23, 'Y': 24, 'MT': 25}.get(chr, chr))
 
     @staticmethod
     def _decode_chr(chr_id: int) -> str:
