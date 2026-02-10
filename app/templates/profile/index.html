@@ -95,11 +95,11 @@
 </div>
 <hr>
 <h4>Allowance <small><a href="{{ root_url + '/api/#allowance' }}" target="_blank" style="color: inherit"><i class="bi bi-info-circle"></i></a></small></h4>
-{% if user_tier == 'TRIAL' %}
-<div class="alert alert-primary" role="alert">
-    Your account is currently at the 'Trial' tier, which essentially means that there is a very limited usage allowance. You can get a much higher usage allowance by <a href="{{ url_for('profile.surveys.start_survey', form_id='user_info') }}">providing us your user information</a>, which will upgrade your account to the 'Standard' tier.
-</div>
-{% endif %}
+<!--{% if user_tier == 'TRIAL' %}-->
+<!--<div class="alert alert-primary" role="alert">-->
+<!--    Your account is currently at the 'Trial' tier, which essentially means that there is a very limited usage allowance. You can get a much higher usage allowance by <a href="{{ url_for('profile.surveys.start_survey', form_id='user_info') }}">providing us your user information</a>, which will upgrade your account to the 'Standard' tier.-->
+<!--</div>-->
+<!--{% endif %}-->
 <div class="row">
     <div class="col-auto">
         <label for="tierInput" class="col-form-label">Tier</label>
