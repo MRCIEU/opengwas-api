@@ -39,6 +39,12 @@ def get_proxies_from_mysql(
                 'proxy_a2': p['allele_a2'],
                 'palindromic': p['palindromic'],
             })
+    for target in target_snps:  # Add back targets of which no proxy has been found
+        if target not in result:
+            result[target] = [{
+                'target': target,
+                'proxy': target,
+            }]
     return dict(result)
 
 
@@ -170,6 +176,3 @@ def annotate_associations(gwas_ids: list[str], rsids: list[str], proxies: dict[s
                                 result.append(r)
                                 added = True
     return result
-
-
-
