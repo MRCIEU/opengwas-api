@@ -106,17 +106,24 @@ class CacheGwasInfo(Resource):
         oci = OCIObjectStorage()
         output_path = f"{Globals.TMP_FOLDER}/0_pos_prefix_indices"
 
-        for gwas_id, pos_prefix_index in RedisQueries('tasks', provider='ieu-db-proxy').get_gwas_pos_prefix_indices().items():
-            pos_prefix_indices[gwas_id] = pickle.loads(pos_prefix_index)
+        # Collect indices from each dataset and merge into one dict
+        for filename in oci.object_storage_list('data-chunks', prefix='0_pos_prefix_indices_by_dataset'):
+            gwas_id = filename.split('/')[-1]
+            with gzip.GzipFile(
+                    fileobj=io.BytesIO(oci.object_storage_download('data-chunks', filename).data.content),
+                    mode='rb') as f:
+                pos_prefix_indices[gwas_id] = pickle.loads(f.read())
 
+        # Save merged dict as gzipped pickle and upload to OCI
         with gzip.open(output_path, 'wb') as f:
             pickle.dump(pos_prefix_indices, f)
         with open(output_path, 'rb') as f:
             oci.object_storage_upload('data-chunks', "0_pos_prefix_indices", f.read())
         os.remove(output_path)
 
+        # Test loading
         with gzip.GzipFile(
-                fileobj=io.BytesIO(OCIObjectStorage().object_storage_download('data-chunks', '0_pos_prefix_indices').data.content),
+                fileobj=io.BytesIO(oci.object_storage_download('data-chunks', '0_pos_prefix_indices').data.content),
                 mode='rb') as f:
             pickle.loads(f.read())
 
