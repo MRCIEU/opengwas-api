@@ -4,7 +4,7 @@ import platform
 
 import uptrace
 
-from elasticsearch import Elasticsearch
+from resources.es_http_client import ElasticsearchHTTPClient
 from flask_sqlalchemy import SQLAlchemy
 from neo4j import GraphDatabase
 from opentelemetry import metrics, trace
@@ -100,7 +100,7 @@ class Globals:
     })
 
     # connect to elasticsearch
-    es = Elasticsearch([f"http://elastic:{app_config['es']['password']}@{app_config['es']['host']}:{app_config['es']['port']}"], verify_certs=False)
+    es = ElasticsearchHTTPClient([f"http://elastic:{app_config['es']['password']}@{app_config['es']['host']}:{app_config['es']['port']}"], verify_certs=False)
 
     all_ids = {}
     all_batches = []
