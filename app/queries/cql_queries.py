@@ -27,8 +27,8 @@ def get_batches():
     return res
 
 
-def get_public_batches_prefix():
-    return list(set(['-'.join(id.split('-', 2)[:2]) for id in Neo4j.get_db().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
+# def get_public_batches_prefix():
+#     return list(set(['-'.join(id.split('-', 2)[:2]) for id in Neo4j.get_db().run("MATCH (g:Group {name: 'public'})-[r:ACCESS_TO]->(n:GwasInfo) RETURN COLLECT(n.id)").single()[0]]))
 
 
 def update_batches_stats():

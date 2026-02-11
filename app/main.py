@@ -14,7 +14,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from resources.globals import Globals
 # from resources.logging_middleware import LoggerMiddleWare
 from resources.neo4j import Neo4j
-from queries.cql_queries import get_all_gwas_ids_by_n_id, get_public_batches_prefix
+from queries.cql_queries import get_batches, get_all_gwas_ids_by_n_id
 from resources._oci import OCIObjectStorage
 from resources.sessions import NoCookieSessionInterface, CustomRedisSessionInterface
 from middleware.before_request import before_api_request
@@ -93,7 +93,7 @@ def download_gwas_pos_prefix_indices():
 def query_all_ids_and_batches():
     t0 = time.time()
     Globals.all_ids = get_all_gwas_ids_by_n_id()
-    Globals.all_batches = list(set(['-'.join(gwas_id.split('-', 2)[:2]) for gwas_id in Globals.all_ids.values()]).union({'test-a'}))
+    Globals.all_batches = [b['id'] for b in get_batches()]
     # Globals.public_batches = get_public_batches_prefix()
     print(f"Loaded all_ids_and_batches in {round(time.time() - t0, 3)} seconds")
 
