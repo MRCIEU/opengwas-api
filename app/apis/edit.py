@@ -62,24 +62,24 @@ class List(Resource):
     def get(self):
         gwasinfo = get_gwas_added_by_user(g.user['uid'])
 
-        dag_run = {
-            'qc': {},
-            'release': {}
-        }
-        airflow = Airflow()
-        for id, gi_and_added_by in gwasinfo.items():
-            if 'state' in gi_and_added_by['added_by']:
-                if gi_and_added_by['added_by']['state'] >= 1:
-                    dag_run['qc'][id] = airflow.get_dag_run('qc', id, True)
-                    if gi_and_added_by['added_by']['state'] >= 3:
-                        dag_run['release'][id] = airflow.get_dag_run('release', id, True)
+        # dag_run = {
+        #     'qc': {},
+        #     'release': {}
+        # }
+        # airflow = Airflow()
+        # for id, gi_and_added_by in gwasinfo.items():
+        #     if 'state' in gi_and_added_by['added_by']:
+        #         if gi_and_added_by['added_by']['state'] >= 1:
+        #             dag_run['qc'][id] = airflow.get_dag_run('qc', id, True)
+        #             if gi_and_added_by['added_by']['state'] >= 3:
+        #                 dag_run['release'][id] = airflow.get_dag_run('release', id, True)
 
         return {
             'definition': {
                 'added_by_state': Globals.DATASET_ADDED_BY_STATE
             },
             'gwasinfo': gwasinfo,
-            'dag_run': dag_run,
+            # 'dag_run': dag_run,
             'count': count_draft_gwas_of_user(g.user['uid']),
             'quota': get_quota_by_roles(g.user.get('roles', []))
         }

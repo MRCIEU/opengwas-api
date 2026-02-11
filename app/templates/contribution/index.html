@@ -19,7 +19,7 @@
 
 <h5>Step 1: Prepare metadata</h5>
 <div class="row">
-    <p>Provide the metadata of each dataset you would like to upload. Each of them will be assigned a GWAS ID, which expires after one month if you don't upload the data files for QC.
+    <p>Provide the metadata of each dataset you would like to upload. Each of them will be assigned a GWAS ID (starting with ieu-b) unless specified otherwise by you.
         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMetadataModal" id="addMetadataToggle">Checking quota...</button>
     </p>
     <div><table class="table table-sm table-striped" id="metadataTable">
@@ -37,9 +37,9 @@
 <hr>
 <h5>Step 2: Upload for QC</h5>
 <div class="row">
-    <p>Use the R/GwasDataImport package to format the raw data file upload it for QC. Each file must be accompanied by the corresponding GWAS ID assigned in Step 1.</p>
-    <p>QC is a fully automated process and usually takes 4 - 24 hours. Once you have received the QC report you may submit the dataset for approval.</p>
-    <p><strong>Click on a row to see the detailed progress and download the QC report when available.</strong></p>
+    <p>Use the R/GwasDataImport package to format the raw data file, and upload it for QC. Each file must be accompanied by the corresponding GWAS ID assigned/specified in Step 1.</p>
+    <p>QC is a fully automated process and may take up to 24 hours. Once you have checked the QC report you may submit the dataset for approval.</p>
+    <p><strong>Click on a row to see the detailed progress, download the QC report when available and submit for approval in due course.</strong></p>
     <div><table class="table table-sm table-striped" id="qcTable">
         <thead><tr>
                 <th></th>
@@ -72,7 +72,7 @@
 <hr>
 <h5>Datasets you uploaded</h5>
 <div class="row">
-    <p>Here is a list of approved datasets you uploaded. They can now be queried by the relevant group.</p>
+    <p>Here is a list of approved datasets you uploaded. Usually within 24 hours, they can be queried by the relevant permission group. </p>
     <div>
         <table class="table table-sm table-striped" id="releasedTable">
         <thead><tr>
@@ -712,7 +712,6 @@
             console.log('load_gwasinfo_and_dagrun save');
             definition = Object.assign(definition, response.definition);
             gwasinfo = response.gwasinfo;
-            dagrun = response.dagrun;
             populate_add_metadata_span(response.count, response.quota);
         }).done(function () {
             console.log('load_gwasinfo_and_dagrun populate');

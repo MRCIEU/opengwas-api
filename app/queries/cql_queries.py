@@ -148,7 +148,7 @@ def get_gwas_added_by_user(uid):
     tx = Neo4j.get_db()
 
     results = tx.run(
-        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid:$uid}) WHERE gi.id=~'ieu-b-.*' RETURN distinct(gi) as gi, r LIMIT 100;",
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid:$uid}) RETURN distinct(gi) as gi, r LIMIT 1000;",
         uid=uid
     )
 
