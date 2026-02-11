@@ -40,5 +40,6 @@ class Redis(metaclass=Singleton):
             'limiter': redis.Redis(connection_pool=self.pool['limiter']),
             'cache': redis.Redis(connection_pool=self.pool['cache']),
             'log_pubsub': redis.Redis(connection_pool=self.pool['session']),  # Pub/Sub is not DB-specific
-            'log': redis.Redis(connection_pool=self.pool['log'])
+            'log': redis.Redis(connection_pool=self.pool['log']),
+            'indexing': redis.Redis(connection_pool=self.pool['indexing']),
         }

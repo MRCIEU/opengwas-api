@@ -38,14 +38,14 @@ class RedisQueries:
             result += 1
         return result
 
-    def add_tasks(self, tasks: list):
-        return self.r.query([{
-            'cmd': 'sadd',
-            'args': {
-                "name": 'tasks_pending',
-                "values": tasks
-            }
-        }])[0]
+    # def add_tasks(self, tasks: list):
+    #     return self.r.query([{
+    #         'cmd': 'sadd',
+    #         'args': {
+    #             "name": 'tasks_pending',
+    #             "values": tasks
+    #         }
+    #     }])[0]
 
     # def add_phewas_tasks(self, tasks: list):
     #     return self.r.query([{
@@ -56,22 +56,16 @@ class RedisQueries:
     #         }
     #     }])[0]
 
-    def get_completed_tasks(self):
-        return self.r.query([{
-            'cmd': 'hgetall',
-            'args': {
-                "name": 'tasks_completed'
-            }
-        }])[0]
+    # def get_completed_tasks(self):
+    #     return self.r.query([{
+    #         'cmd': 'hgetall',
+    #         'args': {
+    #             "name": 'tasks_completed'
+    #         }
+    #     }])[0]
 
     def get_gwas_pos_prefix_indices(self):
-        r = self.r.query([{
-            'cmd': 'hgetall',
-            'args': {
-                "name": 'gwas_pos_prefix_indices'
-            }
-        }], get_raw_response=True)[0]
-        return self._strip_b_in_keys(jsonpickle.decode(r))
+        return self.r.hgetall('gwas_pos_prefix_indices')
 
     # def get_completed_phewas_tasks(self):
     #     return self.r.query([{
@@ -83,64 +77,64 @@ class RedisQueries:
     #         }
     #     }])[0]
 
-    def get_cpalleles_of_chr_pos(self, chr_pos: set[tuple]) -> set:
-        """
-        Get chr, pos, alleles combinations from Redis, using chrpos or cprange.
-        :param chr_pos: list of (chr(str), pos_start, pos_end) tuples e.g. [('1', 12345, 12345), ('1', 12345, 12400)]
-        :return: set of cpalleles e.g. {'1:12345:G:C', '1:12398:AT:G'}
-        """
-        chr_pos = list(chr_pos)
-        cpalleles = set()
-        cmds = []
-        for cp in chr_pos:
-            cmds.append({
-                'cmd': 'zrange',
-                'args': {
-                    "name": cp[0],
-                    "start": cp[1],
-                    "end": cp[2],
-                    "byscore": "True"
-                }
-            })
-        for seq, pos_alleles_of_chr_pos in enumerate(self.r.query(cmds)):
-            for pos_alleles in pos_alleles_of_chr_pos:
-                cpalleles.add(chr_pos[seq][0] + ':' + pos_alleles)
-        return cpalleles
+    # def get_cpalleles_of_chr_pos(self, chr_pos: set[tuple]) -> set:
+    #     """
+    #     Get chr, pos, alleles combinations from Redis, using chrpos or cprange.
+    #     :param chr_pos: list of (chr(str), pos_start, pos_end) tuples e.g. [('1', 12345, 12345), ('1', 12345, 12400)]
+    #     :return: set of cpalleles e.g. {'1:12345:G:C', '1:12398:AT:G'}
+    #     """
+    #     chr_pos = list(chr_pos)
+    #     cpalleles = set()
+    #     cmds = []
+    #     for cp in chr_pos:
+    #         cmds.append({
+    #             'cmd': 'zrange',
+    #             'args': {
+    #                 "name": cp[0],
+    #                 "start": cp[1],
+    #                 "end": cp[2],
+    #                 "byscore": "True"
+    #             }
+    #         })
+    #     for seq, pos_alleles_of_chr_pos in enumerate(self.r.query(cmds)):
+    #         for pos_alleles in pos_alleles_of_chr_pos:
+    #             cpalleles.add(chr_pos[seq][0] + ':' + pos_alleles)
+    #     return cpalleles
 
-    def get_gwas_n_ids_of_cpalleles_and_pval(self, cpalleles: set, pval: float) -> dict[set]:
-        """
-        Get Neo4j elementId(n) from Redis, using cpalleles and pval
-        :param cpalleles: set of cpalleles e.g. {'1:12345:G:C', '1:12398:AT:G'}
-        :param pval:
-        :return:
-        """
-        gwas_n_ids = defaultdict(set)
-        cmds = []
-        cpalleles = list(cpalleles)
-        for chr_pos_alleles in cpalleles:
-            cmds.append({
-                'cmd': 'zrange',
-                'args': {
-                    "name": chr_pos_alleles,
-                    "start": 0,
-                    "end": '(' + str(pval),
-                    "byscore": "True"
-                }
-            })
-        for seq, gwas_n_ids_of_chr_pos_alleles in enumerate(self.r.query(cmds)):
-            for gwas_n_id in gwas_n_ids_of_chr_pos_alleles:
-                gwas_n_ids[int(gwas_n_id)].add(':'.join(cpalleles[seq].split(':')[:2]))
-        return gwas_n_ids
+    # def get_gwas_n_ids_of_cpalleles_and_pval(self, cpalleles: set, pval: float) -> dict[set]:
+    #     """
+    #     Get Neo4j elementId(n) from Redis, using cpalleles and pval
+    #     :param cpalleles: set of cpalleles e.g. {'1:12345:G:C', '1:12398:AT:G'}
+    #     :param pval:
+    #     :return:
+    #     """
+    #     gwas_n_ids = defaultdict(set)
+    #     cmds = []
+    #     cpalleles = list(cpalleles)
+    #     for chr_pos_alleles in cpalleles:
+    #         cmds.append({
+    #             'cmd': 'zrange',
+    #             'args': {
+    #                 "name": chr_pos_alleles,
+    #                 "start": 0,
+    #                 "end": '(' + str(pval),
+    #                 "byscore": "True"
+    #             }
+    #         })
+    #     for seq, gwas_n_ids_of_chr_pos_alleles in enumerate(self.r.query(cmds)):
+    #         for gwas_n_id in gwas_n_ids_of_chr_pos_alleles:
+    #             gwas_n_ids[int(gwas_n_id)].add(':'.join(cpalleles[seq].split(':')[:2]))
+    #     return gwas_n_ids
 
-    def get_tophits_of_datasets_by_pval(self, gwas_ids: list, pval: float) -> dict:
-        return self.r.query([{
-            'cmd': 'zrange',
-            'args': {
-                "name": gwas_id,
-                "start": "-inf",
-                "end": "(" + str(pval),
-            }
-        } for gwas_id in gwas_ids])
+    # def get_tophits_of_datasets_by_pval(self, gwas_ids: list, pval: float) -> dict:
+    #     return self.r.query([{
+    #         'cmd': 'zrange',
+    #         'args': {
+    #             "name": gwas_id,
+    #             "start": "-inf",
+    #             "end": "(" + str(pval),
+    #         }
+    #     } for gwas_id in gwas_ids])
 
     def save_cache(self, key: str, field: str, value: str):
         return self.r.hset(name=key, key=field, value=value)
