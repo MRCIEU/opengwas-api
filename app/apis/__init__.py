@@ -49,14 +49,15 @@ api.add_namespace(phewas)
 api.add_namespace(variants)
 api.add_namespace(ld)
 
+api.add_namespace(edit)
+api.add_namespace(quality_control)
+
 # private
 if (
     os.environ.get('GROUP') == 'prod' and os.environ.get('COMPONENT') == 'api-priv' or
     os.environ.get('GROUP') in ['test', 'local']
 ):
     api.add_namespace(maintenance)
-    api.add_namespace(edit)
-    api.add_namespace(quality_control)
     api.add_namespace(stats)
 
 if os.environ.get('GROUP') == 'local':
