@@ -148,8 +148,48 @@ def get_gwas_added_by_user(uid):
     tx = Neo4j.get_db()
 
     results = tx.run(
-        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid:$uid}) RETURN distinct(gi) as gi, r LIMIT 1000;",
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid:$uid}) RETURN distinct(gi) as gi, r LIMIT 10000;",
         uid=uid
+    )
+
+    for result in results:
+        res[result['gi']['id']] = {
+            'gwasinfo': GwasInfo(result['gi']),
+            'added_by': AddedByRel(result['r'])
+        }
+
+    return res
+
+
+def get_draft_gwas_added_by_user(uid):
+    """Get gwasinfo added by user that hasn't been released yet (has state property)"""
+    res = {}
+    tx = Neo4j.get_db()
+
+    results = tx.run(
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid:$uid}) WHERE r.state IS NOT NULL RETURN distinct(gi) as gi, r LIMIT 1000;",
+        uid=uid
+    )
+
+    for result in results:
+        res[result['gi']['id']] = {
+            'gwasinfo': GwasInfo(result['gi']),
+            'added_by': AddedByRel(result['r'])
+        }
+
+    return res
+
+
+def get_released_gwas_added_by_user(uid, offset=0, limit=100):
+    """Get gwasinfo added by user that has been released (no state property) with pagination support"""
+    res = {}
+    tx = Neo4j.get_db()
+
+    results = tx.run(
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid:$uid}) WHERE r.state IS NULL RETURN distinct(gi) as gi, r ORDER BY r.epoch DESC SKIP $offset LIMIT $limit;",
+        uid=uid,
+        offset=offset,
+        limit=limit
     )
 
     for result in results:
@@ -193,6 +233,22 @@ def count_draft_gwas_of_user(uid):
     ).single()
 
     return result.data()['count']
+
+
+def count_released_gwas_of_user(uid):
+    """Count total released gwasinfo added by user"""
+    tx = Neo4j.get_db()
+
+    result = tx.run(
+        "MATCH (gi:GwasInfo)-[r:ADDED_BY]->(u:User {uid: $uid}) WHERE r.state IS NULL RETURN count(gi) as `count`;",
+        uid=uid
+    ).single()
+
+    if result is None:
+        return 0
+
+    count = result.data()['count']
+    return count if count is not None else 0
 
 
 def add_new_gwas(user_email, gwas_info_dict, group_names=frozenset(['public']), gwas_id=None):

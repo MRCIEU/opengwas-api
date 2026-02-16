@@ -17,14 +17,32 @@
 
 {% block main %}
 
+<div class="row pb-3">
+    <div class="card">
+        <div class="card-body">
+            Tutorial: <a href="https://mrcieu.github.io/GwasDataImport/articles/import_pipeline.html" target="_blank">Importing datasets into OpenGWAS
+</a><br>
+            There is a limit on the number of "draft" datasets you can have at the same time. You will find that number in the button below. Datasets shown in Step 1, 2 and 3 are "draft" datasets and count towards the limit.<br>
+        </div>
+    </div>
+</div>
+
+<div id="draftTablesLoading" style="display: none; text-align: center; padding: 20px;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading your datasets...</p>
+</div>
+
 <h5>Step 1: Prepare metadata</h5>
 <div class="row">
-    <p>Provide the metadata of each dataset you would like to upload. Each of them will be assigned a GWAS ID (starting with ieu-b) unless specified otherwise by you.
+    <p>Provide the metadata of each dataset you would like to upload.</p>
+    <div class="d-flex justify-content-center">
         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMetadataModal" id="addMetadataToggle">Checking quota...</button>
-    </p>
+    </div>
     <div><table class="table table-sm table-striped" id="metadataTable">
         <thead><tr>
-                <th>GWAS ID</th>
+                <th>OpenGWAS ID</th>
                 <th width="50%">Trait</th>
                 <th>Created at</th>
                 <th></th>
@@ -37,13 +55,13 @@
 <hr>
 <h5>Step 2: Upload for QC</h5>
 <div class="row">
-    <p>Use the R/GwasDataImport package to format the raw data file, and upload it for QC. Each file must be accompanied by the corresponding GWAS ID assigned/specified in Step 1.</p>
-    <p>QC is a fully automated process and may take up to 24 hours. Once you have checked the QC report you may submit the dataset for approval.</p>
-    <p><strong>Click on a row to see the detailed progress, download the QC report when available and submit for approval in due course.</strong></p>
+    <p>Use the R/GwasDataImport package to format the raw data file, and upload it for QC. Each file must be accompanied by the corresponding OpenGWAS ID assigned/specified in Step 1. Once uploaded, the dataset will move from Step 1 to here.</p>
+    <p>QC usually takes a few hours but it may take up to 24 hours or even longer when there is a queue. Once you have checked the QC report you may submit the dataset for approval.</p>
+    <p><strong>Click on a row to see the detailed progress, download the QC report when available and submit for approval if satisfied. You may also use the checkboxes to submit in bulk.</strong></p>
     <div><table class="table table-sm table-striped" id="qcTable">
         <thead><tr>
                 <th></th>
-                <th>GWAS ID</th>
+                <th>OpenGWAS ID</th>
                 <th width="50%">Trait</th>
                 <th>State</th>
                 <th></th>
@@ -59,7 +77,7 @@
     <p>Datasets here are pending review. Once approved they will be added (released) to OpenGWAS. We may contact you via email.</p>
     <div><table class="table table-sm table-striped" id="approvalTable">
         <thead><tr>
-                <th>GWAS ID</th>
+                <th>OpenGWAS ID</th>
                 <th width="50%">Trait</th>
                 <th>State</th>
                 <th></th>
@@ -76,7 +94,7 @@
     <div>
         <table class="table table-sm table-striped" id="releasedTable">
         <thead><tr>
-                <th>GWAS ID</th>
+                <th>OpenGWAS ID</th>
                 <th>Group</th>
                 <th width="50%">Trait</th>
                 <th>Metadata created at</th>
@@ -93,7 +111,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body"><form id="metadataForm">
-                <p>Mandatory fields</p>
+                <p>Required fields</p>
                 <div class="form-group row mb-2">
                     <label for="traitInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Trait *</label>
                     <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="traitInput" name="trait" required></div>
@@ -126,7 +144,7 @@
                 <div class="row mb-2">
                     <label for="yearInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Year</label>
                     <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="yearInput" name="year"></div>
-                    <label for="ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty</label>
+                    <label for="ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontology</label>
                     <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="ontologyInput" name="ontology"></div>
                     <label for="unitInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Unit</label>
                     <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="unitInput" name="unit"></div>
@@ -177,6 +195,10 @@
                     <label for="noteInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Note</label>
                     <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="noteInput" name="note"></div>
                 </div>
+                <div class="row mb-2">
+                    <label for="idInput" class="col-sm-2 col-form-label col-form-label-sm text-end">OpenGWAS ID</label>
+                    <div class="col-sm-10"><input type="text" class="form-control form-control-sm" id="idInput" name="id" placeholder="Leave blank for auto-assigned ID (which starts with ieu-b at the moment)"></div>
+                </div>
             </form></div>
             <div class="modal-footer d-flex justify-content-end">
                 <div><button type="button" class="btn btn-primary" id="addMetadataBtn" onclick="submit_metadata()">Submit </button></div>
@@ -208,7 +230,12 @@
                 <div class="tab-content mt-3">
                     <div class="tab-pane fade" id="giTabPane" role="tabpanel" tabindex="0">
                         <div id="deleteDatasetDiv">
-                            <p>Before you submit the dataset for approval you can either <a href="#" class="text-danger" onclick="delete_gwasinfo(1)"><u>delete everything</u></a> (including <a data-bs-toggle="tooltip" data-bs-title="Note: If you go down this route, you may not be assigned the same GWAS ID even if you submit the identical metadata again."><u>metadata(!)</u></a>, uploaded files and QC products) or just <a href="#" class="text-danger" onclick="delete_gwasinfo()"><u>delete uploaded files and QC products</u></a> but keep the metadata (if you wish the re-upload the file for QC). <br></p>
+                            <p>
+                                Need to make changes?
+                                <br>- Edit the metadata below and save, only if there is no file associated for QC.
+                                <br>- <a href="#" class="text-danger" onclick="delete_gwasinfo()"><u>Delete all files</u></a>, if you wish to re-upload the file for QC or just to unlock the metadata.
+                                <br>- <a href="#" class="text-danger" onclick="delete_gwasinfo(1)"><u>Delete all files and metadata(!)</u></a>, if you want to start over.
+                            </p>
                         </div>
                         <form id="gwasinfoForm">
                             <div class="form-group row mb-1">
@@ -241,7 +268,7 @@
                             <div class="row mb-1">
                                 <label for="gi_yearInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Year</label>
                                 <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_yearInput" name="gi_year"></div>
-                                <label for="gi_ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontoloty</label>
+                                <label for="gi_ontologyInput" class="col-sm-2 col-form-label col-form-label-sm text-end">Ontology</label>
                                 <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_ontologyInput" name="gi_ontology"></div>
                                 <label for="gi_unitInput" class="col-sm-1 col-form-label col-form-label-sm text-end">Unit</label>
                                 <div class="col-sm-2"><input type="text" class="form-control form-control-sm" id="gi_unitInput" name="gi_unit"></div>
@@ -300,7 +327,7 @@
                     </div>
                     <div class="tab-pane fade" id="qcTabPane" role="tabpanel" tabindex="0">
                         <div id="uploadFileDiv">
-                            <p>Use the R/GwasDataImport package to upload the file for QC, then <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('qc')">reload pipeline state</a>. The pipeline will start as soon as the file has been received and may take 4-24 hours to complete. Once finished the report can be downloaded here.
+                            <p>Use the R/GwasDataImport package to upload the file for QC, then <a class="text-primary" href="#" onclick="reload_gwasinfo_and_pipeline_state('qc')">reload pipeline state</a>. The pipeline will start as soon as the file has been received and may take 4-24 hours to complete. Once finished you can download the report here.
                             </p>
                         </div>
                         <div id="downloadReportDiv" class="mb-3">
@@ -324,7 +351,7 @@
                         </div>
                     </div>
                     <div class="tab-pane fade" id="approvalTabPane" role="tabpanel" tabindex="0">
-                        <p>When the QC report is ready you can submit the dataset for approval, and once approved the dataset will be added (released) to OpenGWAS.</p>
+                        <p>If the QC report looks good you can submit the dataset for approval, and once approved the dataset will be added (released) to OpenGWAS.</p>
                         <div id="submitForApprovalDiv">
                             <button type="button" class="btn btn-sm btn-outline-primary" id="submitForApprovalBtn" onclick="submit_for_approval()">Submit the dataset for approval </button>
                             <p><small><i>By clicking the button above you consent your information (including names, email address, organisational affiliation etc.) to be made visible to the reviewers, who may then contact you via email if they have questions.</i></small></p>
@@ -592,28 +619,7 @@
                 }
             ]
         });
-        releasedTable = $("#releasedTable").DataTable({
-            autoWidth: false,
-            layout: {
-                topEnd: 'paging',
-                bottomEnd: null
-            },
-            searching: false,
-            info: false,
-            language: {
-                emptyTable: "No record"
-            },
-            columns: [
-                {data: "gwasinfo.id"},
-                {data: "gwasinfo.group_name"},
-                {data: "gwasinfo.trait"},
-                {
-                    render: (data, type, row, meta) => {
-                        return (new Date(row['added_by']['epoch'] * 1000)).toLocaleString();
-                    }
-                }
-            ]
-        });
+        // releasedTable will be initialized after JWT is available (see get_token function)
         qcPipelineTr = $('#qcPipelineTr');
         qcPipelineTable = $("#qcPipelineTable").DataTable({
             autoWidth: false,
@@ -690,7 +696,49 @@
             alert("You need to have a valid token to access this page. If you haven't, generate one on the user profile page, then go back here and refresh.");
         }).done(function (response) {
             jwt = response.token;
-            load_gwasinfo_and_dagrun();
+
+            // Load draft data first, then initialize releasedTable to avoid overlapping loading indicators
+            load_gwasinfo_and_dagrun().always(function() {
+                // Keep spinner visible while released table initializes
+                // Initialize releasedTable after draft data loads
+                releasedTable = $("#releasedTable").DataTable({
+                    autoWidth: false,
+                    serverSide: true,
+                    processing: false,
+                    pageLength: 10,
+                    layout: {topEnd: 'paging', bottomEnd: null},
+                    searching: false,
+                    info: true,
+                    language: {emptyTable: "No record"},
+                    ajax: {
+                        url: "/api/edit/list",
+                        type: "GET",
+                        data: function (d) {
+                            return {state: 'released', offset: d.start, limit: d.length};
+                        },
+                        headers: {"Authorization": "Bearer " + jwt},
+                        dataSrc: function (json) {
+                            // Map API response to DataTables format
+                            if (json.total_released_count !== undefined) {
+                                json.recordsTotal = json.total_released_count;
+                                json.recordsFiltered = json.total_released_count;
+                            }
+                            return Object.values(json.gwasinfo || {});
+                        }
+                    },
+                    columns: [
+                        {data: "gwasinfo.id"},
+                        {data: "gwasinfo.group_name"},
+                        {data: "gwasinfo.trait"},
+                        {render: (data, type, row) => new Date(row['added_by']['epoch'] * 1000).toLocaleString()}
+                    ],
+                    initComplete: function() {
+                        // Hide spinner after released table finishes initial load
+                        $('#draftTablesLoading').hide();
+                    }
+                });
+            });
+
             get_swagger();
         });
     }
@@ -703,19 +751,40 @@
             console.log('unset gwasid');
         }
 
-        return $.ajax({
-            url: "/api/edit/list",
-            headers: {
-                "Authorization": "Bearer " + jwt
-            }
-        }).done(function (response) {
+        // Show loading indicator
+        $('#draftTablesLoading').show();
+
+        return load_draft_gwasinfo().done(function (draftResponse) {
             console.log('load_gwasinfo_and_dagrun save');
-            definition = Object.assign(definition, response.definition);
-            gwasinfo = response.gwasinfo;
-            populate_add_metadata_span(response.count, response.quota);
+            definition = Object.assign(definition, draftResponse.definition);
+
+            // Only store draft gwasinfo - released table handles its own data via AJAX
+            gwasinfo = draftResponse.gwasinfo;
+
+            populate_add_metadata_span(draftResponse.count, draftResponse.quota);
         }).done(function () {
             console.log('load_gwasinfo_and_dagrun populate');
             populate_tables(gwasinfo);
+
+            // Hide spinner after draft tables populate IF releasedTable already exists
+            // (meaning this is a reload, not the initial load)
+            if (releasedTable) {
+                $('#draftTablesLoading').hide();
+            }
+            // Otherwise, spinner stays visible until releasedTable initialization completes
+        }).fail(function () {
+            // Hide loading indicator on error
+            $('#draftTablesLoading').hide();
+        });
+    }
+
+    // Load draft gwasinfo added by the user (hasn't been released yet)
+    function load_draft_gwasinfo() {
+        return $.ajax({
+            url: "/api/edit/list?state=draft",
+            headers: {
+                "Authorization": "Bearer " + jwt
+            }
         });
     }
 
@@ -731,10 +800,15 @@
 
     // Populate tables
     function populate_tables(gwasinfo) {
+        populate_draft_tables(gwasinfo);
+        // releasedTable will load data automatically via AJAX when needed
+    }
+
+    // Populate draft tables with gwasinfo that hasn't been released yet (has state)
+    function populate_draft_tables(gwasinfo) {
         metadataTable.clear();
         qcTable.clear();
         approvalTable.clear();
-        releasedTable.clear();
 
         $.each(gwasinfo, function (id, gi_and_added_by) {
             if (gi_and_added_by['added_by'].hasOwnProperty('state')) {
@@ -750,16 +824,14 @@
                     case 4:
                         approvalTable.row.add(gi_and_added_by);
                 }
-            } else {
-                releasedTable.row.add(gi_and_added_by);
             }
         });
 
         metadataTable.draw();
         qcTable.draw();
         approvalTable.draw();
-        releasedTable.draw();
     }
+
 
     // Get field specs from swagger
     function get_swagger() {
@@ -950,7 +1022,7 @@
             return load_gwasinfo_and_dagrun().then(function () {
                 console.log('submit_metadata show');
                 show_gwasinfo_modal(gwasinfoTabs.giTab);
-                alert(`Success. You can double-check your metadata. If satisfied, go to step 2 for QC.`)
+                alert(`Success. A dialog will show up so that you can double-check your metadata. If satisfied, please see Step 2 for QC.`)
             });
         }).always(function () {
             button_loading('addMetadataBtn', false);
@@ -1000,9 +1072,9 @@
 
     // Delete dataset (keep or delete metadata)
     function delete_gwasinfo(delete_matadata=0) {
-        if (confirm("Are you sure you want to delete data related to " + gwasidFocused + "?")) {
+        if (confirm("Are you sure you want to delete resources related to " + gwasidFocused + "?")) {
             $.ajax({
-                url: "/api/edit/delete/" + gwasidFocused,
+                url: "/api/edit/delete/draft/" + gwasidFocused,
                 method: "DELETE",
                 headers: {
                     "Authorization": "Bearer " + jwt

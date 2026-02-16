@@ -6,17 +6,17 @@ from profile.token import get_token
 from queries.cql_queries import *
 
 
-contribution_index_bp = Blueprint('index', __name__)
+contributions_index_bp = Blueprint('index', __name__)
 
 
-@contribution_index_bp.route('')
+@contributions_index_bp.route('')
 @login_required
 @role_required('contributor')
 def index():
-    return render_template('contribution/index.html', container_width=1000)
+    return render_template('contributions/index.html', container_width=1000)
 
 
-@contribution_index_bp.route('/token')
+@contributions_index_bp.route('/token')
 @login_required
 @role_required('contributor')
 def get_token_plaintext():

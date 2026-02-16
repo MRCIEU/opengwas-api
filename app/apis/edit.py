@@ -44,45 +44,50 @@ def check_batch_exists(gwas_id, study_indexes):
 
 def get_quota_by_roles(roles):
     if 'admin' in roles:
-        return 10000
+        return 5000
     if 'contributor' in roles:
-        return 20
+        return 1000
     return 0
 
 
 @api.route('/list')
-@api.doc(description="List metadata and DAG runs of all datasets that are added by the user")
+@api.doc(description="List datasets that are added by the user. Can filter by state (draft/released) and paginate released datasets.")
 class List(Resource):
     parser = api.parser()
+    parser.add_argument('state', type=str, required=False, default='draft', help='Filter by state: "draft" for datasets not released, "released" for released datasets. Default: draft')
+    parser.add_argument('offset', type=int, required=False, default=0, help='Pagination offset for released datasets (only used when state=released). Default: 0')
+    parser.add_argument('limit', type=int, required=False, default=100, help='Pagination limit for released datasets (only used when state=released). Default: 100')
 
     @api.expect(parser)
     @api.doc(id='edit_list_metadata')
     @jwt_required
     @check_role('contributor')
     def get(self):
-        gwasinfo = get_gwas_added_by_user(g.user['uid'])
+        args = self.parser.parse_args()
+        state_filter = (args['state'] or 'draft').lower()
 
-        # dag_run = {
-        #     'qc': {},
-        #     'release': {}
-        # }
-        # airflow = Airflow()
-        # for id, gi_and_added_by in gwasinfo.items():
-        #     if 'state' in gi_and_added_by['added_by']:
-        #         if gi_and_added_by['added_by']['state'] >= 1:
-        #             dag_run['qc'][id] = airflow.get_dag_run('qc', id, True)
-        #             if gi_and_added_by['added_by']['state'] >= 3:
-        #                 dag_run['release'][id] = airflow.get_dag_run('release', id, True)
+        if state_filter not in ['draft', 'released', 'all']:
+            return {'message': 'Invalid state parameter. Must be "draft", "released", or "all".'}, 400
 
-        return {
-            'definition': {
-                'added_by_state': Globals.DATASET_ADDED_BY_STATE
-            },
+        # Get datasets based on state filter
+        if state_filter == 'draft':
+            gwasinfo = get_draft_gwas_added_by_user(g.user['uid'])
+        elif state_filter == 'released':
+            gwasinfo = get_released_gwas_added_by_user(g.user['uid'], offset=args['offset'], limit=args['limit'])
+        else:
+            gwasinfo = get_gwas_added_by_user(g.user['uid'])
+
+        response = {
+            'definition': {'added_by_state': Globals.DATASET_ADDED_BY_STATE},
             'gwasinfo': gwasinfo,
-            # 'dag_run': dag_run,
             'count': count_draft_gwas_of_user(g.user['uid']),
             'quota': get_quota_by_roles(g.user.get('roles', []))
         }
+
+        if state_filter == 'released':
+            response['total_released_count'] = count_released_gwas_of_user(g.user['uid'])
+
+        return response
 
 
 @api.route('/add')
@@ -90,7 +95,7 @@ class List(Resource):
 class Add(Resource):
     parser = reqparse.RequestParser(bundle_errors=True)
     # Overwrite required=False for id
-    parser.add_argument('id', type=str, required=False, help='Provide your own study identifier or leave blank for next continuous id.')
+    parser.add_argument('id', type=str, required=False, help='Leave blank for the next auto-assigned sequential id (e.g. ieu-b-9999, where ieu-b is fixed and 9999 is the sequence number), or provide your own study identifier if suggested by us (in full, e.g. met-e-LDL_C ). See also https://mrcieu.github.io/GwasDataImport/articles/import_pipeline_new.html#opengwas-id')
     GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
@@ -251,14 +256,13 @@ class TaskState(Resource):
         }
 
 
-@api.route('/delete/<gwas_id>')
-@api.doc(description="For the given GWAS ID, delete metadata, uploaded files, QC proudct etc. BUT NOT `release` DAG and records in ES")
+@api.route('/delete/draft/<gwas_id>')
+@api.doc(description="For the given GWAS ID, force the QC pipeline (if any) to fail, delete uploaded files and QC product etc., and when required, delete the metadata. Available until the dataset is submitted for approval.")
 class Delete(Resource):
     parser = api.parser()
-    parser.add_argument('fail_remaining_tasks', type=int, required=False, help='Whether to set the remaining tasks in DAG run as `failed` (which may take up to 90 secs) so that the instance can be terminated properly (1) or not (0)')
     parser.add_argument('delete_metadata', type=int, required=False, help='Whether to delete metadata (1) or only to delete files and pipeline products (0)')
 
-    @api.doc(id='edit_delete_gwas')
+    @api.doc(id='edit_delete_draft_gwas')
     @jwt_required
     @check_role('contributor')
     def delete(self, gwas_id):
@@ -269,8 +273,8 @@ class Delete(Resource):
         except PermissionError as e:
             return {"message": str(e)}, 403
 
-        if args.get('fail_remaining_tasks', 0) == 0 and (state is None or state not in [0, 2]):
-            return {"message": "Dataset cannot be deleted when the QC pipeline is still running or after it has been submitted for approval"}, 400
+        if state is None or state not in [0, 1, 2]:
+            return {"message": "A dataset can only be deleted before it has been submitted for approval."}, 400
 
         study_folder = os.path.join(Globals.UPLOAD_FOLDER, gwas_id)
         if os.path.isdir(study_folder):
@@ -280,10 +284,7 @@ class Delete(Resource):
         oci.object_storage_delete_by_prefix('upload', gwas_id + '/')
 
         airflow = Airflow()
-        if args.get('fail_remaining_tasks', 0) == 1:
-            airflow.fail_then_delete_dag_run('qc', gwas_id)
-        else:
-            airflow.delete_dag_run('qc', gwas_id)
+        airflow.fail_then_delete_dag_run('qc', gwas_id)
 
         if args.get('delete_metadata', 0) == 1:
             delete_gwas(gwas_id)
