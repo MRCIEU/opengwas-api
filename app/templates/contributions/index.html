@@ -691,7 +691,7 @@
     // Get token
     function get_token() {
         $.ajax({
-            url: "/contribution/token?random=" + Math.random(),
+            url: "/contributions/token?random=" + Math.random(),
         }).fail(function () {
             alert("You need to have a valid token to access this page. If you haven't, generate one on the user profile page, then go back here and refresh.");
         }).done(function (response) {
