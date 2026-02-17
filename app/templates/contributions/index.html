@@ -232,7 +232,7 @@
                         <div id="deleteDatasetDiv">
                             <p>
                                 Need to make changes?
-                                <br>- Edit the metadata below and save, only if there is no file associated for QC.
+                                <br>- Edit the metadata below and save, if no file has been uploaded for QC.
                                 <br>- <a href="#" class="text-danger" onclick="delete_gwasinfo()"><u>Delete all files</u></a>, if you wish to re-upload the file for QC or just to unlock the metadata.
                                 <br>- <a href="#" class="text-danger" onclick="delete_gwasinfo(1)"><u>Delete all files and metadata(!)</u></a>, if you want to start over.
                             </p>
@@ -1084,9 +1084,9 @@
                 }
             }).fail(function (xhr) {
                 alert(xhr.responseJSON['message']);
-            }).done(function () {
+            }).done(function (response) {
                 console.log('delete_metadata save');
-                alert("Deleted");
+                alert(response['message']);
                 return load_gwasinfo_and_dagrun(!!delete_matadata).then(function () {
                     console.log('delete_metadata hide modal if necessary');
                     if (delete_matadata) {

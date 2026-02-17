@@ -160,7 +160,7 @@ class Airflow:
             'task_id': task_id
         }
 
-    def fail_dag_run(self, dag_id: str, dag_run_id: str):
+    def fail_dag_run(self, dag_id: str, dag_run_id: str) -> None:
         tasks = self.get_task_instances(dag_id, dag_run_id)['tasks']
         if len(tasks) == 0:
             raise InternalServerError("No task instance found.")
@@ -168,10 +168,9 @@ class Airflow:
             # Look for the first substantial task that is still running
             if t['task_id'] not in ['delete_instance'] and t.get('state') not in ['success', 'upstream_failed', 'failed']:
                 return self.patch_task_instances(dag_id, dag_run_id, t['task_id'], 'failed')
-        raise InternalServerError("It's too late to fail a DAG run. All substantial tasks have either succeeded or failed.")
 
     # Fail the first substantial remaining task of the given DAG run so that the compute instance can be terminated properly
-    def fail_then_delete_dag_run(self, dag_id: str, dag_run_id: str, interval=10, n_retries=9):
+    def fail_then_delete_dag_run(self, dag_id: str, dag_run_id: str, interval=10, n_retries=9) -> dict:
         try:
             self.fail_dag_run(dag_id, dag_run_id)
         except InternalServerError as e:
@@ -187,4 +186,5 @@ class Airflow:
                     'dag_run_id': dag_run_id
                 }
             time.sleep(interval)
+
         raise InternalServerError("Timed out when waiting for tasks to fail.")
