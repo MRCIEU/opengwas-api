@@ -38,14 +38,8 @@ class RedisQueries:
             result += 1
         return result
 
-    # def add_tasks(self, tasks: list):
-    #     return self.r.query([{
-    #         'cmd': 'sadd',
-    #         'args': {
-    #             "name": 'tasks_pending',
-    #             "values": tasks
-    #         }
-    #     }])[0]
+    def add_tasks(self, tasks: list):
+        return self.r.sadd('tasks_pending', *tasks)
 
     # def add_phewas_tasks(self, tasks: list):
     #     return self.r.query([{
@@ -56,13 +50,8 @@ class RedisQueries:
     #         }
     #     }])[0]
 
-    # def get_completed_tasks(self):
-    #     return self.r.query([{
-    #         'cmd': 'hgetall',
-    #         'args': {
-    #             "name": 'tasks_completed'
-    #         }
-    #     }])[0]
+    def get_completed_tasks(self):
+        return {k.decode('utf-8'): v.decode('utf-8') for k, v in self.r.hgetall('tasks_completed').items()}
 
     def get_gwas_pos_prefix_indices(self):
         return {k.decode('utf-8'): v for k, v in self.r.hgetall('gwas_pos_prefix_indices').items()}
