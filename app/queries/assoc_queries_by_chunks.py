@@ -28,7 +28,7 @@ class AssocQueriesByChunks:
 
     # for each chr, merge the ranges of positions into minimal ranges (https://leetcode.com/problems/merge-intervals/)
     # then work out the groups of chunks to fetch, without knowing which chunks are actually available
-    def _merge_pos_ranges(self, pos_tuple_list_by_chr: dict[list[tuple[int, int]]]) -> dict[list[int]]:
+    def _merge_pos_ranges(self, pos_tuple_list_by_chr: dict[str, list[tuple[int, int]]]) -> dict[str, list[int]]:
         merged_pos_by_chr = collections.defaultdict(list)
         for chr in pos_tuple_list_by_chr.keys():
             pos_tuple_list_by_chr[chr].sort(key=lambda x: x[0])
@@ -57,7 +57,7 @@ class AssocQueriesByChunks:
         return associations_available
 
     # only leave the associations that are within the pos range
-    def _trim_and_compose_associations(self, gwasinfo: dict, gwas_id: str, chr: str, associations_available: dict, pos_tuple: tuple[int]) -> list:
+    def _trim_and_compose_associations(self, gwasinfo: dict, gwas_id: str, chr: str, associations_available: dict, pos_tuple: tuple[int, int]) -> list:
         pos_available = list(associations_available.keys())
         if not pos_available or pos_tuple[0] > pos_available[-1] or pos_tuple[1] < pos_available[0]:
             return []
@@ -166,7 +166,7 @@ def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, po
             assoc_using_proxies, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
             # Need to fix this (which?)
             if len(assoc_using_proxies) > 0:
-                result += annotate_associations(ids, rsid, proxies, assoc_using_proxies, maf_threshold, align_alleles)
+                result += annotate_associations(ids, rsid, proxies_by_targets, assoc_using_proxies, maf_threshold, align_alleles)
             n_chunks_accessed_total += n_chunks_accessed
 
     if len(chrpos) > 0:
