@@ -160,8 +160,8 @@ def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, po
             snps = mysql_queries.get_snps_by_rsid(rsid)
             query.update([f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
         else:
-            proxies = get_proxies_from_mysql(population, rsid, r2, palindromes, maf_threshold)
-            proxies_rsids = list(set([proxy['proxy'] for target in proxies for proxy in proxies[target]]))
+            proxies_by_targets = get_proxies_from_mysql(population, rsid, r2, palindromes, maf_threshold)
+            proxies_rsids = list(set([proxy_of_target['proxy'] for target in proxies_by_targets for proxy_of_target in proxies_by_targets[target]]))
             snps = mysql_queries.get_snps_by_rsid(proxies_rsids)
             assoc_using_proxies, n_chunks_accessed = chunked_queries.query_by_multiprocessing(Globals.gwas_pos_prefix_indices, gwasinfo, ids, [f"{mysql_queries._decode_chr(s['chr_id'])}:{s['pos']}" for s in snps])
             # Need to fix this (which?)
