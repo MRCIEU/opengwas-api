@@ -78,6 +78,8 @@ class Tophits(Resource):
                     return {
                         "message": "Please provide at least one id.",
                     }, 400
+                if args['pval'] is None:
+                    args['pval'] = 0.00000005
                 if not 0 < args['pval'] <= 0.01:
                     span.set_status(Status(StatusCode.ERROR, "INVALID_PVAL"))
                     return {
