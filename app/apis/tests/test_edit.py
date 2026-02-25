@@ -35,13 +35,15 @@ def test_edit_permission(url):
     assert r.status_code == 401
 
 
-def test_edit_add_delete_metadata(url, headers):
+def test_edit_add_delete_metadata(url, headers, worker_id):
     payload = metadata_template.copy()
+    payload['id'] = f"{payload['id']}_{worker_id}_test_edit_add_delete_metadata"
 
     # add record
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
+    assert r.status_code == 200
     gwas_id = str(r.json()['id'])
-    assert r.status_code == 200 and isinstance(int(gwas_id.replace('test-a-', '')), int)
+    assert gwas_id.startswith('test-a-')
 
     # check present
     r = requests.get(url + "/edit/check/" + gwas_id, headers=headers)
@@ -64,13 +66,13 @@ def test_edit_add_delete_metadata(url, headers):
     assert r.status_code == 200
 
     # delete metadata
-    r = requests.delete(url + "/edit/delete/" + gwas_id, data={
+    r = requests.delete(url + "/edit/delete/draft/" + gwas_id, data={
         'delete_metadata': 1
     }, headers=headers)
     assert r.status_code == 200
 
     # cannot delete other's metadata
-    r = requests.delete(url + "/edit/delete/" + 'ieu-a-2', data={
+    r = requests.delete(url + "/edit/delete/draft/" + 'ieu-a-2', data={
         'delete_metadata': 1
     }, headers=headers)
     assert r.status_code == 403
@@ -84,14 +86,15 @@ def test_edit_add_delete_metadata(url, headers):
     assert r.status_code == 200 and len(r.json()) == 1
 
 
-def test_edit_upload_gzip(url, headers):
+def test_edit_upload_gzip(url, headers, worker_id):
     payload = metadata_template.copy()
+    payload['id'] = f"{payload['id']}_{worker_id}_test_edit_upload_gzip"
 
     # make new metadata
     r = requests.post(url + "/edit/add", data=payload, headers=headers)
     assert r.status_code == 200
     gwas_id = str(r.json()['id'])
-    assert isinstance(int(gwas_id.replace('test-a-', '')), int)
+    assert gwas_id.startswith('test-a-')
 
     file_path = os.path.join('apis', 'tests', 'data', 'jointGwasMc_LDL.head.txt.gz')
 
@@ -123,7 +126,7 @@ def test_edit_upload_gzip(url, headers):
 
     time.sleep(30)
 
-    r = requests.delete(url + "/edit/delete/" + gwas_id, data={
+    r = requests.delete(url + "/edit/delete/draft/" + gwas_id, data={
         'fail_remaining_tasks': 1,
         'delete_metadata': 1
     }, headers=headers)

@@ -14,6 +14,7 @@ collect_ignore = ["test_db_content.py", "test_quality_control.py"]
 
 def pytest_configure():
     pytest.shared_variable = {}
+    # sys.stdout = sys.stderr  # Redirect stdout to stderr to ensure print statements are captured when running with x-dist
 
 
 def pytest_addoption(parser):
