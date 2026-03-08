@@ -5,7 +5,8 @@ from queries.mysql_queries import MySQLQueries
 
 def get_proxies_from_mysql(
         population: Literal['proxies_afr', 'proxies_amr', 'proxies_eas', 'proxies_eur', 'proxies_sas'],
-        target_snps: list[str], r2: float, palindromic: Literal[0, 1], maf_threshold: float
+        target_snps: list[str], r2: float, palindromic: Literal[0, 1], maf_threshold: float,
+        max_proxies_per_target: int = 10
 ) -> dict[str, list]:
     mysql_queries = MySQLQueries()
     proxies_raw = mysql_queries.get_proxies(f"proxies_{population.lower()}", target_snps, r2, palindromic, maf_threshold)
@@ -45,6 +46,8 @@ def get_proxies_from_mysql(
                 'target': target,
                 'proxy': target,
             }]
+    for target in result:
+        result[target] = sorted(result[target], key=lambda x: x['distance'])[:max_proxies_per_target]
     return dict(result)
 
 
