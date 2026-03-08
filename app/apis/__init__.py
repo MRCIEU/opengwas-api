@@ -22,6 +22,8 @@ from .ld import api as ld
 from .stats import api as stats
 from .quality_control import api as quality_control
 from .edit import api as edit
+
+from .admin import api as admin
 from .utilities import api as utilities
 
 api_bp = Blueprint('api', __name__)
@@ -61,6 +63,7 @@ if (
     api.add_namespace(stats)
 
 if os.environ.get('GROUP') == 'local':
+    api.add_namespace(admin)
     api.add_namespace(utilities)
 
 
