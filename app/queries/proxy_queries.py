@@ -40,14 +40,14 @@ def get_proxies_from_mysql(
                 'proxy_a2': p['allele_a2'],
                 'palindromic': p['palindromic'],
             })
-    for target in target_snps:  # Add back targets of which no proxy has been found
+    for target in target_snps:  # Add back targets of which no proxy has been found, or keep the top proxies if there are some
         if target not in result:
             result[target] = [{
                 'target': target,
                 'proxy': target,
             }]
-    for target in result:
-        result[target] = sorted(result[target], key=lambda x: x['distance'])[:max_proxies_per_target]
+        else:
+            result[target] = sorted(result[target], key=lambda x: x['distance'])[:max_proxies_per_target]
     return dict(result)
 
 
