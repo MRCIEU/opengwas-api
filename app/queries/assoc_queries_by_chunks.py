@@ -145,9 +145,9 @@ def get_assoc_from_chunks(gwasinfo: dict, variants: list, ids: list, proxies, po
     Adapted from queries.es.get_assoc()
     """
     variants = organise_variants(variants)
-    rsid = variants['rsid']
-    chrpos = variants['chrpos']
-    cprange = variants['cprange']
+    rsid = list(set(variants['rsid']))
+    chrpos = list(set(variants['chrpos']))
+    cprange = list(set(variants['cprange']))
 
     chunked_queries = AssocQueriesByChunks()
     mysql_queries = MySQLQueries()
