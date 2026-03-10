@@ -8,6 +8,15 @@ def get_proxies_from_mysql(
         target_snps: list[str], r2: float, palindromic: Literal[0, 1], maf_threshold: float,
         max_proxies_per_target: int = 10
 ) -> dict[str, list]:
+    """
+    :param population:
+    :param target_snps:
+    :param r2:
+    :param palindromic:
+    :param maf_threshold:
+    :param max_proxies_per_target: E.g. rs58879558 has 1400+ proxies which will time out in the follow steps (reading from chunks)
+    :return:
+    """
     mysql_queries = MySQLQueries()
     proxies_raw = mysql_queries.get_proxies(f"proxies_{population.lower()}", target_snps, r2, palindromic, maf_threshold)
     result = defaultdict(list)
@@ -45,6 +54,7 @@ def get_proxies_from_mysql(
             result[target] = [{
                 'target': target,
                 'proxy': target,
+                'distance': 0,
             }]
         else:
             result[target] = sorted(result[target], key=lambda x: x['distance'])[:max_proxies_per_target]
