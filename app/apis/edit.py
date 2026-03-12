@@ -35,7 +35,7 @@ def check_batch_exists(gwas_id, study_indexes):
     try:
         reg = r'^([\w]+-[\w]+)-([\w]+)'
         study_prefix, study_id = re.match(reg, gwas_id).groups()
-    except ValueError as e:
+    except AttributeError as e:
         raise BadRequest("ID is not in correct format <batch>-<section>-<id>: {}".format(gwas_id))
     if study_prefix not in study_indexes:
         raise BadRequest("Please use pre-existing batch or contact developers: {}".format(study_prefix))
@@ -95,7 +95,7 @@ class List(Resource):
 class Add(Resource):
     parser = reqparse.RequestParser(bundle_errors=True)
     # Overwrite required=False for id
-    parser.add_argument('id', type=str, required=False, help='Leave blank for the next auto-assigned sequential id (e.g. ieu-b-9999, where ieu-b is fixed and 9999 is the sequence number), or provide your own study identifier if suggested by us (in full, e.g. met-e-LDL_C ). See also https://mrcieu.github.io/GwasDataImport/articles/import_pipeline_new.html#opengwas-id')
+    parser.add_argument('id', type=str, required=False, help='Leave blank for the next auto-assigned sequential id (e.g. ieu-b-9999, where ieu-b is fixed and 9999 is the sequence number), or provide your own study identifier if suggested by us (in full, e.g. met-e-LDL_C ). See also https://mrcieu.github.io/GwasDataImport/articles/import_pipeline.html#opengwas-id')
     GwasInfoNodeSchema.populate_parser(parser, ignore={GwasInfo.get_uid_key()})
 
     @api.expect(parser)
