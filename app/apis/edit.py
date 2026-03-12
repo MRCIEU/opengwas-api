@@ -36,7 +36,7 @@ def check_batch_exists(gwas_id, study_indexes):
         reg = r'^([\w]+-[\w]+)-([\w]+)'
         study_prefix, study_id = re.match(reg, gwas_id).groups()
     except AttributeError as e:
-        raise BadRequest("ID is not in correct format <batch>-<section>-<id>: {}".format(gwas_id))
+        raise BadRequest("ID is not in correct format <category>-<study>-<dataset>: {}".format(gwas_id))
     if study_prefix not in study_indexes:
         raise BadRequest("Please use pre-existing batch or contact developers: {}".format(study_prefix))
     return study_prefix
