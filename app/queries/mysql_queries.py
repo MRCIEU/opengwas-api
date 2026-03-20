@@ -145,7 +145,7 @@ class MySQLQueries:
                     Proxies.r2 >= r2,
                     Proxies.palindromic == 0,
                 )
-            ).order_by(asc(Proxies.distance))
+            ).order_by(asc(Proxies.r2), asc(Proxies.distance))
         else:
             query_a = select(*Proxies.__table__.c, literal('a').label('target_column')).where(
                 and_(
@@ -173,9 +173,9 @@ class MySQLQueries:
                     ),
                 )
             )
-            query = union_all(query_a, query_b).order_by(asc(Proxies.distance))
+            query = union_all(query_a, query_b).order_by(asc(Proxies.r2), asc(Proxies.distance))
 
-        # print(query.compile(compile_kwargs={"literal_binds": True}))
+        print(query.compile(compile_kwargs={"literal_binds": True}))
 
         result = Globals.mysql.session.execute(query).mappings().all()
         return self._prepend_rsids(result, ['rsid_a', 'rsid_b'])

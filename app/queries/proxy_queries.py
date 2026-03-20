@@ -6,7 +6,7 @@ from queries.mysql_queries import MySQLQueries
 def get_proxies_from_mysql(
         population: Literal['proxies_afr', 'proxies_amr', 'proxies_eas', 'proxies_eur', 'proxies_sas'],
         target_snps: list[str], r2: float, palindromic: Literal[0, 1], maf_threshold: float,
-        max_proxies_per_target: int = 10
+        max_proxies_per_target: int = 50
 ) -> dict[str, list]:
     """
     :param population:
