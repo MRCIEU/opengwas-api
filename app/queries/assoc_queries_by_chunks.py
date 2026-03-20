@@ -111,6 +111,12 @@ class AssocQueriesByChunks:
 
         n_proc = max(len(tasks), Globals.ASSOC_QUERY_BY_CHUNKS_MAX_N_THREADS)
 
+        # Debug without threadpool
+        # results = []
+        # for t in tasks:
+        #     results.append(_query(t))
+        # print(results)
+
         # tquery.append(time.time())
 
         with ThreadPool(n_proc) as pool:
