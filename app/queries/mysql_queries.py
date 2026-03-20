@@ -175,7 +175,7 @@ class MySQLQueries:
             )
             query = union_all(query_a, query_b).order_by(asc(Proxies.r2), asc(Proxies.distance))
 
-        print(query.compile(compile_kwargs={"literal_binds": True}))
+        # print(query.compile(compile_kwargs={"literal_binds": True}))
 
         result = Globals.mysql.session.execute(query).mappings().all()
         return self._prepend_rsids(result, ['rsid_a', 'rsid_b'])

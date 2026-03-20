@@ -88,6 +88,13 @@ def test_assoc_proxies_2(url, headers):
     assert r.status_code == 200 and len(r.json()) == 6
 
 
+# This snp has 1500+ proxies
+def test_assoc_proxies_3(url, headers):
+    payload = {'id': ['ieu-a-2'], 'variant': ['rs58879558'], 'proxies': 1}
+    r = requests.post(url + "/associations", data=payload, headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 1
+
+
 def test_assoc_rsid(url, headers):
     payload = {'id': ['ieu-b-2'], 'variant': ['rs234']}
     r = requests.post(url + "/associations", data=payload, headers=headers)
