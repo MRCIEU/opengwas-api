@@ -1,7 +1,9 @@
+import json
 import time
 
 from flask import g, send_file
 from flask_restx import Resource, reqparse, abort, Namespace
+from opentelemetry.trace import SpanKind, Status, StatusCode
 
 from middleware.auth import jwt_required
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
@@ -79,29 +81,50 @@ class VariantPost(Resource):
     @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
     def post(self):
         args = self.parser.parse_args()
-        if len(args['rsid']) == 0:
-            abort(400)
 
         start_time = time.time()
 
         result = []
         mysql_queries = MySQLQueries()
 
-        try:
-            snps = mysql_queries.get_snps_by_rsid(args['rsid'])
-            for s in snps:
-                result.append({
-                    '_id': s['rsid'],
-                    '_source': {
-                        'dbSNPBuildID': mysql_queries.dbsnp_build,
-                        'ID': s['rsid'],
-                        'CHROM': mysql_queries._decode_chr(s['chr_id']),
-                        'POS': s['pos'],
-                    }
+        with Globals.tracer.start_as_current_span("variants_rsid", kind=SpanKind.SERVER) as span:
+            span.set_attribute('uuid', g.user['uuid'])
+
+            with Globals.tracer.start_as_current_span("variants_rsid.check_args", kind=SpanKind.SERVER) as span:
+                if len(args['rsid']) == 0:
+                    span.set_status(Status(StatusCode.ERROR, "EMPTY_RSID_LIST"))
+                    return {
+                        "message": "Please provide at least one rsid.",
+                    }, 400
+
+            with Globals.tracer.start_as_current_span("variants_rsid.query", kind=SpanKind.SERVER) as span:
+                try:
+                    snps = mysql_queries.get_snps_by_rsid(args['rsid'])
+                    for s in snps:
+                        result.append({
+                            '_id': s['rsid'],
+                            '_source': {
+                                'dbSNPBuildID': mysql_queries.dbsnp_build,
+                                'ID': s['rsid'],
+                                'CHROM': mysql_queries._decode_chr(s['chr_id']),
+                                'POS': s['pos'],
+                            }
+                        })
+                except Exception as e:
+                    span.set_attributes({
+                        'args': json.dumps(args),
+                    })
+                    span.record_exception(e)
+                    span.set_status(Status(StatusCode.ERROR, "UNABLE_TO_QUERY_VARIANTS_WITH_RSID"))
+                    return {
+                        "message": "Unable to query variants with rsid.",
+                        "trace_id": format(span.get_span_context().trace_id, '016x'),
+                    }, 503
+
+                span.set_attributes({
+                    'n_rsids': len(args['rsid']),
+                    'n_results': len(result),
                 })
-        except Exception as e:
-            logger.error("Could not obtain variant information: {}".format(e))
-            abort(503)
 
         logger_middleware.log(g.user['uuid'], 'variants_get_rsid', start_time, {'rsid': len(args['rsid'])}, len(result))
         return result
@@ -167,16 +190,43 @@ class ChrposPost(Resource):
     @limiter.shared_limit(limit_value=get_allowance_by_user_tier, scope='allowance_by_user_tier', key_func=get_key_func_uid, cost=1)
     def post(self):
         args = self.parser.parse_args()
-        if len(args['chrpos']) == 0 or args['radius'] < 0:
-            abort(400)
 
         start_time = time.time()
 
-        try:
-            result = range_query(args['chrpos'], args['radius'])
-        except Exception as e:
-            logger.error("Could not obtain variant information: {}".format(e))
-            abort(503)
+        with Globals.tracer.start_as_current_span("variants_chrpos", kind=SpanKind.SERVER) as span:
+            span.set_attribute('uuid', g.user['uuid'])
+
+            with Globals.tracer.start_as_current_span("variants_chrpos.check_args", kind=SpanKind.SERVER) as span:
+                if len(args['chrpos']) == 0:
+                    span.set_status(Status(StatusCode.ERROR, "EMPTY_CHRPOS_LIST"))
+                    return {
+                        "message": "Please provide at least one chr:pos combination.",
+                    }, 400
+
+                if args['radius'] < 0:
+                    span.set_status(Status(StatusCode.ERROR, "INVALID_RADIUS_VALUE"))
+                    return {
+                        "message": "Radius should be non-negative.",
+                    }, 400
+
+            with Globals.tracer.start_as_current_span("variants_chrpos.query", kind=SpanKind.SERVER) as span:
+                try:
+                    result = range_query(args['chrpos'], args['radius'])
+                except Exception as e:
+                    span.set_attributes({
+                        'args': json.dumps(args),
+                    })
+                    span.record_exception(e)
+                    span.set_status(Status(StatusCode.ERROR, "UNABLE_TO_QUERY_VARIANTS_WITH_CHRPOS"))
+                    return {
+                        "message": "Unable to query variants with chrpor.",
+                        "trace_id": format(span.get_span_context().trace_id, '016x'),
+                    }, 503
+
+                span.set_attributes({
+                    'n_chrpos': len(args['chrpos']),
+                    'n_results': len(result),
+                })
 
         logger_middleware.log(g.user['uuid'], 'variants_chrpos_post', start_time, {'chrpos': len(args['chrpos'])}, len(result))
         return result
@@ -202,11 +252,39 @@ class GeneGet(Resource):
 
         start_time = time.time()
 
-        try:
-            result = gene_query(gene, args['radius'])
-        except Exception as e:
-            logger.error("Could not obtain variant information: {}".format(e))
-            abort(503)
+        with Globals.tracer.start_as_current_span("variants_gene", kind=SpanKind.SERVER) as span:
+            span.set_attribute('uuid', g.user['uuid'])
+
+            with Globals.tracer.start_as_current_span("variants_gene.check_args", kind=SpanKind.SERVER) as span:
+                if gene is None:
+                    span.set_status(Status(StatusCode.ERROR, "INVALID_GENE_VALUE"))
+                    return {
+                        "message": "Please provide one valid gene identifier.",
+                    }, 400
+                
+                if args['radius'] < 0:
+                    span.set_status(Status(StatusCode.ERROR, "INVALID_RADIUS_VALUE"))
+                    return {
+                        "message": "Radius should be non-negative.",
+                    }, 400
+
+            with Globals.tracer.start_as_current_span("variants_gene.query", kind=SpanKind.SERVER) as span:
+                try:
+                    result = gene_query(gene, args['radius'])
+                except Exception as e:
+                    span.set_attributes({
+                        'args': json.dumps(args),
+                    })
+                    span.record_exception(e)
+                    span.set_status(Status(StatusCode.ERROR, "UNABLE_TO_QUERY_VARIANTS_WITH_GENE"))
+                    return {
+                        "message": "Unable to query variants with gene.",
+                        "trace_id": format(span.get_span_context().trace_id, '016x'),
+                    }, 503
+
+                span.set_attributes({
+                    'n_results': len(result),
+                })
 
         logger_middleware.log(g.user['uuid'], 'variants_gene_get', start_time, n_records=len(result))
         return result
