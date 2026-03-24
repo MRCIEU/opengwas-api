@@ -1,11 +1,12 @@
+import json
 import logging
 import os
 import time
-from random import choices
 
 from flask import send_file, g, jsonify, make_response
 from flask_limiter.util import get_remote_address
 from flask_restx import Resource, Namespace
+from opentelemetry.trace import SpanKind, Status, StatusCode
 from werkzeug.exceptions import BadRequest
 
 from middleware.auth import jwt_required
@@ -65,22 +66,44 @@ class Info(Resource):
 
         start_time = time.time()
 
-        if 'id' not in args or args['id'] is None or len(args['id']) == 0:
-            result = get_all_gwas_for_user(g.user['uid'])
-            logger_middleware.log(g.user['uuid'], 'gwasinfo_post', start_time, {'id': 0}, len(result))
-            return result
+        with Globals.tracer.start_as_current_span("gwasinfo", kind=SpanKind.SERVER) as span:
+            span.set_attribute('uuid', g.user['uuid'])
 
-        recs = []
-        for gwas_info_id in args['id']:
-            try:
-                recs.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
-            except LookupError as e:
-                logger.warning("Could not locate study: {}".format(e))
-                continue
+            with Globals.tracer.start_as_current_span("gwasinfo.query", kind=SpanKind.SERVER) as span:
+                n_ids = 0
+                result = []
 
-        logger_middleware.log(g.user['uuid'], 'gwasinfo_post', start_time, {'id': len(args['id'])},
-                              len(recs), [r['id'] for r in recs])
-        return recs
+                try:
+                    if 'id' not in args or args['id'] is None or len(args['id']) == 0:
+                        result = get_all_gwas_for_user(g.user['uid'])
+                        logger_middleware.log(g.user['uuid'], 'gwasinfo_post', start_time, {'id': 0}, len(result))
+                    else:
+                        n_ids = len(args['id'])
+                        for gwas_info_id in args['id']:
+                            try:
+                                result.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
+                            except LookupError as e:
+                                logger.warning("Could not locate study: {}".format(e))
+                                continue
+                        logger_middleware.log(g.user['uuid'], 'gwasinfo_post', start_time, {'id': len(args['id'])},
+                                              len(result), [r['id'] for r in result])
+                except Exception as e:
+                    span.set_attributes({
+                        'args': json.dumps(args),
+                    })
+                    span.record_exception(e)
+                    span.set_status(Status(StatusCode.ERROR, "UNABLE_TO_QUERY_GWASINFO"))
+                    return {
+                        "message": "Unable to query gwasinfo.",
+                        "trace_id": format(span.get_span_context().trace_id, '016x'),
+                    }, 503
+
+                span.set_attributes({
+                    'n_ids': n_ids,
+                    'n_results': len(result),
+                })
+
+        return result
 
 
 # @api.route('/<id>')

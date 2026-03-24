@@ -219,7 +219,7 @@ class ChrposPost(Resource):
                     span.record_exception(e)
                     span.set_status(Status(StatusCode.ERROR, "UNABLE_TO_QUERY_VARIANTS_WITH_CHRPOS"))
                     return {
-                        "message": "Unable to query variants with chrpor.",
+                        "message": "Unable to query variants with chrpos.",
                         "trace_id": format(span.get_span_context().trace_id, '016x'),
                     }, 503
 
