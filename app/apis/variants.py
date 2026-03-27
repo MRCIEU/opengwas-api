@@ -209,6 +209,14 @@ class ChrposPost(Resource):
                         "message": "Radius should be non-negative.",
                     }, 400
 
+                try:
+                    parse_chrpos(args['chrpos'], args['radius'])
+                except Exception as e:
+                    span.set_status(Status(StatusCode.ERROR, "INVALID_CHRPOS_PAIR"))
+                    return {
+                        "message": "Please provide valid chr:pos combination.",
+                    }, 400
+
             with Globals.tracer.start_as_current_span("variants_chrpos.query", kind=SpanKind.SERVER) as span:
                 try:
                     result = range_query(args['chrpos'], args['radius'])
