@@ -29,8 +29,6 @@ class Status(Resource):
                 return check_elastic()
             case 'AIRFLOW':
                 return check_airflow()
-            case 'REDIS_PHEWAS':
-                return check_phewas_proxy()
             case 'LOGSTASH':
                 return check_logging(n_logs_past_hour)
             case _:
@@ -50,7 +48,6 @@ def check_all(n_logs_past_hour, n_datasets):
         'REFERENCES__PLINK': check_plink(),
         'SERVICES__METADATA': Neo4j.check_running(),
         'SERVICES__ASSOCIATIONS': check_elastic(),
-        'SERVICES__PHEWAS': check_phewas_proxy(),
         'SERVICES__LOGGING': check_logging(n_logs_past_hour),
         'SERVICES__PIPELINE': check_airflow(),
         # 'STATISTICS__N_RECORDS': count_elastic_records(),
@@ -116,22 +113,6 @@ def check_airflow():
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         pass
     return "Error"
-
-
-def check_phewas_proxy():
-    url = f"http://{Globals.app_config['redis']['ieu-ssd-proxy']['host']}:{Globals.app_config['redis']['ieu-ssd-proxy']['port']}"
-    auth = HTTPBasicAuth(Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_username'], Globals.app_config['redis']['ieu-ssd-proxy']['basic_auth_passwd'])
-
-    try:
-        r = requests.post(url + '/', auth=auth, timeout=15)
-        if r.status_code == 200:
-            return "Operational"
-        print("PheWAS proxy status code: {}".format(r.status_code))
-    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-        print("PheWAS proxy timeout or connection error: {}".format(e))
-    except Exception as e:
-        print("PheWAS proxy error: {}".format(e))
-    return "Unavailable"
 
 
 def count_logs_past_hour():
