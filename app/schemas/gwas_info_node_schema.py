@@ -194,3 +194,5 @@ class GwasInfoNodeSchema(FRPMSchema):
     mr = fields.Int(allow_none=True, validate=validate.OneOf([0, 1]), metadata={"description": "Is the dataset suitable for MR studies? Put 1 for yes, or 0 for no (digits only)", "choices": [0, 1]})
     priority = fields.Int(allow_none=True, metadata={"description": "If multiple datasets with the same trait name exist, where does this dataset rank in terms of priority"})
     note = fields.Str(allow_none=True, metadata={"description": "Is there any other information you would like to provide us about your GWAS?"})
+
+    is_nc = fields.Int(allow_none=True, validate=validate.OneOf([0, 1]), metadata={"description": "Is this dataset for non-commercial use only? Put 1 for yes, or 0 for no (digits only)", "choices": [0, 1]})
