@@ -95,7 +95,7 @@ class CacheGwasInfo(Resource):
 
 @api.route('/associations/collect_indices')
 @api.doc(description="Collect pos_prefix_indices for all datasets and merge into one")
-class CacheGwasInfo(Resource):
+class CacheGwasIndices(Resource):
     parser = api.parser()
 
     @api.expect(parser)
