@@ -50,6 +50,13 @@ def test_assoc_unauthed(url):
     assert r.status_code == 401
 
 
+## TODO: Find a public, non-commercial dataset
+# def test_non_commercial_without_approval(url, headers):
+#     payload = {'id': [''], 'variant': ['rs234']}
+#     r = requests.post(url + "/associations", data=payload, headers=headers)
+#     assert r.status_code == 200 and len(r.json()) == 0
+
+
 # No result for ieu-a-998 because it's in the 'developer' group
 def test_assoc_private_no_access(url, headers):
     payload = {'id': ['ieu-a-2', 'ieu-a-7', 'ieu-a-998'], 'variant': ['rs234', 'rs123']}
