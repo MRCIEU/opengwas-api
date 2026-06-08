@@ -119,6 +119,9 @@ def run_phewas(user_email, variants, pval, batch_list=None):
         for cpr in cprange:
             chrpos_by_chr_id[int(mysql_queries._encode_chr(cpr['chr']))].add((cpr['start'], cpr['end']))
 
+    if len(dict(chrpos_by_chr_id)) == 0:
+        return [], 0, 0
+
     time_mysql_start = time.time()
     results_using_gwas_node_ids = mysql_queries.get_phewas_by_chrpos(dict(chrpos_by_chr_id), -math.log10(pval))
     time_mysql_end = time.time()
