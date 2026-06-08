@@ -117,7 +117,7 @@ def get_all_gwas_ids_for_user(uid):
     return recs
 
 
-def get_gwas_for_user(uid, gwasid, datapass=True):
+def get_gwas_for_user(uid, gwasid, datapass=True, is_user_commercial=False, commercial_approval_received=False):
     group_names = get_groups_for_user(uid)
     schema = GwasInfoNodeSchema()
 
@@ -140,7 +140,12 @@ def get_gwas_for_user(uid, gwasid, datapass=True):
     if result is None:
         raise LookupError("GwasInfo ID $gwasid does not exist or you do not have the required access".format(gwasid=gwasid))
 
-    return schema.load(GwasInfo(result['gi']))
+    gi = schema.load(GwasInfo(result['gi']))
+
+    if gi.get('is_nc') == 1 and is_user_commercial and not commercial_approval_received:
+        raise LookupError("As a commercial user you cannot access $gwasid unless permitted by the authors".format(gwasid=gwasid))
+
+    return gi
 
 
 def get_gwas_added_by_user(uid):
@@ -405,7 +410,7 @@ def get_groups_for_user(uid):
 """ Get GwasInfo from list of studies given user permission"""
 
 
-def get_permitted_studies(uid, gwasinfo_ids: list):
+def get_permitted_studies(uid, gwasinfo_ids: list, is_user_commercial=False, commercial_approval_received=False):
     assert isinstance(gwasinfo_ids, list)
     gwasinfo_ids_str = []
     for i in gwasinfo_ids:
@@ -418,8 +423,10 @@ def get_permitted_studies(uid, gwasinfo_ids: list):
         group_names=list(group_names), sid=gwasinfo_ids_str
     )
     res = {}
-    for result in results:
-        res[result['s']['id']] = schema.load(result['s'])
+    for r in results:
+        if is_user_commercial and r['s'].get('is_nc') == 1 and not commercial_approval_received:
+            continue
+        res[r['s']['id']] = schema.load(r['s'])
     return res
 
 
