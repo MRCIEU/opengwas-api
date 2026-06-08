@@ -7,7 +7,7 @@ from opentelemetry.trace import SpanKind, Status, StatusCode
 
 from resources.globals import Globals
 from middleware.after_request import fix_legacy_value_errors
-from middleware.auth import jwt_required
+from middleware.auth import jwt_required, is_user_commercial
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 from queries.assoc_queries_by_chunks import get_assoc_from_chunks
@@ -43,6 +43,8 @@ class AssocPost(Resource):
                          help="Whether to allow palindromic proxies")
     parser.add_argument('maf_threshold', type=float, required=False, default=0.3,
                          help="Maximum MAF allowed for a palindromic variant (< the given value)")
+    parser.add_argument('commercial_approval_received', type=int, required=False, default=0,
+                         help="[Only for commercial users under agreement/contract] Whether to include results from datasets of which commercial use is not allowed as per the metadata. Other users do not need to specify this.")
 
     @api.expect(parser)
     @api.doc(id='assoc_post')
@@ -84,7 +86,7 @@ class AssocPost(Resource):
 
             # Check access
             with Globals.tracer.start_as_current_span("assoc.check_access", kind=SpanKind.SERVER) as span:
-                gwasinfo_permitted = get_permitted_studies(g.user['uid'], args['id'])
+                gwasinfo_permitted = get_permitted_studies(g.user['uid'], args['id'], is_user_commercial(), args['commercial_approval_received'])
                 gwas_ids_permitted = list(gwasinfo_permitted.keys())
                 if len(gwas_ids_permitted) == 0:
                     return []

@@ -7,7 +7,7 @@ from flask import g
 from flask_restx import Resource, reqparse, abort, Namespace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
-from middleware.auth import jwt_required
+from middleware.auth import jwt_required, is_user_commercial
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 from queries.cql_queries import get_permitted_studies
@@ -41,6 +41,8 @@ class Phewas(Resource):
                         help="P-value threshold (must <= 0.01) (exponents not supported through Swagger)")
     parser.add_argument('index_list', type=str, required=False, action='append', default=[],
                         help="List of study indexes. If empty then searches across all indexes.")
+    parser.add_argument('commercial_approval_received', type=int, required=False, default=0,
+                         help="[Only for commercial users under agreement/contract] Whether to include results from datasets of which commercial use is not allowed as per the metadata. Other users do not need to specify this.")
 
     @api.expect(parser)
     @api.doc(id='phewas_post')
@@ -67,7 +69,7 @@ class Phewas(Resource):
             # Query phewas
             with Globals.tracer.start_as_current_span("phewas.query", kind=SpanKind.SERVER) as span:
                 try:
-                    result, n_variants, time_ms = run_phewas(user_email=g.user['uid'], variants=args['variant'], pval=args['pval'], batch_list=args['index_list'])
+                    result, n_variants, time_ms = run_phewas(g.user['uid'], args['variant'], args['pval'], args['index_list'], args['commercial_approval_received'])
                 except Exception as e:
                     span.set_attributes({
                         'args': json.dumps(args),
@@ -97,7 +99,7 @@ class Phewas(Resource):
         return result
 
 
-def run_phewas(user_email, variants, pval, batch_list=None):
+def run_phewas(user_email, variants, pval, batch_list, commercial_approval_received):
     mysql_queries = MySQLQueries()
 
     variants = organise_variants(variants)
@@ -132,7 +134,7 @@ def run_phewas(user_email, variants, pval, batch_list=None):
 
     # Check access
     with Globals.tracer.start_as_current_span("phewas.query_phewas.check_access", kind=SpanKind.SERVER) as span:
-        gwasinfo_permitted = get_permitted_studies(user_email, list(gwas_ids_by_node_ids.values()))
+        gwasinfo_permitted = get_permitted_studies(user_email, list(gwas_ids_by_node_ids.values()), is_user_commercial(), commercial_approval_received)
         gwas_ids_permitted = list(gwasinfo_permitted.keys())
         if len(gwas_ids_permitted) == 0:
             return [], len(chrpos_by_chr_id), 0

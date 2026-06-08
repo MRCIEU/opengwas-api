@@ -9,7 +9,7 @@ from flask_restx import Resource, Namespace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from werkzeug.exceptions import BadRequest
 
-from middleware.auth import jwt_required
+from middleware.auth import jwt_required, is_user_commercial
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
 from queries.cql_queries import *
@@ -141,6 +141,8 @@ class Info(Resource):
 class GetFilesByID(Resource):
     parser = api.parser()
     parser.add_argument('id', required=True, type=str, action='append', default=[], help="List of GWAS IDs")
+    parser.add_argument('commercial_approval_received', type=int, required=False, default=0,
+                         help="[Only for commercial users under agreement/contract] Whether to include results from datasets of which commercial use is not allowed as per the metadata. Other users do not need to specify this.")
 
     @api.expect(parser)
     @api.doc(id='gwasinfo_files_get')
@@ -154,10 +156,10 @@ class GetFilesByID(Resource):
         start_time = time.time()
 
         try:
-            recs = []
-            for gwas_info_id in args['id']:
+            gwasinfo_list = []
+            for id in args['id']:
                 try:
-                    recs.append(get_gwas_for_user(g.user['uid'], str(gwas_info_id)))
+                    gwasinfo_list.append(get_gwas_for_user(g.user['uid'], str(id), is_user_commercial=is_user_commercial(), commercial_approval_received=args['commercial_approval_received']))
                 except LookupError:
                     continue
         except LookupError:
@@ -166,13 +168,13 @@ class GetFilesByID(Resource):
         result = {}
 
         oci = OCIObjectStorage()
-        for rec in recs:
+        for rec in gwasinfo_list:
             result[rec['id']] = [oci.object_storage_par_create('data', path, 'ObjectRead', 'Deny', 3600 * 2, g.user['uuid'] + '.' + rec['id'])
                                  for path in oci.object_storage_list('data', rec['id'] + '/')
                                  if path.endswith(('.vcf.gz', '.vcf.gz.tbi', '_report.html'))]
 
 
-        logger_middleware.log(g.user['uuid'], 'gwasinfo_files_get', start_time, {'id': len(args['id'])}, len(recs), [r['id'] for r in recs])
+        logger_middleware.log(g.user['uuid'], 'gwasinfo_files_get', start_time, {'id': len(args['id'])}, len(gwasinfo_list), [r['id'] for r in gwasinfo_list])
         return result
 
 
