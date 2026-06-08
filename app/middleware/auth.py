@@ -58,6 +58,12 @@ def get_uid(error_on_none=False):
     return g.user['uid']
 
 
+def is_user_commercial():
+    if 'user' not in g:
+        return raise_error('NO_UID')
+    return 'commercial' in g.user.get('tags', [])
+
+
 def get_user_tier(user=None, error_on_none=False):
     if user is None:
         if 'user' not in g:
