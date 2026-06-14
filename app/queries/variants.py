@@ -184,7 +184,9 @@ def gene_query(name, radius):
             if 'genomic_pos_hg19' in m[i]:
                 m = m[i]
                 break
-    if isinstance(m['genomic_pos_hg19'], dict):
+    if isinstance(m, dict) and 'genomic_pos_hg19' not in m:  # e.g. ENSG00000253641 has name and symbol but not genomic_pos_hg19
+       return []
+    if isinstance(m['genomic_pos_hg19'], dict):  # dict (default)
         cprange = m['genomic_pos_hg19']
     else:  # list (e.g. name=ENSG00000111684, more than one cpranges)
         # https://github.com/MRCIEU/opengwas-api/issues/16
