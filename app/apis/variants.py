@@ -281,6 +281,7 @@ class GeneGet(Resource):
                     result = gene_query(gene, args['radius'])
                 except Exception as e:
                     span.set_attributes({
+                        'gene': gene,
                         'args': json.dumps(args),
                     })
                     span.record_exception(e)
