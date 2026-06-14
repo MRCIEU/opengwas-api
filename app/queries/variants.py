@@ -8,29 +8,29 @@ from resources.globals import Globals
 logger = logging.getLogger('debug-log')
 
 
-def es_search(filterData,routing):
-    # catch queries that don't require chromosome specific searches
-    if routing == '':
-        routing = ",".join(map(str, range(1,25)))
-
-    start = time.time()
-    res = Globals.es.search(
-        request_timeout=60,
-        index=Globals.variant_index,
-        routing=routing,
-        body={
-            #"profile":True,
-            "size":100000,
-            "query": {
-                "bool" : {
-                    "filter" : filterData
-                }
-            }
-        })
-    end = time.time()
-    t=round((end - start), 4)
-    print("Time taken:",t, "seconds")
-    return res['hits']['total']['value'],res['hits']['hits']
+# def es_search(filterData,routing):
+#     # catch queries that don't require chromosome specific searches
+#     if routing == '':
+#         routing = ",".join(map(str, range(1,25)))
+#
+#     start = time.time()
+#     res = Globals.es.search(
+#         request_timeout=60,
+#         index=Globals.variant_index,
+#         routing=routing,
+#         body={
+#             #"profile":True,
+#             "size":100000,
+#             "query": {
+#                 "bool" : {
+#                     "filter" : filterData
+#                 }
+#             }
+#         })
+#     end = time.time()
+#     t=round((end - start), 4)
+#     print("Time taken:",t, "seconds")
+#     return res['hits']['total']['value'],res['hits']['hits']
 
 
 # def snps(snp_list):
@@ -158,10 +158,14 @@ def range_query(chrpos: list, radius: int):
 
     for i in range(len(chrpos)):
         cp = chrpos[i]
+        snps = []
 
-        snps = MySQLQueries().get_snps_by_chrpos({
-            int(mysql_queries._encode_chr(cp['chr'])): [(cp['start'], cp['end'])]
-        })
+        try:
+            snps = MySQLQueries().get_snps_by_chrpos({
+                int(mysql_queries._encode_chr(cp['chr'])): [(cp['start'], cp['end'])]
+            })
+        except ValueError:  # E.g. ENSG00000244482, invalid literal for int() with base 10: 'HSCHR19LRC_PGF2_CTG1'
+            continue
 
         for s in snps:
             result.append({
