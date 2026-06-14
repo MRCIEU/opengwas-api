@@ -56,13 +56,20 @@ def test_gene_get1(url, headers):
     assert r.status_code == 200 and len(r.json()) > 2800
 
 
+# Missing the 'genomic_pos_hg19' field
 def test_gene_get2(url, headers):
     r = requests.get(url + "/variants/gene/ENSG00000253641", headers=headers)
     assert r.status_code == 200 and len(r.json()) == 0
 
 
-# https://github.com/MRCIEU/opengwas-api/issues/16
+## Irregular chr (HSCHR19LRC_PGF2_CTG1)
 def test_gene_get3(url, headers):
+    r = requests.get(url + "/variants/gene/ENSG00000244482", headers=headers)
+    assert r.status_code == 200 and len(r.json()) == 0
+
+
+# https://github.com/MRCIEU/opengwas-api/issues/16
+def test_gene_get4(url, headers):
     r = requests.get(url + "/variants/gene/ENSG00000111684", headers=headers)
     assert r.status_code == 200 and len(r.json()) > 15900
 
