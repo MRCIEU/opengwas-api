@@ -183,16 +183,22 @@ def gene_query(name, radius):
     m = mygene.MyGeneInfo().getgene(name, 'name,symbol,genomic_pos_hg19')
     if not m:
         return []
+
+    # Multiple candidates (list of dict)
     if isinstance(m, list):
         for i in range(len(m)):
             if 'genomic_pos_hg19' in m[i]:
                 m = m[i]
                 break
+        else:  # No candidate has pos info
+            return []
+
+    # Single candidate (dict)
     if isinstance(m, dict) and 'genomic_pos_hg19' not in m:  # e.g. ENSG00000253641 has name and symbol but not genomic_pos_hg19
        return []
-    if isinstance(m['genomic_pos_hg19'], dict):  # dict (default)
+    if isinstance(m['genomic_pos_hg19'], dict):  # Single pos
         cprange = m['genomic_pos_hg19']
-    else:  # list (e.g. name=ENSG00000111684, more than one cpranges)
+    else:  # Multiple pos (e.g. name=ENSG00000111684, more than one cpranges)
         # https://github.com/MRCIEU/opengwas-api/issues/16
         cprange = m['genomic_pos_hg19'][0]
         for cpr_candidate in m['genomic_pos_hg19'][1:]:
