@@ -1,5 +1,6 @@
-from flask import make_response, request, g
-from flask_limiter import Limiter, RequestLimit, HEADERS
+from flask import make_response, request
+from flask_limiter import Limiter, RequestLimit
+from flask_limiter.constants import HeaderNames
 from flask_limiter.util import get_remote_address
 import datetime
 import ipaddress
@@ -21,9 +22,9 @@ limiter = Limiter(
     strategy='fixed-window',
     headers_enabled=True,
     header_name_mapping={
-        HEADERS.LIMIT: "X-Allowance-Limit",
-        HEADERS.REMAINING: "X-Allowance-Remaining",
-        HEADERS.RESET: "X-Allowance-Reset"
+        HeaderNames.LIMIT: "X-Allowance-Limit",
+        HeaderNames.REMAINING: "X-Allowance-Remaining",
+        HeaderNames.RESET: "X-Allowance-Reset"
     },
     on_breach=make_429_response,
     storage_uri='redis://:' + Globals.app_config['redis']['oci']['pass'] + '@' + Globals.app_config['redis']['oci']['host'] + ':' + Globals.app_config['redis']['oci']['port'] + '/1',
