@@ -114,7 +114,10 @@ class AssocQueriesByChunks:
         # Debug without threadpool
         # results = []
         # for t in tasks:
-        #     results.append(_query(t))
+        #     try:
+        #         results.append(_query(t))
+        #     except Exception as e:
+        #         print(str(e))
         # print(results)
 
         # tquery.append(time.time())
