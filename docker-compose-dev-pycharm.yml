@@ -1,5 +1,3 @@
-version: '3.4'
-
 networks:
   og-api:
     name: og-api
