@@ -38,7 +38,7 @@ def check_batch_exists(gwas_id, study_indexes):
     except AttributeError as e:
         raise BadRequest("ID is not in correct format <category>-<study>-<dataset>: {}".format(gwas_id))
     if study_prefix not in study_indexes:
-        raise BadRequest("Please use pre-existing batch or contact developers: {}".format(study_prefix))
+        raise BadRequest("Please use an existing batch or contact developers: {}".format(study_prefix))
     return study_prefix
 
 
