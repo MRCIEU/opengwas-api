@@ -102,6 +102,17 @@ def test_assoc_proxies_3(url, headers):
     assert r.status_code == 200 and len(r.json()) == 1
 
 
+# ukb-e datasets used to have beta and eaf flipped by fix_legacy_value_errors().
+# rs6567160 C is the BMI-raising MC4R allele with frequency ~0.3 in South Asians.
+@pytest.mark.parametrize('x_api_source', ['R/TwoSampleMR', 'ieugwasr/1.1.0', 'ieugwasr/1.1.0;TwoSampleMR/0.7.9'])
+def test_assoc_ukb_e_values(url, headers, x_api_source):
+    payload = {'id': ['ukb-e-23104_CSA'], 'variant': ['rs6567160'], 'proxies': 0}
+    r = requests.post(url + "/associations", data=payload, headers={**headers, 'X-API-SOURCE': x_api_source})
+    assert r.status_code == 200 and len(r.json()) == 1
+    a = r.json()[0]
+    assert a['ea'] == 'C' and a['beta'] > 0 and a['eaf'] < 0.5
+
+
 def test_assoc_rsid(url, headers):
     payload = {'id': ['ieu-b-2'], 'variant': ['rs234']}
     r = requests.post(url + "/associations", data=payload, headers=headers)

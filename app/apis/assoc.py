@@ -6,7 +6,6 @@ from flask_restx import Resource, reqparse, abort, Namespace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
 from resources.globals import Globals
-from middleware.after_request import fix_legacy_value_errors
 from middleware.auth import jwt_required, is_user_commercial
 from middleware.limiter import limiter, get_allowance_by_user_tier, get_key_func_uid
 from middleware.logger import logger as logger_middleware
@@ -121,4 +120,4 @@ class AssocPost(Resource):
                               len(result), list(set([r['id'] for r in result])),
                               len(set([r['rsid'] for r in result])))
 
-        return fix_legacy_value_errors(result)
+        return result
