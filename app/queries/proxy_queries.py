@@ -57,7 +57,7 @@ def get_proxies_from_mysql(
                 'distance': 0,
             }]
         else:
-            result[target] = [{'target': target, 'proxy': target, 'distance': 0}] + sorted(result[target], key=lambda x: x['distance'])[:max_proxies_per_target]
+            result[target] = [{'target': target, 'proxy': target, 'distance': 0}] + sorted(result[target], key=lambda x: (-x['r2'], abs(x['distance'])))[:max_proxies_per_target]
     return dict(result)
 
 

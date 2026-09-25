@@ -1,6 +1,6 @@
 from decimal import Decimal, getcontext
 from typing import Literal, Iterable, Union
-from sqlalchemy import or_, and_, between, union_all, select, case, asc, literal
+from sqlalchemy import or_, and_, between, union_all, select, case, asc, desc, literal
 
 from queries.models.dbsnp import DBSNP
 from queries.models.phewas import PheWAS
@@ -145,7 +145,7 @@ class MySQLQueries:
                     Proxies.r2 >= r2,
                     Proxies.palindromic == 0,
                 )
-            ).order_by(asc(Proxies.r2), asc(Proxies.distance))
+            ).order_by(desc(Proxies.r2), asc(Proxies.distance))
         else:
             query_a = select(*Proxies.__table__.c, literal('a').label('target_column')).where(
                 and_(
@@ -173,7 +173,7 @@ class MySQLQueries:
                     ),
                 )
             )
-            query = union_all(query_a, query_b).order_by(asc(Proxies.r2), asc(Proxies.distance))
+            query = union_all(query_a, query_b).order_by(desc(Proxies.r2), asc(Proxies.distance))
 
         # print(query.compile(compile_kwargs={"literal_binds": True}))
 
