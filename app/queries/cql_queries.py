@@ -47,7 +47,7 @@ def update_batches_stats():
 
 def get_all_gwas_ids_by_n_id() -> dict:
     result = {}
-    ids = Neo4j.get_db().run("MATCH (n:GwasInfo) RETURN COLLECT(n.id) AS gwas_id, COLLECT(id(n)) AS id_n").single()
+    ids = Neo4j.get_db().run("MATCH (gi:GwasInfo)-[:DID_QC {data_passed:True}]->(:User) RETURN COLLECT(gi.id) AS gwas_id, COLLECT(id(gi)) AS id_n").single()
     for i in range(len(ids[0])):
         result[ids[1][i]] = ids[0][i]
     return result
