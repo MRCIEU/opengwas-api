@@ -49,7 +49,7 @@ def check_all(n_logs_past_hour, n_datasets):
         'SERVICES__METADATA': Neo4j.check_running(),
         'SERVICES__ASSOCIATIONS': check_elastic(),
         'SERVICES__LOGGING': check_logging(n_logs_past_hour),
-        'SERVICES__PIPELINE': check_airflow(),
+        'SERVICES__INGESTION_PIPELINE': check_airflow(),
         # 'STATISTICS__N_RECORDS': count_elastic_records(),
         'STATISTICS__N_DATASETS': n_datasets,
         'STATISTICS__N_PUBLIC_DATASETS': count_cache_datasets(),
@@ -100,7 +100,7 @@ def check_elastic():
 
 
 def check_airflow():
-    url = f"http://{Globals.app_config['airflow']['host']}:{Globals.app_config['airflow']['port']}/api/v1/health"
+    url = f"http://{Globals.app_config['airflow']['host']}:{Globals.app_config['airflow']['port']}/api/v2/monitor/health"
 
     try:
         r = requests.get(url, timeout=15)
@@ -108,7 +108,8 @@ def check_airflow():
         if (r.status_code == 200 and
                 rj['metadatabase']['status'] == 'healthy' and
                 rj['scheduler']['status'] == 'healthy' and
-                rj['triggerer']['status'] == 'healthy'):
+                rj['triggerer']['status'] == 'healthy' and
+                rj['dag_processor']['status'] == 'healthy'):
             return "Operational"
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         pass
